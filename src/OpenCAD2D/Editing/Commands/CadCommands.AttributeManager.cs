@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// BATTMAN, AutoCAD's Block Attribute Manager: the attribute definitions of a block listed, moved up and down, edited and

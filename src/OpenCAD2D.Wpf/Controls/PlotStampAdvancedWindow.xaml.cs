@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The Advanced Options of AutoCAD's Plot Stamp dialog over a copy of the stamp; its logic is <see cref="PlotStampViewModel"/>.</summary>
     public partial class PlotStampAdvancedWindow : Window

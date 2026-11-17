@@ -7,7 +7,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>The MTEXT editor's frame sets its words by the display's layout: the lines the canvas draws, and the caret moving with them as they wrap.</summary>
     public class MTextEditBoxTests

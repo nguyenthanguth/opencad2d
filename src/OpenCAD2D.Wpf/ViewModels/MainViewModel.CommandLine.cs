@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// A row of the command line's AutoComplete list: a command, a synonym of one or a system variable whose name holds what is

@@ -7,7 +7,7 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The clipboard commands as AutoCAD's: COPYCLIP (Ctrl+C), CUTCLIP (Ctrl+X) and COPYBASE (Ctrl+Shift+C) put the objects

@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// How the MTEXT editor's Find and Replace dialog matches words, as AutoCAD 2021's has it: Match case, Whole words only, Use

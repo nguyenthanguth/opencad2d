@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>A word of the MTEXT editor that is not in the dictionary: where it stands, how long it is, and the letters.</summary>
     public sealed class CadMisspelledWord

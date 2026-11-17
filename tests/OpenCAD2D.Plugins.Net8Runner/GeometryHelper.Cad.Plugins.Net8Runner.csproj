@@ -5,7 +5,7 @@
     with the drawing it ran on still alive, and the drawing plugin rebuilt while loaded and reloaded runs its new code. A
     console that prints PASS or FAIL per check and exits 1 on a failure:
 
-      dotnet run -c Release (project tests/GeometryHelper.Dxf.Viewer.Plugins.Net8Runner)
+      dotnet run -c Release (project tests/GeometryHelper.Cad.Plugins.Net8Runner)
 
     It builds a second version of each sample plugin with the dotnet SDK, in a folder of the temporary folder.
   -->
@@ -21,11 +21,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\GeometryHelper\GeometryHelper.csproj" />
-        <ProjectReference Include="..\..\src\GeometryHelper.Dxf.Viewer\GeometryHelper.Dxf.Viewer.csproj" />
-        <ProjectReference Include="..\..\src\GeometryHelper.Dxf.Viewer.Wpf\GeometryHelper.Dxf.Viewer.Wpf.csproj" />
+        <ProjectReference Include="..\..\src\GeometryHelper.Cad\GeometryHelper.Cad.csproj" />
+        <ProjectReference Include="..\..\src\GeometryHelper.Cad.Wpf\GeometryHelper.Cad.Wpf.csproj" />
         <!-- Built first, never referenced: the sample is loaded as a plugin, from SamplePlugin\ beside the runner. -->
         <ProjectReference
-            Include="..\GeometryHelper.Dxf.Viewer.SamplePlugin\GeometryHelper.Dxf.Viewer.SamplePlugin.csproj"
+            Include="..\GeometryHelper.Cad.SamplePlugin\GeometryHelper.Cad.SamplePlugin.csproj"
             ReferenceOutputAssembly="false"
         />
         <ProjectReference Include="..\..\src\GeometryHelper.Drawing\GeometryHelper.Drawing.csproj" />
@@ -37,8 +37,8 @@
 
     <ItemGroup>
         <None
-            Include="..\GeometryHelper.Dxf.Viewer.SamplePlugin\bin\$(Configuration)\netstandard2.0\GeometryHelper.Dxf.Viewer.SamplePlugin.dll"
-            Link="SamplePlugin\GeometryHelper.Dxf.Viewer.SamplePlugin.dll"
+            Include="..\GeometryHelper.Cad.SamplePlugin\bin\$(Configuration)\netstandard2.0\GeometryHelper.Cad.SamplePlugin.dll"
+            Link="SamplePlugin\GeometryHelper.Cad.SamplePlugin.dll"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />
@@ -49,7 +49,7 @@
             Visible="false"
         />
         <None
-            Include="..\GeometryHelper.Dxf.Viewer.SamplePlugin\CircleTools.cs"
+            Include="..\GeometryHelper.Cad.SamplePlugin\CircleTools.cs"
             Link="SamplePlugin\CircleTools.cs.txt"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"

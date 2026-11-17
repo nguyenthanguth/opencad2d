@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What WMFIN takes from a TrueType font file to place a text as AutoCAD does: the ascent of the font's cell, the height of

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// PNGOUT, JPGOUT and BMPOUT's file, asked through a function the workspace sets, as AutoCAD's Create Raster File dialog;

@@ -10,7 +10,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using SkiaSharp;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A pattern offered by the Hatch dialog: its name, its description and the file it is of.</summary>
     public sealed class HatchPatternChoice

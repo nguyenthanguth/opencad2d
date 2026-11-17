@@ -8,9 +8,9 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// DWG in the presenter, as AutoCAD 2021 takes it: a DWG opened as its drawing and saved back as a DWG of AutoCAD 2018, a

@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// PUBLISH and -PUBLISH shown through a function the workspace sets, so that a test drives them with none: the Publish dialog

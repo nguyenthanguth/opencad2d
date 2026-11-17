@@ -6,7 +6,7 @@ using System.Windows;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The dialogs left by earlier rounds driven with no window shown: Multiline Style (MLSTYLE) with its New, Modify, Rename,

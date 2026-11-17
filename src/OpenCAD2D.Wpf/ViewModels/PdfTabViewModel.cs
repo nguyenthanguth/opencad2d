@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The PDF underlays selected on the canvas and the contextual PDF Underlay tab over them, in the look of the Image tab:

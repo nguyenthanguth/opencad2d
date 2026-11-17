@@ -11,7 +11,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The palette's Bind… and the Bind Xrefs/DGN Underlays dialog, to the design (XrefBindMenu, XrefBind, XrefBindRefused):

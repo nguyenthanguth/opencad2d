@@ -5,7 +5,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Windows clipboard as the presenter's (<see cref="ICadClipboard"/>): objects go under the private format

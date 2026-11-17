@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Dxf.Viewer.Wpf.EditAttributesWindow"
+    x:Class="GeometryHelper.Cad.Wpf.EditAttributesWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:dxf="clr-namespace:GeometryHelper.Dxf.Viewer;assembly=GeometryHelper.Dxf.Viewer"
+    xmlns:dxf="clr-namespace:GeometryHelper.Cad;assembly=GeometryHelper.Cad"
     Title="Edit Attributes"
     Width="520"
     Height="460"
@@ -15,7 +15,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/BlockDialogs.xaml" />
+                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>

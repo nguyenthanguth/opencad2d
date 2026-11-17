@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The cell styles of the Table Cell tab: Title, Header and Data and those a user makes (Create New Cell Style, Manage Cell

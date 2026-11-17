@@ -2,13 +2,13 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Wpf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// OLE frames plotted: the picture of a bitmap frame in a PNG and a PDF, red and blue at high graphics and black at

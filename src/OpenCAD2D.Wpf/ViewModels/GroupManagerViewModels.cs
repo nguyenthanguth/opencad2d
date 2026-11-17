@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A row of the Object Grouping list: the group's name and whether it is selectable, Yes or No.</summary>
     public sealed class GroupRowViewModel

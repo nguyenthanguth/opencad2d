@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What <see cref="CadDesignCenter.Add"/> did: the names brought in, those the drawing kept as they were, and what went wrong.</summary>
     public sealed class CadDesignCenterResult

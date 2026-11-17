@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>DIMJOGGED: a jogged radius, its line drawn from a centre put in place of one off the drawing.</summary>
     /// <remarks>

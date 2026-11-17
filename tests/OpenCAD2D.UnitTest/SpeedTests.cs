@@ -1,12 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Wpf;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     [Collection(ViewerSpeedCollection.Name)]
     public class SpeedTests

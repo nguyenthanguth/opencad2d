@@ -5,7 +5,7 @@ using System.Windows;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// PNGOUT, JPGOUT and BMPOUT in the window, offscreen on an STA thread: the file asked through the Create Raster File

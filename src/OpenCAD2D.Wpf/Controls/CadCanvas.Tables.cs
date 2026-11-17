@@ -7,7 +7,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The canvas's part of a table, as AutoCAD 2021 draws and drags it: the column letters and row numbers round the cells

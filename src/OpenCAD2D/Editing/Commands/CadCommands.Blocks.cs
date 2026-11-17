@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The block commands, in AutoCAD's words: BLOCK and -BLOCK, INSERT and -INSERT, WBLOCK and -WBLOCK, ATTDEF and -ATTDEF,

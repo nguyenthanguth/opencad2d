@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The edits of layers in the viewports of the layouts, as the VP columns of AutoCAD's Layer manager, VPLAYER and LAYVPI

@@ -8,7 +8,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The JSON of the tool palettes. A file is an object with <c>format</c> (<c>GeometryHelper.ToolPalettes</c>),

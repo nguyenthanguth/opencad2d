@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What UNDO's Control option lets the undo list keep, as AutoCAD 2021's UNDO Control does.</summary>
     internal enum CadUndoControl

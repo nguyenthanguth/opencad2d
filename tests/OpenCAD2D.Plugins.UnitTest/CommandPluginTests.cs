@@ -2,11 +2,11 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins.UnitTest
+namespace GeometryHelper.Cad.Plugins.UnitTest
 {
     public class CommandPluginTests
     {

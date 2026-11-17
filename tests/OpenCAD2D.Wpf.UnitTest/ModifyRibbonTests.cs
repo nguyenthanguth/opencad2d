@@ -11,7 +11,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Home › Modify laid out as AutoCAD 2021's panel, found in the window drawn offscreen: its buttons, Erase, Explode and Offset

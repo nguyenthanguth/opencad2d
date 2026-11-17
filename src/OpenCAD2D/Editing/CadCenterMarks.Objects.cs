@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Export;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The associative objects AutoCAD 2021 writes with a center mark or a center line, as its DXF showed them: an

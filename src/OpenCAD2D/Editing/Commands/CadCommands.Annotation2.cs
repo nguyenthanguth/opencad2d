@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The annotation commands of the acad.pgp plan, batch 2: DIMOVERRIDE, TEXTALIGN, MLEADERALIGN, MLEADERCOLLECT,

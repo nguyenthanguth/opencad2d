@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// PNGOUT, JPGOUT and BMPOUT, as AutoCAD 2021's: the file asked for, by the window's Create Raster File dialog or on the

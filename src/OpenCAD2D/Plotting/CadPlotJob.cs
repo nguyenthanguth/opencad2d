@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A plot a command hands to the window (<see cref="CadUiRequestEventArgs.Plot"/>): the space, how it is plotted, what the

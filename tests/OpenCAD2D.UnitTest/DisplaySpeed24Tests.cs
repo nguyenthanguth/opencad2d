@@ -6,9 +6,9 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.TestDrawings;
+using static GeometryHelper.Cad.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The work of small1 in the display: an open polyline with a bulge in a tilted plane, which is read as a chain of arcs in

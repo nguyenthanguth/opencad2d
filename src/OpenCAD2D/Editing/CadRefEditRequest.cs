@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// AutoCAD 2021's Reference Edit dialog of REFEDIT, as data the command and the window share: the references the point

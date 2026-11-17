@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>The clipboard between the window's drawings, Paste Special, the TEXT edit box and the MTEXT editor with its Text Editor tab, driven through the view model.</summary>
     public class ClipboardAndTextEditorTests

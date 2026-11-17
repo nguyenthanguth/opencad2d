@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The point style, in AutoCAD's words: PTYPE (DDPTYPE) shows the window's Point Style dialog, or with none asks PDMODE and

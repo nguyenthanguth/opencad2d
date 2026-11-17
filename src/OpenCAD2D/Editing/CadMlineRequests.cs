@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What MLSTYLE gives its Multiline Style dialog: the styles of the drawing, the current one, and the buttons of AutoCAD

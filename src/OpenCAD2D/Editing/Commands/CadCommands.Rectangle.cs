@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// RECTANG with its options, as AutoCAD 2021 asks them: Chamfer, Elevation, Fillet, Thickness and Width at the first

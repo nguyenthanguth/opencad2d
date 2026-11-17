@@ -3,7 +3,7 @@ using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// A picture file read by the presenter's own decoders (TGA, PCX, TIFF, a DIB or an RLE bitmap: <see cref="CadRasterReader"/>)

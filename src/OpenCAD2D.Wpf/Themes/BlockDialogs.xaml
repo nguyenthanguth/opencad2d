@@ -5,8 +5,8 @@
     <!-- The parts the block dialogs share (Block Definition, Blocks palette, Write Block, Attribute Definition, the Enhanced
          Attribute Editor), on top of Dark.xaml and StyleDialogs.xaml. -->
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/Dark.xaml" />
-        <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/StyleDialogs.xaml" />
+        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
+        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/StyleDialogs.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!-- A group of the board's: a frame with its legend set in its top edge. -->

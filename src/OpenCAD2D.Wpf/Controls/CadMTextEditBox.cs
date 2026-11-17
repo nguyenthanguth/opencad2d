@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The MTEXT editor's frame on the canvas, as the design draws it: the ruler on top (the tab type box at its left end,

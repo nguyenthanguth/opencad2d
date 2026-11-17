@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using SkiaSharp;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// Writes the image of PNGOUT, JPGOUT and BMPOUT (<see cref="CadImageJob"/>): the view drawn by

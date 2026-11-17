@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// UNION, SUBTRACT and INTERSECT of regions, as AutoCAD 2021 makes them (it makes them of solids too, which the presenter

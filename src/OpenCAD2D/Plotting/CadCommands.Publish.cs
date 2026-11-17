@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// PUBLISH and -PUBLISH, as AutoCAD 2021's. PUBLISH hands the window the list of the drawing open (its Model and layouts, each

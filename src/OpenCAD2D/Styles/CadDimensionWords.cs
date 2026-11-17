@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The words of a dimension's picture measured as AutoCAD 2021 measures them to lay the picture out: as wide as their

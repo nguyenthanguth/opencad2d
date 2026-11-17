@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The style commands: STYLE (the Text Style dialog, else -STYLE's prompts), -STYLE typed in AutoCAD's words, and DIMSTYLE

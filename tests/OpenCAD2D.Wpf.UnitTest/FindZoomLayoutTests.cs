@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Find and Replace's Zoom to objects shows the space the objects are in as a click on its tab does: one undo step that

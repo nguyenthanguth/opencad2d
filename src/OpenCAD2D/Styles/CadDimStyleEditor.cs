@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The edits of the dimension style table, as AutoCAD's Dimension Style Manager (DIMSTYLE) makes them: each one undo step

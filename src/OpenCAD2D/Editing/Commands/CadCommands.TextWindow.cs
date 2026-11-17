@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>TEXTSCR, which F2 runs: the text window with the command history, which the window shows.</summary>
     internal static partial class CadCommands

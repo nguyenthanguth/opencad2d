@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Viewports clipped by an entity (VPCLIP): the outline a clipped viewport shows through, the entity and the viewport taken

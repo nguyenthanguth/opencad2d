@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>One page of a PDF: its dictionary with the attributes it inherits, and the box it shows.</summary>
     internal sealed class PdfPage

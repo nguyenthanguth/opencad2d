@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The layers of a PDF underlay the user switched on or off (PDFLAYERS), which the underlay keeps beside the PDF's own

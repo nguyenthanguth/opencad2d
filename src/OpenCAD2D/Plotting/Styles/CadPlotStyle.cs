@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>How the end of a plotted line is shaped, as the Line end style list of the Plot Style Table Editor; the values are the ones a table file keeps.</summary>
     public enum CadPlotLineEnd

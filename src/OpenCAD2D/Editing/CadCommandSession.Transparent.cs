@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// PAN, ZOOM, CAL, SETVAR, the settings ORTHO, POLAR, OSNAP, GRID and SNAP, DIST, ID, LAYER, COLOR, LINETYPE, LWEIGHT,

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// SKETCH: freehand lines. It writes "Type = Lines  Increment = 0.1000  Tolerance = 0.5000" and asks "Specify sketch or

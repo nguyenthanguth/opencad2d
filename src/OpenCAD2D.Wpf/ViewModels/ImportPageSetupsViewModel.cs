@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A page setup of another drawing in the Import Page Setups list, ticked to be copied.</summary>
     public sealed class ImportPageSetupRow : ObservableObject

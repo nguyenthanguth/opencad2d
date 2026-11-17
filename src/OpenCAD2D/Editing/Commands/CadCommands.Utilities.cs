@@ -5,7 +5,7 @@ using System.IO;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The commands of the Utilities panel and the drawing utilities: SELECTALL, MEASUREGEOM (Distance, Radius, Angle, ARea),

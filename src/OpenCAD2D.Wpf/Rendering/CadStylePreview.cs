@@ -5,7 +5,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using SkiaSharp;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The previews of the style dialogs: a drawing of their own (a sample text, sample dimensions) drawn by the canvas's own

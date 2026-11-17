@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The formula of an AcExpr field, as AutoCAD 2021 works one out (checked in its console): numbers, brackets, + - * / ^ and

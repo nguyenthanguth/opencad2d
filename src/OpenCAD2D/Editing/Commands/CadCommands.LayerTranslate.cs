@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// LAYTRANS, AutoCAD 2021's Layer Translator: a dialog that maps the layers of the drawing to the layers of a standards

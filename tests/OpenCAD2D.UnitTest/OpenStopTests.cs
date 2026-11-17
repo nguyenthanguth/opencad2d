@@ -5,7 +5,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// A drawing opened from a path that a token stops, as the window opens one on a worker thread that Esc and Stop stop:

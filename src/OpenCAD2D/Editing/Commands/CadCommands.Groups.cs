@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The groups, in AutoCAD's words: GROUP makes one of the objects selected, named or unnamed; -GROUP lists, orders, adds

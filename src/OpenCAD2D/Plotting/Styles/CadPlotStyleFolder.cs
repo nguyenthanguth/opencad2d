@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The folder of plot style tables the Plot and Page Setup dialogs list and a plot reads, as AutoCAD's Plot Styles folder,

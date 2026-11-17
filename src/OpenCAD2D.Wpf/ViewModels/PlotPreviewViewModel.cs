@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>What a drag does in the plot preview, as the buttons of its toolbar and its shortcut menu choose.</summary>
     public enum PlotPreviewMode

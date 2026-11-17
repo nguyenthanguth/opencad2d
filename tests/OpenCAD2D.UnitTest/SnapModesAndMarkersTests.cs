@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>The snaps Node and Geometric Center, the override of one point, and AutoCAD's markers as data.</summary>
     public class SnapModesAndMarkersTests

@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>XCLIP: the clip boundary of block references and external references, as AutoCAD 2021's.</summary>
     internal static partial class CadCommands

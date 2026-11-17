@@ -8,15 +8,15 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
+using GeometryHelper.Cad;
+using GeometryHelper.Cad.Plugins;
+using GeometryHelper.Cad.Wpf.Plugins;
 using GeometryHelper.Drawing;
 using GeometryHelper.Drawing.Plugins;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer;
-using GeometryHelper.Dxf.Viewer.Plugins;
-using GeometryHelper.Dxf.Viewer.Wpf.Plugins;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins.Net8Runner
+namespace GeometryHelper.Cad.Plugins.Net8Runner
 {
     /// <summary>
     /// The plugin checks only .NET 8 can make: the sample plugin rebuilt while loaded and reloaded runs its new code, and
@@ -24,7 +24,7 @@ namespace GeometryHelper.Dxf.Viewer.Plugins.Net8Runner
     /// </summary>
     internal static class Program
     {
-        private const string Sample = "GeometryHelper.Dxf.Viewer.SamplePlugin";
+        private const string Sample = "GeometryHelper.Cad.SamplePlugin";
         private const string FirstDone = "Numbered {0} circles.";
         private const string SecondDone = "Second build: numbered {0} circles.";
 

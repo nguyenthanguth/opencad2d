@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What EXPORTPDF's Save As PDF dialog sets beside the file, as AutoCAD 2021's Output Controls: whether the PDF opens in

@@ -8,9 +8,10 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Markup;
 using System.Xml.Linq;
+using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The Table Cell Format dialog opened by the Format "..." button of the Modify Table Style dialog: the window made as its
@@ -212,7 +213,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
             string folder = Path.Combine(
                 bin.Parent.Parent.Parent.Parent.Parent.FullName,
                 "src",
-                "GeometryHelper.Dxf.Viewer.Wpf"
+                "GeometryHelper.Cad.Wpf"
             );
             Assert.True(Directory.Exists(folder), folder);
             return folder;

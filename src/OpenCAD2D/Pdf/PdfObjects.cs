@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>Why a PDF cannot be read: a file that is no PDF, an encrypted one, or one cut short beyond repair.</summary>
     internal sealed class PdfException : Exception

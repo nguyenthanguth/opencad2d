@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// One row of the DRAWINGS list: the header of a folder ("D:\Plans\Workshop A · DXF"), or a file in it with a line of

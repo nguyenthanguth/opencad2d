@@ -6,10 +6,10 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
-using static GeometryHelper.Dxf.Viewer.UnitTest.OleFrameDisplayTests;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.OleFrameDisplayTests;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// INSERTOBJ's Create from File for a bitmap or a PNG, the frame it makes at the upper left of the view as one undo step,

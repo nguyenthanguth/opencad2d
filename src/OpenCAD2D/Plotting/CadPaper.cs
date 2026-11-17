@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A sheet of paper a plot is laid on, as the Paper size list of AutoCAD's Plot dialog offers it: its name, its size in

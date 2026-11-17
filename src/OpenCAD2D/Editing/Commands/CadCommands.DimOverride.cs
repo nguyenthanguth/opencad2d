@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// DIMOVERRIDE (DOV), as AutoCAD 2021's (its prompts and answers probed in its console): "Enter dimension variable name to

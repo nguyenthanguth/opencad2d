@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins
+namespace GeometryHelper.Cad.Plugins
 {
     /// <summary>What was done to a plugin, as the load log says it.</summary>
     public enum CadPluginAction

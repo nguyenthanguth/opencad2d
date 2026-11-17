@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The MTEXT editor's Column Settings dialog, as AutoCAD 2021's and the design draw it: the column type, number, height

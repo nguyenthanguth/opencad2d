@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Runs the content stream of a PDF page and gathers what it draws as a <see cref="PdfScene"/>: paths filled and stroked

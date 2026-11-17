@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using SkiaSharp;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>How the canvas draws a space.</summary>
     public sealed class CanvasOptions

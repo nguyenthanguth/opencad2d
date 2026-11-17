@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The modify commands that cut and run on curves, as AutoCAD 2021's: TRIM, EXTEND, BREAK, BREAKATPOINT, JOIN and LENGTHEN.

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The dialogs of PLOTSTAMP, IMAGEADJUST, ATTEXT and XBIND, over the typed commands; with no window each asks on the

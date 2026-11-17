@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What a hatch is filled with, as the Hatch Type box of AutoCAD's Hatch Creation tab offers it.</summary>
     public enum CadHatchType

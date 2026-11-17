@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The small dialog of the Data Link Manager's Rename: the new name of a data link, dark as the window's other dialogs.</summary>
     public partial class DataLinkNameWindow : Window

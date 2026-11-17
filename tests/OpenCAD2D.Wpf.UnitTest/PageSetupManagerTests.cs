@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The Page Setup Manager that PAGESETUP opens, driven with no window: the page setups listed with how they plot, Set

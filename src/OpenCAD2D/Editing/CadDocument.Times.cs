@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The clocks of the drawing TIME shows (<see cref="CadDocumentTimes"/>).</summary>
     public sealed partial class CadDocument

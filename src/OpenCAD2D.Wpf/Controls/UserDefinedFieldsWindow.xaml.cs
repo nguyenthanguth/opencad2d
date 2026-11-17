@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's User Defined Fields, from Add / Edit… of Plot Stamp; its logic is <see cref="UserDefinedFieldsViewModel"/>.</summary>
     public partial class UserDefinedFieldsWindow : Window

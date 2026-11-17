@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A row of Edit Drawing Scales' Scale List: one scale of the list the dialog is editing.</summary>
     public sealed class ScaleRowViewModel : ObservableObject

@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins
+namespace GeometryHelper.Cad.Plugins
 {
     /// <summary>
     /// Loads the assemblies of a plugin for <see cref="CadPluginManager"/>, and unloads them, as the runtime allows: on .NET 8
     /// each plugin into a collectible load context of its own, which unloading frees; on .NET Framework into the one
     /// AppDomain, from which nothing is ever unloaded. The presenter's controls give the loader of the runtime they run on
-    /// (<c>GeometryHelper.Dxf.Viewer.Wpf.Plugins.CadPluginAssemblyLoader</c>); this library, built for netstandard2.0, has
+    /// (<c>GeometryHelper.Cad.Wpf.Plugins.CadPluginAssemblyLoader</c>); this library, built for netstandard2.0, has
     /// no load contexts to give one of its own.
     /// </summary>
     public abstract class CadPluginLoader
@@ -17,7 +17,7 @@ namespace GeometryHelper.Dxf.Viewer.Plugins
 
         /// <summary>
         /// Loads a plugin's assemblies from the copies of its files the manager made (its shadow copy). An assembly the
-        /// presenter has itself, as GeometryHelper.Dxf.Viewer, is not loaded a second time: the plugin is given the
+        /// presenter has itself, as GeometryHelper.Cad, is not loaded a second time: the plugin is given the
         /// presenter's.
         /// </summary>
         /// <param name="name">The plugin's name, which names its load context.</param>

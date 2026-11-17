@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>WMFIN in the window: its file asked by the window's Open dialog, titled Import WMF, and the description of the command.</summary>
     public class WmfInWindowTests : IDisposable

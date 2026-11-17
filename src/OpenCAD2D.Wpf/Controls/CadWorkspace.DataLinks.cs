@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The windows of data links and data extraction in the workspace: the Data Link Manager, the Select a Data Link picker, the Excel data link dialog of Edit, and the Data Extraction wizard.</summary>
     public partial class CadWorkspace

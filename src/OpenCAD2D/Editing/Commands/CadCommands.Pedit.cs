@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>PEDIT, as AutoCAD 2021 asks it and stores what it makes (checked in AutoCAD's own console).</summary>
     internal static partial class CadCommands

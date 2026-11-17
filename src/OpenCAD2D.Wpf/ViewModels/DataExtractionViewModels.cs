@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The pages of the Data Extraction wizard, in the order AutoCAD 2021 shows them.</summary>
     public enum DataExtractionPage

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// SETBYLAYER, as AutoCAD 2021 asks it (the prompts are those of its own string table): "Current active settings:" with the

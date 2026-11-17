@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The contextual Hatch Creation and Hatch Editor tabs over their one set of values, as AutoCAD 2021 draws them: Boundaries

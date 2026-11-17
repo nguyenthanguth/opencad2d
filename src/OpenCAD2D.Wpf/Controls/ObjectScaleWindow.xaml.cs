@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Annotation Object Scale dialog, which OBJECTSCALE shows; its logic is <see cref="ObjectScaleViewModel"/>.</summary>
     public partial class ObjectScaleWindow : Window

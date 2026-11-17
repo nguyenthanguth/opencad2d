@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// PLOT (Ctrl+P), PAGESETUP and PREVIEW shown through functions the workspace sets, so that a test drives them with none,

@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// SNAP, GRID and the variables of the snap and the grid typed, in AutoCAD 2021's words as accoreconsole gives them:

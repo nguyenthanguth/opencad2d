@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Dxf.Viewer.Wpf.SelectArrowBlockWindow"
+    x:Class="GeometryHelper.Cad.Wpf.SelectArrowBlockWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Dxf.Viewer.Wpf"
+    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
     Title="Select Custom Arrow Block"
     Width="340"
     Height="168"
@@ -15,7 +15,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/BlockDialogs.xaml" />
+                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <local:BoolToVisibilityConverter x:Key="Shown" />
             <local:BoolToVisibilityConverter x:Key="Hidden" Invert="True" />

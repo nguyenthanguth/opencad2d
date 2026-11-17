@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// LAYWALK's LayerWalk and LAYTRANS's Layer Translator, each a dialog shown through a function the workspace sets, and the

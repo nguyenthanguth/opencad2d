@@ -1,8 +1,8 @@
 <UserControl
-    x:Class="GeometryHelper.Dxf.Viewer.Wpf.CadWorkspace"
+    x:Class="GeometryHelper.Cad.Wpf.CadWorkspace"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Dxf.Viewer.Wpf"
+    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
     FontFamily="{DynamicResource GhFont}"
     FontSize="12"
@@ -15,9 +15,9 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/Dark.xaml" />
-                <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/Icons.xaml" />
-                <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/Recent.xaml" />
+                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
+                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Icons.xaml" />
+                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Recent.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <local:BoolToVisibilityConverter x:Key="Shown" />

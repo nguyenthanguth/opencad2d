@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The canvas menu items AutoCAD 2021 wires to HATCHSETORIGIN (Set Origin of a hatch), TABLEEXPORT (Export of a table) and

@@ -1,7 +1,7 @@
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A distance or an angle asked with no base point and given by two points, as AutoCAD 2021 takes them: a point typed or

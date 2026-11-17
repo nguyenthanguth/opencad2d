@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>An axis-aligned box in drawing coordinates, as the extents of a display item or of a whole space.</summary>
     public readonly struct DisplayBox

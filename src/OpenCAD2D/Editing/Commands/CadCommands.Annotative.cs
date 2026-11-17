@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// -OBJECTSCALE, AIOBJECTSCALEADD and AIOBJECTSCALEREMOVE: the scales an annotative object is shown at, added and taken

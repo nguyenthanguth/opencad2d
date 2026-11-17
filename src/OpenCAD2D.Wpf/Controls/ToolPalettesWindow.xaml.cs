@@ -9,7 +9,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>Turns the key of a tool's icon into its geometry, the plain command icon where the icon set has none of that name.</summary>
     public sealed class ToolIconConverter : IValueConverter

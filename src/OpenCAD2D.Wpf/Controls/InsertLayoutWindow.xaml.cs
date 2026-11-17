@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Insert Layout(s), from LAYOUT Template once the template file is chosen; its logic is <see cref="InsertLayoutViewModel"/>.</summary>
     public partial class InsertLayoutWindow : Window

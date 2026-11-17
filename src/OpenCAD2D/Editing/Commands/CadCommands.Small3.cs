@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The registry entries of FILL, QTEXT, LIMITS, TIME, STATUS, MULTIPLE, TRACE, SKETCH, MASSPROP, MINSERT and DIMINSPECT

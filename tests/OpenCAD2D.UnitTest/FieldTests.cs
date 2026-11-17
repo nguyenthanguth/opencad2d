@@ -6,9 +6,9 @@ using GeometryHelper.Dwg;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// Fields as AutoCAD 2021 does them. The expected words are those AutoCAD 2021's own fields gave in its console for the
@@ -364,10 +364,13 @@ namespace GeometryHelper.Dxf.Viewer.UnitTest
             // As a DXF.
             DxfDatabase again = DxfDatabase.Parse(document.Database.ToText());
             DxfDBText fromDxf = again.ModelSpace.OfType<DxfDBText>().First();
-            CadDocument reopened = CadDocument.From(again, "again.dxf");
             Assert.Equal(codes, CadFields.CodesOf(fromDxf));
             Assert.Equal(words, fromDxf.TextString);
             Assert.Equal(new[] { "314.16", "17/11/2026" }, CadFields.ShownOf(fromDxf));
+
+            // Opened as a drawing, the date field is evaluated again (FIELDEVAL's open bit), as AutoCAD does.
+            CadDocument.From(again, "again.dxf");
+            Assert.Equal("A 314.16 on " + DateTime.Now.ToString("dd/MM/yyyy", English), fromDxf.TextString);
 
             // As a DWG.
             using (var stream = new MemoryStream())

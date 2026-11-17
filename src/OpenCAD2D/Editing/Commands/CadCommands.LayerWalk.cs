@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// LAYWALK, AutoCAD 2021's LayerWalk: a dialog listing the layers; the layers selected in it are the only ones shown

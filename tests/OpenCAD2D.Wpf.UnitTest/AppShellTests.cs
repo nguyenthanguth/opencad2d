@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Media.Imaging;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The shell of GeometryHelper DXF: its icon, the association of .dxf and .dwg files with it (written to a fake of the
@@ -15,7 +15,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
     /// </summary>
     public sealed class AppShellTests
     {
-        private const string Exe = @"C:\Tools\GeometryHelper DXF\GeometryHelper.Dxf.App.exe";
+        private const string Exe = @"C:\Tools\GeometryHelper DXF\GeometryHelper.Cad.App.exe";
         private const string Icon = @"C:\Tools\GeometryHelper DXF\drawing-file.ico";
 
         [Fact]
@@ -124,11 +124,11 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
             string exe = Path.Combine(
                 root,
                 "src",
-                "GeometryHelper.Dxf.App",
+                "GeometryHelper.Cad.App",
                 "bin",
                 configuration,
                 "net8.0-windows",
-                "GeometryHelper.Dxf.App.exe"
+                "GeometryHelper.Cad.App.exe"
             );
             Assert.True(File.Exists(exe), exe);
             return exe;

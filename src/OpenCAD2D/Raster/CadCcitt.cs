@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The fax coding of ITU-T T.4 and T.6 as a TIFF holds it: modified Huffman runs (compression 2), Group 3 in one

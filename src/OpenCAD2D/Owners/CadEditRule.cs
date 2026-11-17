@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What the presenter may do to an entity, as its owner answers through <see cref="ICadEntityOwner.GetEditRule"/>: a

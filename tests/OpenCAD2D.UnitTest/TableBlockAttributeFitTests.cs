@@ -7,7 +7,7 @@ using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The two boxes AutoCAD 2021 lays a block cell out by when its block holds an attribute definition that is not constant

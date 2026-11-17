@@ -3,7 +3,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The grips of dimensions, as AutoCAD 2021 gives them, and what dragging each writes into the dimension.</summary>
     public static partial class CadGrips

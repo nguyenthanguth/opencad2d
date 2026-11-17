@@ -3,10 +3,10 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
-using static GeometryHelper.Dxf.Viewer.UnitTest.OleFrameDisplayTests;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.OleFrameDisplayTests;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// OLE frames edited as AutoCAD 2021 lets them be: four corner grips that scale the frame about the opposite corner,

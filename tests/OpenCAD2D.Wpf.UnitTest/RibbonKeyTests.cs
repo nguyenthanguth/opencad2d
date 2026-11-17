@@ -2,7 +2,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Ctrl+3 shows or hides the whole ribbon (its tabs and panels) as Ctrl+1 and Ctrl+2 do Properties and the Drawings list;

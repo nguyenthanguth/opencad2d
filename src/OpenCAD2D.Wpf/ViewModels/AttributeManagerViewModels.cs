@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A column of the Block Attribute Manager's grid: its header and its width in pixels.</summary>
     public sealed class AttributeColumnViewModel

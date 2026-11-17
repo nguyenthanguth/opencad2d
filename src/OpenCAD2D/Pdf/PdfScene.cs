@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>A clip a PDF page sets: a ring in page points, inside a parent clip where one was set before it.</summary>
     internal sealed class PdfClip

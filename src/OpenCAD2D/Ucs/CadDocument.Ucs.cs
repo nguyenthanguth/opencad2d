@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The user coordinate systems of the drawing.</summary>
     public sealed partial class CadDocument

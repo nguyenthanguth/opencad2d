@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// AutoCAD's Constraint Settings dialog (CONSTRAINTSETTINGS): the Geometric, Dimensional and AutoConstrain tabs, dark as the

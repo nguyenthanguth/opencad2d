@@ -10,7 +10,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>One line of the details pane of the External References palette: its label and its value.</summary>
     public sealed class ReferenceDetailViewModel

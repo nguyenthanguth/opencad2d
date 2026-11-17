@@ -9,7 +9,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// EXPORTPDF's hyperlinks on objects seen through a layout's viewports: a link over the box of the object as it stands on

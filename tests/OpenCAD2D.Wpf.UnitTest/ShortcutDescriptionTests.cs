@@ -1,7 +1,7 @@
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Every command the Shortcuts page of Global settings lists says in a few words what it does, so that a drafter looking

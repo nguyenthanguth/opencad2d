@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Named views, as AutoCAD 2021 keeps and asks them: VIEW, the View Manager, where the window has one, and -VIEW, its ?,

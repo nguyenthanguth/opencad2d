@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// What the cells of a table need of the window beyond the Table Cell tab itself: the cells held on the clipboard of the tab

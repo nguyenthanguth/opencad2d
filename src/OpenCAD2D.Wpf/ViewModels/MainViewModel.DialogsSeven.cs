@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Output ribbon tab, as AutoCAD 2021's basics: Plot (Plot, Page Setup Manager, Preview, Plot Stamp, Batch Plot), Export to DWF/PDF

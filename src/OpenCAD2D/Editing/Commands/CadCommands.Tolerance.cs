@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>TOLERANCE: a feature control frame from the Geometric Tolerance dialog, put where it is picked.</summary>
     internal static partial class CadCommands

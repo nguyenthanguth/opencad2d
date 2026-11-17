@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The text window of TEXTSCR and F2, shown through a function the workspace sets, so that a test drives it with none; with

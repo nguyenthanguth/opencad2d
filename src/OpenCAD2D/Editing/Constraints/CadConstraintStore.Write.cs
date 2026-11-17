@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Export;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Writes the constraints of a space as AutoCAD 2021 keeps them (read off DXF files it wrote): in the associative network

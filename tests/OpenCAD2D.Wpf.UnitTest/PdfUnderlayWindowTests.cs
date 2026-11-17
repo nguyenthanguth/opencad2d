@@ -8,7 +8,7 @@ using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// PDF underlays in the window: a PDF written by SkiaSharp (the library the presenter's own plots go through) read for what it

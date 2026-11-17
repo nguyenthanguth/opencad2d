@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>One icon of a constraint bar: a geometric constraint on the object, and where it stands in the space's constraints.</summary>
     public sealed class CadConstraintIcon

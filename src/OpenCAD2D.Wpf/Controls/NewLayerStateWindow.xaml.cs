@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's New Layer State to Save: the name and an optional description. Its logic is <see cref="NewLayerStateViewModel"/>.</summary>
     public partial class NewLayerStateWindow : Window

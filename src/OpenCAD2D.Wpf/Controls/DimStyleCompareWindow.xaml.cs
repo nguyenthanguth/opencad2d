@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Compare Dimension Styles. Its logic is <see cref="DimStyleCompareViewModel"/>.</summary>
     public partial class DimStyleCompareWindow : Window

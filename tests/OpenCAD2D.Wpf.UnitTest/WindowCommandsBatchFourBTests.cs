@@ -2,7 +2,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Batch 4 of acad.pgp's commands that are the window's own: QUIT and EXIT, COMMANDLINE and COMMANDLINEHIDE, HIDEPALETTES

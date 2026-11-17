@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// TOOLPALETTES and TOOLPALETTESCLOSE, AutoCAD 2021's Tool Palettes commands: the window's tool palettes are shown, or

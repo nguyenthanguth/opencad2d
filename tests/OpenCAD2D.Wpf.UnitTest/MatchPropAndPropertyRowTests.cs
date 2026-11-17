@@ -3,7 +3,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>MATCHPROP's Property Settings dialog and the rows of Properties that offer a list, driven through the view model.</summary>
     public class MatchPropAndPropertyRowTests

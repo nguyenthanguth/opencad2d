@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What SELECTSIMILAR matches, as AutoCAD 2021 does through SELECTSIMILARMODE: objects of the same kind as one picked and,

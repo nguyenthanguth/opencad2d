@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The window's part of repairing drawings: a file that cannot be read as it is opened as what could be recovered of it,

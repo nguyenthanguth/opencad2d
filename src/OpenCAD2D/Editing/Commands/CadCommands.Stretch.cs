@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// STRETCH and ALIGN as AutoCAD 2021 asks them. STRETCH takes its objects by crossing windows and polygons drawn at its own

@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>DIM, AutoCAD's one dimension command since 2016: the kind of dimension follows what is picked.</summary>
     /// <remarks>

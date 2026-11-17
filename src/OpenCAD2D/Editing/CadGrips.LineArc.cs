@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The edits of the hover menus of a line's and an arc's grips: Lengthen at an end, Radius in the middle of an arc.</summary>
     public static partial class CadGrips

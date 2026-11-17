@@ -1,5 +1,5 @@
 <Window
-    x:Class="GeometryHelper.Dxf.Viewer.Wpf.StyleNameWindow"
+    x:Class="GeometryHelper.Cad.Wpf.StyleNameWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Style Name"
@@ -12,7 +12,7 @@
     Background="#262B33"
 >
     <Window.Resources>
-        <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/StyleDialogs.xaml" />
+        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/StyleDialogs.xaml" />
     </Window.Resources>
 
     <Border

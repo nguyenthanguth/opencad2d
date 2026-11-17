@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The grips of an MTEXT: its location and the corners of its box, or the grips of its columns, as AutoCAD 2021 gives them.</summary>
     public static partial class CadGrips

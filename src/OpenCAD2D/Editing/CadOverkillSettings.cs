@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The properties OVERKILL can leave out when it compares two objects, as the boxes of its dialog and the options of -OVERKILL's Ignore list them.</summary>
     [Flags]

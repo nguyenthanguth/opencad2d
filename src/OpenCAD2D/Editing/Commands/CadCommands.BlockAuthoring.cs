@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The authoring commands of the Block Editor, in AutoCAD 2021's words: BPARAMETER adds a parameter (Alignment, Base, Point,

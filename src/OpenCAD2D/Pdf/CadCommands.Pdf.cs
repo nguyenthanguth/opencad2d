@@ -6,7 +6,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The commands of PDF underlays, in AutoCAD 2021's words: PDFATTACH and -PDFATTACH (a page of a PDF placed as a PDFUNDERLAY),

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// MULTIPLE: asks "Enter command name to repeat:" and starts that command again each time it ends, until Esc ends it. A

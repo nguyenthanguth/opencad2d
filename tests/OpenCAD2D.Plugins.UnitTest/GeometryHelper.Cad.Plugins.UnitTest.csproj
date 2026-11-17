@@ -21,19 +21,19 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\GeometryHelper\GeometryHelper.csproj" />
-        <ProjectReference Include="..\..\src\GeometryHelper.Dxf.Viewer\GeometryHelper.Dxf.Viewer.csproj" />
-        <ProjectReference Include="..\..\src\GeometryHelper.Dxf.Viewer.Wpf\GeometryHelper.Dxf.Viewer.Wpf.csproj" />
+        <ProjectReference Include="..\..\src\GeometryHelper.Cad\GeometryHelper.Cad.csproj" />
+        <ProjectReference Include="..\..\src\GeometryHelper.Cad.Wpf\GeometryHelper.Cad.Wpf.csproj" />
         <!-- Built first, never referenced: the tests load its .dll as a plugin, from SamplePlugin\ beside them. -->
         <ProjectReference
-            Include="..\GeometryHelper.Dxf.Viewer.SamplePlugin\GeometryHelper.Dxf.Viewer.SamplePlugin.csproj"
+            Include="..\GeometryHelper.Cad.SamplePlugin\GeometryHelper.Cad.SamplePlugin.csproj"
             ReferenceOutputAssembly="false"
         />
     </ItemGroup>
 
     <ItemGroup>
         <None
-            Include="..\GeometryHelper.Dxf.Viewer.SamplePlugin\bin\$(Configuration)\netstandard2.0\GeometryHelper.Dxf.Viewer.SamplePlugin.dll"
-            Link="SamplePlugin\GeometryHelper.Dxf.Viewer.SamplePlugin.dll"
+            Include="..\GeometryHelper.Cad.SamplePlugin\bin\$(Configuration)\netstandard2.0\GeometryHelper.Cad.SamplePlugin.dll"
+            Link="SamplePlugin\GeometryHelper.Cad.SamplePlugin.dll"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What LAYOUT Template gives its Insert Layout(s) dialog once the template file is chosen: the file and the names of its

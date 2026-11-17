@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The grid and the crosshair of the canvas following the snap, as AutoCAD 2021 draws them: a major line every GRIDMAJOR,

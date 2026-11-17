@@ -7,7 +7,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The canvas's part of the constraint bars, as AutoCAD 2021 draws them: for each object that is constrained and whose bar

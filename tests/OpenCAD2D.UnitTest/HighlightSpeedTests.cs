@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Wpf;
 using GeometryHelper.UnitTest;
 using SkiaSharp;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     [Collection(ViewerSpeedCollection.Name)]
     public class HighlightSpeedTests

@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The owners a document knows, found by the name in an entity's <see cref="CadOwnerTag"/>, and asked before an owned

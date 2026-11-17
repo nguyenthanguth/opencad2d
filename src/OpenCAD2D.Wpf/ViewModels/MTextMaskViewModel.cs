@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The MTEXT editor's Background Mask dialog, as AutoCAD 2021's: Use background mask, the border offset factor (a multiple

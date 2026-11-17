@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// SAVEAS and DXFOUT on the command line (FILEDIA 0, or no window), asking in the words of AutoCAD 2021: SAVEAS the file

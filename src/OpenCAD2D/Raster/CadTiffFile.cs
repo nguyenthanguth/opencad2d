@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// TIFF (.tif, .tiff), the first image of the file, in either byte order: stored plain, packed (PackBits), LZW or Deflate,

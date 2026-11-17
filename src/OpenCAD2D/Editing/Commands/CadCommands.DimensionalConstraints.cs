@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The dimensional constraints of AutoCAD 2021's Parametric tab, asked as it asks them: DCLINEAR, DCHORIZONTAL,

@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The registry entries of DWGPROPS, HYPERLINK, -HYPERLINK, GROUPEDIT and ATTREDEF; each command is in its own file

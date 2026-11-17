@@ -8,7 +8,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// A block of a drawing as a tile of the Blocks palette: its name and its picture, drawn by the canvas's own renderer

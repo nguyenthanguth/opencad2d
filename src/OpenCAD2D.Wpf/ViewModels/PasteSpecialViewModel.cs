@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// One way Paste Special offers to paste: its name in the list, the paste it runs (PASTECLIP, PASTEBLOCK, PASTEORIG,

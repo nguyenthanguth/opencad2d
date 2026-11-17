@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>REVCLOUD, as AutoCAD 2021 asks it and stores the cloud (checked against clouds AutoCAD made in its own console).</summary>
     internal static partial class CadCommands

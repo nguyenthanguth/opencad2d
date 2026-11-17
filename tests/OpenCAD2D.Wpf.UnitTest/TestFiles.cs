@@ -16,7 +16,7 @@ namespace System.Runtime.CompilerServices
     internal sealed class ModuleInitializerAttribute : Attribute { }
 }
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The settings file of the view models the tests make: one of this run's own under %TEMP%\gk\drawing\wpf-tests, set

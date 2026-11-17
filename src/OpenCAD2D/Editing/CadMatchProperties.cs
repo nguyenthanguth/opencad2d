@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The properties MATCHPROP copies from its source, as the check boxes of AutoCAD's Property Settings dialog: the basic

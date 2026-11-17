@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>-SCALELISTEDIT: the drawing's list of scales (ACAD_SCALELIST) listed, added to, taken from and reset.</summary>
     internal static partial class CadCommands

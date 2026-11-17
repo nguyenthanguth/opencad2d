@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// MATCHCELL and EDITTABLECELL of the Table Cell tab, as AutoCAD 2021's. MATCHCELL asks for a source cell, then for

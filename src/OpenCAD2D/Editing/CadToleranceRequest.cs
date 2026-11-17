@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>A material condition of the Geometric Tolerance dialog, as AutoCAD's Material Condition dialog offers it.</summary>
     public enum CadMaterialCondition

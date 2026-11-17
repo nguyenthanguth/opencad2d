@@ -4,7 +4,7 @@ using System.IO;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>A layer of the drawing as the canvas and the layer box show it.</summary>
     public sealed class CadLayerInfo

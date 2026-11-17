@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The Reference Edit dialog of REFEDIT, shown through a function the workspace sets.</summary>
     public sealed partial class MainViewModel

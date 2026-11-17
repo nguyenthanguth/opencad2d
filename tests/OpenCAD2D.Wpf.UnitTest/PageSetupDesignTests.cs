@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>A printer of Windows that says where it prints, as the real one does through its queue's port.</summary>
     internal sealed class PortPlotPrinter : IPlotPrinter, IPlotPrinterPort

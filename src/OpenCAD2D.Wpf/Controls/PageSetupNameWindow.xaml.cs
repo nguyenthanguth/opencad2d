@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// Add Page Setup, from Add… of the Plot dialog, and New Page Setup, from New… of the Page Setup Manager: the name of a new

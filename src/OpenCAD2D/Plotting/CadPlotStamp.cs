@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The corner of the sheet a plot stamp is put in, as -PLOTSTAMP's Location names it: TL, TR, BL or BR.</summary>
     public enum CadPlotStampCorner

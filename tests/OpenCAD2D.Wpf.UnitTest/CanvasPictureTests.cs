@@ -9,7 +9,7 @@ using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The canvas's kept picture of the drawing, offscreen on an STA thread: the entity under the cursor drawn over it

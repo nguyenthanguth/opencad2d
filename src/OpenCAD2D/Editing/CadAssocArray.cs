@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The three kinds of associative array AutoCAD 2021 makes: by rows and columns, round a centre, or along a path curve.</summary>
     internal enum CadArrayKind

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The records of the layers of an external reference (<c>grid|WALL</c>) and what the drawing has changed of them, kept

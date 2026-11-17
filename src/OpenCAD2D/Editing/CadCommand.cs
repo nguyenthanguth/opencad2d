@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A command, as AutoCAD's: a name and the few lines that ask its prompts in turn and make its edit. The body is an

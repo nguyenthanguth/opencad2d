@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>BOUNDARY with its Boundary Creation dialog, which -BOUNDARY's Advanced options ask on the command line.</summary>
     internal static partial class CadCommands

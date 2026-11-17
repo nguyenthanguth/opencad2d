@@ -7,9 +7,9 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.UnitTest;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.TestDrawings;
+using static GeometryHelper.Cad.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The work of speed15 in the display: the layer of an entity found among the few the builder drew last (by the string its

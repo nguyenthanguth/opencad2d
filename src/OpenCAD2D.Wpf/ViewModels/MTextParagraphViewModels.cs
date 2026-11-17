@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A row of the Paragraph dialog's list of tab stops: its kind and its position.</summary>
     public sealed class ParagraphTabStopRow

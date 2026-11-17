@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// MLEADERCOLLECT (MLC), as AutoCAD 2021's (its prompts and groups probed in its console, fed through standard input,

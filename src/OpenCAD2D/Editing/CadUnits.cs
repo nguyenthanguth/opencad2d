@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Lengths and angles written and read as AutoCAD writes and reads them in a drawing's units: LUNITS 1 scientific, 2

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The Drawing Properties dialog of DWGPROPS, as data its command and the window share. The Summary tab's texts and the

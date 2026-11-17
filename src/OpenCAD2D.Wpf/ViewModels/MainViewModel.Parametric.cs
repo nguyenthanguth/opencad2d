@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Parametric ribbon tab, as AutoCAD 2021's for what the presenter has: Geometric (Auto Constrain, the twelve

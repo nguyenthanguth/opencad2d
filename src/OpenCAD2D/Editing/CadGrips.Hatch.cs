@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The edits of the hover menu of a hatch's grip: its pattern's scale, angle and origin.</summary>
     public static partial class CadGrips

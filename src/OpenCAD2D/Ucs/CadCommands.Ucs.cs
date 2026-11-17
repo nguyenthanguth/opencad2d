@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The commands of the user coordinate system: UCS, UCSICON, PLAN and UCSMAN, with AutoCAD's prompts. The presenter shows

@@ -4,7 +4,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// C9 in the window: the Linetype Manager (LINETYPE) and its Load dialog, the ribbon's linetype box ($CELTYPE), the Select

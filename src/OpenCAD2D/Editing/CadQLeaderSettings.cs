@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What QLEADER puts at the end of its leader, as the Annotation Type of AutoCAD's Leader Settings (group 60).</summary>
     public enum CadQLeaderAnnotation

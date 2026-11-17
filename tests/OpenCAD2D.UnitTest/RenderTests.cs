@@ -1,13 +1,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Wpf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// Drawings drawn by <see cref="SkiaCanvasRenderer"/> into a bitmap with no window, their pixels read back; each scene is

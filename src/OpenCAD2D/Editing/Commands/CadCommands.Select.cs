@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// QSELECT and FIND, each shown by the window as AutoCAD's Quick Select and Find and Replace dialogs

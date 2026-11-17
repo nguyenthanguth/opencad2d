@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A picture read from a raster file: its size in pixels, the millimetres a pixel is across and up where the file gives a

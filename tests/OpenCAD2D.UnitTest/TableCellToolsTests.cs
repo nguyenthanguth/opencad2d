@@ -5,9 +5,9 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest.Dxf;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// Cut, Copy and Paste, Match Cell, Cell Locking, Data Format, and Insert Block, Field and Formula of the cells of a table, as

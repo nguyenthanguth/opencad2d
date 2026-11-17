@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The linetype commands, in AutoCAD's words: LINETYPE (the Linetype Manager of the window, or -LINETYPE where there is

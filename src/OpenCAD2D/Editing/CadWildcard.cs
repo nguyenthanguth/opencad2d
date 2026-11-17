@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// AutoCAD's wild-card patterns (<c>wcmatch</c>), which -PURGE, -GROUP ?, Quick Select's * Wildcard Match and FIND with
