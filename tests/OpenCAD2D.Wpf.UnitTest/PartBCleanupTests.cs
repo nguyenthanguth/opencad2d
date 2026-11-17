@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The presenter alone (GeometryHelper DXF) lists nothing of the Tekla drawing (Part B): not in its ribbon, its menus, its

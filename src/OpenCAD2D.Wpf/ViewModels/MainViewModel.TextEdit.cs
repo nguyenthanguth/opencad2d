@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The clipboard of the window's drawings, text edited in place (TEXTEDIT's edit box, the MTEXT editor and its Text Editor

@@ -4,9 +4,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The authoring side of the Block Editor, as AutoCAD 2021's: BPARAMETER and BACTION write the parameters and actions of a

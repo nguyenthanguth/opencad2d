@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// FILLET and CHAMFER as AutoCAD 2021 asks them: two objects picked by the parts to keep, an arc of the radius or a line at

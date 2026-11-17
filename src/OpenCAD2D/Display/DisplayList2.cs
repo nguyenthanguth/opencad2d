@@ -1,9 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What one space of a drawing, model space or a layout, is drawn as: its items in drawing order, the box that holds

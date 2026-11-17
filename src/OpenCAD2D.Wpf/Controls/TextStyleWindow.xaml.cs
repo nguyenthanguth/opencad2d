@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// AutoCAD's Text Style dialog (STYLE), dark as the window's other dialogs. Its logic is <see cref="TextStyleViewModel"/>;

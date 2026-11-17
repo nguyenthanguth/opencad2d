@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// MLEADERALIGN (MLA), as AutoCAD 2021's (its prompts and numbers probed in its console, fed through standard input):

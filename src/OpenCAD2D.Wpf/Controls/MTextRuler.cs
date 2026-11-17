@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>What a point of the MTEXT editor's ruler, or a height grip under the frame, is over.</summary>
     internal enum MTextRulerPart

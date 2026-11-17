@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What <see cref="CadDocument.FontMissing"/> says: a font a text style names that is not found, and what it is drawn in.</summary>
     public sealed class CadFontMissingEventArgs : EventArgs

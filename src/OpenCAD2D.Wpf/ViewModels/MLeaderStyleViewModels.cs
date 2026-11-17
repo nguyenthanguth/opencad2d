@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>What a field of the Modify Multileader Style dialog is: a group's title, a number, a text, a list, or a box to tick alone.</summary>
     public enum MLeaderFieldKind

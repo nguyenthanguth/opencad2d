@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Wpf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// OLE frames drawn: the picture a bitmap frame holds, red on its left half and blue on its right in these tests, laid on

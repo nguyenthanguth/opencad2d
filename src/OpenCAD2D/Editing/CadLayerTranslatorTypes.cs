@@ -1,7 +1,7 @@
 using System;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A layer of the Layer Translator's lists, as a layer of the drawing or of a standards file: the settings a layer of that

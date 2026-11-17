@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A named object of a drawing as the Purge dialog lists it: its kind, its name, and for one in use the reasons it cannot

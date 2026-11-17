@@ -6,7 +6,7 @@ using System.Windows;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The parity managers driven with no window: the Layer States Manager (LAYERSTATE); and each of their windows made over

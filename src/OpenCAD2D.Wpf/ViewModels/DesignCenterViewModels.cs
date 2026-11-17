@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>What a row of DesignCenter's tree is.</summary>
     public enum DesignCenterNodeKind

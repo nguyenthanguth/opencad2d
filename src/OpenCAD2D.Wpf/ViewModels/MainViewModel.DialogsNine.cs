@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// EXPORTPDF's Save As PDF with Page Setup Override and Export to PDF Options, each shown through a function the workspace

@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The snap grid laid from SNAPBASE and turned by SNAPANG, ortho and polar following the turn, and the isometric snap of

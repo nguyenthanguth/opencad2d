@@ -3,9 +3,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// CHPROP against AutoCAD 2021's console: "Select objects:" and "Enter property to change [Color/LAyer/LType/ltScale/LWeight/

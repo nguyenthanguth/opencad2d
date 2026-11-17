@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The contextual Block Editor tab of the ribbon, over a <see cref="BlockEditorRibbonViewModel"/>.</summary>
     public partial class BlockEditorRibbon : UserControl

@@ -5,7 +5,7 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Turns the entities of one space into a <see cref="DisplayList2"/>: each entity into the lines, arcs, fills and text

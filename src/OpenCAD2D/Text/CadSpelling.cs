@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The words SPELL checks: the words of a TEXT or an MTEXT (the format codes of an MTEXT and the <c>%%</c> codes of a TEXT
@@ -89,7 +89,7 @@ namespace GeometryHelper.Dxf.Viewer
             + "please thank thanks name names company address phone email fax web page pages of the and or"
         ).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-        private const string ResourceName = "GeometryHelper.Dxf.Viewer.english-words.txt.gz";
+        private const string ResourceName = "GeometryHelper.Cad.english-words.txt.gz";
 
         // The main dictionary: each word (looked up in either case) with its tier, 0 the most common words, 1 and 2 the less
         // common and 3 the names; read from the embedded list when first asked.

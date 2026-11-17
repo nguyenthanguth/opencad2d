@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>One thing a vector picture draws, with the colour it is drawn in.</summary>
     internal abstract class CadVectorItem

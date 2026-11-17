@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The presenter's own app, GeometryHelper DXF: its window named after it, and its screenshot mode run as a process on a
@@ -82,11 +82,11 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
             string exe = Path.Combine(
                 root,
                 "src",
-                "GeometryHelper.Dxf.App",
+                "GeometryHelper.Cad.App",
                 "bin",
                 configuration,
                 "net8.0-windows",
-                "GeometryHelper.Dxf.App.exe"
+                "GeometryHelper.Cad.App.exe"
             );
             Assert.True(File.Exists(exe), exe);
             var start = new ProcessStartInfo(exe)

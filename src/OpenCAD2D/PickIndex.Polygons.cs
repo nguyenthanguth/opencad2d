@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The selections by a polygon and by a fence: WPolygon, CPolygon, Fence and the lasso.</summary>
     public sealed partial class PickIndex

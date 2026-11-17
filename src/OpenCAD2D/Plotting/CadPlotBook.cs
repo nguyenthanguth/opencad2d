@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Plots of several spaces written as one PDF of a page each, as EXPORTPDF and -EXPORT write All layouts: the window's

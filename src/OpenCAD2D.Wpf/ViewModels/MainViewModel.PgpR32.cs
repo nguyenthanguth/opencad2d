@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// What was left of the acad.pgp gap list in round 3, item R3.2, that is the window's own: OPEN typed, DRAWINGRECOVERY, and

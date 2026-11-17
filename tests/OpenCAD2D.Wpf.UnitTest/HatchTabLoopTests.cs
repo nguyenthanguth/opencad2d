@@ -15,7 +15,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The contextual tabs of the ribbon over a view model they write to and read from: a value the user chooses in a control

@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// What Multiline Text - Unsaved Changes asks on Esc in the MTEXT editor with changes, as AutoCAD 2021 asks it: "Do you

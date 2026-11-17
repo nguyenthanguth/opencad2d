@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The presenter's own decoders of the raster types the platform does not read: TGA, PCX, TIFF (plain, packed, with the

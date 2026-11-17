@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using GeometryHelper.Dxf.Viewer.Plugins;
+using GeometryHelper.Cad.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins.UnitTest
+namespace GeometryHelper.Cad.Plugins.UnitTest
 {
     public sealed class ManifestTests : IDisposable
     {

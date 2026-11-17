@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The tool palettes (TOOLPALETTES, TOOLPALETTESCLOSE, and the key given TOOLPALETTES), shown beside the window and left

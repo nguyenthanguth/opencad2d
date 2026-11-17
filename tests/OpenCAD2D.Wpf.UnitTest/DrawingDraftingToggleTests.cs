@@ -1,9 +1,10 @@
 using System.IO;
 using System.Linq;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The drafting toggles AutoCAD 2021 keeps in the drawing: SNAP and GRID with their spacing from the <c>*Active</c>

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A character of the character map: the letter and its code point.</summary>
     public sealed class CharacterMapCell

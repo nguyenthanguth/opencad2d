@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The expressions of parameters, as AutoCAD 2021's Parameters Manager takes them: numbers, the names of other parameters,

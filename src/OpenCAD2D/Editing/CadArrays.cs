@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The associative arrays of ARRAYRECT, ARRAYPOLAR and ARRAYPATH as AutoCAD 2021 stores them (read from what its

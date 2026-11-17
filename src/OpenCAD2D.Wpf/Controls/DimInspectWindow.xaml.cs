@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// AutoCAD's Inspection Dimension dialog, which DIMINSPECT shows: the shape of the frame (Round, Angular, None), the label,

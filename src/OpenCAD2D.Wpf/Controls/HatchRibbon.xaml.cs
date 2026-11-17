@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The contextual Hatch Creation and Hatch Editor tabs of the ribbon, over a <see cref="HatchTabViewModel"/>.</summary>
     public partial class HatchRibbon : UserControl

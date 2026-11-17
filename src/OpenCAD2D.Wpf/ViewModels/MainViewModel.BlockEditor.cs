@@ -5,7 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Block Editor of the window (BEDIT): the Edit Block Definition dialog, the green Block Editor tab while a block is

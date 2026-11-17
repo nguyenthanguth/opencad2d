@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// TEXTEDIT (ED, DDEDIT; a double click on a text) and MTEDIT, as AutoCAD 2021's: a TEXT or a dimension's text edited in

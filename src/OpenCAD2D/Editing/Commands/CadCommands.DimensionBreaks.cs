@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Export;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The breaks DIMBREAK puts in a dimension, kept as AutoCAD 2021 keeps them: a BREAKDATA under ACAD_BREAKDATA in the

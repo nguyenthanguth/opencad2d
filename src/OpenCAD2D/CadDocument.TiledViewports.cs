@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The tiled viewports model space is shown through.</summary>
     public sealed partial class CadDocument

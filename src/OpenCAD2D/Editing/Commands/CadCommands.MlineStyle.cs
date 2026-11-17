@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// MLSTYLE typed. AutoCAD 2021 has only its Multiline Styles dialog (the console hangs on it and has no -MLSTYLE), so the

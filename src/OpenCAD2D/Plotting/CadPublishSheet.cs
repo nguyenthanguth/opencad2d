@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// One row of the Publish dialog's sheet list: a space of a drawing, Model or a layout, with the name it goes by in the

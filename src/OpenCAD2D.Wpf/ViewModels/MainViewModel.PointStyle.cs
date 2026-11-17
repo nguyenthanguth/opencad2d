@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Point Style dialog of PTYPE (DDPTYPE), shown through a function the workspace sets, so that a test drives it with

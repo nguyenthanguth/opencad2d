@@ -4,7 +4,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The words of an MTEXT drawn as AutoCAD lays them out (<see cref="CadMTextLayout"/>).</summary>
     internal sealed partial class DisplayBuilder

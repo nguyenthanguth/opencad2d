@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The words that tell what a plotter is, where it writes and what it does, shared by the Plot dialog's Printer/plotter box

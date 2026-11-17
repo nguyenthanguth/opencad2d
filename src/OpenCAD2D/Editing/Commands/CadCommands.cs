@@ -6,7 +6,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The commands of C2, each a body of a few lines that asks AutoCAD's prompts in AutoCAD's words: the view commands here,

@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Insert Table dialog of TABLE, as AutoCAD 2021's: the table style (and its dialog), Start from empty table (the data

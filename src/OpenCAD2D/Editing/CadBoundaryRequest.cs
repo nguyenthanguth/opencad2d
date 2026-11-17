@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What BOUNDARY gives its Boundary Creation dialog: the settings it shares with -BOUNDARY, island detection and the

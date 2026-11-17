@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The MTEXT editor's Background Mask dialog, as AutoCAD 2021's and the design draw it: Use background mask, the border

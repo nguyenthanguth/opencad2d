@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// PURGE (PU), AutoCAD's Purge dialog: the named objects nothing uses by kind, purged while the dialog stays open, each

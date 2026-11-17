@@ -2,7 +2,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// AutoCAD's Symbol dialog of the Geometric Tolerance dialog, as board GdtSymbol draws it: the fourteen symbols and the

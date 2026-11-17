@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Plot Stamp dialog, which PLOTSTAMP and the PLOT dialog show; its logic is <see cref="PlotStampViewModel"/>.</summary>
     public partial class PlotStampWindow : Window

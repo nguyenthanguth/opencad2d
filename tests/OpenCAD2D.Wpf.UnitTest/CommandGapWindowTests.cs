@@ -2,7 +2,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>The commands of the AutoCAD gap list as the window runs them: LAYOUT Rename and Set move the tabs, Ctrl+A selects all.</summary>
     public class CommandGapWindowTests

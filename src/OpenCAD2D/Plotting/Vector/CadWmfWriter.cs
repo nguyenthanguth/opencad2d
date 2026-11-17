@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A writer of Windows Metafiles of its own, for WMFOUT: a placeable metafile (the Aldus header, then the records of

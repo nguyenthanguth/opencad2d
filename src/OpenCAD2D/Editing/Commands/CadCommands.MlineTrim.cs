@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// TRIM and EXTEND of a multiline, as AutoCAD 2021 does them (read from its accoreconsole): an edge counts only where it

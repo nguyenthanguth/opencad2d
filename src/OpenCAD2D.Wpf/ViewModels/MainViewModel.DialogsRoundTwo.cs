@@ -1,7 +1,8 @@
 using System;
 using System.Globalization;
+using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The dialogs of round 2: Rename (RENAME), Lineweight Settings (LWEIGHT), Check Spelling (SPELL) and Boundary Creation

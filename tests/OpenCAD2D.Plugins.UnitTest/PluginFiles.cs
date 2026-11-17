@@ -4,14 +4,14 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using GeometryHelper.Cad.Plugins;
+using GeometryHelper.Cad.Wpf.Plugins;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Plugins;
-using GeometryHelper.Dxf.Viewer.Wpf.Plugins;
 using GeometryHelper.Geometry;
 
 [assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]
 
-namespace GeometryHelper.Dxf.Viewer.Plugins.UnitTest
+namespace GeometryHelper.Cad.Plugins.UnitTest
 {
     /// <summary>
     /// A folder of the tests' own under the temporary folder, with the plugin folder, the settings file and the copies of a
@@ -19,7 +19,7 @@ namespace GeometryHelper.Dxf.Viewer.Plugins.UnitTest
     /// </summary>
     internal sealed class PluginFiles : IDisposable
     {
-        public const string SampleName = "GeometryHelper.Dxf.Viewer.SamplePlugin";
+        public const string SampleName = "GeometryHelper.Cad.SamplePlugin";
 
         public PluginFiles()
         {

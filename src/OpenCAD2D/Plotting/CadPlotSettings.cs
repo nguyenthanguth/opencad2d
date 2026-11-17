@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What part of a space is plotted, as the What to plot list of AutoCAD's Plot dialog.</summary>
     public enum CadPlotArea

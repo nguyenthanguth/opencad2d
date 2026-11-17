@@ -5,9 +5,9 @@ using System.Windows;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.Wpf.UnitTest.CanvasMouseTests;
+using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The system variables the window keeps (OSMODE, the status bar's toggles, PICKBOX, APERTURE, LWDISPLAY,

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>A group of a drawing as the Object Grouping dialog lists it.</summary>
     public sealed class CadGroupRow

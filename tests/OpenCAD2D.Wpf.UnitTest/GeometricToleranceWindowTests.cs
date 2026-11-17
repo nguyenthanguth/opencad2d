@@ -5,7 +5,7 @@ using System.Windows;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The Geometric Tolerance dialog of TOLERANCE, LEADER and QLEADER, its Symbol and Material Condition dialogs, Tolerance

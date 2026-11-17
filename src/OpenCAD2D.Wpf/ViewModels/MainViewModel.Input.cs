@@ -7,7 +7,7 @@ using System.Windows.Input;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// A keyword of the options menu of dynamic input, the menu the ↓ of the box at the cursor opens: "Close", "Undo".

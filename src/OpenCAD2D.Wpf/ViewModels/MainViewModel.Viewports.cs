@@ -5,7 +5,7 @@ using System.Windows.Input;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// Model space worked in through a viewport of a layout: the MODEL/PAPER button of the status bar, Ctrl+R, and the scale

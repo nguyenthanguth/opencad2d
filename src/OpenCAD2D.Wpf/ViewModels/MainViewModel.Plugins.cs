@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Dxf.Viewer.Plugins;
+using GeometryHelper.Cad.Plugins;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The command plugins of the presenter's window: the manager, the Plugins tab and the commands that reach them.</summary>
     public sealed partial class MainViewModel

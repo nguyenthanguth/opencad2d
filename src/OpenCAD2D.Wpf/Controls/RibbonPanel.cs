@@ -6,7 +6,7 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The size a panel of the ribbon is drawn at, as AutoCAD's panels shrink when the window narrows.</summary>
     public enum RibbonPanelSize

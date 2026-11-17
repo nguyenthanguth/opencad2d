@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>What a publish did: the PDF files written, the sheets printed, the sheets passed over, and one line for each thing that happened, as the command line says them.</summary>
     public sealed class CadPublishResult

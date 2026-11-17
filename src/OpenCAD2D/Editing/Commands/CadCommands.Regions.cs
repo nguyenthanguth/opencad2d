@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// REGION, and the regions -BOUNDARY makes: the loops of the objects chosen, each made a region of ACIS data as AutoCAD 2021

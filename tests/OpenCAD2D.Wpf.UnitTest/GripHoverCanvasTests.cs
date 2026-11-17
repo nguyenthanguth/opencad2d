@@ -12,7 +12,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The grips of a polyline as AutoCAD 2021 draws them: a bar along the middle of a segment, the squares of the vertices

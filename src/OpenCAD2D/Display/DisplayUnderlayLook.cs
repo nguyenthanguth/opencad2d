@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// How an underlay's colours are turned for display, which depends on the background they are drawn on and so is done where

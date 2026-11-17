@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The preview of a table style, as the Table Style dialogs draw it on white: a title, a header and data rows of five

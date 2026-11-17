@@ -6,7 +6,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// SETVAR and the system variables, in AutoCAD 2021's words: "Enter variable name or [?] &lt;OSMODE&gt;:", then "Enter

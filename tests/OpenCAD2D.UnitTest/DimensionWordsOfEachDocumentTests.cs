@@ -1,9 +1,9 @@
 using System;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The words of a dimension measured in the fonts of the document the dimension is in, and in no other's: two drawings

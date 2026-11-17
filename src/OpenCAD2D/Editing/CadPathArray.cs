@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>How the items of a path array are turned: with the path as the first item stands, by a direction the user gave, or with the path along each item's Z axis.</summary>
     internal enum CadPathTangent

@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The pictures of CENTERMARK and CENTERLINE, as AutoCAD 2021 draws them: an INSERT of an anonymous block (<c>*U</c>) at the

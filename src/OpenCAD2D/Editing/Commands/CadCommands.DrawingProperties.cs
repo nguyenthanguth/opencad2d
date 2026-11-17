@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// DWGPROPS, as AutoCAD 2021 shows it: the Drawing Properties dialog, its General, Summary, Statistics and Custom tabs. OK

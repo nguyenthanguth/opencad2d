@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A function of a PDF, the kind a tint transform of a spot colour is: sampled (type 0), exponential (2), stitching (3) or a

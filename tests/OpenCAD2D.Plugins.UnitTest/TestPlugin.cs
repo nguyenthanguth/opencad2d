@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins.UnitTest
+namespace GeometryHelper.Cad.Plugins.UnitTest
 {
     /// <summary>The kinds a choice setting of <see cref="TestTools"/> offers.</summary>
     public enum TestKind

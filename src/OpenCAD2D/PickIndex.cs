@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The entities that have been selected, by handle. An entity is picked and selected as a whole: all the display items

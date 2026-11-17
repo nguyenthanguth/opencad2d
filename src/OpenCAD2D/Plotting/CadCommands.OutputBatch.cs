@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Batch 5 of acad.pgp's commands, output: EXPORTPDF, EXPORTDWF, EXPORTDWFX, IMPORT and PLOTSTAMP with -PLOTSTAMP, and

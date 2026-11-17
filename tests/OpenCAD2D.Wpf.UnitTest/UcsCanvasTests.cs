@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The canvas in a user coordinate system (C7): the grid along its axes, the crosshair along them, the UCS icon at the lower

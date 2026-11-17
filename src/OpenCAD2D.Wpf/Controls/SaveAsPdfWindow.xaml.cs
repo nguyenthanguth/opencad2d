@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Save As PDF, from EXPORTPDF; its logic is <see cref="SaveAsPdfViewModel"/>.</summary>
     public partial class SaveAsPdfWindow : Window

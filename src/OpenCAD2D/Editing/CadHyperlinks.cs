@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What a hyperlink opens.</summary>
     public enum CadHyperlinkTargetKind

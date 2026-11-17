@@ -6,9 +6,9 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 using Xunit.Abstractions;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     public class EditingFuzzTests
     {

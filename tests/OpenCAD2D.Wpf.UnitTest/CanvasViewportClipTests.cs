@@ -7,9 +7,9 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.Wpf.UnitTest.CanvasMouseTests;
+using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// A viewport clipped by an entity (VPCLIP) on the canvas, offscreen on an STA thread: the room's viewport moved onto the

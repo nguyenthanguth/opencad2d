@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// INSERTOBJ in the window: the Insert Object dialog is the standard Open dialog the window shows for a file of a bitmap or

@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The managers of the drawing, each shown through a function the workspace sets, so that a test drives them with none:

@@ -1,7 +1,7 @@
 using System;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     public sealed partial class CadCommandSession
     {

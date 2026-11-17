@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Wpf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// Images of C18b: a PNG, JPEG or BMP attached by IMAGEATTACH and -IMAGE at the size AutoCAD 2021 gives it, drawn as its

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins
+namespace GeometryHelper.Cad.Plugins
 {
     /// <summary>
     /// A command plugin made from its assemblies: the methods marked <see cref="CadCommandAttribute"/> as commands, the

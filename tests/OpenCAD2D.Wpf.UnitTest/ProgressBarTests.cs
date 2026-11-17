@@ -8,7 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The progress meter on the status bar, as AutoCAD's: a meter started by a command or the host shown with its label,

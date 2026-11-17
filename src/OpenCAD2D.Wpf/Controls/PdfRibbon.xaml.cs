@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The contextual PDF Underlay tab of the ribbon, over a <see cref="PdfTabViewModel"/>.</summary>
     public partial class PdfRibbon : UserControl

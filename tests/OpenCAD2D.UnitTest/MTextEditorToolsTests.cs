@@ -2,7 +2,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The MTEXT editor's tools beyond its formatting: Find and Replace with AutoCAD 2021's five options, AutoCAPS, Match

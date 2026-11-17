@@ -10,7 +10,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>A printer queue that prints nothing: it keeps the jobs it is given, and lists the sheets it is built with.</summary>
     internal sealed class FakePlotPrinter : IPlotPrinter

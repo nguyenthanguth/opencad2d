@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins
+namespace GeometryHelper.Cad.Plugins
 {
     /// <summary>
     /// Marks a method of a plugin as a command, as AutoCAD's <c>[CommandMethod]</c> does: <c>[CadCommand("NUMCIRCLES",

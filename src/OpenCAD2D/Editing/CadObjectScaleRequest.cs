@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What OBJECTSCALE gives its Annotation Object Scale dialog: the drawing's scale list in its order, and the scales each

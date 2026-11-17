@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The progress meter of the status bar, as AutoCAD's: OPEN, SAVE and SAVEAS start one, and a command, a plugin or the

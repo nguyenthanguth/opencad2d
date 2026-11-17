@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Viewports dialog of VPORTS (design ViewportsDialog and ViewportsNamed): New Viewports, a standard configuration

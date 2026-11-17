@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The named lists of a filter in the file AutoCAD keeps them in, <c>filter.nfl</c>.</summary>
     public sealed partial class CadSelectionFilter

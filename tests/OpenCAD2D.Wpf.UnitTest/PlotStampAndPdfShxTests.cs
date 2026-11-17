@@ -7,7 +7,7 @@ using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The plot stamp and PDFSHX in GeometryHelper PDF: the stamp's lines written as text at the corner the stamp names and

@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Home › Layers with the Previous button (LAYERP), found in the window drawn offscreen, and the Layer manager's dialog

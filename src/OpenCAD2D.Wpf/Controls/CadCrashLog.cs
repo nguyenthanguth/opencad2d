@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The crash log of the apps: what an exception nobody caught leaves in <c>%AppData%\GeometryHelper\Drawing\crash.log</c>,

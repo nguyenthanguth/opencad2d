@@ -8,7 +8,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// A block reference clipped by XCLIP as the canvas draws it: what lies outside the boundary is not drawn, what lies inside is,

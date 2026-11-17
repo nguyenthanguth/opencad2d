@@ -7,9 +7,9 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.TestDrawings;
+using static GeometryHelper.Cad.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The work of speed16 in the display: a chain of two vertices (a LINE, the first and the last straight run of a closed

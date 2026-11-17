@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Load Multiline Styles dialog: a file of styles and the style of it to load; its logic is <see cref="MlineStyleLoadViewModel"/>.</summary>
     public partial class MlineStyleLoadWindow : Window

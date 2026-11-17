@@ -1,8 +1,8 @@
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// A perpendicular from a base point that lies on the object itself is the base point, and AutoCAD 2021 offers it: LINE

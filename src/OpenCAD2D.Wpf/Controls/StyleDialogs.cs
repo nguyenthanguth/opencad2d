@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Windows;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// Shows the style dialogs over a window: the Text Style dialog (STYLE), the Dimension Style Manager (DIMSTYLE), the Table

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The limits of a space and the check LIMCHECK makes against them: with $LIMCHECK on, a point given to a command that draws

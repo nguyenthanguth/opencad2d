@@ -1,7 +1,7 @@
 using System;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What a text edited in place is.</summary>
     public enum CadInPlaceKind

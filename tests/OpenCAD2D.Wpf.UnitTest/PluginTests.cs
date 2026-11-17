@@ -1,12 +1,13 @@
 using System;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Dxf.Viewer.Plugins;
-using GeometryHelper.Dxf.Viewer.Wpf.Plugins;
+using GeometryHelper.Cad.Plugins;
+using GeometryHelper.Cad.Wpf.Plugins;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Command plugins in the window, with no window: the sample plugin loaded through the view model, its command on the
@@ -14,7 +15,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
     /// </summary>
     public sealed class PluginTests : IDisposable
     {
-        private const string SampleName = "GeometryHelper.Dxf.Viewer.SamplePlugin";
+        private const string SampleName = "GeometryHelper.Cad.SamplePlugin";
         private readonly TestFolder _folder = new TestFolder();
         private readonly CadPluginManager _manager;
         private readonly string _sample;

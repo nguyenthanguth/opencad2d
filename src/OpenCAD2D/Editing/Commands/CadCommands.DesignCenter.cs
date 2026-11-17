@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// ADCENTER and ADCCLOSE, AutoCAD 2021's DesignCenter commands: the window's DesignCenter palette is shown, or closed. The

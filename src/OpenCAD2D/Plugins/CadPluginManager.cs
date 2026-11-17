@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins
+namespace GeometryHelper.Cad.Plugins
 {
     /// <summary>
     /// The command plugins of the presenter, as AutoCAD's NETLOAD and APPLOAD keep them (A14 of the plan): loaded from a
@@ -59,7 +59,7 @@ namespace GeometryHelper.Dxf.Viewer.Plugins
         private int _loads;
 
         /// <summary>Makes the manager of the presenter's plugins, reading its startup list and trusted folders from <paramref name="settingsPath"/>.</summary>
-        /// <param name="loader">The loader of the runtime: <c>new CadPluginAssemblyLoader()</c> of GeometryHelper.Dxf.Viewer.Wpf.</param>
+        /// <param name="loader">The loader of the runtime: <c>new CadPluginAssemblyLoader()</c> of GeometryHelper.Cad.Wpf.</param>
         /// <param name="pluginFolder">The plugin folder: each plugin installed in a folder of its own with its plugin.json; always trusted.</param>
         /// <param name="settingsPath">The JSON file of the startup list and the trusted folders; read when it exists, written on each change.</param>
         /// <param name="shadowFolder">The folder the plugins' files are copied to and loaded from; a folder of this process's

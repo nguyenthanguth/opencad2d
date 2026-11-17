@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The words a spreadsheet's number format makes of a number: the built-in formats of a workbook (General, 0, 0.00, #,##0,

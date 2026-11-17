@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Settings kept in the drawing and changed in place, as the snap and grid of a viewport, as undo steps. A setting is a

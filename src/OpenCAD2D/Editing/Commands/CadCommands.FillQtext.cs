@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// FILL and QTEXT, the two switches of how the drawing is shown: with FILL off (FILLMODE 0) solids, wide polylines, traces and

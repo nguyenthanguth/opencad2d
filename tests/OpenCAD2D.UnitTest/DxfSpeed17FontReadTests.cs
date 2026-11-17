@@ -3,7 +3,7 @@ using System.IO;
 using GeometryHelper.UnitTest.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// A font file that could not be read once (held open by another program, a disk that was slow) is read again at the next

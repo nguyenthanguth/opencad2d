@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The MTEXT editor's Find and Replace, as AutoCAD 2021's: Find what, Replace with, Match case, Whole words only, Use

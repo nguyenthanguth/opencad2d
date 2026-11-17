@@ -9,10 +9,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>The point of the drawing under the cursor, in drawing units.</summary>
     public sealed class CadCursorEventArgs : EventArgs

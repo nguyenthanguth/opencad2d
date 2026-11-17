@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Template Options, from LAYOUT SAveas to a .dwt; its logic is <see cref="TemplateOptionsViewModel"/>.</summary>
     public partial class TemplateOptionsWindow : Window

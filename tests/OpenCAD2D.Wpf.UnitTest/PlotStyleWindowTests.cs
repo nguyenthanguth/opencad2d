@@ -9,7 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The windows of plot style tables laid out offscreen: the Plot Style Table Editor with its three tabs, Add Plot Style
@@ -256,7 +256,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
     }
 }
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>Whether an element is shown by its own visibility and its parents', as a laid-out body that is in no window has it.</summary>
     internal static class PlotStyleVisibility

@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// LAYWALK, AutoCAD 2021's LayerWalk: the layers selected in its dialog are the only ones shown, every other layer turned

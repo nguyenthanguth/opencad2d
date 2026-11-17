@@ -2,7 +2,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>A click on the canvas with Shift held reaches TRIM as a Shift-pick, which extends the object instead.</summary>
     public class TrimShiftClickTests

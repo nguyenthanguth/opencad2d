@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>Shows an element for true and collapses it for false, or the other way round with <see cref="Invert"/>.</summary>
     public sealed class BoolToVisibilityConverter : IValueConverter
@@ -61,7 +61,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf
                 ?? new ResourceDictionary
                 {
                     Source = new Uri(
-                        "pack://application:,,,/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/Icons.xaml",
+                        "pack://application:,,,/GeometryHelper.Cad.Wpf;component/Themes/Icons.xaml",
                         UriKind.Absolute
                     ),
                 };

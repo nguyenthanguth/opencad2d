@@ -4,9 +4,9 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
-using GeometryHelper.Dxf.Viewer.Plugins;
+using GeometryHelper.Cad.Plugins;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A plugin as the Plugin manager lists it: on, name, kind, version, commands, file, trusted, at start.</summary>
     public sealed class PluginRowViewModel : ObservableObject

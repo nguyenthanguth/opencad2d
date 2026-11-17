@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// Layer states as AutoCAD 2021 keeps and asks them: -LAYER's stAte option (?, Save, Restore, Edit, Name, Delete, Import,

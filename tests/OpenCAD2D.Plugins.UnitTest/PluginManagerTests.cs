@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using GeometryHelper.Dxf.Viewer.Plugins;
+using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Enums;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Plugins.UnitTest
+namespace GeometryHelper.Cad.Plugins.UnitTest
 {
     /// <summary>Loading, unloading, reloading, installing and the startup list, with the loader of .NET Framework, as hosted in Tekla.</summary>
     public sealed class PluginManagerTests : IDisposable

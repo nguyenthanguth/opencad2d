@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Hatch Creation tab of AutoCAD as a dialog, for HATCH's seTtings and HATCHEDIT: the pattern file (built-in, or a .pat

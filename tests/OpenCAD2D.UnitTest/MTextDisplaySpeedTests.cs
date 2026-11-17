@@ -9,7 +9,7 @@ using GeometryHelper.UnitTest;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The layout of an MTEXT is kept from one drawing of it to the next, so that a drawing drawn again from the start (REGEN)

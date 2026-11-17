@@ -3,7 +3,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// Named page setups (PAGESETUP's manager) and the printers of Windows as plotters, with no window: a page setup added,

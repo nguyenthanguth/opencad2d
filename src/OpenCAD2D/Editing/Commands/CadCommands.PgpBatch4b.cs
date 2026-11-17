@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Batch 4 of acad.pgp's 2D commands, the command-line forms and SAVE: -PAN, -MTEXT (in CadCommands.DrawText.cs), -LAYOUT,

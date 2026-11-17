@@ -5,7 +5,7 @@ using System.IO;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// An object selection filter, as AutoCAD's FILTER makes one: a list of lines, which an object has to pass all of, except

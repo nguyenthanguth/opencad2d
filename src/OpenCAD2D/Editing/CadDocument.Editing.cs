@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The editing half of the document: every change goes through <see cref="ApplyEdit"/>, one undo step each (or one for a

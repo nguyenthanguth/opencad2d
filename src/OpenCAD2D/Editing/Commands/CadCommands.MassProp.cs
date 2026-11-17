@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// MASSPROP for regions: "Select objects:", then the report AutoCAD 2021 writes (<see cref="CadMassProperties"/>): the area

@@ -7,7 +7,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>SAVEALL and CLOSEALL in the window's view model, and the Inspection Dimension dialog of DIMINSPECT.</summary>
     public sealed class SaveAllAndDimInspectTests : IDisposable

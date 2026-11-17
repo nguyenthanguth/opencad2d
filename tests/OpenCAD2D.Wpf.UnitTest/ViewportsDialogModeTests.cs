@@ -1,7 +1,7 @@
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>The Viewports dialog starting with what -VPORTS MOde set: Display, or the current viewport.</summary>
     public class ViewportsDialogModeTests

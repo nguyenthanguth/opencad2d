@@ -1,7 +1,8 @@
 using System;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The external references and images of a document.</summary>
     public sealed partial class CadDocument

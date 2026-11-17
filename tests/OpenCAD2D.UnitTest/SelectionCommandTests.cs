@@ -6,9 +6,9 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 using Xunit.Abstractions;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The commands of C17, each as AutoCAD 2021 runs it: DRAWORDER and TEXTTOFRONT writing the sort table the display follows,

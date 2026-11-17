@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The symbols of geometric dimensioning and tolerancing the presenter draws for the letters of AutoCAD's gdt font, one set

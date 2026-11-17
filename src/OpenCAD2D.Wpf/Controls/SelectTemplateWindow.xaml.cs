@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Select Template, from NEW; its logic is <see cref="SelectTemplateViewModel"/>.</summary>
     public partial class SelectTemplateWindow : Window

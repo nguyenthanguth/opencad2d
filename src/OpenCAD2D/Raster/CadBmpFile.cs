@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Windows bitmaps: a BMP with its file header, a DIB (the same without that header, .dib) and an RLE (a bitmap of 4 or 8

@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>A file the window cannot read as it is opens as what could be recovered of it, unsaved, the damaged file left alone.</summary>
     public class RecoverWindowTests

@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// One edit of one entity, as the presenter hands it to the entity's owner (<see cref="ICadEntityOwner.TryApply"/>)

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// OOPS as AutoCAD's: the objects the last ERASE, BLOCK or WBLOCK took out of the drawing come back, as they were, with

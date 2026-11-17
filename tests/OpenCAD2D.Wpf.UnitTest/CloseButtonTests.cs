@@ -7,11 +7,11 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using GeometryHelper.Dxf.Viewer.Plugins;
-using GeometryHelper.Dxf.Viewer.Wpf.Plugins;
+using GeometryHelper.Cad.Plugins;
+using GeometryHelper.Cad.Wpf.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Close in orange-red (design v70): the theme's footer Close and title-bar cross with the design's colours, the cross of a
@@ -20,7 +20,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
     /// </summary>
     public sealed class CloseButtonTests
     {
-        private const string SampleName = "GeometryHelper.Dxf.Viewer.SamplePlugin";
+        private const string SampleName = "GeometryHelper.Cad.SamplePlugin";
 
         [Fact]
         public void TheThemesCloseStyles_CarryTheDesignsColours()
@@ -197,7 +197,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
             _ = PackUriHelper.UriSchemePack;
             return (ResourceDictionary)
                 Application.LoadComponent(
-                    new Uri("/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/Dark.xaml", UriKind.Relative)
+                    new Uri("/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml", UriKind.Relative)
                 );
         }
 

@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>AutoCAD's Create New Multiline Style dialog: the name and the style to start with; its logic is <see cref="MlineStyleNewViewModel"/>.</summary>
     public partial class MlineStyleNewWindow : Window

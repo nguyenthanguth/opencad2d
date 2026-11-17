@@ -1,10 +1,10 @@
 using System.IO;
 using System.Linq;
-using GeometryHelper.Dxf.Viewer.Wpf;
+using GeometryHelper.Cad.Wpf;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     public class AttributeTests
     {

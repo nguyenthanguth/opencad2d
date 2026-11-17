@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A user coordinate system, as AutoCAD's UCS: an origin and X and Y axes in world coordinates, the Z axis square to both,

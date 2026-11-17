@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The file EXPORT, -EXPORT, EXPORTPDF or IMPORT asks the window for (<see cref="CadUiRequestEventArgs.Export"/>), or

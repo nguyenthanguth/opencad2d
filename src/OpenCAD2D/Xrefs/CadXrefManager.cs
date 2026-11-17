@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The external references and images of a document as the presenter shows them: each file found where AutoCAD looks

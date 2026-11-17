@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Dynamic blocks in use, as AutoCAD 2021 drives them: the custom grips of a dynamic INSERT, a grip dragged or clicked, a

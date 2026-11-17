@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The basic commands of AutoCAD 2021's acad.pgp the presenter lacked: DIVIDE and MEASURE, DIMCENTER, COLOR and -COLOR,

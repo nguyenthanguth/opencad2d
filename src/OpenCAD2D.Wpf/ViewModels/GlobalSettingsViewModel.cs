@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>What a row of Global settings is.</summary>
     public enum GlobalSettingKind

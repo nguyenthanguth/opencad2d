@@ -5,7 +5,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>The Hatch dialog offers the presenter's own patterns first, an acadiso.pat of the user's folders never ahead of them.</summary>
     public class BuiltInPatternsWindowTests

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>How a display item is drawn: its colour, its line weight and its dashes, all resolved from the entity, its layer and its block.</summary>
     public sealed class DisplayStyle

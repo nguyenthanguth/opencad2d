@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The hyperlinks of objects, in AutoCAD 2021's words: HYPERLINK asks for the objects and shows the Insert Hyperlink dialog,

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The kinds of content DesignCenter lists under a drawing, in the order of its tree.</summary>
     public enum CadDesignCenterKind

@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using GeometryHelper.Dwg;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Autosave as the maintainer asked on 2026-11-17: one copy beside each drawing, written over each time (plan.autosave.dxf,

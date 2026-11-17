@@ -3,7 +3,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>HATCHSETORIGIN, the hatch origin set by a picked point, as AutoCAD 2021's Set Origin of the hatch menu runs it.</summary>
     internal static partial class CadCommands

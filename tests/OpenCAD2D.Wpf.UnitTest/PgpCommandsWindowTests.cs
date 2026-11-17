@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>The commands of acad.pgp that reach the window: COLOR shows the Select Color dialog, as AutoCAD's.</summary>
     public class PgpCommandsWindowTests

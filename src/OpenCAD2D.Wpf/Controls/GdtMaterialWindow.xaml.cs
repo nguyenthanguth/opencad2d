@@ -2,7 +2,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// AutoCAD's Material Condition dialog of the Geometric Tolerance dialog, as board GdtMaterial draws it: M, L and S in

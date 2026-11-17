@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// A row of the Purge dialog's tree: All Items, a kind with its count, or a named object; checked to be purged, opened to

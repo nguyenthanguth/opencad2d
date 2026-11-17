@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// One meter of the status bar, started by <see cref="CadProgress.Start"/>, as AutoCAD's ProgressMeter: given a limit

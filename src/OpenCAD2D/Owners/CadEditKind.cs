@@ -1,4 +1,4 @@
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// What an edit does to an entity, as a <see cref="CadEdit"/> tells an owner. Numbers in the values of an edit are

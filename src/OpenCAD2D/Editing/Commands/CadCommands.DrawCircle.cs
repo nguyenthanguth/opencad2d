@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The circles CIRCLE draws touching objects: Ttr, tangent to two at a radius, and Tan, Tan, Tan through 3P.</summary>
     internal static partial class CadCommands

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>A check box of the Object Snap tab: an object snap of AutoCAD's with its marker, off and greyed where it is not built yet.</summary>
     public sealed class SnapModeRowViewModel : ObservableObject

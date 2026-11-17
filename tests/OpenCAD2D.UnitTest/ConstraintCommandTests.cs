@@ -6,9 +6,9 @@ using GeometryHelper.Dwg;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The parametric commands of AutoCAD 2021's Parametric tab (GCHORIZONTAL and the other geometric constraints, DCLINEAR and

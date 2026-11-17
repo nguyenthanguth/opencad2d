@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The kinds of file PNGOUT, JPGOUT and BMPOUT write.</summary>
     public enum CadImageFormat

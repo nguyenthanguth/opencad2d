@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The commands that change dimensions already drawn: DIMEDIT, DIMTEDIT, DIMSPACE and DIMBREAK.</summary>
     /// <remarks>

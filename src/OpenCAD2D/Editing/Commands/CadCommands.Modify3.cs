@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The registry entries of REVERSE, SETBYLAYER (and its variable SETBYLAYERMODE), CHPROP, BURST, TXTEXP and CHSPACE; each

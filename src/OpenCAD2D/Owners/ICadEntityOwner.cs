@@ -1,4 +1,6 @@
-namespace GeometryHelper.Dxf.Viewer
+using GeometryHelper.Dxf;
+
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Something outside the presenter that owns some of a drawing's entities and is asked before they change: a model

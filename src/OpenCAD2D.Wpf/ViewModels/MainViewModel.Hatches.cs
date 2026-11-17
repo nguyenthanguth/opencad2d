@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The contextual Hatch Creation tab, shown while HATCH or GRADIENT runs with HPDLGMODE 2 (the Hatch dialog is shown with

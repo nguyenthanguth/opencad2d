@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The frame an inspection dimension shows round its words: the ends of the frame rounded, pointed, or no frame.</summary>
     public enum CadInspectionShape

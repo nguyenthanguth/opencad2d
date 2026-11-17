@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// AutoCAD's Edit Drawing Scales, which SCALELISTEDIT shows: the drawing's scale list, Add…, Edit…, Move Up, Move Down,

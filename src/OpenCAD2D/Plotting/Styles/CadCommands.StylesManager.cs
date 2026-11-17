@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>What the command hands the window's Plot Styles dialog: the folder of plot style tables and the kind of table New… makes.</summary>
     public sealed class CadStylesManagerRequest

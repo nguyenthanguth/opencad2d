@@ -6,7 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A plot style table, the content of AutoCAD's .ctb (colour-dependent: 255 styles, one for each colour of AutoCAD's

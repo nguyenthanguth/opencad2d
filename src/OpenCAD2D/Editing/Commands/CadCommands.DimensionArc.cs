@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// DIMARC, the arc length dimension, and its picture, as AutoCAD 2021 makes and draws them: the length of an arc, or of a

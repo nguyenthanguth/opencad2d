@@ -8,9 +8,9 @@ using System.Xml.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// WMFOUT, PSOUT, STLOUT and SVGOUT, and the types of EXPORT that go on as they and WBLOCK and ATTEXT do: the prompts as

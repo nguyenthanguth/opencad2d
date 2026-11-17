@@ -1,9 +1,9 @@
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>The presenter's own font, ghsimplex, known by its name wherever a font is named: typed to -STYLE it is an SHX font, not a TrueType family.</summary>
     public class BuiltInFontStyleTests

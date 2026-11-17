@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>The font settings: their defaults, the JSON file, the Folder preference and Text and fonts pages of Global settings, and the fonts given to the drawings open.</summary>
     public sealed class FontSettingsTests : IDisposable

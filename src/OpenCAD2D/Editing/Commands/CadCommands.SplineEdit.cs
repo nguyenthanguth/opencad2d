@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>SPLINEDIT in AutoCAD's words: Fit data, Close and Open, Join, Move vertex, Refine, rEverse, convert to Polyline, Undo and eXit.</summary>
     internal static partial class CadCommands

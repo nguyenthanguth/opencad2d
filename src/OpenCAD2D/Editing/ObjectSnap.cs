@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The object snaps that may be taken, with AutoCAD's OSMODE values: Endpoint 1, Midpoint 2, Center 4, Node 8, Quadrant 16,

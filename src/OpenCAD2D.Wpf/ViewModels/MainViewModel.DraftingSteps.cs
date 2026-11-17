@@ -3,7 +3,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The snap, grid and ORTHO changes of the window as undo steps, as AutoCAD 2021's U takes them back, probed in its

@@ -10,7 +10,7 @@ using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// The items of dialogs8 driven with no window shown: Insert Layout(s) and Template Options of LAYOUT, the plot stamp on

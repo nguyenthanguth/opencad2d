@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// -BOUNDARY, the command-line BOUNDARY with its Advanced options; BOUNDARY itself (CadCommands.Hatch.cs) takes the same

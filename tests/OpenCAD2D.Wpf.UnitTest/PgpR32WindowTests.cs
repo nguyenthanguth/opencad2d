@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// OPEN typed, DRAWINGRECOVERY and the quick views QVDRAWING and QVLAYOUT with their CLOSE of AutoCAD 2021's acad.pgp, the

@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Layer manager, as the design draws it: the layer table of the drawing with its current mark, on, frozen and locked
@@ -59,7 +59,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf
         private Point _dragFrom;
 
         /// <summary>The layers dragged from the list onto a group filter: the names, as a string array.</summary>
-        internal const string LayerNamesFormat = "GeometryHelper.Dxf.Viewer.LayerNames";
+        internal const string LayerNamesFormat = "GeometryHelper.Cad.LayerNames";
 
         /// <summary>F2 on the table: the chosen layer's name cell opened, as in AutoCAD's Layer manager.</summary>
         private void OnTableKey(object sender, KeyEventArgs e)

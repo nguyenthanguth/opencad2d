@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using GeometryHelper.Cad;
+using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer;
-using GeometryHelper.Dxf.Viewer.Plugins;
 
 [assembly: CadPluginApi("1.0")]
 
-namespace GeometryHelper.Dxf.Viewer.SamplePlugin
+namespace GeometryHelper.Cad.SamplePlugin
 {
     /// <summary>
     /// The sample command plugin: NUMCIRCLES numbers the circles selected, a text at the centre of each, and FAILNOW fails

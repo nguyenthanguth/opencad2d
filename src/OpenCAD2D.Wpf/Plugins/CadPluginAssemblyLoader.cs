@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using GeometryHelper.Dxf.Viewer.Plugins;
+using GeometryHelper.Cad.Plugins;
 #if NET8_0_OR_GREATER
 using System.Runtime.Loader;
 #endif
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.Plugins
+namespace GeometryHelper.Cad.Wpf.Plugins
 {
     /// <summary>
     /// The loader of plugins for the runtime the presenter runs on, given to <see cref="CadPluginManager"/>. On .NET 8 each
@@ -17,7 +17,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.Plugins
     /// only switches a plugin off.
     /// </summary>
     /// <remarks>
-    /// Either way the presenter's own assemblies (GeometryHelper, GeometryHelper.Dxf.Viewer, ...) are never loaded from a
+    /// Either way the presenter's own assemblies (GeometryHelper, GeometryHelper.Cad, ...) are never loaded from a
     /// plugin's folder: a plugin is given the presenter's, so that the <see cref="CadCommandContext"/> it is handed is of the
     /// type it was built against. A dependency a plugin asks for is taken from its folder of copies, copied there first from
     /// the folder of a bare .dll where it is missing.

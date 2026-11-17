@@ -7,7 +7,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Export;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A tiled viewport of model space, as a record of AutoCAD's VPORT table: where it lies in the drawing area, from

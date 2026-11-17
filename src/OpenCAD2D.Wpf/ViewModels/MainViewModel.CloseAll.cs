@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>SAVEALL and CLOSEALL: every drawing the window has open saved, or closed with the question about those not saved.</summary>
     public sealed partial class MainViewModel

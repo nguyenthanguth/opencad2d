@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The mode of SELECTSIMILAR handed to the window's Select Similar Settings dialog, which sets it before it closes.</summary>
     internal sealed class CadSelectSimilarRequest

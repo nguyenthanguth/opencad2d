@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>One row of the Custom tab of Drawing Properties: a name and its value, both edited in place.</summary>
     public sealed class CustomPropertyRowViewModel : ObservableObject

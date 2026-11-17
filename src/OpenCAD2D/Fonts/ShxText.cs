@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Lays the letters of a text out in an SHX font as AutoCAD draws them: each letter's strokes scaled so that the font's

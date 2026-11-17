@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The Property Settings dialog of MATCHPROP's Settings, shown through a function the workspace sets, so that a test drives

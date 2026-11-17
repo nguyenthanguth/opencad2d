@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// What a click and a box do, as AutoCAD does with PICKADD on. With no command running: a click on an entity adds it,

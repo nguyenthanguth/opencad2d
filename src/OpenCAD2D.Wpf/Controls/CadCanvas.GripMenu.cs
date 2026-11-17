@@ -7,7 +7,7 @@ using System.Windows.Threading;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The canvas's part of a multi-functional grip, as AutoCAD 2021 gives a polyline's: the bar on the middle of a segment,

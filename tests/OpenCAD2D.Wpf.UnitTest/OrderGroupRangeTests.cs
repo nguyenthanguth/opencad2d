@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>Order Group (design OrderGroup): the ranges of its boxes follow the group's size and the positions typed, and Highlight steps.</summary>
     public class OrderGroupRangeTests

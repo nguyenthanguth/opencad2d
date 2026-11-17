@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>How objects are picked in the document: groups taken whole (PICKSTYLE), overlapping objects cycled through (SELECTIONCYCLING), and objects selected before a command taken by it (PICKFIRST).</summary>
     public sealed partial class CadDocument

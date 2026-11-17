@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// The dialogs left by earlier rounds: Multiline Style (MLSTYLE), Multiline Edit Tools (MLEDIT), Plot Stamp (PLOTSTAMP),

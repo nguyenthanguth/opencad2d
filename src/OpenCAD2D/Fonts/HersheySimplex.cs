@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The presenter's own single-stroke font, GeometryHelper Simplex (<see cref="CadFonts.BuiltInName"/>): the Roman Simplex

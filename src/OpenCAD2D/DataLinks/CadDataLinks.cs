@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>Which cells of a workbook a data link takes, as the New Excel Data Link dialog offers them.</summary>
     public enum CadDataLinkRangeKind

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>The implied window of the Command prompt and of "Select objects:", as AutoCAD 2021's.</summary>
     public sealed partial class CadCommandSession

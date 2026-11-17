@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>One test of a property filter, as AutoCAD's <c>RelationalExpression</c>: a layer property and the pattern its text has to match.</summary>
     public sealed class CadLayerRule

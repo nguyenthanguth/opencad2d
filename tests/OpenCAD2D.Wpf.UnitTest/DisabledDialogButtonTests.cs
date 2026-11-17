@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// A disabled button of a dialog (GhDialogButton) is dimmed once, as every flat button of the theme is: its words at 45
@@ -24,7 +24,7 @@ namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
                 _ = PackUriHelper.UriSchemePack;
                 var theme = (ResourceDictionary)
                     Application.LoadComponent(
-                        new Uri("/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/Dark.xaml", UriKind.Relative)
+                        new Uri("/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml", UriKind.Relative)
                     );
                 Color text = ((SolidColorBrush)theme["GhText"]).Color;
                 var button = new Button

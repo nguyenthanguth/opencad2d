@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// TRACE: a path of wide segments, each a four-cornered filled area (a SOLID) of the width given. It asks "Specify trace

@@ -4,7 +4,7 @@ using GeometryHelper.Geometry;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     [Collection(ViewerSpeedCollection.Name)]
     public class EditingSpeedTests

@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Dxf.Viewer.Wpf.BlocksPaletteWindow"
+    x:Class="GeometryHelper.Cad.Wpf.BlocksPaletteWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Dxf.Viewer.Wpf"
+    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
     Title="Blocks"
     Width="440"
     Height="800"
@@ -13,7 +13,7 @@
     Background="#262B33"
 >
     <Window.Resources>
-        <ResourceDictionary Source="/GeometryHelper.Dxf.Viewer.Wpf;component/Themes/BlockDialogs.xaml" />
+        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/BlockDialogs.xaml" />
     </Window.Resources>
 
     <Border

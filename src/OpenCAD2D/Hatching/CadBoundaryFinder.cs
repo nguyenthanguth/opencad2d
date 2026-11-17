@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// A loop HATCH or BOUNDARY found: its corners with the bulges of the edges leaving them, or a curve of its own (an ellipse,

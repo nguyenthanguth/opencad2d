@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// SNAPBASE, SNAPANG, GRIDMAJOR, SNAPSTYL and SNAPISOPAIR of the drawing's <c>*Active</c> viewport, read and applied to the

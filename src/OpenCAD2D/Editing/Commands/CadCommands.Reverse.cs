@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// REVERSE, as AutoCAD 2021 asks it: "Select line, polyline, spline or helix to reverse direction:", the objects, then

@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The text of a DXF of many entities, for timing: lines, arcs, circles, polylines with a bulge and texts on a grid of

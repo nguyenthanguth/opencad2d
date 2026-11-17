@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>MSPACE and PSPACE: model space worked in through a viewport of the layout shown, and the paper again; VPSCALE, a viewport's scale.</summary>
     internal static partial class CadCommands

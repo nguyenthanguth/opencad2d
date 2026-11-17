@@ -3,13 +3,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Input;
-using GeometryHelper.Dxf.Viewer.Plugins;
-using GeometryHelper.Dxf.Viewer.Wpf.Plugins;
+using GeometryHelper.Cad.Plugins;
+using GeometryHelper.Cad.Wpf.Plugins;
+using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>CLOSE and the window closed; autosave; the text height of Global settings; the canvas colours and crosshair.</summary>
     public sealed class CloseAndAutosaveTests : IDisposable

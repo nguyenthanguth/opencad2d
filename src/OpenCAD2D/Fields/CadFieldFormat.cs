@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The format of a field, the text of its <c>\f "..."</c>, as AutoCAD 2021 reads it (checked on its fields in the console):

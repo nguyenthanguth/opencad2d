@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// One section of a sheet list file: its header, as <c>Target</c> or <c>DWF6Sheet:plan-level2-Layout1</c>, and its

@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// Layer states, as AutoCAD 2021 keeps and asks them: LAYERSTATE, the Layer States Manager, where the window has one,

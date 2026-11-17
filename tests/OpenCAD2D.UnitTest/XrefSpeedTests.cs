@@ -7,7 +7,7 @@ using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The time an external reference of a big drawing takes to show, against the time of the drawing opened on its own. It is

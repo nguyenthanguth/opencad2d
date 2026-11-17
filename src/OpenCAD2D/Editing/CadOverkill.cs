@@ -6,7 +6,7 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// OVERKILL as AutoCAD 2021 does it (probed over its console with -OVERKILL): the lines, arcs, circles, points and

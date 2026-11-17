@@ -8,9 +8,9 @@ using System.Windows.Input;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.Wpf.UnitTest.CanvasMouseTests;
+using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// Drawing Properties (DWGPROPS), hyperlinks and the clean screen in the window's view model: the two dialogs driven

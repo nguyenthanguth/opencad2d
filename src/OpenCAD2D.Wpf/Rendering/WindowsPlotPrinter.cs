@@ -6,7 +6,7 @@ using System.Printing;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>
     /// A printer of Windows, printed to through WPF's print queues: the sheets it lists come from its capabilities, each with

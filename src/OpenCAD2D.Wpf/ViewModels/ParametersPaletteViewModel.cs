@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>One row of the Parameters Manager: a name, an expression and the value it comes to; the name and the expression are edited in the row.</summary>
     public sealed class ParameterRowViewModel : ObservableObject

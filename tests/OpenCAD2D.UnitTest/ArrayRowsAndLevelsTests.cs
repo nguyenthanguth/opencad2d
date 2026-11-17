@@ -1,8 +1,8 @@
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The Rows, Columns and Levels options of ARRAYRECT and ARRAYPOLAR as AutoCAD 2021's console asks them (probed through its

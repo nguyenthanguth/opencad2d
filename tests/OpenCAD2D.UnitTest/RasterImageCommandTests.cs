@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dwg;
 using GeometryHelper.Dxf;
-using GeometryHelper.Dxf.Viewer.Wpf;
 using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The raster types AutoCAD 2021 attaches that the platform does not read (TGA, PCX, TIFF, DIB, RLE) and GIF, attached by

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The TrueType fonts of the machine by their family, as AutoCAD's Text Style dialog lists them and writes a style of one:

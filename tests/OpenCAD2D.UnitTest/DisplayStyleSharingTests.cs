@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.TestDrawings;
+using static GeometryHelper.Cad.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// The styles the hatches and MTEXTs make of their own, the lines of a pattern, a gradient's middle colour and the runs of an

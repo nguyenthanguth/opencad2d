@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Dxf.Viewer.UnitTest.EditingDrawings;
+using static GeometryHelper.Cad.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Dxf.Viewer.UnitTest
+namespace GeometryHelper.Cad.UnitTest
 {
     /// <summary>
     /// MLSTYLE and MLEDIT driven as the window's Multiline Style and Multiline Edit Tools dialogs answer them: the buttons of

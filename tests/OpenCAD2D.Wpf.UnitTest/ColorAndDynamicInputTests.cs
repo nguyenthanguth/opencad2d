@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf.UnitTest
+namespace GeometryHelper.Cad.Wpf.UnitTest
 {
     /// <summary>
     /// AutoCAD's Select Color dialog driven with no window, from the Layer manager and from Properties; and dynamic input

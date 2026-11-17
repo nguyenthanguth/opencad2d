@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The filters of a PDF stream that turn bytes into bytes: Flate (with the PNG and TIFF predictors), LZW, ASCII85, ASCIIHex and

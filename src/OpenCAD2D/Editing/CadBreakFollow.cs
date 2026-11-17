@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer
+namespace GeometryHelper.Cad
 {
     /// <summary>
     /// The breaks DIMBREAK Auto made in a dimension or a multileader follow the objects they were made at, as AutoCAD 2021

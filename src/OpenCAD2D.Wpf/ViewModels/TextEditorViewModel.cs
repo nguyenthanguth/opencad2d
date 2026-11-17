@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Dxf.Viewer.Wpf
+namespace GeometryHelper.Cad.Wpf
 {
     /// <summary>An item of a menu of the Text Editor tab: a colour, a symbol, a justification or a line spacing.</summary>
     public sealed class TextEditorChoice
