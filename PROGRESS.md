@@ -9,7 +9,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 - If work stops (a usage limit, a crash), the next session reads this file first and carries on from the first open
   item. Every step says how it is checked.
 
-## S. The split from GeometryHelper (running)
+## S. The split from GeometryHelper (done 2026-11-23, S12 left)
 
 ### Decisions
 
@@ -92,7 +92,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 
   Check: `git log --follow` of a CAD file reaches its first commit; the tree holds only CAD files.
 
-- [x] **S4. Lib and the references.** Done (not committed yet): `Lib\GeometryHelper.dll` + `.xml` from `6bb8136e`,
+- [x] **S4. Lib and the references.** Done (opencad2d `808a833a`): `Lib\GeometryHelper.dll` + `.xml` from `6bb8136e`,
   `Lib\VERSION.txt`; every `ProjectReference` to the core became `<Reference Include="GeometryHelper"
   HintPath="$(GeometryHelperLib)GeometryHelper.dll" />` (`GeometryHelperLib` in `Directory.Build.props`); the three
   plugins that take the engine with `Private="false"` take the core the same way; the test files the engine's tests
@@ -109,7 +109,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 
   Check: the projects find the core only in `Lib` (no path to `D:\GitHub\GeometryHelper` in any csproj).
 
-- [ ] (running) **S6-S8 progress (2026-11-23, not committed):**
+- [x] **S6-S8 as done (opencad2d `808a833a`, pushed; CI green on GitHub):**
   - S6: "GeometryHelper CAD" -> "OpenCAD2D" everywhere; `%AppData%\GeometryHelper\Drawing` and `\Dxf` -> one folder
     `%AppData%\OpenCAD2D` (GlobalSettings, CadCrashLog, CadPlotStyleFolder, Program.cs), copied once at the first
     start by the new `CadOldFolders.CopyOnce` (3 tests); `%LocalAppData%\OpenCAD2D\Remote`; temp folders `OpenCAD2D`;
@@ -124,18 +124,18 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
     242/242 on net8.0 and net48.
   - S8: CLAUDE.md (part one copied, part two new), README.md, CHANGELOG.md, `.claude/settings.json`, `.claude/agents`
     (adapted), `tools/csharpier`, `.github/workflows/build.yml` (timing tests filtered out on the runner).
-- [ ] (done) **S5 progress:** files and text renamed by `rename.sh` (regex `GeometryHelper\.Cad(?![A-Za-z0-9])`,
+- [x] **S5 as done:** files and text renamed by `rename.sh` (regex `GeometryHelper\.Cad(?![A-Za-z0-9])`,
   so `GeometryHelper.CadConvert` is untouched); 324 files given `using GeometryHelper;` (the engine was inside the
   core's root namespace before) and partial names (`Geometry.GeoPoint2`, `Export.Numbers`) qualified; csharpier run
   over everything. Build `-warnaserror --no-incremental`: 0 warnings, 0 errors. First suite run: OpenCAD2D.UnitTest
   13 883 / 13 884 (DisplaySpeed16, a timing test that fails under load, to rerun alone); the others running.
-- [ ] **S5. Rename projects, assemblies and namespaces** as in the table above, with a script, together with
+- [x] **S5. Rename projects, assemblies and namespaces** as in the table above, with a script, together with
   `InternalsVisibleTo`, pack URIs, resource names and XML doc references.
 
   Check: `dotnet build OpenCAD2D.slnx -c Release -warnaserror --no-incremental` with 0 warnings; every suite green
   (OpenCAD2D, Wpf, Plugins, Python on net48 and net8.0, Remote); no "GeometryHelper.Cad" left (`grep -rn`).
 
-- [ ] **S6. What the user sees.**
+- [x] **S6. What the user sees.**
   1. The title becomes OpenCAD2D, and the exe `OpenCAD2D.exe`.
   2. Settings go to `%AppData%\OpenCAD2D`, copied from `%AppData%\GeometryHelper\Dxf` on the first start.
   3. The ProgId becomes `OpenCAD2D.Drawing`, and the old one is removed when the association is written.
@@ -148,14 +148,14 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   - a `.dxf` opened from Explorer;
   - Python from outside connecting through Remote.
 
-- [ ] **S7. Python.**
+- [x] **S7. Python.**
   1. The package `opencad2d`: the wheel, the stubs of the CAD libraries, the examples, `GH-DrawingInfo.py`, the
      Pythons folder.
   2. `tools/python/verify-python.sh` moves along.
 
   Check: pytest green on coreclr and netfx; pyright strict clean.
 
-- [ ] **S8. The repository's own setup.**
+- [x] **S8. The repository's own setup.**
   1. The build and format files: `Directory.Build.props` (version 1.0.0), `OpenCAD2D.slnx`, `.gitattributes` (LF),
      `.editorconfig`, `.csharpierrc.json`, `dotnet-tools.json`.
   2. The project's own files: `README.md`, `CHANGELOG.md` (starting at the split, pointing at GeometryHelper's history),
@@ -168,12 +168,12 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 
   Check: `dotnet csharpier check .` exits 0; docfx 0 warnings; the CI run on GitHub is green.
 
-- [ ] **S9. Carry the open work over.** The open and parked items of Part C (AutoLISP, Python) and Part A's leftovers
+- [x] **S9. Carry the open work over.** The open and parked items of Part C (AutoLISP, Python) and Part A's leftovers
   move from GeometryHelper's `PROGRESS.md` to the section "Open work" below.
 
   Check: nothing open is left only in GeometryHelper.
 
-- [ ] **S10. Clean GeometryHelper.**
+- [x] **S10. Clean GeometryHelper.**
   1. Remove the CAD projects, tests, example, docs, `geometryhelper.cad` and the CAD stubs.
   2. Update the CAD jobs of the CI, the `.slnx`, `CLAUDE.md`, `README.md` and `PROGRESS.md`.
   3. Add a **BREAKING.** entry in `CHANGELOG.md` pointing to opencad2d.
@@ -181,7 +181,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   Check: the full verify of GeometryHelper green (build, core, IfcConvert, TeklaConvert 2020/2025/2026, PyStubs,
   pytest, docfx).
 
-- [ ] **S11. Switch over.**
+- [x] **S11. Switch over.**
   1. The run copy is published to `D:\OpenCAD2D-run`; the maintainer points the shortcut to `OpenCAD2D.exe`.
   2. The code-review graph is built for opencad2d.
   3. Both repositories are committed and pushed.
@@ -193,8 +193,272 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 
 ### Leftovers of the split
 
-(Written here as the steps finish.)
+- S10 done in GeometryHelper `360b73a7` (+ `9f72b308`, which takes out the generated stubs the first commit carried by
+  mistake: 77 000 lines of `.pyi` stay in GeometryHelper's history). Core 19 272 passed, IfcConvert 339, docfx 0
+  warnings; TeklaConvert unchanged and not run. The leader's `docfx-check.sh` there lost its Python steps and now
+  exports with `git diff HEAD` (staged deletions were kept before).
+- S11 done: run copy `D:\OpenCAD2D-run` (`.claude/gk/leader/publish-run.sh` here, git-excluded through
+  `.git/info/exclude` like GeometryHelper's); the 22 Lisp files the maintainer had in `D:\GeometryHelper-run\Lisps`
+  copied over. Left to the maintainer: a shortcut to `D:\OpenCAD2D-run\OpenCAD2D.App.exe`, `OpenCAD2D.App.exe
+  --register` once for the `.dxf`/`.dwg` association, deleting `D:\GeometryHelper-run` when no longer wanted.
+- [ ] The app icon is still GeometryHelper's "G" (`src/OpenCAD2D.App/Icons`): a new one, designed first.
+- [ ] A docs site for OpenCAD2D (docfx, with the Python API pages `tools/python/make-api-pages.py` writes): until then
+  `docs/python.md` links to `docfx/python-api` that does not exist, and the guides are read on GitHub.
+- [ ] Tests that run `OpenCAD2D.App.exe --screenshot` reach `Program.Main`, so they make the user's
+  `%AppData%\OpenCAD2D` (the copy of the old folders) on a developer's machine. Harmless (it is the first start's own
+  copy), but a test should not touch the user's folders: give the copy a switch, or skip it in screenshot mode.
+- [ ] The code-review graph is not built for this repository; the leader's other harnesses (the LISP routines runner,
+  the AutoCAD probes) still live in `D:\GitHub\GeometryHelper\.claude\gk` with paths to the old projects.
+- [ ] The exe is `OpenCAD2D.App.exe` (an `OpenCAD2D.exe` would need the engine's assembly renamed); the installer's
+  shortcut carries the name OpenCAD2D.
+- [ ] The PyPI name `opencad2d` and the upload: the maintainer's word.
 
 ## Open work
 
-(Filled in by S9.)
+Moved from GeometryHelper's `PROGRESS.md` at the split (2026-11-23), as it stood there: the names are the old ones
+(`GeometryHelper.Cad` is `OpenCAD2D`, `geometryhelper.cad` is `opencad2d.cad`). Work on the core library itself (DWG, DXF)
+is done in GeometryHelper and brought here through `Lib`. The PyPI name `opencad2d` is free (checked 2026-11-22).
+
+### Part A: the presenter (finished, 2026-11-17)
+
+The maintainer judged Part A done on 2026-11-17. What it covers, in short:
+
+- Files: DXF R12 to R2018 and our own DWG reader and writer (R2000 to R2018), opened by AutoCAD 2021 with AUDIT 0;
+  RECOVER, AUDIT, autosave, templates, xrefs, raster images, PDF underlays, OLE frames, WMF in and out.
+- Drawing and editing: AutoCAD 2021's 2D draw and modify commands with their options and prompts, grips and grip modes,
+  object snaps and tracking, UCS, selection, undo, clipboard, blocks and dynamic blocks, attributes, groups, arrays,
+  constraints, MLINE, regions, hatches and gradients.
+- Annotation: text and MTEXT with its editor, tables, fields, dimensions (associative, annotative) and multileaders.
+- Layouts: viewports (double click in, snaps through them, resize and preview as AutoCAD), layers per viewport, PLOT,
+  PUBLISH, page setups, plot styles, PDF and image export.
+- The app: ribbon, command line with AutoComplete, Properties with the selection box, palettes, managers and dialogs,
+  Global settings, shortcuts and acad.pgp aliases, plugins.
+
+#### Asked for since
+
+- [x] A1. Command line history as AutoCAD's (maintainer 2026-11-21; design first): drag the top edge to show more or
+      fewer lines (kept in the settings), scroll back with the wheel, select lines and copy them (Ctrl+C, right-click
+      Copy and Copy History); F2's text window stays as it is
+- [x] A2. Plugins extend the window as in AutoCAD (maintainer 2026-11-21; design first): a plugin loaded at run
+      time (PLUGINLOAD/APPLOAD, both runtimes, unloadable) adds its own ribbon tabs and panels (large/small buttons,
+      icons, split buttons, tooltips, as AutoCAD's RibbonTab/RibbonPanel), rows of the PROPERTIES palette for its
+      objects, buttons and items of the DRAWINGS list, and custom object snap modes (as AutoCAD's CustomObjectSnapMode
+      with a glyph); described without WPF in GeometryHelper.Cad.Plugins, drawn by the window, gone when unloaded
+- [ ] A2 parked: colour swatches in the Color rows of Properties (the presenter's and a plugin's; the A2Properties board
+      to match), collapsing plugin panels, slide-outs, dialog launchers, macros, a pick-point button, and plugin snaps
+      through a viewport, inside a block and for typed points
+- [x] A3. Asked for 2026-11-22/23, done: the first STYLE and the Font box no longer stall (font lists read ahead,
+      long drop-downs virtualized); Remove Vertex from a grip's menu acts at once; UCS P after UCS W returns to World
+      (the CD routine) and UCS changes are undo steps as in AutoCAD; the DRAWINGS right-click menu as AutoCAD's file
+      tab menu, Save/Close of another row keeping the drawing shown; every support folder read with its subfolders;
+      a .dwg dropped on the drawing area inserted as a block; built-in linetypes with AutoCAD's lengths
+- [x] A4. Applications (2026-11-22/23): one Load/Unload Applications window for Lisp files and plugins (APPLOAD),
+      LISPLOAD for .lsp files, NETLOAD for .dll, Manage > Load Manager/Load Lisp/Load Plugin/Load Python; Unload only
+      unticks, unloaded files kept across restarts with their commands, Remove takes a file out; the load-error line;
+      the Plugins ribbon tab and .ghplugin packages removed; the sample plugin in examples/
+- [ ] A4 parked: a UCS change inside the Block Editor and then BCLOSE discard not put back; the UCS dialog's changes
+      one step each, not one per dialog
+
+#### Parked follow-ups
+
+Small parity and speed follow-ups left by finished items. They stay parked under "features first" unless the
+maintainer meets one as a real fault. Details for each are in the history at `ddf1ff27`.
+
+- [ ] Checks only the AutoCAD GUI can give: LAYERP with U and the Layer manager; the guessed prompts of SPELL,
+      ATTIPEDIT, MLEADERALIGN Spacing/Distribute; DIMBREAK Auto breaks; filter.nfl; Ctrl cycling of grip modes; the
+      Properties kind list order and its reset to All
+- [ ] Dialog polish (design3+design4): one footer button order, error brush, MTextMask header drag, SelectTemplate list,
+      Plot styles/Publish layout details
+- [ ] Ribbon at 125 % and 150 % display scaling; Home panels a few pixels wider than the design
+- [ ] PLOT on real printers and Microsoft Print to PDF; -PLOT choosing a printer; smaller PDFs (glyph subsetting)
+- [ ] Trans-spatial dimensions (DIMASSOC 2 through a viewport); typed snaps and OTRACK through a viewport; viewports
+      with a 3D view direction entered
+- [ ] MLINE edits at mitred corners and CJ pairs; annotative turned words on an extension line; MTEXT rare codes
+      and column grips; table long texts and data links in old versions
+- [ ] DWG and DXF version leftovers: R2013 AuxHeader numbers, spline normals off XY, R12 gradient meshes, version
+      converter number parsing
+- [ ] Xrefs, REFEDIT, managers and hatch dialogs: GUI-only checks and small wording differences
+
+### Part C: scripting
+
+Asked for by the maintainer on 2026-11-20 and not started: the maintainer starts it later. (The letter B went with model
+drawings, which moved to TeklaHelper.DrawingManager.) Each stage starts with a look at open-source projects on GitHub
+that do the same, and names the ideas it takes. The maintainer's own AutoLISP routines are the acceptance set for the AutoLISP
+stages: they are read where they are and never copied into the repository, and tests build small routines of their own.
+
+#### AutoLISP
+
+The goal is one routine for both programs: a `.lsp` (and its `.dcl`) written once runs in AutoCAD 2021 and in
+`GeometryHelper.Cad.App` with the same result. A stage is done when the maintainer's routines that need only what it adds
+run in both alike. Each test runs the same routine in AutoCAD (accoreconsole, hidden) and in the presenter, and compares
+the two drawings written as DXF (entities, layers, coordinates within the tolerance), the values returned and the
+command-line output. What AutoCAD alone can do (COM to other programs, ARX and .NET loading) is refused with a message
+naming it, never ignored; `(getvar "PRODUCT")` tells a routine which program runs it. Input a routine asks for (points,
+picks, keywords) is fed to both programs from the test's script; DCL dialogs, which accoreconsole cannot show, are
+compared by their values and by eye.
+
+- [x] L1. The interpreter: AutoLISP's reader, evaluator and data types (lists, symbols, reals, integers, strings, entity
+      names, selection sets), `defun` and `c:` commands, error handling with `*error*`, APPLOAD, `(load)`, `acad.lsp`,
+      `acaddoc.lsp` and `S::STARTUP`; LISP expressions typed at the command line
+- [x] L1b. APPLOAD dialog (design first): the Load/Unload Applications dialog with the Startup Suite, designed in the
+      Design artifact before it is built
+- [x] L1 parked, closed by L9 (2026-11-23): U naming `L` for LINE measured the same (`LINE`). Left with their reasons:
+      acad.lsp/acaddoc.lsp order in AutoCAD (the maintainer has neither file, his Support folder holds only AutoCAD's own
+      acad2021.lsp; ours follows AutoCAD's documented order); Unicode strings typed at the console (the app's command line is
+      Unicode end to end, only accoreconsole's ANSI stdin cannot show it); the harness's Enter-repeat echo (a harness artefact)
+- [x] L2. Drawing functions: `command` and `vl-cmdf` driving the presenter's commands with their prompts; `ssget` with
+      its modes and filters, `ssname`, `sslength`, `ssadd`; `entsel`, `nentsel`, `entget`, `entmod`, `entmake`,
+      `entdel`, `entnext`, `tblsearch`; `getpoint`, `getcorner`, `getdist`, `getangle`, `getreal`, `getint`,
+      `getstring`, `getkword`, `initget`; `getvar`, `setvar`, `trans`, `polar`, `inters`, `osnap`; `princ` and `prompt`
+- [x] L2 parked, closed by L9 (2026-11-23): an entmade MTEXT's group 50 (radians, the later of 11 and 50 wins, as
+      AutoCAD) and the words U writes for a routine's commands are fixed. Left with their reasons: -HATCH's second Select
+      objects adding to the first (no routine of the maintainer's does it); the MATERIAL object of a layer's 347 (no routine
+      reads it); entget of MTEXT about 0.05 ms slower (10 000 MTEXTs cost half a second); a `c:` routine with only `entmod`
+      is a step of its own where AutoCAD's console made none (u4, decided to leave: AutoCAD's merge is odd and rare; ours
+      undoes only what the routine did); REDO after a typed `(ssget "_X")` or REGEN redoes here and says Nothing to redo in
+      AutoCAD; `(getvar "VIEWSIZE")` is nil in the headless runner after ZOOM W (AutoCAD 60.0)
+- [x] L3. vl- functions and files: `vl-string-*`, `vl-sort`, `vl-remove`, `vl-position`, `vl-file-*`, `open`, `close`,
+      `read-line`, `write-line`, `findfile`, `getfiled`
+- [x] L4. vla- and vlax- objects: the members the maintainer's routines use (about 40), on the presenter's own object
+      model; COM to other programs (Excel) refused with a message
+- [x] L4 parked, closed by L9 (2026-11-23): a fence's objects now in the order along the fence. Left with their reasons:
+      ObjectID as AutoCAD's small numbers (ours are handle values, unique and stable, and fields resolve them; only the
+      printed number differs); typed forms after a `c:` routine joining its undo step (typing forms by hand after a routine is
+      a developer's act; U after the routine itself is right); a crossing wholly outside the view finding a long line (probe
+      p4: view-dependent, unexplained, no routine hits it); ZOOM's 5 % margin against AutoCAD's about 1 % (the view only);
+      ZOOM n alone keeping the centre (routines write `ZOOM 0.8X` or `E`)
+- [x] L5. DCL dialogs: the DCL parser and its tiles drawn as WPF, with action_tile, get_tile and set_tile (designed in
+      the Design artifact first). Accepted 2026-11-21: E1 and FDVAL run in the full AutoCAD and the presenter with the
+      same dialog values and E1 transcript
+- [x] L5 parked, closed by L9 (2026-11-23): list clicks (plain, Ctrl, Shift), the list double click and the slider drag
+      measured in AutoCAD 2021 with real clicks and the same as ours; a click that changes nothing now runs a list's action
+      again (reason 1). Left with their reasons: a dialog of ok_cancel alone (162 x 93; two buttons and nothing else is not a
+      real dialog, looks only); AutoCAD's narrower dialog text (FDVAL 219 against 242: Segoe UI was L5's choice, values the
+      same); getpoint in an action (AutoCAD's help forbids input while a dialog is active, so no working routine does it)
+- [x] L6. Trusted folders and SECURELOAD, as AutoCAD 2021, shared with the Python stages. Done 2026-11-22:
+      SECURELOAD, TRUSTEDPATHS (`\...` for subfolders) and LEGACYCODESEARCH as measured in AutoCAD 2021, the warning
+      "Security - Unsigned Executable File" (Always Load by file content), a Security page in Global settings; the four
+      harness feeds and the L2/L5 routines give the same transcripts as before
+- [x] L6 parked, closed by L9 (2026-11-23): the app keeps SECURELOAD 1 (AutoCAD 2021's default) and the plugin manager keeps
+      its trusted folders apart from TRUSTEDPATHS (decided on the recommendation: the app's own folder with its subfolders,
+      Lisps and Plugins, is trusted, so daily use does not ask; folding the plugin list into TRUSTEDPATHS would change how
+      plugins in subfolders load). The Security page was driven by hand with the app (UIA, our PID only): the warning for a
+      writable folder is right; two faults found and fixed (Add folder now a folder picker, as a Save dialog could not choose
+      a read-only folder; Apply and OK held off by a stale DTEXT alias in the saved settings). Left: Remove, Move up and
+      down, Include subfolders and the "(not found)" mark were covered by tests only
+- [x] L7. Finishing AutoLISP in the app (maintainer 2026-11-22, "focus on finishing LISP first"). Done 2026-11-22: a
+      `Lisps` folder beside the app loaded into every drawing and on the search path, relative names (`Sub/x`, `./x.lsp`)
+      looked up along it as AutoCAD 2021 does; APPLOAD's Look in, typed folders and wildcards, list keys, Size column and
+      drops on Loaded Applications as measured in AutoCAD 2021; files dropped on the window (`(LOAD "...")`, `_SCRIPT`, the
+      Drag and Drop box, a drawing on the canvas INSERTed); 90 more functions (`command-s` and the error modes, `getenv`/`setenv`, `autoload`, `regapp`,
+      xdata, dictionaries, `vlax-ldata-*`, `entmakex`, `ssnamex`, `grdraw`/`grvecs`), 161 of AutoCAD's 489 non-vla
+      built-ins missing before, 72 after. The 19 L2 routines and L3's five against the stored AutoCAD side at e7c354e1:
+      13 of 19 and 4 of 5 identical (hh newly), the rest unchanged known differences
+- [x] L7 parked, closed by L8 (2026-11-23): GRREAD, the `vlr-` functions (46, not 54), menucmd, help, vmon, the
+      vl-exit functions and vlax-queueexpr, entmod of XRECORD and table records, GRCLEAR measured in the GUI, entdel
+      keeping an extension dictionary and dcd's MTEXT 42/43 (a harness font setting) are done; APPLOAD's own folder
+      browser was replaced by the Load/Unload Applications window, so its items are void. What remains moved to L8
+      parked.
+- [x] L8. Round L8 (spec .claude/scratch/l8/spec.md, 2026-11-22): GRREAD with AutoCAD's window codes (measured by
+      SendInput), the 46 `vlr-` functions with command, lisp, sysvar, dwg and object events, menucmd, menugroup, vmon,
+      help, setfunhelp, getcname, fnsplitl, acdimenableupdate, `*error*`, the vl-exit functions, entmod of table records,
+      XRECORD and VERTEX, SELECT, 3DPOLY, UNDO No/No, REVCLOUD lengths kept, AutoCAD linetype lengths, the command
+      parity fixes, an open line continued as AutoCAD's and a waiting prompt written again. Acceptance: L2 19/19
+      transcripts (ll with its linetype-description and regen allowances), L3 5/5, L8 feeds rx, gk, fx the same.
+- [x] L8 parked, closed by L9 (2026-11-23), all left with their reasons: ldata as VLO-VL (no routine of the maintainer's uses
+      ldata; VLO-VL is AutoCAD's own class); entmod of DICTIONARY and BLOCK_RECORD (routines change dictionaries through
+      dictadd and dictremove, which work); ssnamex fence points and the method of a pick-first set (rare; the pick points
+      routines read are given); mouse and docmanager reactors and persistent reactors (double-click reactors are rare and
+      need canvas hooks, docmanager is multi-document, persistence needs reactors saved in the drawing); MLEADER's Options
+      and landing-first orders (interactive; routines give points only); 3DPOLY's typed Z (rare in 2D drawings); FILLETRAD of
+      a header with none (10, AutoCAD 0: accepted); trace, tablet, vports, setview and the `_vl-` internals (debugging and
+      internals, no routine calls them)
+- [x] L9. The AutoLISP leftovers (maintainer 2026-11-23, "finish AutoLISP"): the L1, L2, L4, L5, L6 and L8 parked
+      lines above, each fixed or measured in AutoCAD and closed, or left with the reason. Done 2026-11-23 (spec
+      .claude/scratch/l9/spec.md, measurements m/console.md and m/dcl.md): an entmade MTEXT's 50 (radians, the later of 11
+      and 50 wins), `ssget "F"` in the order along the fence, the words U and REDO write for a routine's commands, and a list
+      click that changes nothing running the action again; list selections, the list double click and the slider drag
+      measured the same; the rest closed with their reasons
+
+#### Python
+
+Python works with GeometryHelper.Cad in three places: a script outside the app on the libraries alone, a console and
+scripts inside the app, and a script outside that drives a running app.
+
+- [x] P1. Choose how: CPython through pythonnet against IronPython, on net48 and .NET 10, with numpy usable; how a
+      script finds the libraries; a short decision in the plan. Decided 2026-11-21: CPython 3.11+ through pythonnet 3.2
+      (IronPython 3.4 has no numpy and no `match`/`:=`); the netstandard2.0 libraries load unchanged on net48, .NET 8 and
+      .NET 10; a 10 000-line DXF opens in 30 ms from Python; scripts read coordinates in blocks (numpy), not one by one
+- [x] P2. A Python package `geometryhelper` (pip) loading the core and `GeometryHelper.Cad` without a window: geometry,
+      DXF and DWG read and write, a document edited and saved headless; type stubs (`.pyi`) so editors complete names.
+      Done 2026-11-21: a local wheel `py3-none-win_amd64` (10.2 MB), 152 pytest tests on .NET 8 and .NET Framework 4.8,
+      stubs generated by tools/GeometryHelper.PyStubs (806 types), guide docs/python.md
+- [ ] P2 parked: the PyPI name (`geometryhelper` is taken; `geometryhelper-dotnet` proposed) and the upload, both the
+      maintainer's word; the CLAUDE.md verify line; a Pylance look in VS Code; Linux, macOS and ARM64; a PyInstaller
+      hook; one `<summary>` per partial class so hovers stay short (CadDocument); in the stubs, 331 settable reference
+      properties and 139 optional parameters that default to null still refuse None, getters are never `| None`
+- [x] P3. Python inside `GeometryHelper.Cad.App`: a PYTHON console palette and the commands PYLOAD and PYRUN, with the
+      active document, the selection, the command line, prompts (get point, get selection) and undo of a script as one
+      step. Done 2026-11-21: GeometryHelper.Cad.Python embeds CPython 3.11-3.15 on the window thread, Esc stops Python
+      code in about 20 ms, one undo step per run, PYLOAD with `@cad_command`, a script connecting to its own app refused
+- [ ] P3 parked: the command and function names (PYTHON, PYRUN, PYLOAD, get_point...) await the maintainer's word; the
+      CLAUDE.md verify line for the Cad.Python suite; a Wpf test of CadAppRemoteHost.IsOwnerThread; EntityCount cached inside an open group and a failed ApplyEdit taking back a run's whole group
+      silently (the maintainer to decide); output flushed only when the window is next idle during a long run
+- [x] P4. Driving a running app from outside: a Python client over `GeometryHelper.Cad.Remote`'s named pipe (open,
+      draw, select, run commands, read the drawing). Done 2026-11-21: the .NET CadApplication through pythonnet in a
+      `with` block, no protocol change; a headless test server and 63 pytest tests on both runtimes; checked on the
+      real app (100 lines committed in 207 ms, one U takes the commit back)
+- [ ] P4 parked: a CadApplication used after Dispose reconnects silently (documented); the app's announced title empty
+      just after it starts
+- [x] P5. Examples and the guide: a script per common task, and the API reference for Python from the XML docs.
+      Done 2026-11-22: 13 examples in src/python/examples (library, in the app, remote), each run by a test on both
+      runtimes; a Python API section of the docs site, one page per type (806), generated from the stubs with links to
+      the .NET pages
+- [ ] P5 parked: the place of the examples and the docs build needing Python (the maintainer to confirm); a
+      `src/python` row in CLAUDE.md's layout table; 548 member groups with no .NET page to link (enum `__int__` and
+      `__init__`, flags operators, delegates' `__call__`)
+- [x] P6. Scripts in the trusted folders of L6 only, and a script's errors shown without closing the app. Done
+      2026-11-22: PYRUN, PYLOAD and the palette go through the same gate; every kind of script error leaves the app
+      running with one line on the command line (a .NET error too), the streams put back before each run
+- [ ] P6 parked: a list of Python startup scripts; recursion through .NET callbacks past about 650 levels overflows the
+      stack
+
+Re-scoped 2026-11-23 by the maintainer: Python is to work as a C# plugin plus Remote, "like LISP", not as a console
+inside the app; made to be used a lot, by people and by AI (plan and spec in .claude/scratch/pyl, D1600–D1642).
+
+- [x] PW1. Loading as LISP: a Pythons folder beside the exe loaded at start, .py files in the Load/Unload Applications
+      window (Kind Python, their commands), a Python Startup Suite, drag-drop of .py, PYLOAD as the .py picker; from
+      outside, closing a drawing and reading text styles, dimension styles and blocks. Done 2026-11-23: an empty
+      Pythons folder starts no engine (1 ms), one .py costs about 0.45 s at start; Close(discard) refuses unsaved or busy
+      drawings; style and block reads as copies sorted by name
+- [ ] PW1 parked: the dependent blocks of an xref (`grid|TAG`) not carried by Blocks (the core cannot make such a
+      record); an unloaded Python row shows no commands (Lisp rows keep theirs); no Global settings row for the Pythons
+      folder or the Python Startup Suite; a .py asking a prompt at module level while APPLOAD runs; Remove's tooltip
+      naming only Lisps and Plugins
+- [x] PW2. One API: `@command("NAME")`, `cmd(...)` and the get_* prompts; a Drawing API (entities, add, modify, erase,
+      layers, tables, save, close) the same in the app, from outside (`connect()`, any open drawing) and headless
+      (`open_file()`); parity with the C# plugin API (ribbon tabs, panels and buttons, side panel, settings, events).
+      Done 2026-11-23: `@command(alias=, uses_selection=)`, `cmd` with PAUSE, `@on_unload`, get_entity/get_selection
+      giving Entity objects; `add_ribbon_tab`, panels, buttons, split buttons, DRAWINGS button and menu, canvas menu
+      and Properties from a .py, one host per file; Drawing, Entity, Layer, App, connect, open_file, new_file with
+      commit() as one undo step; 25 shared scenarios held equal headless, outside and in the app
+- [ ] PW2 parked: no Python side panel (it takes WPF content); style and block reads copy the whole drawing
+- [x] PW3. Finish: the PYTHON console and PYTHONCLOSE removed (PYRUN kept); a docstring with an example for every public
+      name of `geometryhelper.cad` (typed inline, so no .pyi), checked by a test; the guide, the changelog and the
+      examples on the new API; acceptance: the C1 layer command written in Python run in the app and from outside, and
+      a LISP routine and its Python port giving the same drawing. Done 2026-11-23: a dimension added or changed from
+      Python is drawn by `CadDimensionPicture.Redraw`; the palette's 4 source files, 3 test files and 89 test methods are gone
+      (the host's console entry stays, since the engine-error tests use it); DIMLAY in LISP and in Python give equal
+      drawings, picture included (red without the redraw)
+- [ ] PW3 parked: `save()` inside a run makes two undo steps (the run's group ends and opens again); `Entity.dxf_type`
+      is read from `str(net)` (a public DXF name on `DxfEntity` would touch the core and its 10-minute suite); custom
+      snaps and plugin settings (D1660); `CadPythonHost.Enter`, `ResetConsole` and `CadPythonEntry` no longer have a
+      window and are used by tests only; the remote examples take the raw `CadApplication` and wrap it in `App(...)`
+      because `test_e0` pins that signature and `with CadApplication()`; `batch_folder.py` and `convert.py` stay on
+      `DxfDatabase` (they need the version and the writer's warnings); no ribbon-button example file (`test_e0` lists
+      the examples); the empty row 1 of the canvas grid stays
+
+### Release
+
+- [ ] Review by the maintainer of everything above
+- [ ] Package `GeometryHelper.Cad` on NuGet (only when the work is complete)
