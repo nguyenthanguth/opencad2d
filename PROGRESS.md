@@ -207,7 +207,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 - [ ] Tests that run `OpenCAD2D.exe --screenshot` reach `Program.Main`, so they make the user's
   `%AppData%\OpenCAD2D` (the copy of the old folders) on a developer's machine. Harmless (it is the first start's own
   copy), but a test should not touch the user's folders: give the copy a switch, or skip it in screenshot mode.
-- [ ] The code-review graph is not built for this repository; the leader's other harnesses (the LISP routines runner,
+- [x] The code-review graph: built 2026-11-23 (2 026 files, 31 105 nodes) with `.mcp.json` (git-excluded) here.
+- [ ] The leader's other harnesses (the LISP routines runner,
   the AutoCAD probes) still live in `D:\GitHub\GeometryHelper\.claude\gk` with paths to the old projects.
 - [x] The exe is `OpenCAD2D.exe` (maintainer 2026-11-23): the engine's assembly is `OpenCAD2D.Core` (folder
   `src/OpenCAD2D.Core`, namespace still `OpenCAD2D`, so no code changed), the app's `OpenCAD2D`. GeometryHelper
