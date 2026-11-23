@@ -521,18 +521,19 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
 
 | # | Decision | State |
 |---|---|---|
-| CS-D1 | The compiler is Roslyn (`Microsoft.CodeAnalysis.CSharp`, MIT), in the app only (`OpenCAD2D.Wpf`, net8.0-windows), not in `OpenCAD2D.Core`, so the NuGet API stays small. The source is compiled in memory to an assembly and its PDB (lines of errors and of exceptions point into the `.cs`). Before writing it: how CS-Script (MIT), dotnet-script (MIT) and Roslyn's own scripting API compile and cache, and what their ideas cost. | proposed |
-| CS-D2 | One plugin is either one `.cs` file, or a folder whose `.cs` files are compiled together (`Plugins\Stairs\*.cs`), as a folder of `.dll` files is one plugin today. | proposed |
-| CS-D3 | It references what a `.dll` plugin may use: the .NET 8 runtime the app runs on, `OpenCAD2D.Core`, `OpenCAD2D.Wpf`, `GeometryHelper`, WPF. Other `.dll` files beside the source are referenced with a `//#r "Name.dll"` line at the top, as dotnet-script writes it; no NuGet packages. C# `latest`, implicit usings off, nullable off, as the app's own code. | proposed |
-| CS-D4 | A compiled build is cached by the SHA-256 of its sources and of the app's version in `%LocalAppData%\OpenCAD2D\PluginCache`, so a start with unchanged sources does not compile again. | proposed |
-| CS-D5 | The same loading as a `.dll`: the Plugins folder at start; PLUGINLOAD/NETLOAD and APPLOAD take `.cs` files (file type "C# source (*.cs)"); the Load/Unload Applications window lists them with the Kind "C# source"; drag and drop of a `.cs` on the window; PLUGINRELOAD compiles again. The trusted folders and SECURELOAD of L6 decide whether a `.cs` loads, as for a `.dll`. | proposed |
-| CS-D6 | Compiler errors: the plugin is not loaded, and the command line shows a line `Plugin <name> was not loaded: <n> errors`, then each error as `Stairs.cs(12,9): error CS0103: The name 'x' does not exist`, the first 20 at most; warnings are not shown. | proposed |
-| CS-D7 | Not now: a file watcher that reloads a `.cs` when it is saved (PLUGINRELOAD does it by hand), and `.vb` sources. | proposed |
+| CS-D1 | The compiler is Roslyn (`Microsoft.CodeAnalysis.CSharp`, MIT), in the app only (`OpenCAD2D.Wpf`, net8.0-windows), not in `OpenCAD2D.Core`, so the NuGet API stays small. The source is compiled in memory to an assembly and its PDB (lines of errors and of exceptions point into the `.cs`). Before writing it: how CS-Script (MIT), dotnet-script (MIT) and Roslyn's own scripting API compile and cache, and what their ideas cost. | decided by the maintainer 2026-11-23 (the recommendation) |
+| CS-D2 | One plugin is either one `.cs` file, or a folder whose `.cs` files are compiled together (`Plugins\Stairs\*.cs`), as a folder of `.dll` files is one plugin today. | decided by the maintainer 2026-11-23 (the recommendation) |
+| CS-D3 | It references what a `.dll` plugin may use: the .NET 8 runtime the app runs on, `OpenCAD2D.Core`, `OpenCAD2D.Wpf`, `GeometryHelper`, WPF. Other `.dll` files beside the source are referenced with a `//#r "Name.dll"` line at the top, as dotnet-script writes it; no NuGet packages. C# `latest`, implicit usings off, nullable off, as the app's own code. | decided by the maintainer 2026-11-23 (the recommendation) |
+| CS-D4 | A compiled build is cached by the SHA-256 of its sources and of the app's version in `%LocalAppData%\OpenCAD2D\PluginCache`, so a start with unchanged sources does not compile again. | decided by the maintainer 2026-11-23 (the recommendation) |
+| CS-D5 | The same loading as a `.dll`: the Plugins folder at start; PLUGINLOAD/NETLOAD and APPLOAD take `.cs` files (file type "C# source (*.cs)"); the Load/Unload Applications window lists them with the Kind "C# source"; drag and drop of a `.cs` on the window; PLUGINRELOAD compiles again. The trusted folders and SECURELOAD of L6 decide whether a `.cs` loads, as for a `.dll`. | decided by the maintainer 2026-11-23 (the recommendation) |
+| CS-D6 | Compiler errors: the plugin is not loaded, and the command line shows a line `Plugin <name> was not loaded: <n> errors`, then each error as `Stairs.cs(12,9): error CS0103: The name 'x' does not exist`, the first 20 at most; warnings are not shown. | decided by the maintainer 2026-11-23 (the recommendation) |
+| CS-D7 | Not now: a file watcher that reloads a `.cs` when it is saved (PLUGINRELOAD does it by hand), and `.vb` sources. | decided by the maintainer 2026-11-23 (the recommendation) |
 
-- [ ] CS1. Research and the spec: CS-Script, dotnet-script and Roslyn scripting read and compared (compile time of a
-      200-line plugin cold and warm, memory, how each references the host's assemblies and caches); the decisions above
-      confirmed or changed by the maintainer; the spec with numbered decisions.
-      -> verify: the comparison table and the spec written; the maintainer's answers to CS-D1 to CS-D7 recorded here.
+- [ ] CS1. Research and the spec (the next item; CS-D1 to CS-D7 are decided, so the spec writes them down as they
+      are unless the research shows one fails, which goes back to the maintainer): CS-Script, dotnet-script and Roslyn
+      scripting read and compared (compile time of a 200-line plugin cold and warm, memory, how each references the
+      host's assemblies and caches); the spec with numbered decisions in `.claude/scratch/cs/spec.md`.
+      -> verify: the comparison table and the spec written; any decision the research changes asked of the maintainer.
 - [ ] CS2. The compiler: a `CadPluginCompiler` in `OpenCAD2D.Wpf` that turns one or more `.cs` files into an assembly
       and its PDB in memory, with the references of CS-D3, `//#r` lines, and the cache of CS-D4.
       -> verify: tests that compile a one-file and a two-file plugin, a plugin with a `//#r` reference, and one with an
