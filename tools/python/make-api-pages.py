@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Writes the Python API reference of GeometryHelper as Markdown, one page per type, for docfx.
+"""Writes the Python API reference of OpenCAD2D as Markdown, one page per type, for docfx.
 
-It reads the generated stubs (src/python/GeometryHelper-stubs, made by tools/python/make-stubs.sh) with ast, so a page
+It reads the generated stubs (src/python/OpenCAD2D-stubs, made by tools/python/make-stubs.sh) with ast, so a page
 shows what an editor shows, and the uids that docfx's metadata step wrote into docfx/api, so that a link is written
-only to a page that exists. Run it between `docfx metadata` and `docfx build`:
+only to a page that exists. `--namespace` names the namespace of the stubs folder itself. Run it between
+`docfx metadata` and `docfx build`:
 
-    python tools/python/make-api-pages.py --stubs src/python/GeometryHelper-stubs --api docfx/api --out docfx/python-api
+    python tools/python/make-api-pages.py --stubs src/python/OpenCAD2D-stubs --namespace OpenCAD2D --api docfx/api \
+        --out docfx/python-api
 
 Standard library only. The folder given to --out is deleted and written again, with the same bytes on every run.
 Exit 0 on success, 1 with `error: <reason>` on standard error when a folder is missing, a stub does not parse or a type
@@ -234,15 +236,15 @@ def read_type(namespace: str, cls: ast.ClassDef, lines: list[str], kinds: dict[s
     return TypeInfo(namespace, cls.name, bases, ast.get_docstring(cls), order)
 
 
-def read_stubs(stubs: Path, kinds: dict[str, str]) -> dict[str, list[TypeInfo]]:
-    """The types of every `__init__.pyi` under the stubs folder, by namespace."""
+def read_stubs(stubs: Path, kinds: dict[str, str], root: str) -> dict[str, list[TypeInfo]]:
+    """The types of every `__init__.pyi` under the stubs folder, by namespace, the folder itself being `root`."""
     namespaces: dict[str, list[TypeInfo]] = {}
     files = sorted(stubs.rglob("__init__.pyi"))
     if not files:
         raise GeneratorError(f"no __init__.pyi under {stubs}")
     for pyi in files:
         parts = pyi.parent.relative_to(stubs).parts
-        namespace = ".".join((ROOT_NAMESPACE, *parts))
+        namespace = ".".join((root, *parts))
         text = pyi.read_text(encoding="utf-8")
         try:
             tree = ast.parse(text)
@@ -310,7 +312,7 @@ def write_text(path: Path, text: str) -> None:
     path.write_bytes(text.encode("utf-8"))
 
 
-def build(stubs: Path, api: Path, out: Path, prose: str) -> Result:
+def build(stubs: Path, api: Path, out: Path, prose: str, root: str = ROOT_NAMESPACE) -> Result:
     """Reads the stubs and the uids and writes every page under `out`, which is deleted first."""
     for folder, label in ((stubs, "stubs"), (api, "api")):
         if not folder.is_dir():
@@ -319,7 +321,7 @@ def build(stubs: Path, api: Path, out: Path, prose: str) -> Result:
         if out.resolve() == folder or out.resolve() in folder.parents:
             raise GeneratorError(f"the out folder would delete a folder this reads: {out}")
     uids, kinds = read_uids(api)
-    namespaces = read_stubs(stubs, kinds)
+    namespaces = read_stubs(stubs, kinds, root)
 
     pages: dict[str, str] = {}
     unlinked: list[str] = []
@@ -367,17 +369,22 @@ def build(stubs: Path, api: Path, out: Path, prose: str) -> Result:
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="make-api-pages.py",
-        description="Writes the Python API reference of GeometryHelper as Markdown pages for docfx.",
+        description="Writes the Python API reference of OpenCAD2D as Markdown pages for docfx.",
         allow_abbrev=False,
     )
-    parser.add_argument("--stubs", required=True, type=Path, help="the GeometryHelper-stubs folder")
+    parser.add_argument("--stubs", required=True, type=Path, help="the stubs folder, as OpenCAD2D-stubs")
     parser.add_argument("--api", required=True, type=Path, help="docfx's metadata folder (docfx/api)")
     parser.add_argument("--out", required=True, type=Path, help="the folder to write, deleted first")
+    parser.add_argument(
+        "--namespace",
+        default=ROOT_NAMESPACE,
+        help=f"the namespace of the stubs folder itself (default {ROOT_NAMESPACE}; OpenCAD2D for OpenCAD2D-stubs)",
+    )
     args = parser.parse_args(argv)
     prose_path = Path(__file__).resolve().with_name("api-index.md")
     try:
         prose = prose_path.read_text(encoding="utf-8")
-        result = build(args.stubs, args.api, args.out, prose)
+        result = build(args.stubs, args.api, args.out, prose, args.namespace)
     except (GeneratorError, OSError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1

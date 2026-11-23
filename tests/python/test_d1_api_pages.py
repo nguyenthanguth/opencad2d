@@ -598,6 +598,23 @@ def test_a_type_that_has_no_uid_in_the_api_files_is_an_error_that_names_it(tmp_p
     assert process.stdout == ""
 
 
+def test_the_namespace_option_names_the_root_of_the_stubs_as_opencad2d_for_its_own_stubs(tmp_path: Path) -> None:
+    stubs, api = tmp_path / "OpenCAD2D-stubs", tmp_path / "api"
+    stub = 'import System\n\nclass CadDocument(System.Object):\n    """A drawing open in the app."""\n'
+    _write(stubs / "__init__.pyi", stub)
+    _write(api / "OpenCAD2D.CadDocument.yml", _yaml("OpenCAD2D.CadDocument", "Class", []))
+
+    process = _generate(stubs, api, tmp_path / "out", "--namespace", "OpenCAD2D")
+
+    assert process.returncode == 0, process.stderr
+    lines = _page(tmp_path / "out", "OpenCAD2D", "CadDocument").split("\n")
+    assert lines[1] == "uid: py.OpenCAD2D.CadDocument"
+    assert lines[7] == "`from OpenCAD2D import CadDocument`"
+
+    # Without the option the root is GeometryHelper, whose uid the api files do not hold.
+    assert _generate(stubs, api, tmp_path / "again").returncode == 1
+
+
 def test_a_stub_that_does_not_parse_is_an_error(tmp_path: Path) -> None:
     stubs, api = _inputs(tmp_path, geometry="class Broken(System.Object:\n")
 

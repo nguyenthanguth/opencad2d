@@ -443,7 +443,7 @@ are a PEP 561 stub package per namespace, `GeometryHelper-stubs` (an `__init__.p
 `System.Collections.Generic.List[T]`, `System.Action[...]`. They hold 808 types and 18 581 members (a member is one stub
 entry, each overload once), and the summary of each type and member as its docstring, so hovering `GeoPoint3(` in Pylance
 shows its overloads and what each does. A class written in several files shows all its summaries joined in the hover.
-The same text is on the docs site as the [Python API](../../../docfx/python-api/index.md), a page for each type with
+The same text is on the docs site as the [Python API](../docfx/python-api/index.md), a page for each type with
 every member as Python sees it and a link to its page in the .NET reference.
 
 What the stubs say, so that the editor and pythonnet agree:
@@ -519,6 +519,6 @@ inside the app is refused a connection to that app (it uses `opencad2d.cad`).
 |---|---|
 | [How do I](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
 | [Python examples](python-examples.md) | thirteen scripts, on the library, in the app and driving a running app, each shown with what it prints |
-| [Python API](../../../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
+| [Python API](../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
 | [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md), [Reading and writing DWG files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) | the drawing, its tables and entities, read and written |
 | [The 2D presenter](presenter/index.md), [Editing as AutoCAD does](presenter/editing.md) | `CadDocument`, its command session and undo |

@@ -189,7 +189,31 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   Check: the app runs from `D:\OpenCAD2D-run`; both `main` branches are pushed and their CI is green.
 
 - [ ] **S12. Installer** (after the split): Inno Setup, per-user install, .NET included, `OpenCAD2D-Setup-x.y.z.exe`.
-  Planned separately.
+  Planned 2026-11-23; the decisions marked "proposed" wait for the maintainer.
+
+  | # | Decision | State |
+  |---|---|---|
+  | I1 | Inno Setup 6 (free, one `.iss` script, per-user installs without administrator). WiX/MSI is heavier for the same result, MSIX needs a signing certificate to install at all, Velopack adds auto-update the app does not need yet. | decided by the maintainer (S12 line) |
+  | I2 | .NET included as a self-contained publish: `dotnet publish src/OpenCAD2D.App -c Release -r win-x64 --self-contained`. Not single-file and not trimmed: plugins, Python (pythonnet) and the support folders find their files beside the exe, and WPF and plugin loading use reflection. About 70 MB more than the framework-dependent build. | proposed |
+  | I3 | Per-user: `PrivilegesRequired=lowest`, installed to `%LocalAppData%\Programs\OpenCAD2D`, a Start menu shortcut, a desktop shortcut as an unticked task. | proposed |
+  | I4 | The `.dxf`/`.dwg` association is a ticked task that runs `OpenCAD2D.exe --register`; the uninstaller runs `--unregister`. | proposed |
+  | I5 | The uninstaller removes only what the setup installed. `%AppData%\OpenCAD2D` (settings, plot styles, the plugin list) and files the user added to `Lisps`, `Pythons`, `Plugins`, `Fonts` stay, as AutoCAD leaves its user folders. | proposed |
+  | I6 | Python is not bundled: the app finds the Python of the machine or of Global settings, as it does now. | proposed |
+  | I7 | The setup is unsigned for now (SmartScreen warns on the first run); a code signing certificate is the maintainer's call. | proposed |
+  | I8 | One fixed `AppId` GUID, the version from `Directory.Build.props`, `CloseApplications=yes` so an upgrade closes a running app first. | proposed |
+
+  1. `tools/installer/OpenCAD2D.iss` and `tools/installer/make-installer.ps1` (publish into `artifacts/publish`, then
+     `iscc`, writing `artifacts/installer/OpenCAD2D-Setup-<version>.exe`).
+     -> verify: the script runs on a clean checkout; the setup is written; its size is recorded here.
+  2. The new icon (the design canvas, then `make-icons.ps1`) is in the setup and its shortcuts.
+     -> verify: the setup, the Start menu entry and a `.dxf` in Explorer show it.
+  3. Install, run, upgrade and uninstall on a Windows user with no .NET 8 Desktop Runtime (a Windows Sandbox).
+     -> verify: the app opens a DXF and a DWG, a LISP file and a `.py` load, a `.dxf` opens from Explorer; installing
+        the same version again over a running app closes it and keeps the user's added Lisps; uninstalling leaves
+        `%AppData%\OpenCAD2D` and no file under the install folder that the setup wrote.
+  4. CI: a job that builds the setup and keeps it as a workflow artifact (not a release).
+     -> verify: the CI run is green and the artifact downloads and installs.
+  5. A release with the setup attached: the maintainer's word (tags and releases need it).
 
 ### Leftovers of the split
 
@@ -201,15 +225,25 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   `.git/info/exclude` like GeometryHelper's); the 22 Lisp files the maintainer had in `D:\GeometryHelper-run\Lisps`
   copied over. Left to the maintainer: a shortcut to `D:\OpenCAD2D-run\OpenCAD2D.exe`, `OpenCAD2D.exe --register`
   once for the `.dxf`/`.dwg` association, deleting `D:\GeometryHelper-run` when no longer wanted.
-- [ ] The app icon is still GeometryHelper's "G" (`src/OpenCAD2D.App/Icons`): a new one, designed first.
-- [ ] A docs site for OpenCAD2D (docfx, with the Python API pages `tools/python/make-api-pages.py` writes): until then
-  `docs/python.md` links to `docfx/python-api` that does not exist, and the guides are read on GitHub.
-- [ ] Tests that run `OpenCAD2D.exe --screenshot` reach `Program.Main`, so they make the user's
-  `%AppData%\OpenCAD2D` (the copy of the old folders) on a developer's machine. Harmless (it is the first start's own
-  copy), but a test should not touch the user's folders: give the copy a switch, or skip it in screenshot mode.
+- [ ] The app icon is still GeometryHelper's (`src/OpenCAD2D.App/Icons`): a new one, designed first. Four concepts
+  and the logo lockups are on the design canvas https://claude.ai/artifact/68myTJqRSBBmwvSsu2h1W5 (2026-11-23), waiting
+  for the maintainer's pick; then `make-icons.ps1` draws the chosen one, and the docs site takes its logo and favicon.
+- [x] A docs site for OpenCAD2D (2026-11-23): `docfx.json`, `docfx/index.md` and `toc.yml`, `docs/toc.yml`; the .NET
+  reference of `OpenCAD2D.Core` and `OpenCAD2D.Remote`, the guides, and the Python API (412 pages, 806 types) that
+  `make-api-pages.py --namespace OpenCAD2D` writes from `OpenCAD2D-stubs`; core types link to GeometryHelper's site
+  through its xrefmap (85 pages linked). `docfx metadata` and `build --warningsAsErrors`: 0 warnings.
+  `.github/workflows/docs.yml` builds it on every push and pull request. Left to the maintainer: switch GitHub Pages on
+  (Settings > Pages > Source: GitHub Actions) and set the repository variable `DOCS_PAGES` to `true`, which publishes it.
+- [x] Tests that run `OpenCAD2D.exe --screenshot` no longer touch `%AppData%\OpenCAD2D` (44c8734e): only a start that
+  opens the window copies the old folders (`CadAppHost.ShowsWindow`).
 - [x] The code-review graph: built 2026-11-23 (2 026 files, 31 105 nodes) with `.mcp.json` (git-excluded) here.
-- [ ] The leader's other harnesses (the LISP routines runner,
-  the AutoCAD probes) still live in `D:\GitHub\GeometryHelper\.claude\gk` with paths to the old projects.
+- [x] The leader's harnesses moved (2026-11-23) to `.claude/gk` here (git-excluded): `lisp` (run, routines, survey,
+  the runner on `OpenCAD2D.Core.dll`), `acon`, `acon-stdin`, `acad-control.md`, `acad-gui-template.ps1`; the L1/L2/L5
+  feeds and stored AutoCAD runs to `.claude/scratch` (ll and rev from L8). Scripts only: the 4.3 GB of old run output
+  stays in GeometryHelper, and so does AutoCAD's Trusted Location `gk\acad-trusted`, which AutoCAD's profile names.
+  Check: `routines.ps1 -Both -ReuseAcad` 18 of 19 transcripts and 19 of 19 dumps the same; ll differs by ZOOM W's
+  `Specify opposite corner`, a line the console does not echo (L8's acceptance had ll DIFF too). Not moved: the
+  per-round tools of L3-L5 (`scratch/lisp-l3/tools`, `l5/tools`, `lisp-l4/tools`).
 - [x] The exe is `OpenCAD2D.exe` (maintainer 2026-11-23): the engine's assembly is `OpenCAD2D.Core` (folder
   `src/OpenCAD2D.Core`, namespace still `OpenCAD2D`, so no code changed), the app's `OpenCAD2D`. GeometryHelper
   `9938c207` names `OpenCAD2D.Core` in `InternalsVisibleTo`; `Lib` rebuilt from it with `tools\update-lib.ps1`.
@@ -284,7 +318,8 @@ maintainer meets one as a real fault. Details for each are in the history at `dd
 
 ### Part C: scripting
 
-Asked for by the maintainer on 2026-11-20 and not started: the maintainer starts it later. (The letter B went with model
+Asked for by the maintainer on 2026-11-20; AutoLISP finished 2026-11-23 (L1-L9), Python re-scoped and finished the same
+day (PW1-PW3). (The letter B went with model
 drawings, which moved to TeklaHelper.DrawingManager.) Each stage starts with a look at open-source projects on GitHub
 that do the same, and names the ideas it takes. The maintainer's own AutoLISP routines are the acceptance set for the AutoLISP
 stages: they are read where they are and never copied into the repository, and tests build small routines of their own.
@@ -396,16 +431,16 @@ scripts inside the app, and a script outside that drives a running app.
       DXF and DWG read and write, a document edited and saved headless; type stubs (`.pyi`) so editors complete names.
       Done 2026-11-21: a local wheel `py3-none-win_amd64` (10.2 MB), 152 pytest tests on .NET 8 and .NET Framework 4.8,
       stubs generated by tools/GeometryHelper.PyStubs (806 types), guide docs/python.md
-- [ ] P2 parked: the PyPI name (`geometryhelper` is taken; `geometryhelper-dotnet` proposed) and the upload, both the
-      maintainer's word; the CLAUDE.md verify line; a Pylance look in VS Code; Linux, macOS and ARM64; a PyInstaller
+- [ ] P2 parked: the PyPI name (now `opencad2d`, free) and the upload, both the maintainer's word; a Pylance look in
+      VS Code; Linux, macOS and ARM64; a PyInstaller
       hook; one `<summary>` per partial class so hovers stay short (CadDocument); in the stubs, 331 settable reference
       properties and 139 optional parameters that default to null still refuse None, getters are never `| None`
 - [x] P3. Python inside `GeometryHelper.Cad.App`: a PYTHON console palette and the commands PYLOAD and PYRUN, with the
       active document, the selection, the command line, prompts (get point, get selection) and undo of a script as one
       step. Done 2026-11-21: GeometryHelper.Cad.Python embeds CPython 3.11-3.15 on the window thread, Esc stops Python
       code in about 20 ms, one undo step per run, PYLOAD with `@cad_command`, a script connecting to its own app refused
-- [ ] P3 parked: the command and function names (PYTHON, PYRUN, PYLOAD, get_point...) await the maintainer's word; the
-      CLAUDE.md verify line for the Cad.Python suite; a Wpf test of CadAppRemoteHost.IsOwnerThread; EntityCount cached inside an open group and a failed ApplyEdit taking back a run's whole group
+- [ ] P3 parked: the command and function names (PYTHON, PYRUN, PYLOAD, get_point...) await the maintainer's word; a
+      Wpf test of CadAppRemoteHost.IsOwnerThread; EntityCount cached inside an open group and a failed ApplyEdit taking back a run's whole group
       silently (the maintainer to decide); output flushed only when the window is next idle during a long run
 - [x] P4. Driving a running app from outside: a Python client over `GeometryHelper.Cad.Remote`'s named pipe (open,
       draw, select, run commands, read the drawing). Done 2026-11-21: the .NET CadApplication through pythonnet in a
@@ -417,8 +452,8 @@ scripts inside the app, and a script outside that drives a running app.
       Done 2026-11-22: 13 examples in src/python/examples (library, in the app, remote), each run by a test on both
       runtimes; a Python API section of the docs site, one page per type (806), generated from the stubs with links to
       the .NET pages
-- [ ] P5 parked: the place of the examples and the docs build needing Python (the maintainer to confirm); a
-      `src/python` row in CLAUDE.md's layout table; 548 member groups with no .NET page to link (enum `__int__` and
+- [ ] P5 parked: the place of the examples and the docs build needing Python (the maintainer to confirm); 548 member
+      groups with no .NET page to link (enum `__int__` and
       `__init__`, flags operators, delegates' `__call__`)
 - [x] P6. Scripts in the trusted folders of L6 only, and a script's errors shown without closing the app. Done
       2026-11-22: PYRUN, PYLOAD and the palette go through the same gate; every kind of script error leaves the app
@@ -464,4 +499,4 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
 ### Release
 
 - [ ] Review by the maintainer of everything above
-- [ ] Package `GeometryHelper.Cad` on NuGet (only when the work is complete)
+- [ ] Package `OpenCAD2D.Core` on NuGet (only when the work is complete)

@@ -1,0 +1,76 @@
+name: Docs
+
+# The documentation site: the guides under docs, the .NET reference generated from the XML comments of OpenCAD2D.Core
+# and OpenCAD2D.Remote, and the Python API written from the stubs. Types of the core library link to GeometryHelper's
+# own site through its xrefmap. Warnings are failures: a link that does not resolve is a page a reader lands on and
+# finds nothing.
+
+on:
+  push:
+    branches: [main]
+  # Built on a pull request too, so that a broken link is found before the change is merged. Only main publishes.
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push waits rather than cancelling the one in flight.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install DocFX
+        run: dotnet tool install -g docfx --version 2.80.1
+
+      - name: Build the libraries and the stub generator, and write the stubs
+        run: |
+          dotnet build src/OpenCAD2D.Core/OpenCAD2D.Core.csproj -c Release -warnaserror
+          dotnet build tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj -c Release -warnaserror
+          bash tools/python/make-stubs.sh
+
+      - name: Extract the API metadata
+        run: docfx metadata docfx.json --warningsAsErrors
+
+      - name: Write the Python API pages
+        run: python -I tools/python/make-api-pages.py --stubs src/python/OpenCAD2D-stubs --namespace OpenCAD2D --api docfx/api --out docfx/python-api
+
+      - name: Build the site
+        run: docfx build docfx.json --warningsAsErrors
+
+      - name: Drop the source maps
+        # The template's source maps are read by nothing but a browser's debugger.
+        run: Get-ChildItem _site -Recurse -Filter *.map | Remove-Item -Force
+
+      - uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request' && vars.DOCS_PAGES == 'true'
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    # Published only once GitHub Pages is switched on for the repository (Settings > Pages > Source: GitHub Actions)
+    # and the repository variable DOCS_PAGES is true; until then the site is built and checked, not published.
+    if: github.event_name != 'pull_request' && vars.DOCS_PAGES == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

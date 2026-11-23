@@ -1,0 +1,63 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": ["src/OpenCAD2D.Remote/OpenCAD2D.Remote.csproj"]
+        },
+        {
+          "files": ["src/OpenCAD2D.Core/OpenCAD2D.Core.csproj"]
+        }
+      ],
+      "dest": "docfx/api",
+      "namespaceLayout": "nested",
+      "memberLayout": "separatePages",
+      "enumSortOrder": "declaringOrder"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "src": "docfx/api",
+        "files": ["**.yml", "index.md"],
+        "dest": "api"
+      },
+      {
+        "src": "docfx/python-api",
+        "files": ["**.md", "toc.yml"],
+        "dest": "python-api"
+      },
+      {
+        "src": "docfx",
+        "files": ["index.md", "toc.yml"],
+        "dest": "."
+      },
+      {
+        "src": "docs",
+        "files": ["**.md", "toc.yml"],
+        "dest": "guides"
+      }
+    ],
+    "resource": [
+      {
+        "src": "docfx",
+        "files": ["images/**"],
+        "dest": "."
+      }
+    ],
+    "xref": ["https://nguyenthanguth.github.io/GeometryHelper/xrefmap.yml"],
+    "output": "_site",
+    "template": ["default", "modern"],
+    "postProcessors": ["ExtractSearchIndex"],
+    "globalMetadata": {
+      "_appName": "OpenCAD2D",
+      "_appTitle": "OpenCAD2D",
+      "_appFooter": "OpenCAD2D &mdash; a free 2D CAD app for Windows that works like AutoCAD 2021. MIT.",
+      "_enableSearch": true,
+      "_gitContribute": {
+        "repo": "https://github.com/nguyenthanguth/opencad2d",
+        "branch": "main"
+      }
+    }
+  }
+}
