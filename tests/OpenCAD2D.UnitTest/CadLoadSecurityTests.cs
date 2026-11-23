@@ -16,8 +16,10 @@ namespace OpenCAD2D.UnitTest
     /// decide a file, and the events. The rows of the TRUSTEDPATHS table are AutoCAD 2021's (research M1 and M4, console);
     /// the answers are G1-G3 (full AutoCAD). The files are made in a folder of the test's own under the temporary folder:
     /// <c>trusted\t.lsp</c>, <c>trusted\sub\s.lsp</c>, <c>trusted\sub\deep\d.lsp</c>, <c>trusted2\n.lsp</c> (a sibling that
-    /// only shares the name's start), <c>other\o.lsp</c> and <c>p.lsp</c> in the root.
+    /// only shares the name's start), <c>other\o.lsp</c> and <c>p.lsp</c> in the root. Two tests read the process's log, so
+    /// the class runs in the LISP tests' collection, never beside the other test that swaps the log's writer.
     /// </summary>
+    [Collection("LispSerial")]
     public sealed class CadLoadSecurityTests : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), "gh-loadsec-" + Guid.NewGuid().ToString("N"));
@@ -646,9 +648,11 @@ namespace OpenCAD2D.UnitTest
             string other = Table()[4];
             var lines = new List<string>();
             Action<GeometryHelperLogLevel, string, Exception> before = GeometryHelperLog.Writer;
+            bool enabledBefore = GeometryHelperLog.Enable;
 
             try
             {
+                GeometryHelperLog.Enable = true;
                 GeometryHelperLog.Writer = (level, text, exception) =>
                 {
                     if (text.Contains(other))
@@ -667,6 +671,7 @@ namespace OpenCAD2D.UnitTest
             finally
             {
                 GeometryHelperLog.Writer = before;
+                GeometryHelperLog.Enable = enabledBefore;
             }
 
             Assert.Contains("Warn Load security: the question about " + other + " failed: no window", lines);
@@ -678,9 +683,11 @@ namespace OpenCAD2D.UnitTest
             string other = Table()[4];
             var lines = new List<string>();
             Action<GeometryHelperLogLevel, string, Exception> before = GeometryHelperLog.Writer;
+            bool enabledBefore = GeometryHelperLog.Enable;
 
             try
             {
+                GeometryHelperLog.Enable = true;
                 GeometryHelperLog.Writer = (level, text, exception) =>
                 {
                     if (text.Contains(other))
@@ -697,6 +704,7 @@ namespace OpenCAD2D.UnitTest
             finally
             {
                 GeometryHelperLog.Writer = before;
+                GeometryHelperLog.Enable = enabledBefore;
             }
 
             Assert.Equal(new[] { "Debug Load security: refused " + other + " (SECURELOAD 2)" }, lines);

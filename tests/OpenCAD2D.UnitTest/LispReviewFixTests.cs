@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using GeometryHelper;
 using GeometryHelper.Dxf;
+using GeometryHelper.Enums;
 using GeometryHelper.Geometry;
 using OpenCAD2D.Lisp;
 using Xunit;
@@ -178,6 +179,8 @@ namespace OpenCAD2D.UnitTest
             var logs = new List<string>();
             object gate = new object();
             int owner = Thread.CurrentThread.ManagedThreadId;
+            bool enabledBefore = GeometryHelperLog.Enable;
+            Action<GeometryHelperLogLevel, string, Exception> writerBefore = GeometryHelperLog.Writer;
             GeometryHelperLog.Enable = true;
             GeometryHelperLog.Writer = (level, message, error) =>
             {
@@ -228,8 +231,9 @@ namespace OpenCAD2D.UnitTest
             }
             finally
             {
-                GeometryHelperLog.Writer = null;
-                GeometryHelperLog.Enable = false;
+                // As they were: the switch is on by default, and a test that leaves it off silences the log tests after it.
+                GeometryHelperLog.Writer = writerBefore;
+                GeometryHelperLog.Enable = enabledBefore;
             }
         }
 
