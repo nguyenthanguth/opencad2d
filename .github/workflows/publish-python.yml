@@ -1,11 +1,14 @@
 name: Publish Python
 
 # Publishes the wheel of the Python package opencad2d to PyPI, through PyPI's trusted publishing: no API token, PyPI
-# trusts this workflow file in nguyenthanguth/opencad2d with the environment pypi. Started by hand only (Actions > Publish
-# Python > Run workflow): a release is the maintainer's decision. The version is OpenCAD2DVersion of
+# trusts this workflow file in nguyenthanguth/opencad2d with the environment pypi (which has no protection rules: the
+# release is the approval). Runs when a GitHub Release is published, as GeometryHelper's release.yml does for NuGet, and
+# attaches the wheel to that release; it can also be run by hand. The version is OpenCAD2DVersion of
 # Directory.Build.props; PyPI refuses a version it already has.
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -51,18 +54,24 @@ jobs:
 
   publish:
     needs: build
-    # PyPI's upload action runs on Linux only. The environment pypi is the one PyPI trusts; a required reviewer on it
-    # (Settings > Environments > pypi) makes the upload wait for the maintainer's approval.
+    # PyPI's upload action runs on Linux only. The environment pypi is the one PyPI trusts.
     runs-on: ubuntu-latest
     environment:
       name: pypi
       url: https://pypi.org/project/opencad2d/
     permissions:
+      contents: write
       id-token: write
     steps:
       - uses: actions/download-artifact@v8
         with:
           name: wheel
           path: dist
+
+      - name: Attach the wheel to the GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.whl --clobber --repo "${{ github.repository }}"
 
       - uses: pypa/gh-action-pypi-publish@release/v1
