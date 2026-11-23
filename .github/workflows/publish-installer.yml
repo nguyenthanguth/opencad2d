@@ -1,0 +1,57 @@
+name: Publish installer
+
+# Builds the Windows setup, OpenCAD2D-Setup-<version>.exe, and attaches it to the GitHub Release. Runs when a release is
+# published, as publish-python.yml does for the wheel; run by hand, it keeps the setup as a workflow artifact and
+# attaches it to the release named in `tag`, if any. The version is OpenCAD2DVersion of Directory.Build.props. The setup
+# is unsigned.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The release to attach the setup to (as v1.0.0); empty for none'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    # The app is published self-contained for win-x64 and compiled into the setup by Inno Setup, through the same script
+    # a developer runs.
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Inno Setup where the runner does not have it
+        run: |
+          if ! command -v iscc > /dev/null 2>&1 && [ ! -f "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" ]; then
+            choco install innosetup -y
+          fi
+
+      - name: Publish the app and build the setup
+        shell: pwsh
+        run: tools/installer/make-installer.ps1
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: installer
+          path: artifacts/installer/OpenCAD2D-Setup-*.exe
+          if-no-files-found: error
+
+      - name: Attach the setup to the GitHub Release
+        if: github.event_name == 'release' || inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
+        run: gh release upload "$TAG" artifacts/installer/OpenCAD2D-Setup-*.exe --clobber --repo "${{ github.repository }}"

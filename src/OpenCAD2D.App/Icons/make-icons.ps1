@@ -1,6 +1,6 @@
 # Writes the icons of OpenCAD2D from the vector drawing below: app.ico, the app's (ApplicationIcon and the window's),
-# and drawing-file.ico, the icon of a .dxf or .dwg file associated with the app (--register). Each holds 16, 24, 32, 48 and
-# 256 pixels, drawn from one drawing 256 units square. The 256 frame is a PNG, the smaller ones 32-bit bitmaps. Run it with
+# and drawing-file.ico, the icon of a .dxf or .dwg file associated with the app (--register), and icon.png, the 128-pixel
+# icon of the NuGet packages. Each .ico holds 16, 24, 32, 48 and 256 pixels, drawn from one drawing 256 units square. The 256 frame is a PNG, the smaller ones 32-bit bitmaps. Run it with
 # Windows PowerShell from any folder after changing a shape:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File src\OpenCAD2D.App\Icons\make-icons.ps1
 #
@@ -124,3 +124,8 @@ function Write-Icon($path, $isDocument) {
 
 Write-Icon (Join-Path $PSScriptRoot 'app.ico') $false
 Write-Icon (Join-Path $PSScriptRoot 'drawing-file.ico') $true
+
+# The icon of the NuGet packages (PackageIcon): the app's mark, 128 pixels, as nuget.org shows it.
+$png = Join-Path $PSScriptRoot 'icon.png'
+[System.IO.File]::WriteAllBytes($png, (Get-FrameBytes (Get-Rendering 128 $false) 256))
+Write-Output ("Wrote " + $png + " (" + (Get-Item $png).Length + " bytes)")

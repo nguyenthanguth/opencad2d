@@ -3,7 +3,14 @@
 A DXF drawing opened, shown and edited the way AutoCAD does it, by a library that has no window of its own: the document,
 what is drawn, picking, the command line, grips, Properties, layers, undo and redo, the owner contract and the command
 plugins all run in a test with nothing on the screen. The window is a set of controls over it. Its namespace is
-`OpenCAD2D`, and it is not packed yet: the projects are built from the repository.
+`OpenCAD2D`.
+
+It is on nuget.org as `OpenCAD2D.Core`, which brings `OpenCAD2D.Remote` and `GeometryHelper` with it; the controls and the
+app are not packed. Its default fonts, hatch patterns, linetypes and template are copied beside the program that uses it:
+
+```bash
+dotnet add package OpenCAD2D.Core
+```
 
 It opens and edits through [`DxfDatabase`](xref:GeometryHelper.Dxf.DxfDatabase) and nothing else, so what a drawing holds
 that the presenter does not draw or edit is kept as the file had it: a drawing opened and saved with no edit is written

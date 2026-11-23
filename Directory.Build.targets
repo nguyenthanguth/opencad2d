@@ -16,4 +16,24 @@
             Text="The release notes of $(PackageId) are $(PackageReleaseNotes.Length) characters long, and nuget.org refuses more than 35000. Keep the full notes in CHANGELOG.md and a summary in PackageReleaseNotes."
         />
     </Target>
+
+    <!-- The README and the icon of every package (Directory.Build.props names them). -->
+    <ItemGroup Condition="'$(IsPackable)' == 'true'">
+        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+        <None
+            Include="$(MSBuildThisFileDirectory)src\OpenCAD2D.App\Icons\icon.png"
+            Pack="true"
+            PackagePath="\"
+            Visible="false"
+        />
+    </ItemGroup>
+
+    <!--
+    Packing: -p:GeometryHelperFromPackage=true puts the GeometryHelper package of $(GeometryHelperVersion) in place of
+    Lib\GeometryHelper.dll in each project that references it, so the packages depend on it on nuget.org.
+  -->
+    <ItemGroup Condition="'$(GeometryHelperFromPackage)' == 'true' and '@(Reference->AnyHaveMetadataValue('Identity', 'GeometryHelper'))' == 'true'">
+        <Reference Remove="GeometryHelper" />
+        <PackageReference Include="GeometryHelper" Version="$(GeometryHelperVersion)" />
+    </ItemGroup>
 </Project>

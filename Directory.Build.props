@@ -27,6 +27,13 @@
   -->
     <PropertyGroup>
         <GeometryHelperLib>$(MSBuildThisFileDirectory)Lib\</GeometryHelperLib>
+        <!--
+        The version of that copy, read from the first line of Lib\VERSION.txt ("GeometryHelper 13.12.1, built ..."). The
+        packages name it as their dependency: built with -p:GeometryHelperFromPackage=true, the projects compile against
+        the GeometryHelper package of this version instead of Lib (Directory.Build.targets), so a package is never made
+        against a copy of the core that nuget.org does not have.
+      -->
+        <GeometryHelperVersion>$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText('$(GeometryHelperLib)VERSION.txt')), '(?s)^GeometryHelper ([^,\s]+),.*$', '$1'))</GeometryHelperVersion>
     </PropertyGroup>
 
     <!-- Shared package identity. Anything specific to one project stays in its own project file. -->
@@ -38,5 +45,9 @@
         <RepositoryUrl>https://github.com/nguyenthanguth/opencad2d</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://nguyenthanguth.github.io/opencad2d/</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageTags>cad 2d dxf dwg autocad autolisp dcl drawing plugin wpf</PackageTags>
     </PropertyGroup>
 </Project>

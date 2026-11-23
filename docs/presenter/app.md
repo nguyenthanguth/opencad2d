@@ -932,6 +932,31 @@ again after moving the app, since the command names the exe where it was. A file
 one per file, even while the app runs. A host built on `CadAppHost` takes the same two switches and writes the same ProgID, so
 the app registered last is the one that opens the files.
 
+### Installing with the setup
+
+`OpenCAD2D-Setup-<version>.exe` (for 1.0.0, 78 MB) installs the app with the .NET 8 runtime inside it, so a machine with
+no .NET needs nothing else. It installs for the current user alone: no administrator is asked for, and the app goes to
+`%LocalAppData%\Programs\OpenCAD2D` unless another folder is chosen. The setup is built with
+`tools\installer\make-installer.ps1` (Inno Setup 6 needed; `winget install --id JRSoftware.InnoSetup -e --scope user`),
+which publishes the app self-contained for win-x64 and writes `artifacts\installer\OpenCAD2D-Setup-<version>.exe`. It is
+not signed, so Windows SmartScreen warns on the first run.
+
+| Item | What setup does |
+|---|---|
+| Start menu | an OpenCAD2D shortcut, always |
+| Desktop shortcut | a task, not ticked |
+| Associate .dxf and .dwg files with OpenCAD2D | a task, ticked: runs `OpenCAD2D.exe --register` once the files are copied |
+| Python | not included: the app uses the Python of the machine or the one in Global settings |
+
+A second setup of the same or a newer version installs over the first, after closing a running OpenCAD2D. Uninstalling
+(Settings, Apps, or `unins000.exe` in the install folder) removes the files setup copied, its shortcuts and, through
+`--unregister`, the file association, but only where the association names this install: an OpenCAD2D registered from
+another folder keeps its own. What a user added stays: a `.lsp` in `Lisps`, a `.py` in `Pythons`, a plugin in
+`Plugins`, a font in `Fonts` (their folders too, while they hold a file), and `%AppData%\OpenCAD2D` with the settings,
+the plot styles and the plugin list, as AutoCAD leaves its user folders. Silent installs take the same switches as any
+Inno Setup: `OpenCAD2D-Setup-1.0.0.exe /VERYSILENT /SUPPRESSMSGBOXES /DIR=D:\Apps\OpenCAD2D /TASKS=""` installs with no
+association and no desktop shortcut.
+
 ### Crashes and the crash log
 
 An exception nobody caught does not close the app without a word. Every exception that reaches the top is written to

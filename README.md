@@ -15,6 +15,15 @@ A free 2D CAD app for Windows that works like AutoCAD 2021.
   - C# plugins (the `Plugins` folder);
   - Remote: other programs drive a running app through a named pipe.
 
+## Packages
+
+```bash
+pip install opencad2d               # Python: the library, and a client for a running app
+dotnet add package OpenCAD2D.Core   # .NET: the engine with no UI, and OpenCAD2D.Remote
+```
+
+Guides and the API reference: https://nguyenthanguth.github.io/opencad2d/
+
 ## Build
 
 Windows, the .NET 8 SDK, and .NET Framework 4.8 for the tests.

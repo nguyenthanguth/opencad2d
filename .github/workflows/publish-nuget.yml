@@ -1,0 +1,93 @@
+name: Publish NuGet
+
+# Publishes OpenCAD2D.Core and OpenCAD2D.Remote, the API of OpenCAD2D, to nuget.org through NuGet's trusted publishing
+# (no API key: nuget.org trusts this workflow file in nguyenthanguth/opencad2d), and to GitHub Packages. Runs when a
+# GitHub Release is published, beside publish-python.yml, so the wheel and the packages of a version go out together, and
+# attaches the packages to that release. Run by hand, it publishes the version of Directory.Build.props and attaches the
+# packages to the release named in `tag`, if any. The model is GeometryHelper's release.yml.
+#
+# The packages depend on the GeometryHelper package of the version Lib\VERSION.txt names: they are built with
+# -p:GeometryHelperFromPackage=true, which compiles against that package instead of Lib (Directory.Build.targets), so a
+# Lib copy that nuget.org does not have stops the run here rather than shipping a broken dependency.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The release to attach the packages to (as v1.0.0); empty for none'
+        required: false
+        default: ''
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    # A step that runs several commands in one pwsh script would otherwise report only the exit code of its last
+    # command; $PSNativeCommandUseErrorActionPreference makes a failing command end the step.
+    defaults:
+      run:
+        shell: pwsh
+    permissions:
+      contents: write # attach to the release
+      packages: write # GitHub Packages
+      id-token: write # NuGet trusted publishing (OIDC)
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build
+        run: dotnet build OpenCAD2D.slnx -c Release -warnaserror --no-incremental
+
+      - name: Test
+        # The suites of the two packages; the timing tests are left out on a shared runner, as in build.yml.
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $filter = 'FullyQualifiedName!~Speed&FullyQualifiedName!~DisplayPatchPlaces&FullyQualifiedName!~TableCommandTests&FullyQualifiedName!~SelectObjectsOptions'
+          dotnet test tests/OpenCAD2D.UnitTest/OpenCAD2D.UnitTest.csproj -c Release --no-build --filter $filter
+          dotnet test tests/OpenCAD2D.Remote.UnitTest/OpenCAD2D.Remote.UnitTest.csproj -c Release --no-build
+          dotnet test tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj -c Release --no-build
+
+      - name: Pack against the GeometryHelper package
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet pack src/OpenCAD2D.Remote/OpenCAD2D.Remote.csproj -c Release -warnaserror -p:GeometryHelperFromPackage=true -o artifacts/nuget
+          dotnet pack src/OpenCAD2D.Core/OpenCAD2D.Core.csproj -c Release -warnaserror -p:GeometryHelperFromPackage=true -o artifacts/nuget
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nuget
+          path: artifacts/nuget/*.nupkg
+          if-no-files-found: error
+
+      - name: Attach the packages to the GitHub Release
+        if: github.event_name == 'release' || inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
+        run: gh release upload $env:TAG (Get-Item artifacts/nuget/*.nupkg) --clobber
+
+      - name: Push to GitHub Packages
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet nuget add source --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          Get-ChildItem artifacts/nuget -Filter *.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName --source github --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+          }
+
+      - name: Log in to nuget.org (trusted publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: nguyenthanguth
+
+      - name: Push to nuget.org
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          Get-ChildItem artifacts/nuget -Filter *.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName -k "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" -s https://api.nuget.org/v3/index.json --skip-duplicate
+          }

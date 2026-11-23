@@ -6,7 +6,7 @@
         <RootNamespace>OpenCAD2D.Remote</RootNamespace>
         <AssemblyName>OpenCAD2D.Remote</AssemblyName>
         <Description>Drives a running OpenCAD2D from another program: finds the app, lists its drawings, reads and edits their entities and sends commands, the way a Tekla Open API program drives a running Tekla Structures.</Description>
-        <IsPackable>false</IsPackable>
+        <IsPackable>true</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>

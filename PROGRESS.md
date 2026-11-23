@@ -189,7 +189,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   Check: the app runs from `D:\OpenCAD2D-run`; both `main` branches are pushed and their CI is green.
 
 - [ ] **S12. Installer** (after the split): Inno Setup, per-user install, .NET included, `OpenCAD2D-Setup-x.y.z.exe`.
-  Planned 2026-11-23; the decisions marked "proposed" wait for the maintainer.
+  Planned 2026-11-23; started the same day at the maintainer's word, so I2-I8 are taken as written. Done so far: steps 1,
+  2 (the icon E3) and 4; step 3 checked by a silent install on this machine, the Sandbox run still open.
 
   | # | Decision | State |
   |---|---|---|
@@ -205,14 +206,23 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   1. `tools/installer/OpenCAD2D.iss` and `tools/installer/make-installer.ps1` (publish into `artifacts/publish`, then
      `iscc`, writing `artifacts/installer/OpenCAD2D-Setup-<version>.exe`).
      -> verify: the script runs on a clean checkout; the setup is written; its size is recorded here.
+     DONE: `OpenCAD2D-Setup-1.0.0.exe` 81 700 683 bytes (78 MB) from a 307 MB publish (507 files); about 85 s. Inno Setup
+     6 per user (`winget install JRSoftware.InnoSetup --scope user`). AppId `{CFF9090B-3DE5-438A-AC7A-86ED890B73FB}`.
+     Beyond I4: the uninstaller runs `--unregister` only when the association names this install, so a copy registered
+     from another folder (`D:\OpenCAD2D-run`) keeps it. Left open: dropping the .pdb files and satellite languages.
   2. The new icon (the design canvas, then `make-icons.ps1`) is in the setup and its shortcuts.
      -> verify: the setup, the Start menu entry and a `.dxf` in Explorer show it.
   3. Install, run, upgrade and uninstall on a Windows user with no .NET 8 Desktop Runtime (a Windows Sandbox).
      -> verify: the app opens a DXF and a DWG, a LISP file and a `.py` load, a `.dxf` opens from Explorer; installing
         the same version again over a running app closes it and keeps the user's added Lisps; uninstalling leaves
         `%AppData%\OpenCAD2D` and no file under the install folder that the setup wrote.
+     Checked on this machine (2026-11-23): `/VERYSILENT /TASKS=""` into a temporary folder, exit 0, 509 files; the
+     installed exe draws `--screenshot` of a DXF, exit 0; the silent uninstall leaves only a file added to `Lisps`; the
+     Start menu entry and the uninstall key gone; the maintainer's association unchanged. Not yet: a Sandbox with no
+     .NET, a DWG, LISP and `.py` in the installed app, the association task, an upgrade over a running app.
   4. CI: a job that builds the setup and keeps it as a workflow artifact (not a release).
      -> verify: the CI run is green and the artifact downloads and installs.
+     DONE: `.github/workflows/publish-installer.yml`, on a published release (attaches the setup) or by hand (`tag`).
   5. A release with the setup attached: the maintainer's word (tags and releases need it).
 
 ### Leftovers of the split

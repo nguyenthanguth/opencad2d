@@ -5,8 +5,8 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <RootNamespace>OpenCAD2D</RootNamespace>
         <AssemblyName>OpenCAD2D.Core</AssemblyName>
-        <Description>The 2D presenter of GeometryHelper: opens a DXF as a document, turns its entities into 2D display lists, picks and selects them. No UI.</Description>
-        <IsPackable>false</IsPackable>
+        <Description>The engine of OpenCAD2D, a 2D CAD app that works like AutoCAD 2021, with no UI: DXF and DWG drawings opened as documents, drawn into 2D display lists, picked, and edited through AutoCAD's commands on a command line; AutoLISP and DCL, plot to PDF, command plugins and the Remote server. Its default fonts, hatch patterns, linetypes and template are copied beside the program that uses it.</Description>
+        <IsPackable>true</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,11 +18,16 @@
         <EmbeddedResource Include="Text\english-words.txt.gz" LogicalName="OpenCAD2D.english-words.txt.gz" />
     </ItemGroup>
 
-    <!-- The default support folders, beside OpenCAD2D.Core.dll in the output of every project that uses it. -->
+    <!--
+    The default support folders, beside OpenCAD2D.Core.dll in the output of every project that uses it; in the package as
+    content files that a project referencing it copies to its output the same way.
+  -->
     <ItemGroup>
         <None
             Update="Fonts\**;Hatches\**;Linetypes\**;Lisps\**;Pythons\**;Plugins\**;DrawingTemplates\**"
             CopyToOutputDirectory="PreserveNewest"
+            Pack="true"
+            PackageCopyToOutput="true"
         />
     </ItemGroup>
 

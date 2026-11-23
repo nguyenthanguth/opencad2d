@@ -30,3 +30,15 @@ along; the notes of its earlier changes are in GeometryHelper's `CHANGELOG.md` u
   removing the association takes out `GeometryHelper.Drawing`, so "Open with" lists the app once.
 - **The core.** GeometryHelper (geometry, DXF, DWG) is used as `Lib\GeometryHelper.dll`, built from GeometryHelper's
   `6bb8136e`.
+- **NEW.** Packages: the Python package `opencad2d` on PyPI (`pip install opencad2d`), and the API on nuget.org as
+  `OpenCAD2D.Core` and `OpenCAD2D.Remote`, which depend on the `GeometryHelper` package of the version in `Lib`. The
+  core's default fonts, hatch patterns, linetypes and template come with `OpenCAD2D.Core` and are copied beside the
+  program that uses it. A published GitHub Release puts out the wheel and the packages together.
+- **NEW.** A Windows installer, `OpenCAD2D-Setup-<version>.exe` (78 MB for 1.0.0), built by
+  `tools\installer\make-installer.ps1` with Inno Setup 6 and by the workflow `publish-installer.yml`, which attaches it
+  to a GitHub Release. It carries the .NET 8 runtime, so no .NET is needed on the machine; it installs for the current
+  user with no administrator, into `%LocalAppData%\Programs\OpenCAD2D`, with a Start menu shortcut, a desktop shortcut
+  (not ticked by default) and a ticked task that associates .dxf and .dwg files (`OpenCAD2D.exe --register`).
+  Installing over a running app closes it first. Uninstalling removes only what the setup installed and takes the file
+  association out where it names that install; the settings in `%AppData%\OpenCAD2D` and the files a user added to
+  `Lisps`, `Pythons`, `Plugins` and `Fonts` stay. Not signed, so SmartScreen warns on the first run.
