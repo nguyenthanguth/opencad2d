@@ -6,8 +6,8 @@
         <PlatformTarget>x64</PlatformTarget>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <RootNamespace>OpenCAD2D.App</RootNamespace>
-        <AssemblyName>OpenCAD2D.App</AssemblyName>
-        <!-- What Task Manager and the file's properties show. The exe keeps OpenCAD2D.App: OpenCAD2D.dll is the engine's. -->
+        <AssemblyName>OpenCAD2D</AssemblyName>
+        <!-- The exe is OpenCAD2D.exe; the engine beside it is OpenCAD2D.Core.dll. -->
         <AssemblyTitle>OpenCAD2D</AssemblyTitle>
         <StartupObject>OpenCAD2D.App.Program</StartupObject>
         <Description>OpenCAD2D: the standalone app that opens, edits and plots DXF and DWG drawings, laid out as AutoCAD 2D.</Description>
@@ -24,7 +24,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\OpenCAD2D.Wpf\OpenCAD2D.Wpf.csproj" />
-        <ProjectReference Include="..\OpenCAD2D\OpenCAD2D.csproj" />
+        <ProjectReference Include="..\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
         <!-- Built first, never referenced: its .dll is copied below into Plugins\DrawingInfo, where the app loads it at start. -->
         <ProjectReference
@@ -35,7 +35,7 @@
     </ItemGroup>
 
     <!--
-    The sample plugin, Plugins\DrawingInfo, beside the exe: its .dll and nothing else. Not OpenCAD2D.dll: the
+    The sample plugin, Plugins\DrawingInfo, beside the exe: its .dll and nothing else. Not OpenCAD2D.Core.dll: the
     app gives a plugin its own. The item is a None item with a link, so that publish copies it as the build does.
   -->
     <Target Name="LinkDrawingInfoPlugin" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveProjectReferences">

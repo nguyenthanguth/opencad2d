@@ -4,7 +4,7 @@
         <Project Path="src/OpenCAD2D.Python/OpenCAD2D.Python.csproj" />
         <Project Path="src/OpenCAD2D.Remote/OpenCAD2D.Remote.csproj" />
         <Project Path="src/OpenCAD2D.Wpf/OpenCAD2D.Wpf.csproj" />
-        <Project Path="src/OpenCAD2D/OpenCAD2D.csproj" />
+        <Project Path="src/OpenCAD2D.Core/OpenCAD2D.Core.csproj" />
     </Folder>
     <Folder Name="/tests/">
         <Project Path="tests/OpenCAD2D.Plugins.Net8Runner/OpenCAD2D.Plugins.Net8Runner.csproj" />

@@ -104,7 +104,7 @@ namespace OpenCAD2D.Remote
         /// <summary>Gets or sets the file the instance was read from or is written to.</summary>
         public string FilePath { get; set; }
 
-        /// <summary>The folder the apps announce themselves in: <c>%LocalAppData%\OpenCAD2D\Remote</c>.</summary>
+        /// <summary>The folder the apps announce themselves in: <c>%LocalAppData%\OpenCAD2D.Core\Remote</c>.</summary>
         public static string DefaultFolder() =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

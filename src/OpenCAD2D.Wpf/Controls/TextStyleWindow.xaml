@@ -239,7 +239,7 @@
                                 Margin="0,0,0,6"
                             />
                             <TextBlock
-                                Text="Fonts are found in the folders of Global settings › Folder preference, beside OpenCAD2D.dll and in those installed in Windows."
+                                Text="Fonts are found in the folders of Global settings › Folder preference, beside OpenCAD2D.Core.dll and in those installed in Windows."
                                 Foreground="{StaticResource GhTextMuted}"
                                 TextWrapping="Wrap"
                             />

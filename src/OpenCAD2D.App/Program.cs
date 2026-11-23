@@ -7,7 +7,7 @@ namespace OpenCAD2D.App
 {
     /// <summary>
     /// Starts OpenCAD2D, the presenter on its own: the window of <see cref="CadAppHost"/>, with no model drawing.
-    /// <c>OpenCAD2D.App.exe plan.dxf</c> opens the window on a drawing, as a file association does; <c>--screenshot
+    /// <c>OpenCAD2D.exe plan.dxf</c> opens the window on a drawing, as a file association does; <c>--screenshot
     /// out.png plan.dxf [--size 1600 960]</c> and the other options of <see cref="CadAppHost"/> draw the window or one of its
     /// dialogs into a PNG, with no window shown, and exit: 0 when written, 2 for arguments or a file it cannot read.
     /// <c>--register</c> and <c>--unregister</c> associate .dxf and .dwg files with the app for the user, or take that out. The

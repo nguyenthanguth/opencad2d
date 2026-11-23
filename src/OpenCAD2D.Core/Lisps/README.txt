@@ -29,7 +29,7 @@ holds for a name with a relative folder, as in "Sub/x" or "./x.lsp", too):
   1. The current folder and the drawing's folder, only with LEGACYCODESEARCH 1.
   2. The folders set in Global settings > Folder preference (Support file search folders),
      in the order listed.
-  3. This folder, next to OpenCAD2D.dll.
+  3. This folder, next to OpenCAD2D.Core.dll.
 
 This folder lies under the program folder, which SECURELOAD always trusts: its files load
 with no question at SECURELOAD 1 and 2.

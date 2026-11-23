@@ -20,7 +20,7 @@
 
     <ItemGroup>
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
-        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
         <ProjectReference Include="..\..\src\OpenCAD2D.Wpf\OpenCAD2D.Wpf.csproj" />
         <!-- Built first, never referenced: the sample is loaded as a plugin, from SamplePlugin\ beside the runner. -->
         <ProjectReference

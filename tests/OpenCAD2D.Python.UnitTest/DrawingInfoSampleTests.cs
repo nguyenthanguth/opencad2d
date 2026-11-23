@@ -11,7 +11,7 @@ namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The sample that ships in the Pythons folder, <c>GH-DrawingInfo.py</c>, as the build leaves it beside
-    /// OpenCAD2D.dll: loading it defines GHPYINFO and writes nothing, and GHPYINFO writes the drawing's name and
+    /// OpenCAD2D.Core.dll: loading it defines GHPYINFO and writes nothing, and GHPYINFO writes the drawing's name and
     /// folder, the current layer, the objects of model space by type, the layers and blocks, and the extents. It changes nothing.
     /// </summary>
     public sealed class DrawingInfoSampleTests : PythonHostTestBase

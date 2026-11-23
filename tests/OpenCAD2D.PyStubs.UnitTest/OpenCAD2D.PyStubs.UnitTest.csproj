@@ -27,7 +27,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\tools\OpenCAD2D.PyStubs\OpenCAD2D.PyStubs.csproj" />
         <ProjectReference Include="Fixture\GeometryHelper.Fixture.csproj" ReferenceOutputAssembly="false" />
-        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Core\OpenCAD2D.Core.csproj" ReferenceOutputAssembly="false" />
         <ProjectReference
             Include="..\..\src\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj"
             ReferenceOutputAssembly="false"
@@ -60,14 +60,14 @@
             Visible="false"
         />
         <None
-            Include="..\..\src\OpenCAD2D\bin\$(Configuration)\netstandard2.0\OpenCAD2D.dll"
-            Link="lib\OpenCAD2D.dll"
+            Include="..\..\src\OpenCAD2D.Core\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Core.dll"
+            Link="lib\OpenCAD2D.Core.dll"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />
         <None
-            Include="..\..\src\OpenCAD2D\bin\$(Configuration)\netstandard2.0\OpenCAD2D.xml"
-            Link="lib\OpenCAD2D.xml"
+            Include="..\..\src\OpenCAD2D.Core\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Core.xml"
+            Link="lib\OpenCAD2D.Core.xml"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />

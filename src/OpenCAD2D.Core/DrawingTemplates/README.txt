@@ -29,7 +29,7 @@ subfolders, then as typed.
 A different folder: Global settings > Save and export > Template folder (TEMPLATEPATH) names
 one, and it is used in place of this one.
 
-An older Template folder beside the settings file (%AppData%\OpenCAD2D\Template)
+An older Template folder beside the settings file (%AppData%\OpenCAD2D.Core\Template)
 is used only while it holds a template and this folder holds none. Put a template here and
 this folder is used from then on.
 

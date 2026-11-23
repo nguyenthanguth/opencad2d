@@ -15,8 +15,8 @@ namespace OpenCAD2D.Wpf.UnitTest
     /// </summary>
     public sealed class AppShellTests
     {
-        private const string Exe = @"C:\Tools\OpenCAD2D\OpenCAD2D.App.exe";
-        private const string Icon = @"C:\Tools\OpenCAD2D\drawing-file.ico";
+        private const string Exe = @"C:\Tools\OpenCAD2D.Core\OpenCAD2D.exe";
+        private const string Icon = @"C:\Tools\OpenCAD2D.Core\drawing-file.ico";
 
         [Fact]
         public void Register_WritesTheProgIdAndOpenWithForDxfAndDwg_IntoTheUserClasses()
@@ -160,7 +160,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 "bin",
                 configuration,
                 "net8.0-windows",
-                "OpenCAD2D.App.exe"
+                "OpenCAD2D.exe"
             );
             Assert.True(File.Exists(exe), exe);
             return exe;

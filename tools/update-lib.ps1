@@ -43,7 +43,7 @@ $lib = Join-Path $root 'Lib'
 New-Item -ItemType Directory -Force $lib | Out-Null
 Copy-Item (Join-Path $bin 'GeometryHelper.dll'), (Join-Path $bin 'GeometryHelper.xml') $lib -Force
 
-$version = (Get-Item (Join-Path $lib 'GeometryHelper.dll')).VersionInfo.ProductVersion
+$version = ((Get-Item (Join-Path $lib 'GeometryHelper.dll')).VersionInfo.ProductVersion -split '\+')[0]
 $note = if ($dirty) { ' (with changes not committed)' } else { '' }
 $text = "GeometryHelper $version, built in Release from commit $commit$note of https://github.com/nguyenthanguth/GeometryHelper`n"
 [System.IO.File]::WriteAllText((Join-Path $lib 'VERSION.txt'), $text, (New-Object System.Text.UTF8Encoding $false))

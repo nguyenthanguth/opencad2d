@@ -19,7 +19,7 @@ is seen the next time the drawing is opened or the settings are applied.
 Search order for a font:
 
   1. The folders set in Global settings > Folder preference, in the order listed.
-  2. This folder and its subfolders, next to OpenCAD2D.dll.
+  2. This folder and its subfolders, next to OpenCAD2D.Core.dll.
   3. The built-in font (GeometryHelper Simplex).
 
 A TrueType typeface installed in Windows is found first, as before; the folders above are

@@ -11,7 +11,7 @@ using Xunit;
 namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// Folder preference shows the default folders beside OpenCAD2D.dll as read-only rows marked "(default)", each with
+    /// Folder preference shows the default folders beside OpenCAD2D.Core.dll as read-only rows marked "(default)", each with
     /// Open folder, and says in which order fonts, hatch patterns and linetypes are looked for. They are never saved into the
     /// settings file, and Explorer is never started: the window's Open folder is stubbed.
     /// </summary>

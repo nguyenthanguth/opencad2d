@@ -10,7 +10,7 @@ namespace OpenCAD2D
     /// <summary>
     /// The support files a drawing's linetypes (.lin) and hatch patterns (.pat) may be read from, looked for in this order:
     /// the folders the user gave in <see cref="CadDocument.SupportFolders"/>, then the Linetypes or Hatches folder beside
-    /// OpenCAD2D.dll and its subfolders (<see cref="CadSupportFolders"/>), then the presenter's own sets
+    /// OpenCAD2D.Core.dll and its subfolders (<see cref="CadSupportFolders"/>), then the presenter's own sets
     /// (<see cref="CadLinetypeFile.BuiltIn"/>, <see cref="CadPatternFile.BuiltIn"/>). The drawing's own folder is not looked
     /// in for them, and no file of AutoCAD's is looked for or preferred.
     /// </summary>

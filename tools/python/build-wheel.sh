@@ -6,12 +6,12 @@ set -eu
 root=$(cd "$(dirname "$0")/../.." && { pwd -W 2>/dev/null || pwd; })
 . "$root/tools/python/find-python.sh"
 
-built=$root/src/OpenCAD2D/bin/Release/netstandard2.0
+built=$root/src/OpenCAD2D.Core/bin/Release/netstandard2.0
 project=$root/src/python
 lib=$project/opencad2d/lib
 out=$root/artifacts/python
 
-for name in GeometryHelper OpenCAD2D OpenCAD2D.Remote; do
+for name in GeometryHelper OpenCAD2D.Core OpenCAD2D.Remote; do
     if [ ! -f "$built/$name.dll" ]; then
         echo "$built/$name.dll is missing: build OpenCAD2D.slnx in Release first." >&2
         exit 1
@@ -21,7 +21,7 @@ done
 # Only the DLLs and the three support folders: no XML docs and no PDBs.
 rm -rf "$lib"
 mkdir -p "$lib"
-for name in GeometryHelper OpenCAD2D OpenCAD2D.Remote; do
+for name in GeometryHelper OpenCAD2D.Core OpenCAD2D.Remote; do
     cp "$built/$name.dll" "$lib/"
 done
 for folder in Fonts Hatches Linetypes; do

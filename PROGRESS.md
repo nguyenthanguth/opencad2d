@@ -114,8 +114,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
     `%AppData%\OpenCAD2D` (GlobalSettings, CadCrashLog, CadPlotStyleFolder, Program.cs), copied once at the first
     start by the new `CadOldFolders.CopyOnce` (3 tests); `%LocalAppData%\OpenCAD2D\Remote`; temp folders `OpenCAD2D`;
     pipe `OpenCAD2D.<pid>`; ProgID `OpenCAD2D.Drawing` and `OldProgId` `GeometryHelper.Drawing` removed on
-    register/unregister (1 new test). The exe stays `OpenCAD2D.App.exe` (AssemblyTitle OpenCAD2D): an exe named
-    OpenCAD2D would ship an `OpenCAD2D.dll` beside the engine's `OpenCAD2D.dll`.
+    register/unregister (1 new test). The exe was `OpenCAD2D.App.exe` at first, since an exe named
+    OpenCAD2D would ship an `OpenCAD2D.dll` beside the engine's; the engine became `OpenCAD2D.Core` (see the leftovers).
   - S7: package `src/python/opencad2d` (was `geometryhelper`), `opencad2d.runtimeconfig.json`, `OPENCAD2D_RUNTIME`,
     pyproject (name, description, URLs, `OpenCAD2D-stubs`), hatch_build reads `OpenCAD2DVersion`; `opencad2d.__getattr__`
     hands out the names of `opencad2d.cad`. The stub generator writes two packages, `GeometryHelper-stubs` and
@@ -199,18 +199,20 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   exports with `git diff HEAD` (staged deletions were kept before).
 - S11 done: run copy `D:\OpenCAD2D-run` (`.claude/gk/leader/publish-run.sh` here, git-excluded through
   `.git/info/exclude` like GeometryHelper's); the 22 Lisp files the maintainer had in `D:\GeometryHelper-run\Lisps`
-  copied over. Left to the maintainer: a shortcut to `D:\OpenCAD2D-run\OpenCAD2D.App.exe`, `OpenCAD2D.App.exe
-  --register` once for the `.dxf`/`.dwg` association, deleting `D:\GeometryHelper-run` when no longer wanted.
+  copied over. Left to the maintainer: a shortcut to `D:\OpenCAD2D-run\OpenCAD2D.exe`, `OpenCAD2D.exe --register`
+  once for the `.dxf`/`.dwg` association, deleting `D:\GeometryHelper-run` when no longer wanted.
 - [ ] The app icon is still GeometryHelper's "G" (`src/OpenCAD2D.App/Icons`): a new one, designed first.
 - [ ] A docs site for OpenCAD2D (docfx, with the Python API pages `tools/python/make-api-pages.py` writes): until then
   `docs/python.md` links to `docfx/python-api` that does not exist, and the guides are read on GitHub.
-- [ ] Tests that run `OpenCAD2D.App.exe --screenshot` reach `Program.Main`, so they make the user's
+- [ ] Tests that run `OpenCAD2D.exe --screenshot` reach `Program.Main`, so they make the user's
   `%AppData%\OpenCAD2D` (the copy of the old folders) on a developer's machine. Harmless (it is the first start's own
   copy), but a test should not touch the user's folders: give the copy a switch, or skip it in screenshot mode.
 - [ ] The code-review graph is not built for this repository; the leader's other harnesses (the LISP routines runner,
   the AutoCAD probes) still live in `D:\GitHub\GeometryHelper\.claude\gk` with paths to the old projects.
-- [ ] The exe is `OpenCAD2D.App.exe` (an `OpenCAD2D.exe` would need the engine's assembly renamed); the installer's
-  shortcut carries the name OpenCAD2D.
+- [x] The exe is `OpenCAD2D.exe` (maintainer 2026-11-23): the engine's assembly is `OpenCAD2D.Core` (folder
+  `src/OpenCAD2D.Core`, namespace still `OpenCAD2D`, so no code changed), the app's `OpenCAD2D`. GeometryHelper
+  `9938c207` names `OpenCAD2D.Core` in `InternalsVisibleTo`; `Lib` rebuilt from it with `tools\update-lib.ps1`.
+  XAML `assembly=OpenCAD2D` became `assembly=OpenCAD2D.Core`; Python loads `OpenCAD2D.Core`.
 - [ ] The PyPI name `opencad2d` and the upload: the maintainer's word.
 
 ## Open work

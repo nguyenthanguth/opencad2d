@@ -17,7 +17,7 @@ namespace OpenCAD2D.PyStubs.UnitTest
 
             Assert.Equal(18, report.Modules.Count);
             Assert.Equal(
-                new[] { "GeometryHelper", "OpenCAD2D", "OpenCAD2D.Remote" },
+                new[] { "GeometryHelper", "OpenCAD2D.Core", "OpenCAD2D.Remote" },
                 report.Assemblies.Select(a => a.Name)
             );
             Assert.All(report.Assemblies, a => Assert.True(a.Types > 0 && a.Members > a.Types, a.Name));

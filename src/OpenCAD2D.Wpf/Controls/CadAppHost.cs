@@ -299,7 +299,7 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
-        /// The folder the app loads its command plugins from at every start: <c>Plugins</c> beside OpenCAD2D.dll
+        /// The folder the app loads its command plugins from at every start: <c>Plugins</c> beside OpenCAD2D.Core.dll
         /// (<see cref="CadSupportKind.Plugins"/>), which is the folder of the exe in the app; <c>Plugins</c> beside the program
         /// where the dll has no place on disk.
         /// </summary>

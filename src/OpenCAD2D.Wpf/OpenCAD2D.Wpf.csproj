@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\OpenCAD2D\OpenCAD2D.csproj" />
+        <ProjectReference Include="..\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
         <ProjectReference Include="..\OpenCAD2D.Python\OpenCAD2D.Python.csproj" />
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
     </ItemGroup>

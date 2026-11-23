@@ -6,7 +6,7 @@ OpenCAD2D holds font data and a word list that come from other projects. Their n
 
 The letters of the presenter's own single-stroke font, GeometryHelper Simplex (`ghsimplex`), are the Roman Simplex set of
 the Hershey fonts, taken from `rowmans.jhf` of https://github.com/kamalmostafa/hershey-fonts and turned into the bytes of
-an SHX unifont in `src/OpenCAD2D/Fonts/HersheySimplex.cs`; the plus-minus and diameter signs were drawn
+an SHX unifont in `src/OpenCAD2D.Core/Fonts/HersheySimplex.cs`; the plus-minus and diameter signs were drawn
 for GeometryHelper in the same form. When the package of this project is made, this notice goes with it.
 
 The terms of use of that distribution require these acknowledgements to be distributed with the font data:
@@ -21,7 +21,7 @@ holds it as SHX shape bytes.
 ## English word list (SCOWL / ESDB)
 
 The built-in English dictionary of Check Spelling and of the MTEXT editor's spell check,
-`src/OpenCAD2D/Text/english-words.txt.gz`, is made from the American and British spelling word lists of
+`src/OpenCAD2D.Core/Text/english-words.txt.gz`, is made from the American and British spelling word lists of
 size 35, 50 and 60 of the English Speller Database (ESDB, previously SCOWL) by Kevin Atkinson, https://wordlist.aspell.net,
 generated from https://app.aspell.net/create. The words are lower-cased, possessives and acronyms taken out, and sorted by
 the size of the list each first appears in. Its notice, which has to go with every copy:

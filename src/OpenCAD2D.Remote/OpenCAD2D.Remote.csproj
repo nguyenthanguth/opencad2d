@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="OpenCAD2D" />
+        <InternalsVisibleTo Include="OpenCAD2D.Core" />
         <InternalsVisibleTo Include="OpenCAD2D.Remote.UnitTest" />
         <InternalsVisibleTo Include="OpenCAD2D.Wpf.UnitTest" />
     </ItemGroup>

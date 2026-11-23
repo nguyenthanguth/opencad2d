@@ -2,7 +2,7 @@
     x:Class="OpenCAD2D.Wpf.EditAttributesWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:dxf="clr-namespace:OpenCAD2D;assembly=OpenCAD2D"
+    xmlns:dxf="clr-namespace:OpenCAD2D;assembly=OpenCAD2D.Core"
     Title="Edit Attributes"
     Width="520"
     Height="460"

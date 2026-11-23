@@ -346,7 +346,7 @@ and the Lisps folder takes that place.
 
 ### The Lisps folder
 
-`Lisps` is the fourth default folder beside `OpenCAD2D.dll`, with `Fonts`, `Hatches` and `Linetypes` (in the app,
+`Lisps` is the fourth default folder beside `OpenCAD2D.Core.dll`, with `Fonts`, `Hatches` and `Linetypes` (in the app,
 beside the exe). Put AutoLISP files in it, and the `.dcl` files they use: every `.lsp` file in it, at any depth, is loaded
 into each drawing when the drawing opens, so a folder of 12 routines is there for every drawing with no APPLOAD and no
 Startup Suite entry.

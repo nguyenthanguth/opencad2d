@@ -141,7 +141,7 @@ plugin its own, so that the `CadCommandContext` it is handed is of the type it w
 
 ## Where a plugin lives
 
-The app has a `Plugins` folder beside `OpenCAD2D.App.exe`, as it has `Fonts`, `Hatches`, `Linetypes` and `Lisps`
+The app has a `Plugins` folder beside `OpenCAD2D.exe`, as it has `Fonts`, `Hatches`, `Linetypes` and `Lisps`
 ([`CadSupportKind.Plugins`](xref:OpenCAD2D.CadSupportKind)). The build copies it, with a `README.txt`, to the
 output of every project that uses the presenter. To install a plugin, put it there:
 
@@ -211,7 +211,7 @@ The presenter's own assemblies (`GeometryHelper`, `OpenCAD2D` and the controls) 
 plugin's folder, on either runtime. The manager's files are `plugins.json`, the startup list and the trusted folders; the
 app keeps them in a folder of its own, OpenCAD2D in `%AppData%\OpenCAD2D`; the `Plugins` folder is not
 there but beside the app, so that every user of an install has the same plugins. A plugin that earlier versions installed
-into `%AppData%\OpenCAD2D\Plugins` is not loaded now: move its folder to `Plugins` beside the app.
+into `%AppData%\OpenCAD2D.Core\Plugins` is not loaded now: move its folder to `Plugins` beside the app.
 
 ## The sample plugin
 
@@ -233,7 +233,7 @@ Extents: (-10.00,-40.00) to (110.00,30.00)
 ```
 
 The folder holds the plugin's .dll and its `plugin.json` and nothing else, since the app gives a plugin its own
-`OpenCAD2D.dll`. The build of `OpenCAD2D.App` builds the plugin first and copies those two files there. To
+`OpenCAD2D.Core.dll`. The build of `OpenCAD2D.App` builds the plugin first and copies those two files there. To
 remove the sample, delete the folder `Plugins\DrawingInfo`; to start a plugin of your own, copy its project.
 
 ## What the window adds

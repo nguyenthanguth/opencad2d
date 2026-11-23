@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 _DISTRIBUTION = "opencad2d"
 
 _FOLDER = Path(__file__).resolve().parent
-_ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D")
+_ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D.Core")
 
 
 def _has_dotnet8() -> bool:
@@ -75,12 +75,12 @@ def _load_assemblies() -> None:
 
 
 def _version() -> str:
-    """Return the installed distribution's version, or inside the app, where there is none, that of the OpenCAD2D assembly."""
+    """Return the installed distribution's version, or inside the app, where there is none, that of the OpenCAD2D.Core assembly."""
     try:
         return importlib.metadata.version(_DISTRIBUTION)
     except importlib.metadata.PackageNotFoundError:
         for assembly in importlib.import_module("System").AppDomain.CurrentDomain.GetAssemblies():
-            if assembly.GetName().Name == "OpenCAD2D":
+            if assembly.GetName().Name == "OpenCAD2D.Core":
                 version = assembly.GetName().Version
                 return f"{version.Major}.{version.Minor}.{version.Build}"
         raise

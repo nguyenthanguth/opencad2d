@@ -15,7 +15,7 @@ from System.Runtime.InteropServices import RuntimeInformation
 
 import opencad2d
 
-ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D")
+ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D.Core")
 
 Python = Callable[..., CompletedProcess[str]]
 
@@ -35,7 +35,7 @@ def _installed_net_runtimes() -> list[tuple[int, ...]]:
 
 
 def test_version_is_the_assembly_version_without_its_fourth_part() -> None:
-    # OpenCAD2D.dll of 1.0.0 carries the AssemblyName version 1.0.0.0; __version__ drops the fourth part.
+    # OpenCAD2D.Core.dll of 1.0.0 carries the AssemblyName version 1.0.0.0; __version__ drops the fourth part.
     from OpenCAD2D import CadDocument
 
     assembly_version = str(clr.GetClrType(CadDocument).Assembly.GetName().Version)

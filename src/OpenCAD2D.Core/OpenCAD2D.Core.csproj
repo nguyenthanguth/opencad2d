@@ -4,7 +4,7 @@
         <PlatformTarget>x64</PlatformTarget>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <RootNamespace>OpenCAD2D</RootNamespace>
-        <AssemblyName>OpenCAD2D</AssemblyName>
+        <AssemblyName>OpenCAD2D.Core</AssemblyName>
         <Description>The 2D presenter of GeometryHelper: opens a DXF as a document, turns its entities into 2D display lists, picks and selects them. No UI.</Description>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -18,7 +18,7 @@
         <EmbeddedResource Include="Text\english-words.txt.gz" LogicalName="OpenCAD2D.english-words.txt.gz" />
     </ItemGroup>
 
-    <!-- The default support folders, beside OpenCAD2D.dll in the output of every project that uses it. -->
+    <!-- The default support folders, beside OpenCAD2D.Core.dll in the output of every project that uses it. -->
     <ItemGroup>
         <None
             Update="Fonts\**;Hatches\**;Linetypes\**;Lisps\**;Pythons\**;Plugins\**;DrawingTemplates\**"

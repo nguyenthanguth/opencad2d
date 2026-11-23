@@ -8,7 +8,7 @@ using Xunit;
 namespace OpenCAD2D.UnitTest
 {
     /// <summary>
-    /// The default support folders beside OpenCAD2D.dll (Fonts, Hatches, Linetypes): fonts, pattern files and
+    /// The default support folders beside OpenCAD2D.Core.dll (Fonts, Hatches, Linetypes): fonts, pattern files and
     /// linetype files looked for in the user's folders, then those folders, then the built-in sets, never in the drawing's
     /// folder; a TrueType font file found by its family; and the shipped linetype and pattern files kept equal to the
     /// built-in sets. The roots are injected: nothing is written beside the real dll.
@@ -266,7 +266,7 @@ namespace OpenCAD2D.UnitTest
         {
             CadSupportFolders folders = CadSupportFolders.Default;
 
-            Assert.True(File.Exists(Path.Combine(folders.ProgramFolder, "OpenCAD2D.dll")));
+            Assert.True(File.Exists(Path.Combine(folders.ProgramFolder, "OpenCAD2D.Core.dll")));
 
             foreach (
                 CadSupportKind kind in new[] { CadSupportKind.Fonts, CadSupportKind.Hatches, CadSupportKind.Linetypes }
@@ -334,7 +334,7 @@ namespace OpenCAD2D.UnitTest
 
         /// <summary>
         /// To write the file again after a change to HersheySimplex: set GH_WRITE_GHSIMPLEX to the full path of
-        /// src\OpenCAD2D\Fonts\ghsimplex.shx and run this test once; it writes the bytes there and still compares the
+        /// src\OpenCAD2D.Core\Fonts\ghsimplex.shx and run this test once; it writes the bytes there and still compares the
         /// copy beside the dll, which the next build refreshes.
         /// </summary>
         [Fact]

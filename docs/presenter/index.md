@@ -14,9 +14,9 @@ own entities answer to their [owner](owners.md).
 
 | Project | What it holds | Runs on |
 |---|---|---|
-| `OpenCAD2D` | the document, display lists, picking, the command line and its commands, snaps, grips, Properties, layers, owners, plugins and global settings; no window | netstandard2.0 |
+| `OpenCAD2D.Core` (namespace `OpenCAD2D`) | the document, display lists, picking, the command line and its commands, snaps, grips, Properties, layers, owners, plugins and global settings; no window | netstandard2.0 |
 | `OpenCAD2D.Wpf` | the controls: the canvas drawn through SkiaSharp 4.155.0, the file list, Properties, the layer box, the command line and the status bar | net48 and net8.0-windows |
-| `OpenCAD2D.App` | OpenCAD2D, the presenter's own app, `OpenCAD2D.App.exe plan.dxf` (see [The apps](app.md#the-apps)) | net8.0-windows |
+| `OpenCAD2D.App` | OpenCAD2D, the presenter's own app, `OpenCAD2D.exe plan.dxf` (see [The apps](app.md#the-apps)) | net8.0-windows |
 
 The core is the part to build on: it is what a test drives, and what the controls call. The controls and the window are
 not in the API reference; the pages here say what they do where it matters.

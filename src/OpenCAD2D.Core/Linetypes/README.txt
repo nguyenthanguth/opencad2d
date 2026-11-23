@@ -12,7 +12,7 @@ Search order for a linetype file:
 
   1. The folders set in Global settings > Folder preference (Support file search folders),
      in the order listed.
-  2. This folder and its subfolders, next to OpenCAD2D.dll.
+  2. This folder and its subfolders, next to OpenCAD2D.Core.dll.
   3. The built-in linetypes.
 
 Subfolders are read too, so you can keep fonts by company or project: the files directly in

@@ -15,7 +15,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" Private="false" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Core\OpenCAD2D.Core.csproj" Private="false" />
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" Private="false" />
     </ItemGroup>
 </Project>

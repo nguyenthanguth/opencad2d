@@ -86,7 +86,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 "bin",
                 configuration,
                 "net8.0-windows",
-                "OpenCAD2D.App.exe"
+                "OpenCAD2D.exe"
             );
             Assert.True(File.Exists(exe), exe);
             var start = new ProcessStartInfo(exe)

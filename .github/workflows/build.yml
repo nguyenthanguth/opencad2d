@@ -75,7 +75,7 @@ jobs:
 
       - name: Build the libraries, the stub generator and the remote test server
         run: |
-          dotnet build src/OpenCAD2D/OpenCAD2D.csproj -c Release -warnaserror
+          dotnet build src/OpenCAD2D.Core/OpenCAD2D.Core.csproj -c Release -warnaserror
           dotnet build tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj -c Release -warnaserror
           dotnet build tests/OpenCAD2D.Remote.TestServer/OpenCAD2D.Remote.TestServer.csproj -c Release -warnaserror
 

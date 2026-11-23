@@ -39,4 +39,4 @@ Geometry, DXF and DWG come from the GeometryHelper library
 ## Licence
 
 MIT. See [LICENSE](LICENSE); the notices of the code and fonts it carries are in
-[src/OpenCAD2D/THIRD-PARTY-NOTICES.md](src/OpenCAD2D/THIRD-PARTY-NOTICES.md).
+[src/OpenCAD2D.Core/THIRD-PARTY-NOTICES.md](src/OpenCAD2D.Core/THIRD-PARTY-NOTICES.md).

@@ -64,7 +64,7 @@ namespace OpenCAD2D.Plugins
         /// <param name="loader">The loader of the runtime: <c>new CadPluginAssemblyLoader()</c> of OpenCAD2D.Wpf.</param>
         /// <param name="pluginFolder">
         /// The plugin folder, always trusted: each .dll directly in it and each folder below it that holds .dll files is loaded at start. The app
-        /// gives its <c>Plugins</c> folder beside OpenCAD2D.dll (<see cref="CadSupportKind.Plugins"/>).
+        /// gives its <c>Plugins</c> folder beside OpenCAD2D.Core.dll (<see cref="CadSupportKind.Plugins"/>).
         /// </param>
         /// <param name="settingsPath">The JSON file of the startup list and the trusted folders; read when it exists, written on each change.</param>
         /// <param name="shadowFolder">The folder the plugins' files are copied to and loaded from; a folder of this process's

@@ -16,7 +16,7 @@
 
     <ItemGroup>
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
-        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
         <ProjectReference Include="..\..\src\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj" />
         <ProjectReference Include="..\OpenCAD2D.Remote.Sample\OpenCAD2D.Remote.Sample.csproj" />
     </ItemGroup>

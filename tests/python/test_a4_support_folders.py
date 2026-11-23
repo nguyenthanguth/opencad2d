@@ -1,4 +1,4 @@
-"""A4: the support folders of the presenter are found beside OpenCAD2D.dll, so ``lib/Fonts``,
+"""A4: the support folders of the presenter are found beside OpenCAD2D.Core.dll, so ``lib/Fonts``,
 ``lib/Hatches`` and ``lib/Linetypes`` of the wheel need no code and no setting (research section 5)."""
 
 from pathlib import Path

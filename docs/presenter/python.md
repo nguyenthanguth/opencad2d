@@ -34,7 +34,7 @@ passes a [`Tolerance`](xref:GeometryHelper.Tolerance) where the C# would. The pr
 
 | How | What happens |
 |---|---|
-| The **Pythons** folder, beside `OpenCAD2D.dll` as Lisps is | the `.py` files directly in it load at start, by name ignoring case then ordinal; the folders under it are packages they import and do not run as startup files. A `.py` in Lisps is not loaded, nor a `.lsp` in Pythons |
+| The **Pythons** folder, beside `OpenCAD2D.Core.dll` as Lisps is | the `.py` files directly in it load at start, by name ignoring case then ordinal; the folders under it are packages they import and do not run as startup files. A `.py` in Lisps is not loaded, nor a `.lsp` in Pythons |
 | The **Python Startup Suite** of Load/Unload Applications (APPLOAD), saved in the settings as `support.pythonStartupSuite` | its files load after the Pythons folder, in the order of the list |
 | **APPLOAD**, Load… | a `.py` row of kind Python, with the commands it defined; Reload loads it again, Unload takes its commands out of every drawing |
 | **PYLOAD** | the multi-select picker for `.py` files, loading them as APPLOAD does so that they show in its list |

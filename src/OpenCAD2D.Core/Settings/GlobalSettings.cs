@@ -132,7 +132,7 @@ namespace OpenCAD2D
         private SortedDictionary<string, string> _aliases = Copy(CadShortcuts.Default.Aliases);
         private SortedDictionary<string, string> _keys = Copy(CadShortcuts.Default.Keys);
 
-        /// <summary>Gets the file the settings are kept in: %AppData%\OpenCAD2D\settings.json.</summary>
+        /// <summary>Gets the file the settings are kept in: %AppData%\OpenCAD2D.Core\settings.json.</summary>
         public static string DefaultPath =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -640,7 +640,7 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Gets or sets the folders the fonts of text styles are looked for in, in order, before the Fonts folder beside
-        /// OpenCAD2D.dll (<see cref="CadSupportFolders"/>), as AutoCAD's support file search path: none by default
+        /// OpenCAD2D.Core.dll (<see cref="CadSupportFolders"/>), as AutoCAD's support file search path: none by default
         /// (<see cref="CadFonts.DefaultFolders"/>), so that an SHX font is read only from the folders the user lists and the one beside the dll, and AutoCAD's Fonts folders are never looked
         /// for; a TrueType file is looked for in the Fonts folder of Windows as well. A list saved before keeps the folders it
         /// holds. Blank entries are left out and a folder given twice is kept once.
@@ -953,8 +953,8 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Gets the folder the templates are kept in where <see cref="TemplateFolder"/> names none: the DrawingTemplates folder
-        /// beside OpenCAD2D.dll (<see cref="CadSupportKind.DrawingTemplates"/>), where a user puts the drawings saved
-        /// as .dwt. The Template folder beside the settings file (%AppData%\OpenCAD2D\Template), where templates
+        /// beside OpenCAD2D.Core.dll (<see cref="CadSupportKind.DrawingTemplates"/>), where a user puts the drawings saved
+        /// as .dwt. The Template folder beside the settings file (%AppData%\OpenCAD2D.Core\Template), where templates
         /// were kept before, is taken in its place only while it holds a template and DrawingTemplates holds none.
         /// </summary>
         public static string DefaultTemplateFolder =>

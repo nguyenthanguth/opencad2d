@@ -4,7 +4,7 @@ using System.IO;
 
 namespace OpenCAD2D
 {
-    /// <summary>The kinds of support file that have a default folder next to OpenCAD2D.dll.</summary>
+    /// <summary>The kinds of support file that have a default folder next to OpenCAD2D.Core.dll.</summary>
     public enum CadSupportKind
     {
         /// <summary>Fonts: SHX fonts and big fonts, and TrueType files (.ttf, .ttc, .otf).</summary>
@@ -31,7 +31,7 @@ namespace OpenCAD2D
 
     /// <summary>
     /// The default support folders, as AutoCAD's own Fonts and Support folders are: <c>Fonts</c>, <c>Hatches</c>,
-    /// <c>Linetypes</c>, <c>Lisps</c>, <c>Pythons</c>, <c>Plugins</c> and <c>DrawingTemplates</c> beside OpenCAD2D.dll (not beside
+    /// <c>Linetypes</c>, <c>Lisps</c>, <c>Pythons</c>, <c>Plugins</c> and <c>DrawingTemplates</c> beside OpenCAD2D.Core.dll (not beside
     /// the exe, so that a host which embeds the dll, such as a model drawing library or a Tekla plugin, finds the same ones).
     /// A font, a pattern file or a linetype file is looked for in the folders the user set in Global settings' Folder
     /// preference first, then in these and their subfolders, then in the presenter's own built-in sets. Every folder is read
@@ -61,10 +61,10 @@ namespace OpenCAD2D
             ProgramFolder = string.IsNullOrWhiteSpace(programFolder) ? null : programFolder.Trim();
         }
 
-        /// <summary>Gets the default folders: those beside OpenCAD2D.dll.</summary>
+        /// <summary>Gets the default folders: those beside OpenCAD2D.Core.dll.</summary>
         public static CadSupportFolders Default => Own.Value;
 
-        /// <summary>Gets the folder that holds the Fonts, Hatches, Linetypes, Lisps, Pythons, Plugins and DrawingTemplates folders: the folder of OpenCAD2D.dll; null where the dll has no place on disk.</summary>
+        /// <summary>Gets the folder that holds the Fonts, Hatches, Linetypes, Lisps, Pythons, Plugins and DrawingTemplates folders: the folder of OpenCAD2D.Core.dll; null where the dll has no place on disk.</summary>
         public string ProgramFolder { get; }
 
         /// <summary>Gets the default folder of a kind, as <c>C:\App\Fonts</c>, whether it exists or not; null where there is no root.</summary>

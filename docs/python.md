@@ -30,7 +30,7 @@ Build the wheel from a checkout of the repository, in Git Bash, from its root. T
 and the stub generator, the last two write the stubs and the wheel:
 
 ```bash
-dotnet build src/OpenCAD2D/OpenCAD2D.csproj -c Release
+dotnet build src/OpenCAD2D.Core/OpenCAD2D.Core.csproj -c Release
 dotnet build tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj -c Release
 bash tools/python/make-stubs.sh
 bash tools/python/build-wheel.sh
@@ -45,7 +45,7 @@ python -m venv .venv
 .venv\Scripts\python -m pip install "artifacts\python\opencad2d-1.0.0-py3-none-win_amd64.whl[numpy]"
 ```
 
-The wheel is 10 200 681 bytes. It holds the three assemblies (`GeometryHelper.dll`, `OpenCAD2D.dll` and
+The wheel is 10 200 681 bytes. It holds the three assemblies (`GeometryHelper.dll`, `OpenCAD2D.Core.dll` and
 `OpenCAD2D.Remote.dll`) with the `Fonts`, `Hatches` and `Linetypes` folders the presenter finds beside them (8
 files, 15 723 467 bytes unpacked), the Python module (6 files, 30 652 bytes), and the stubs (18 files, 4 449 463 bytes
 for `GeometryHelper`, 8 files, 8 930 bytes for `System`). It holds no XML documentation and no PDB: the XML is read once,

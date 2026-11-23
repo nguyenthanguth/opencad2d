@@ -63,9 +63,9 @@ program). It came out of the GeometryHelper repository in November 2026, with it
 
 | Path | What it holds |
 |---|---|
-| `src/OpenCAD2D` | the engine, netstandard2.0, no UI: documents, commands, display lists, LISP, plugins, Remote server |
+| `src/OpenCAD2D.Core` | the engine (`OpenCAD2D.Core.dll`, namespace `OpenCAD2D`), netstandard2.0, no UI: documents, commands, display lists, LISP, plugins, Remote server |
 | `src/OpenCAD2D.Wpf` | the WPF presenter: canvas, ribbon, palettes, dialogs, the app host |
-| `src/OpenCAD2D.App` | the app, net8.0-windows (`OpenCAD2D.App.exe`, shown as OpenCAD2D) |
+| `src/OpenCAD2D.App` | the app, net8.0-windows (`OpenCAD2D.exe`, shown as OpenCAD2D) |
 | `src/OpenCAD2D.Python` | the embedded CPython (pythonnet) that runs `.py` commands inside the app |
 | `src/OpenCAD2D.Remote` | the client library other programs drive a running app with |
 | `src/python` | the Python package `opencad2d` (wheel), its examples |
@@ -85,7 +85,7 @@ repository at `D:\GitHub\GeometryHelper`). OpenCAD2D uses it as a binary, `Lib\G
 - A change to the core is made, tested and committed in GeometryHelper, then brought here with
   `pwsh tools\update-lib.ps1`, which builds it in Release, copies the DLL and its XML and writes `Lib\VERSION.txt`.
   Commit `Lib` when a batch of core work is done, not for every trial copy.
-- The core gives OpenCAD2D its internals (`InternalsVisibleTo("OpenCAD2D")` in GeometryHelper's AssemblyInfo): the
+- The core gives OpenCAD2D its internals (`InternalsVisibleTo("OpenCAD2D.Core")` in GeometryHelper's AssemblyInfo): the
   MTEXT layout measures with the core's fonts.
 - Never point a project here at GeometryHelper's source.
 

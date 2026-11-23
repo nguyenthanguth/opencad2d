@@ -21,7 +21,7 @@ namespace OpenCAD2D
         /// <summary>The name of the palette a new one is given where it is not named.</summary>
         public const string NewPaletteName = "New Palette";
 
-        /// <summary>Gets the file the palettes are kept in: %AppData%\OpenCAD2D\ToolPalettes.json, beside the settings.</summary>
+        /// <summary>Gets the file the palettes are kept in: %AppData%\OpenCAD2D.Core\ToolPalettes.json, beside the settings.</summary>
         public static string DefaultPath =>
             Path.Combine(Path.GetDirectoryName(GlobalSettings.DefaultPath), "ToolPalettes.json");
 

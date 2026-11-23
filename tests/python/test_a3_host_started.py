@@ -13,7 +13,7 @@ import pytest
 
 Python = Callable[..., CompletedProcess[str]]
 
-ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D")
+ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D.Core")
 
 # argv: runtime, runtime config, folder to load the assemblies from ("-" loads none). Prints one line per assembly:
 # its name, how many copies the AppDomain holds, and the location of the first.
@@ -26,7 +26,7 @@ if runtime == "coreclr":
 else:
     pythonnet.load("netfx")
 import clr
-names = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D")
+names = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D.Core")
 if folder != "-":
     for name in names:
         clr.AddReference(folder + "/" + name + ".dll")

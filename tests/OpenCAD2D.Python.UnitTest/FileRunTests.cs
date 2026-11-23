@@ -374,7 +374,7 @@ namespace OpenCAD2D.Python.UnitTest
         [Fact]
         public void TheVersionOfThePackage_IsTheVersionOfTheLibraryWithoutItsFourthPart()
         {
-            // The app's copy has no dist-info to read the version from (D712): it takes OpenCAD2D.dll's, 1.0.0 for 1.0.0.0.
+            // The app's copy has no dist-info to read the version from (D712): it takes OpenCAD2D.Core.dll's, 1.0.0 for 1.0.0.0.
             CadCommandSession session = NewSession();
             Version assembly = typeof(CadDocument).Assembly.GetName().Version;
             string expected = assembly.Major + "." + assembly.Minor + "." + assembly.Build;
@@ -402,7 +402,7 @@ namespace OpenCAD2D.Python.UnitTest
             );
 
             Assert.Equal(CadPythonOutcome.Completed, run.Outcome);
-            string[] names = { "GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D" };
+            string[] names = { "GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D.Core" };
             foreach (string name in names)
             {
                 Assert.Single(AppDomain.CurrentDomain.GetAssemblies(), a => a.GetName().Name == name);

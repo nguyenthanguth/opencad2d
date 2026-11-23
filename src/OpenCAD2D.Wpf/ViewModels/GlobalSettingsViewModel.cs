@@ -441,7 +441,7 @@ namespace OpenCAD2D.Wpf
     }
 
     /// <summary>
-    /// A default support folder beside OpenCAD2D.dll, as the Folder preference page shows it, read-only: its kind
+    /// A default support folder beside OpenCAD2D.Core.dll, as the Folder preference page shows it, read-only: its kind
     /// (Fonts, Hatch patterns, Linetypes, Lisps, Drawing templates), its full path, whether it is there, and Open folder.
     /// </summary>
     public sealed class DefaultFolderRow : ObservableObject
@@ -1017,7 +1017,7 @@ namespace OpenCAD2D.Wpf
                 ),
                 new GlobalSettingCategory(
                     "Folder preference",
-                    "Where the files a drawing names are looked for, as AutoCAD's support file search path. The folders listed here are looked in first, in order, then the default folders beside OpenCAD2D.dll, then the built-in fonts, patterns and linetypes; the folder of the drawing and AutoCAD's own folders are not looked in unless listed."
+                    "Where the files a drawing names are looked for, as AutoCAD's support file search path. The folders listed here are looked in first, in order, then the default folders beside OpenCAD2D.Core.dll, then the built-in fonts, patterns and linetypes; the folder of the drawing and AutoCAD's own folders are not looked in unless listed."
                 ),
                 new GlobalSettingCategory(
                     "Security",

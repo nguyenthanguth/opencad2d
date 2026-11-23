@@ -131,7 +131,7 @@ string name = resolver.StyleNameOf("Walls", handle);    // Heavy, in a drawing o
 ```
 
 **The folder.** The tables are files of a folder, set in Global settings › Save and export › Plot style tables folder; where
-that is empty, the folder `PlotStyles` beside the settings file (`%AppData%\OpenCAD2D\PlotStyles`). The
+that is empty, the folder `PlotStyles` beside the settings file (`%AppData%\OpenCAD2D.Core\PlotStyles`). The
 presenter makes it as it starts and writes the tables it makes itself there where they are missing, never replacing one
 the user edited: `acad.ctb` (changes nothing), `monochrome.ctb` (every colour black), `grayscale.ctb`, `Screening 25%.ctb`,
 50 and 75, and `acad.stb`, `monochrome.stb`, `grayscale.stb`. None is a file of AutoCAD's.

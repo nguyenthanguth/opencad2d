@@ -17,7 +17,7 @@
     <ItemGroup>
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
         <ProjectReference Include="..\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj" />
-        <ProjectReference Include="..\OpenCAD2D\OpenCAD2D.csproj" />
+        <ProjectReference Include="..\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
     </ItemGroup>
 
     <!-- The app's copy of the Python package, beside the DLLs of every project that uses this one (D702). -->

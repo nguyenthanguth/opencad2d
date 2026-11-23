@@ -10,7 +10,7 @@ using static OpenCAD2D.UnitTest.EditingDrawings;
 namespace OpenCAD2D.UnitTest
 {
     /// <summary>
-    /// The sample routine that ships in the Lisps folder, GH-DrawingInfo.lsp, as the build leaves it beside OpenCAD2D.dll:
+    /// The sample routine that ships in the Lisps folder, GH-DrawingInfo.lsp, as the build leaves it beside OpenCAD2D.Core.dll:
     /// it defines GHINFO when a drawing opens and writes nothing, and GHINFO writes the drawing's name, units, current layer and
     /// text style, the objects of model space by type, the layers and blocks, and the extents. It changes nothing.
     /// </summary>
