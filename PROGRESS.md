@@ -196,7 +196,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   |---|---|---|
   | I1 | Inno Setup 6 (free, one `.iss` script, per-user installs without administrator). WiX/MSI is heavier for the same result, MSIX needs a signing certificate to install at all, Velopack adds auto-update the app does not need yet. | decided by the maintainer (S12 line) |
   | I2 | .NET included as a self-contained publish: `dotnet publish src/OpenCAD2D.App -c Release -r win-x64 --self-contained`. Not single-file and not trimmed: plugins, Python (pythonnet) and the support folders find their files beside the exe, and WPF and plugin loading use reflection. About 70 MB more than the framework-dependent build. | proposed |
-  | I3 | Per-user: `PrivilegesRequired=lowest`, installed to `%LocalAppData%\Programs\OpenCAD2D`, a Start menu shortcut, a desktop shortcut as an unticked task. | proposed |
+  | I3 | Per-user: `PrivilegesRequired=lowest`, installed to `%LocalAppData%\Programs\OpenCAD2D`, a Start menu shortcut, a desktop shortcut as an unticked task. | decided by the maintainer 2026-11-23: kept over Program Files (no administrator; users drop files into Lisps, Plugins, Pythons beside the exe) |
   | I4 | The `.dxf`/`.dwg` association is a ticked task that runs `OpenCAD2D.exe --register`; the uninstaller runs `--unregister`. | proposed |
   | I5 | The uninstaller removes only what the setup installed. `%AppData%\OpenCAD2D` (settings, plot styles, the plugin list) and files the user added to `Lisps`, `Pythons`, `Plugins`, `Fonts` stay, as AutoCAD leaves its user folders. | proposed |
   | I6 | Python is not bundled: the app finds the Python of the machine or of Global settings, as it does now. | proposed |
