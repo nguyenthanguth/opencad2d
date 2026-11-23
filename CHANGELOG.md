@@ -24,6 +24,8 @@ along; the notes of its earlier changes are in GeometryHelper's `CHANGELOG.md` u
   - **FIXED.** Only a start that opens the window copies the old folders: `OpenCAD2D.exe --screenshot`, `--register`
     and `--unregister` leave `%AppData%\OpenCAD2D` alone. **NEW.** `CadAppHost.ShowsWindow(args)` tells which
     arguments open the window.
+- **CHANGED.** A new icon, for the app and for a drawing file: on a white rounded tile, a blue O holds a C, and the C
+  holds the letters AD. The docs site carries it as its logo.
 - **Files in Explorer.** `.dxf` and `.dwg` files are associated through the ProgID `OpenCAD2D.Drawing`. Writing or
   removing the association takes out `GeometryHelper.Drawing`, so "Open with" lists the app once.
 - **The core.** GeometryHelper (geometry, DXF, DWG) is used as `Lib\GeometryHelper.dll`, built from GeometryHelper's

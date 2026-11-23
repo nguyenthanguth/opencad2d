@@ -225,9 +225,11 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   `.git/info/exclude` like GeometryHelper's); the 22 Lisp files the maintainer had in `D:\GeometryHelper-run\Lisps`
   copied over. Left to the maintainer: a shortcut to `D:\OpenCAD2D-run\OpenCAD2D.exe`, `OpenCAD2D.exe --register`
   once for the `.dxf`/`.dwg` association, deleting `D:\GeometryHelper-run` when no longer wanted.
-- [ ] The app icon is still GeometryHelper's (`src/OpenCAD2D.App/Icons`): a new one, designed first. Four concepts
-  and the logo lockups are on the design canvas https://claude.ai/artifact/68myTJqRSBBmwvSsu2h1W5 (2026-11-23), waiting
-  for the maintainer's pick; then `make-icons.ps1` draws the chosen one, and the docs site takes its logo and favicon.
+- [x] The app icon (2026-11-23): concept E3 of the design canvas https://claude.ai/artifact/68myTJqRSBBmwvSsu2h1W5,
+  chosen by the maintainer after rounds A-D, E-H, E1/E2 and E3: on a white rounded tile, a blue O holds a C, the C holds
+  AD. The letters are Space Grotesk Bold outlines (OFL) written into `make-icons.ps1`, their ink centred in the room the
+  C leaves (26.05 units each side, 128 up and down); below 24 px only the O and the C. `app.ico`, `drawing-file.ico`,
+  and `docfx/images/logo.svg` as the docs site's logo and favicon.
 - [x] A docs site for OpenCAD2D (2026-11-23): `docfx.json`, `docfx/index.md` and `toc.yml`, `docs/toc.yml`; the .NET
   reference of `OpenCAD2D.Core` and `OpenCAD2D.Remote`, the guides, and the Python API (412 pages, 806 types) that
   `make-api-pages.py --namespace OpenCAD2D` writes from `OpenCAD2D-stubs`; core types link to GeometryHelper's site

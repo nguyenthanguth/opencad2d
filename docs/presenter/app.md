@@ -901,9 +901,10 @@ options name. A host of its own does the same.
 
 ### The icon and the file association
 
-OpenCAD2D has an icon of its own, a white set square and an orange point on a blue tile, at 16, 24, 32, 48 and 256
-pixels: the exe carries it, and the window shows it on the taskbar and in Alt+Tab (`CadAppHost.WindowIcon`). A drawing file
-associated with the app shows a page with the same tile on it. Both are written from their vector drawing by
+OpenCAD2D has an icon of its own at 16, 24, 32, 48 and 256 pixels: on a white rounded tile, a blue O holds a C, and the
+C holds the letters AD, so it reads O, C, AD. Below 24 pixels the letters are left out and the O and the C stay. The exe
+carries it, and the window shows it on the taskbar and in Alt+Tab (`CadAppHost.WindowIcon`). A drawing file associated
+with the app shows a page with the same mark on it. Both are written from their vector drawing by
 `src/OpenCAD2D.App/Icons/make-icons.ps1` into `app.ico` and `drawing-file.ico`; the second is copied beside the exe.
 
 ```
@@ -916,17 +917,18 @@ no administrator is asked for:
 
 | Key | Value |
 |---|---|
-| `GeometryHelper.Drawing` | `Drawing (OpenCAD2D)`, the type Explorer shows |
-| `GeometryHelper.Drawing\DefaultIcon` | `drawing-file.ico` beside the exe (the exe's own icon where the file is missing) |
-| `GeometryHelper.Drawing\shell\open\command` | `"…\OpenCAD2D.exe" "%1"` |
-| `.dxf\OpenWithProgids`, `.dwg\OpenWithProgids` | `GeometryHelper.Drawing`, so the app is in the Open with list |
-| `.dxf`, `.dwg` | `GeometryHelper.Drawing`, only where no program has the extension |
+| `OpenCAD2D.Drawing` | `Drawing (OpenCAD2D)`, the type Explorer shows |
+| `OpenCAD2D.Drawing\DefaultIcon` | `drawing-file.ico` beside the exe (the exe's own icon where the file is missing) |
+| `OpenCAD2D.Drawing\shell\open\command` | `"…\OpenCAD2D.exe" "%1"` |
+| `.dxf\OpenWithProgids`, `.dwg\OpenWithProgids` | `OpenCAD2D.Drawing`, so the app is in the Open with list |
+| `.dxf`, `.dwg` | `OpenCAD2D.Drawing`, only where no program has the extension |
 
 An extension another program has (AutoCAD's `.dwg`, say) is left to it, and the app is one choice of Open with; Windows keeps
 the choice "Always use this app" itself. It writes one line, `.dxf and .dwg files open with OpenCAD2D: …`, and
 exits with 0, or with 1 and the reason where the registry refuses. `--unregister` takes out the ProgID and its Open with
-entries, and the default of an extension only where it is the app's; what other programs wrote stays. Run it again after
-moving the app, since the command names the exe where it was. A file opened from Explorer starts a new window of the app,
+entries, and the default of an extension only where it is the app's; what other programs wrote stays. Both take out
+`GeometryHelper.Drawing` too, the ProgID of the app before it was named OpenCAD2D, so Open with lists it once. Run it
+again after moving the app, since the command names the exe where it was. A file opened from Explorer starts a new window of the app,
 one per file, even while the app runs. A host built on `CadAppHost` takes the same two switches and writes the same ProgID, so
 the app registered last is the one that opens the files.
 

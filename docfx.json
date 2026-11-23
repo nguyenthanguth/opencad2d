@@ -52,6 +52,8 @@
     "globalMetadata": {
       "_appName": "OpenCAD2D",
       "_appTitle": "OpenCAD2D",
+      "_appLogoPath": "images/logo.svg",
+      "_appFaviconPath": "images/logo.svg",
       "_appFooter": "OpenCAD2D &mdash; a free 2D CAD app for Windows that works like AutoCAD 2021. MIT.",
       "_enableSearch": true,
       "_gitContribute": {

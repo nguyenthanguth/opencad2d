@@ -1,66 +1,75 @@
 # Writes the icons of OpenCAD2D from the vector drawing below: app.ico, the app's (ApplicationIcon and the window's),
 # and drawing-file.ico, the icon of a .dxf or .dwg file associated with the app (--register). Each holds 16, 24, 32, 48 and
-# 256 pixels: 16 and 24 are drawn on their own pixel grid, the others from one drawing 256 units square. The 256 frame is a
-# PNG, the smaller ones 32-bit bitmaps. Run it with Windows PowerShell from any folder after changing a shape:
+# 256 pixels, drawn from one drawing 256 units square. The 256 frame is a PNG, the smaller ones 32-bit bitmaps. Run it with
+# Windows PowerShell from any folder after changing a shape:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File src\OpenCAD2D.App\Icons\make-icons.ps1
-# The drawing is our own: a set square and a point on a blue tile, nothing taken from another program's icon.
+#
+# The mark (concept E3 of the design canvas, 2026-11-23): on a white rounded tile, a blue O holds a C opening to the right,
+# and the C holds the letters AD, so it reads O, C, AD. The letters are outlines of Space Grotesk Bold (SIL Open Font
+# License), size 50 and spacing -2, placed so that their ink sits in the middle of the room the C leaves: 26.05 units from
+# the inside of the C on the left and from the inside of the O on the right, and centred at 128 up and down. No font is
+# needed to run this script. Below 24 pixels the letters cannot be read and are left out: the O and the C stay.
 
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationCore, WindowsBase
 
 $blue = '#1F6FD6'
-$blueEdge = '#154C96'
-$orange = '#FF9F1C'
+$tile = '#FFFFFF'
+$tileEdge = '#D5DBE3'
 $paper = '#FFFFFF'
 $paperEdge = '#5B6573'
 $fold = '#DCE1E8'
 
-# The shapes of each size: [units across, tile, tile radius, set square (even-odd: the hole a second figure), point x, y, r].
-$app = @{
-    16  = @(16, '0.5,0.5,15,15', 3, 'M3,13 L13,13 L3,3 Z', 11.5, 4.5, 2)
-    24  = @(24, '0.5,0.5,23,23', 4.5, 'M5,19 L19,19 L5,5 Z M8,16 L11.76,16 L8,12.24 Z', 17.5, 6.5, 2.5)
-    256 = @(256, '16,16,224,224', 40, 'M60,200 L200,200 L60,60 Z M88,172 L132.4,172 L88,127.6 Z', 184, 76, 24)
-}
+# The mark, in units of 256: the tile, the O (a circle stroked), the C (an arc stroked) and the letters AD (filled).
+$tileRect = '18,18,220,220'
+$tileRadius = 42
+$ring = @(128, 128, 84, 24)                               # centre x, y, radius, width
+$cArc = 'M165.2,94.5 A50,50 0 1 0 165.2,161.5'
+$cWidth = 20
+$letters = 'M114.05 145.5 123.25 110.5H134.75L143.95 145.5H137.15L135.25 137.8H122.75L120.85 145.5ZM124.3 131.7H133.7L129.45 114.65H128.55Z ' +
+    'M145.15 145.5V139.7H149.75V116.3H145.15V110.5H159.55Q166.6 110.5 170.28 114.08Q173.95 117.65 173.95 124.7V131.3Q173.95 138.35 170.28 141.93Q166.6 145.5 159.55 145.5ZM156.35 139.5H159.65Q163.65 139.5 165.5 137.4Q167.35 135.3 167.35 131.5V124.5Q167.35 120.65 165.5 118.58Q163.65 116.5 159.65 116.5H156.35Z'
 
-# The file: a page with its corner folded, the app's tile on it; [units across, page, fold, then the tile as for the app].
-$doc = @{
-    16  = @(16, 'M2.5,0.5 L9.5,0.5 L13.5,4.5 L13.5,15.5 L2.5,15.5 Z', 'M9.5,0.5 L9.5,4.5 L13.5,4.5 Z', '4,7,8,8', 1.5, 'M5.5,13.5 L10.5,13.5 L5.5,8.5 Z', 0, 0, 0)
-    24  = @(24, 'M3.5,0.5 L14.5,0.5 L20.5,6.5 L20.5,23.5 L3.5,23.5 Z', 'M14.5,0.5 L14.5,6.5 L20.5,6.5 Z', '6.5,10.5,11,11', 2, 'M8.5,19.5 L15.5,19.5 L8.5,12.5 Z', 15, 13, 1.5)
-    256 = @(256, 'M48,8 L168,8 L224,64 L224,248 L48,248 Z', 'M168,8 L168,64 L224,64 Z', '80,120,112,112', 20, 'M102,212 L172,212 L102,142 Z M116,198 L138.2,198 L116,175.8 Z', 164, 150, 12)
-}
+# The file: a page with its corner folded, the mark on it without its tile, three quarters of its size.
+$page = 'M48,8 L168,8 L224,64 L224,248 L48,248 Z'
+$pageFold = 'M168,8 L168,64 L224,64 Z'
+$markOnPage = @(0.75, 40, 64)                             # scale, then x and y added after scaling
 
 function Get-Brush($hex) { [System.Windows.Media.BrushConverter]::new().ConvertFromString($hex) }
 
-function Get-Shape($size, $table) {
-    if ($table.ContainsKey($size)) { return $table[$size] }
-    return $table[256]
-}
-
-function Write-Tile($dc, $rect, $radius, $square, $px, $py, $pr, $line) {
-    $r = [System.Windows.Rect]::Parse($rect)
-    $dc.DrawRoundedRectangle((Get-Brush $blue), [System.Windows.Media.Pen]::new((Get-Brush $blueEdge), $line), $r, $radius, $radius)
-    $dc.DrawGeometry((Get-Brush $paper), $null, [System.Windows.Media.Geometry]::Parse($square))
-    if ($pr -gt 0) {
-        $dc.DrawEllipse((Get-Brush $orange), $null, [System.Windows.Point]::new($px, $py), $pr, $pr)
+function Write-Mark($dc, $size, $withTile) {
+    $pen = [System.Windows.Media.Pen]::new((Get-Brush $blue), $ring[3])
+    if ($withTile) {
+        $edge = [System.Windows.Media.Pen]::new((Get-Brush $tileEdge), 4)
+        $dc.DrawRoundedRectangle((Get-Brush $tile), $edge, [System.Windows.Rect]::Parse($tileRect), $tileRadius, $tileRadius)
+    }
+    $dc.DrawEllipse($null, $pen, [System.Windows.Point]::new($ring[0], $ring[1]), $ring[2], $ring[2])
+    $cPen = [System.Windows.Media.Pen]::new((Get-Brush $blue), $cWidth)
+    $dc.DrawGeometry($null, $cPen, [System.Windows.Media.Geometry]::Parse($cArc))
+    if ($size -ge 24) {
+        $dc.DrawGeometry((Get-Brush $blue), $null, [System.Windows.Media.Geometry]::Parse($letters))
     }
 }
 
 function Get-Rendering($size, $isDocument) {
     $visual = [System.Windows.Media.DrawingVisual]::new()
     $dc = $visual.RenderOpen()
-    $s = if ($isDocument) { Get-Shape $size $doc } else { Get-Shape $size $app }
-    $units = $s[0]
-    $dc.PushTransform([System.Windows.Media.ScaleTransform]::new($size / $units, $size / $units))
-    $line = $units / $size
+    $dc.PushTransform([System.Windows.Media.ScaleTransform]::new($size / 256, $size / 256))
 
     if ($isDocument) {
+        $line = [Math]::Max(256 / $size, 4)
         $pen = [System.Windows.Media.Pen]::new((Get-Brush $paperEdge), $line)
-        $dc.DrawGeometry((Get-Brush $paper), $pen, [System.Windows.Media.Geometry]::Parse($s[1]))
-        $dc.DrawGeometry((Get-Brush $fold), $pen, [System.Windows.Media.Geometry]::Parse($s[2]))
-        Write-Tile $dc $s[3] $s[4] $s[5] $s[6] $s[7] $s[8] $line
+        $pen.LineJoin = [System.Windows.Media.PenLineJoin]::Round
+        $dc.DrawGeometry((Get-Brush $paper), $pen, [System.Windows.Media.Geometry]::Parse($page))
+        $dc.DrawGeometry((Get-Brush $fold), $pen, [System.Windows.Media.Geometry]::Parse($pageFold))
+        $group = [System.Windows.Media.TransformGroup]::new()
+        $group.Children.Add([System.Windows.Media.ScaleTransform]::new($markOnPage[0], $markOnPage[0]))
+        $group.Children.Add([System.Windows.Media.TranslateTransform]::new($markOnPage[1], $markOnPage[2]))
+        $dc.PushTransform($group)
+        Write-Mark $dc ($size * $markOnPage[0]) $false
+        $dc.Pop()
     }
     else {
-        Write-Tile $dc $s[1] $s[2] $s[3] $s[4] $s[5] $s[6] $line
+        Write-Mark $dc $size $true
     }
 
     $dc.Pop()
