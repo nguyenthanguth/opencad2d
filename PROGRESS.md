@@ -508,10 +508,10 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
 
 #### C# source plugins
 
-Asked for by the maintainer on 2026-11-23: a command plugin given as its C# source, `.cs` files, loaded as a built `.dll`
-is today, so that writing one needs no Visual Studio, no project and no build, as a `.lsp` or a `.py` needs none. The app
-compiles the source when it loads it. AutoCAD 2021 has no such thing (NETLOAD takes assemblies only), so the commands and
-prompts follow NETLOAD's and APPLOAD's, and the rest follows the `.py` files of PW1.
+Asked for by the maintainer on 2026-11-23: a command plugin given as its C# source, `.cs` files, loaded as a built
+`.dll` is today, so that writing one needs no Visual Studio, no project and no build, as a `.lsp` or a `.py` needs none.
+The app compiles the source when it loads it. AutoCAD 2021 has no such thing (NETLOAD takes assemblies only), so the
+commands and prompts follow NETLOAD's and APPLOAD's, and the rest follows the `.py` files of PW1.
 
 How a plugin loads today: `CadPluginManager` (PLUGINLOAD, alias NETLOAD; the Plugins folder at start; the Load/Unload
 Applications window) copies the `.dll` files aside (shadow copy) and `CadPluginLoader` loads them, on .NET 8 each plugin
@@ -533,8 +533,8 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
       200-line plugin cold and warm, memory, how each references the host's assemblies and caches); the decisions above
       confirmed or changed by the maintainer; the spec with numbered decisions.
       -> verify: the comparison table and the spec written; the maintainer's answers to CS-D1 to CS-D7 recorded here.
-- [ ] CS2. The compiler: a `CadPluginCompiler` in `OpenCAD2D.Wpf` that turns one or more `.cs` files into an assembly and
-      its PDB in memory, with the references of CS-D3, `//#r` lines, and the cache of CS-D4.
+- [ ] CS2. The compiler: a `CadPluginCompiler` in `OpenCAD2D.Wpf` that turns one or more `.cs` files into an assembly
+      and its PDB in memory, with the references of CS-D3, `//#r` lines, and the cache of CS-D4.
       -> verify: tests that compile a one-file and a two-file plugin, a plugin with a `//#r` reference, and one with an
          error (its file, line, column and code as CS-D6 writes them); a second compile of unchanged sources is a cache
          hit (no compile, measured); the cache key changes when one source byte or the app's version changes.
