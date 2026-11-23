@@ -266,20 +266,10 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   `.github/workflows/publish-python.yml` (trusted publishing, no environment; run 45189345008): the wheel
   `opencad2d-1.0.0-py3-none-win_amd64.whl` is on PyPI and attached to the release. Checked: `pip install opencad2d`
   in a fresh venv, `new_file()` gives a Drawing on .NET 8.
-- [ ] NuGet: the trusted publishing policy is set (`OpenCAD2D.*`, `publish-nuget.yml`, no environment); the
-  workflow waits for the packaging (`IsPackable` is false everywhere, and the packages need GeometryHelper as a NuGet
-  dependency in place of `Lib\GeometryHelper.dll`).
-
-## Open work
-
-Moved from GeometryHelper's `PROGRESS.md` at the split (2026-11-23), as it stood there: the names are the old ones
-(`GeometryHelper.Cad` is `OpenCAD2D`, `geometryhelper.cad` is `opencad2d.cad`). Work on the core library itself (DWG, DXF)
-is done in GeometryHelper and brought here through `Lib`. The PyPI name `opencad2d` is free (checked 2026-11-22).
-
-### Part A: the presenter (finished, 2026-11-17)
-
-The maintainer judged Part A done on 2026-11-17. What it covers, in short:
-
+- [x] NuGet: `OpenCAD2D.Core` and `OpenCAD2D.Remote` 1.0.0 on nuget.org (2026-11-23), the API only (Wpf and Python
+  stay unpacked, the maintainer's call). `publish-nuget.yml` by trusted publishing, no environment; the packages
+  depend on GeometryHelper 13.12.1 from nuget.org (`-p:GeometryHelperFromPackage=true`) and are attached to the
+  release v1.0.0. A published release now puts out the wheel, the packages and the setup together.
 - Files: DXF R12 to R2018 and our own DWG reader and writer (R2000 to R2018), opened by AutoCAD 2021 with AUDIT 0;
   RECOVER, AUDIT, autosave, templates, xrefs, raster images, PDF underlays, OLE frames, WMF in and out.
 - Drawing and editing: AutoCAD 2021's 2D draw and modify commands with their options and prompts, grips and grip modes,
