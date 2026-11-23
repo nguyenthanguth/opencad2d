@@ -506,7 +506,53 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       `DxfDatabase` (they need the version and the writer's warnings); no ribbon-button example file (`test_e0` lists
       the examples); the empty row 1 of the canvas grid stays
 
+#### C# source plugins
+
+Asked for by the maintainer on 2026-11-23: a command plugin given as its C# source, `.cs` files, loaded as a built `.dll`
+is today, so that writing one needs no Visual Studio, no project and no build, as a `.lsp` or a `.py` needs none. The app
+compiles the source when it loads it. AutoCAD 2021 has no such thing (NETLOAD takes assemblies only), so the commands and
+prompts follow NETLOAD's and APPLOAD's, and the rest follows the `.py` files of PW1.
+
+How a plugin loads today: `CadPluginManager` (PLUGINLOAD, alias NETLOAD; the Plugins folder at start; the Load/Unload
+Applications window) copies the `.dll` files aside (shadow copy) and `CadPluginLoader` loads them, on .NET 8 each plugin
+into a collectible `AssemblyLoadContext` of its own (`OpenCAD2D.Wpf.Plugins.CadPluginAssemblyLoader`), so PLUGINRELOAD
+takes a new build while the app runs. A source plugin is compiled into an assembly in memory and then goes the same way:
+the same `CadPlugin` API, the same load context, the same trusted folders.
+
+| # | Decision | State |
+|---|---|---|
+| CS-D1 | The compiler is Roslyn (`Microsoft.CodeAnalysis.CSharp`, MIT), in the app only (`OpenCAD2D.Wpf`, net8.0-windows), not in `OpenCAD2D.Core`, so the NuGet API stays small. The source is compiled in memory to an assembly and its PDB (lines of errors and of exceptions point into the `.cs`). Before writing it: how CS-Script (MIT), dotnet-script (MIT) and Roslyn's own scripting API compile and cache, and what their ideas cost. | proposed |
+| CS-D2 | One plugin is either one `.cs` file, or a folder whose `.cs` files are compiled together (`Plugins\Stairs\*.cs`), as a folder of `.dll` files is one plugin today. | proposed |
+| CS-D3 | It references what a `.dll` plugin may use: the .NET 8 runtime the app runs on, `OpenCAD2D.Core`, `OpenCAD2D.Wpf`, `GeometryHelper`, WPF. Other `.dll` files beside the source are referenced with a `//#r "Name.dll"` line at the top, as dotnet-script writes it; no NuGet packages. C# `latest`, implicit usings off, nullable off, as the app's own code. | proposed |
+| CS-D4 | A compiled build is cached by the SHA-256 of its sources and of the app's version in `%LocalAppData%\OpenCAD2D\PluginCache`, so a start with unchanged sources does not compile again. | proposed |
+| CS-D5 | The same loading as a `.dll`: the Plugins folder at start; PLUGINLOAD/NETLOAD and APPLOAD take `.cs` files (file type "C# source (*.cs)"); the Load/Unload Applications window lists them with the Kind "C# source"; drag and drop of a `.cs` on the window; PLUGINRELOAD compiles again. The trusted folders and SECURELOAD of L6 decide whether a `.cs` loads, as for a `.dll`. | proposed |
+| CS-D6 | Compiler errors: the plugin is not loaded, and the command line shows a line `Plugin <name> was not loaded: <n> errors`, then each error as `Stairs.cs(12,9): error CS0103: The name 'x' does not exist`, the first 20 at most; warnings are not shown. | proposed |
+| CS-D7 | Not now: a file watcher that reloads a `.cs` when it is saved (PLUGINRELOAD does it by hand), and `.vb` sources. | proposed |
+
+- [ ] CS1. Research and the spec: CS-Script, dotnet-script and Roslyn scripting read and compared (compile time of a
+      200-line plugin cold and warm, memory, how each references the host's assemblies and caches); the decisions above
+      confirmed or changed by the maintainer; the spec with numbered decisions.
+      -> verify: the comparison table and the spec written; the maintainer's answers to CS-D1 to CS-D7 recorded here.
+- [ ] CS2. The compiler: a `CadPluginCompiler` in `OpenCAD2D.Wpf` that turns one or more `.cs` files into an assembly and
+      its PDB in memory, with the references of CS-D3, `//#r` lines, and the cache of CS-D4.
+      -> verify: tests that compile a one-file and a two-file plugin, a plugin with a `//#r` reference, and one with an
+         error (its file, line, column and code as CS-D6 writes them); a second compile of unchanged sources is a cache
+         hit (no compile, measured); the cache key changes when one source byte or the app's version changes.
+- [ ] CS3. Loading: `CadPluginManager` takes `.cs` files and folders of them in every way it takes `.dll` files today
+      (CS-D5), through the same load context; unload and PLUGINRELOAD compile again; SECURELOAD and the trusted folders.
+      -> verify: tests that load the sample plugin `OpenCAD2D.Plugins.DrawingInfo` from its `.cs` sources and from its
+         built `.dll` and get the same commands, ribbon tab and output; unload frees the context (a weak reference to the
+         assembly is dead after a collection); a `.cs` in an untrusted folder asks as a `.dll` does; SECURELOAD 2 refuses.
+- [ ] CS4. The app: the Load/Unload Applications window and the file pickers (design first in the Design artifact for any
+      new control or column), the error lines of CS-D6, drag and drop.
+      -> verify: Wpf tests of the window's rows and of a dropped `.cs`; the screenshots of the window match the design.
+- [ ] CS5. Docs and the sample: a section in `docs/presenter/plugins.md` (a plugin as source, its references, `//#r`,
+      the cache, the errors), the sample plugin also shipped as source in `examples/`, the CHANGELOG, and the setup
+      carrying Roslyn (its size before and after recorded).
+      -> verify: the guide's example compiles and runs in a test; the setup built and the sample `.cs` loaded from the
+         installed app's Plugins folder.
+
 ### Release
 
 - [ ] Review by the maintainer of everything above
-- [ ] Package `OpenCAD2D.Core` on NuGet (only when the work is complete)
+- [x] Package `OpenCAD2D.Core` on NuGet: 1.0.0 published 2026-11-23 with `OpenCAD2D.Remote` (see the NuGet line above)
