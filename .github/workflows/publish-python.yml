@@ -1,0 +1,68 @@
+name: Publish Python
+
+# Publishes the wheel of the Python package opencad2d to PyPI, through PyPI's trusted publishing: no API token, PyPI
+# trusts this workflow file in nguyenthanguth/opencad2d with the environment pypi. Started by hand only (Actions > Publish
+# Python > Run workflow): a release is the maintainer's decision. The version is OpenCAD2DVersion of
+# Directory.Build.props; PyPI refuses a version it already has.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # The wheel is py3-none-win_amd64 and its DLLs are built here, so it is made and tested on Windows, through the same
+    # script a developer runs: stubs, wheel, a fresh venv, tests/python on .NET 8 and .NET Framework 4.8.
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - uses: actions/setup-python@v7
+        id: python
+        with:
+          python-version: '3.11'
+          architecture: x64
+
+      - name: Build the libraries, the stub generator and the remote test server
+        run: |
+          dotnet build src/OpenCAD2D.Core/OpenCAD2D.Core.csproj -c Release -warnaserror
+          dotnet build tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj -c Release -warnaserror
+          dotnet build tests/OpenCAD2D.Remote.TestServer/OpenCAD2D.Remote.TestServer.csproj -c Release -warnaserror
+
+      - name: Stubs, wheel, fresh venv and tests on both runtimes
+        env:
+          GH_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: bash tools/python/verify-python.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheel
+          path: artifacts/python/opencad2d-*.whl
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    # PyPI's upload action runs on Linux only. The environment pypi is the one PyPI trusts; a required reviewer on it
+    # (Settings > Environments > pypi) makes the upload wait for the maintainer's approval.
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/opencad2d/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: wheel
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
