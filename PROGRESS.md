@@ -209,7 +209,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
      DONE: `OpenCAD2D-Setup-1.0.0.exe` 81 700 683 bytes (78 MB) from a 307 MB publish (507 files); about 85 s. Inno Setup
      6 per user (`winget install JRSoftware.InnoSetup --scope user`). AppId `{CFF9090B-3DE5-438A-AC7A-86ED890B73FB}`.
      Beyond I4: the uninstaller runs `--unregister` only when the association names this install, so a copy registered
-     from another folder (`D:\OpenCAD2D-run`) keeps it. Left open: dropping the .pdb files and satellite languages.
+     from another folder (`D:\OpenCAD2D-run`) keeps it. The satellite languages dropped after 1.0.0 (`SatelliteResourceLanguages` en: 507 files to 286, 307 MB to
+     291 MB); the .pdb files stay.
   2. The new icon (the design canvas, then `make-icons.ps1`) is in the setup and its shortcuts.
      -> verify: the setup, the Start menu entry and a `.dxf` in Explorer show it.
   3. Install, run, upgrade and uninstall on a Windows user with no .NET 8 Desktop Runtime (a Windows Sandbox).

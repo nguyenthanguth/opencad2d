@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **CHANGED.** The app is built English only: the translations .NET ships of WPF and WinForms (13 folders, `cs`
+  to `zh-Hant`, 16 MB) are no longer beside the exe, and the setup's install folder holds 286 files in place of 507.
+
 ## 1.0.0 (2026-11-23)
 
 **BREAKING.** The CAD app of GeometryHelper is now OpenCAD2D, in a repository of its own. The history of its files came
