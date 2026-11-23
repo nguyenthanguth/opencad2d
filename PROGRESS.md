@@ -232,8 +232,9 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   reference of `OpenCAD2D.Core` and `OpenCAD2D.Remote`, the guides, and the Python API (412 pages, 806 types) that
   `make-api-pages.py --namespace OpenCAD2D` writes from `OpenCAD2D-stubs`; core types link to GeometryHelper's site
   through its xrefmap (85 pages linked). `docfx metadata` and `build --warningsAsErrors`: 0 warnings.
-  `.github/workflows/docs.yml` builds it on every push and pull request. Left to the maintainer: switch GitHub Pages on
-  (Settings > Pages > Source: GitHub Actions) and set the repository variable `DOCS_PAGES` to `true`, which publishes it.
+  `.github/workflows/docs.yml` builds it on every push and pull request and, with GitHub Pages on and the repository
+  variable `DOCS_PAGES` true (both set by the maintainer 2026-11-23), publishes it at
+  https://nguyenthanguth.github.io/opencad2d/ (first deployment run 45179012750).
 - [x] Tests that run `OpenCAD2D.exe --screenshot` no longer touch `%AppData%\OpenCAD2D` (44c8734e): only a start that
   opens the window copies the old folders (`CadAppHost.ShowsWindow`).
 - [x] The code-review graph: built 2026-11-23 (2 026 files, 31 105 nodes) with `.mcp.json` (git-excluded) here.
