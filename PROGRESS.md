@@ -252,10 +252,10 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   `9938c207` names `OpenCAD2D.Core` in `InternalsVisibleTo`; `Lib` rebuilt from it with `tools\update-lib.ps1`.
   XAML `assembly=OpenCAD2D` became `assembly=OpenCAD2D.Core`; Python loads `OpenCAD2D.Core`.
 - [ ] The PyPI name `opencad2d` and the upload: the maintainer's word. Ready since 2026-11-23: PyPI's pending trusted
-  publisher (`opencad2d`, `nguyenthanguth/opencad2d`, `publish-python.yml`, environment `pypi`) set by the maintainer,
+  publisher (`opencad2d`, `nguyenthanguth/opencad2d`, `publish-python.yml`, no environment) set by the maintainer,
   and `.github/workflows/publish-python.yml`: when a GitHub Release is published (or by hand) it builds, tests on both
   runtimes, attaches the wheel to the release and uploads it. Until the first upload the name is not reserved.
-- [ ] NuGet: the trusted publishing policy is set (`OpenCAD2D.*`, `publish-nuget.yml`, environment `nuget`); the
+- [ ] NuGet: the trusted publishing policy is set (`OpenCAD2D.*`, `publish-nuget.yml`, no environment); the
   workflow waits for the packaging (`IsPackable` is false everywhere, and the packages need GeometryHelper as a NuGet
   dependency in place of `Lib\GeometryHelper.dll`).
 
