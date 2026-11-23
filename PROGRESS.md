@@ -541,10 +541,11 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
 - [ ] CS3. Loading: `CadPluginManager` takes `.cs` files and folders of them in every way it takes `.dll` files today
       (CS-D5), through the same load context; unload and PLUGINRELOAD compile again; SECURELOAD and the trusted folders.
       -> verify: tests that load the sample plugin `OpenCAD2D.Plugins.DrawingInfo` from its `.cs` sources and from its
-         built `.dll` and get the same commands, ribbon tab and output; unload frees the context (a weak reference to the
-         assembly is dead after a collection); a `.cs` in an untrusted folder asks as a `.dll` does; SECURELOAD 2 refuses.
-- [ ] CS4. The app: the Load/Unload Applications window and the file pickers (design first in the Design artifact for any
-      new control or column), the error lines of CS-D6, drag and drop.
+         built `.dll` and get the same commands, ribbon tab and output; unload frees the context (a weak reference to
+         the assembly is dead after a collection); a `.cs` in an untrusted folder asks as a `.dll` does; SECURELOAD 2
+         refuses.
+- [ ] CS4. The app: the Load/Unload Applications window and the file pickers (design first in the Design artifact for
+      any new control or column), the error lines of CS-D6, drag and drop.
       -> verify: Wpf tests of the window's rows and of a dropped `.cs`; the screenshots of the window match the design.
 - [ ] CS5. Docs and the sample: a section in `docs/presenter/plugins.md` (a plugin as source, its references, `//#r`,
       the cache, the errors), the sample plugin also shipped as source in `examples/`, the CHANGELOG, and the setup
