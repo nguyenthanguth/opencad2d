@@ -29,8 +29,12 @@ namespace OpenCAD2D.App
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string folder = Path.Combine(appData, "OpenCAD2D");
 
-            // The first start of OpenCAD2D takes the settings of GeometryHelper CAD, as the app was called before.
-            CadOldFolders.CopyOnce(folder, CadOldFolders.Default);
+            // The first start of OpenCAD2D takes the settings of GeometryHelper CAD, as the app was called before; a
+            // screenshot or a registration leaves the user's folders alone.
+            if (CadAppHost.ShowsWindow(args))
+            {
+                CadOldFolders.CopyOnce(folder, CadOldFolders.Default);
+            }
 
             var host = new CadAppHost("OpenCAD2D", folder) { EnablePython = true };
 

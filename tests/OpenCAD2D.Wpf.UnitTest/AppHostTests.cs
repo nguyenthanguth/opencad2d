@@ -73,6 +73,18 @@ namespace OpenCAD2D.Wpf.UnitTest
             }
         }
 
+        [Fact]
+        public void OnlyTheWindowCountsAsAStart_SoAScreenshotOrARegistrationLeavesTheUsersFoldersAlone()
+        {
+            Assert.True(CadAppHost.ShowsWindow(null));
+            Assert.True(CadAppHost.ShowsWindow(new string[0]));
+            Assert.True(CadAppHost.ShowsWindow(new[] { @"D:\plans\room.dxf" }));
+            Assert.False(CadAppHost.ShowsWindow(new[] { "--screenshot", "out.png" }));
+            Assert.False(CadAppHost.ShowsWindow(new[] { "--SCREENSHOT", "out.png" }));
+            Assert.False(CadAppHost.ShowsWindow(new[] { "--register" }));
+            Assert.False(CadAppHost.ShowsWindow(new[] { "--unregister" }));
+        }
+
         /// <summary>Runs the app built beside this test's build, the same configuration, and gives its exit code and its output.</summary>
         internal static (int Code, string Output) RunApp(params string[] args)
         {

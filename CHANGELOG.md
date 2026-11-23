@@ -21,6 +21,9 @@ along; the notes of its earlier changes are in GeometryHelper's `CHANGELOG.md` u
     `%AppData%\GeometryHelper\Dxf`, and leaves those folders as they were.
   - Running apps announce themselves in `%LocalAppData%\OpenCAD2D\Remote`, and the pipe of an app is
     `OpenCAD2D.<process id>`.
+  - **FIXED.** Only a start that opens the window copies the old folders: `OpenCAD2D.exe --screenshot`, `--register`
+    and `--unregister` leave `%AppData%\OpenCAD2D` alone. **NEW.** `CadAppHost.ShowsWindow(args)` tells which
+    arguments open the window.
 - **Files in Explorer.** `.dxf` and `.dwg` files are associated through the ProgID `OpenCAD2D.Drawing`. Writing or
   removing the association takes out `GeometryHelper.Drawing`, so "Open with" lists the app once.
 - **The core.** GeometryHelper (geometry, DXF, DWG) is used as `Lib\GeometryHelper.dll`, built from GeometryHelper's

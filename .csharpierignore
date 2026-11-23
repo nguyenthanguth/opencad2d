@@ -3,3 +3,6 @@
 **/obj/
 artifacts/
 .claude/
+
+# The core library as built in GeometryHelper (tools/update-lib.ps1): its XML documentation is written by the compiler
+Lib/

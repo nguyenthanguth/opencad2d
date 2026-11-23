@@ -120,6 +120,25 @@ namespace OpenCAD2D.Wpf
             + " --screenshot out.png [file.dxf] [--size 1600 960] [--space \"Layout1\"] [--select H1,H2] [--run \"MOVE;0,0\"] [--cursor x,y] [--type REC|{Down}] [--toggle GRID,SNAP] [--layers] [--tab Home|Insert|Annotate|Parametric|View|Manage|Output|Plugins|Settings] [--dialog save-changes|mtext-unsaved|secureload|writable-folder|settings-security|options|settings:Category|plugins|plugin-untrusted|color|truecolor|truecolor-rgb|dsettings[:Tab]|constraints[:0|1|2]|parameters|osnap-menu|snap-menu|canvas-menu|drawings-menu|scale-menu|missing-shx|missing-shx-replace|missing-fonts|missing-fonts-truetype|ptype|linetype|linetype-load|select-linetype|hatch|hatch-gradient|hatch-user|hatch-solid|hatch-file|block|insert|wblock|attdef|eattedit[:Tab]|battman|battman-edit[:Tab]|battman-settings|attdia|purge|purge-nonpurgeable|classicgroup|group-order|layerstate|scalelist|qleader|qleader-line|qleader-attach|selectarrow|tolerance|tolerance-filled|tolerance-full|gdtsymbol|gdtmaterial|inputsearch|view|newview|units|units-direction|xref|xref-tree|plot:png|plot:jpg|plot-custom|plot-view|style|style-new|dimstyle|dimstyle-new|dimstyle-modify[:Tab]|dimstyle-override[:Tab]|dimstyle-compare[:Other]|mleaderstyle|mleaderstyle-modify[:Tab]|matchprop|mlstyle|mlstyle-new|mlstyle-new-page|mlstyle-modify|mlstyle-load|mledit|plotstamp|plotstamp-advanced|plotstamp-fields|imageadjust|attext|xbind|insertobject|recovery|spell|spell-settings|objectscale|objectscale-add|insertlayout|templateoptions|saveaspdf|pdf-override|pdf-options|rename|lweight|boundary|viewports|viewports-named|filter|layerfilter|pastespec|app-menu[:Item]|cmdline-menu|input-settings-menu|recent-commands-menu|autocomplete:Text] [--recent \"a.dxf|*b.dxf\"] [--plugin path.dll]";
 
         /// <summary>
+        /// Gets whether <see cref="Run"/> opens the window for these arguments: false where the first is <c>--screenshot</c>,
+        /// <c>--register</c> or <c>--unregister</c>, which draw a PNG or write the registry and exit. An app does its first
+        /// start's work on the user's folders (as copying the old settings) only when this is true.
+        /// </summary>
+        /// <param name="args">The command-line arguments, as given to <see cref="Run"/>; null is no arguments.</param>
+        /// <returns>True when the window opens.</returns>
+        public static bool ShowsWindow(string[] args)
+        {
+            if (args == null || args.Length == 0)
+            {
+                return true;
+            }
+
+            return !string.Equals(args[0], "--screenshot", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(args[0], "--register", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(args[0], "--unregister", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// Runs the app on the STA thread of its entry point: the window until it is closed, or the screenshot where the first
         /// argument is <c>--screenshot</c>, or the association of drawing files where it is <c>--register</c> or
         /// <c>--unregister</c>.
