@@ -2,9 +2,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// MEASUREGEOM's Quick option, in the presenter's simple form: the dimensions of what the cursor is over and of the geometry

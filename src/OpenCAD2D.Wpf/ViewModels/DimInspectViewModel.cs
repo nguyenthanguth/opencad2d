@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Inspection Dimension dialog, which DIMINSPECT shows, over the request its command hands the window: the shape

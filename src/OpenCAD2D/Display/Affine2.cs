@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A transformation of the plane, <c>x' = A x + C y + E</c> and <c>y' = B x + D y + F</c>: how the entities of a block

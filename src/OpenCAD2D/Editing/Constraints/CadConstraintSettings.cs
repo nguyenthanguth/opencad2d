@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The constraint types of AUTOCONSTRAIN's tab in AutoCAD 2021's Constraint Settings, in the order the bits of CONSTRAINTBARMODE count them.</summary>
     public enum CadConstraintType

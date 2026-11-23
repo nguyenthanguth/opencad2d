@@ -21,8 +21,8 @@ from typing import Any
 
 import pytest
 
-import geometryhelper  # noqa: F401  (boots .NET and loads the assemblies)
-from GeometryHelper.Cad import CadDocument
+import opencad2d  # noqa: F401  (boots .NET and loads the assemblies)
+from OpenCAD2D import CadDocument
 from GeometryHelper.Dwg import DwgWriter
 from GeometryHelper.Dxf import DxfCircle, DxfDatabase, DxfLayerTableRecord, DxfLine, DxfPolyline, DxfWriter
 from GeometryHelper.Geometry import GeoPoint2, GeoPoint3
@@ -344,7 +344,7 @@ def test_solids_passes_its_tolerance_to_the_cut_and_does_not_read_the_global_one
     script = LIBRARY / "solids.py"
     code = (
         "import runpy, sys\n"
-        "import geometryhelper\n"
+        "import opencad2d\n"
         "from GeometryHelper import Tolerance\n"
         "Tolerance.Global = Tolerance(120.0, 1e-5)\n"
         "sys.argv = [sys.argv[1]]\n"

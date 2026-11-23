@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The layers of a PDF underlay the user switched on or off (PDFLAYERS), which the underlay keeps beside the PDF's own
@@ -13,7 +13,7 @@ namespace GeometryHelper.Cad
     internal static class CadPdfLayers
     {
         /// <summary>The application the data is of.</summary>
-        internal const string Application = "GEOMETRYHELPER_PDFLAYERS";
+        internal const string Application = "OPENCAD2D_PDFLAYERS";
 
         /// <summary>Gives the layers an underlay overrides, by name: true for one switched on, false for one switched off.</summary>
         internal static Dictionary<string, bool> Overrides(DxfPdfUnderlay underlay)

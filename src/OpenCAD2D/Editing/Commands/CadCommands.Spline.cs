@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>SPLINE in AutoCAD 2021's words: Method Fit or CV, Knots, Degree, Object, start and end Tangency, toLerance, Undo and Close.</summary>
     internal static partial class CadCommands

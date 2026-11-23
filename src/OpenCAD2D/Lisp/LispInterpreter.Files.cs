@@ -4,7 +4,7 @@ using System.IO;
 using System.Security;
 using System.Text.RegularExpressions;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     public sealed partial class LispInterpreter
     {

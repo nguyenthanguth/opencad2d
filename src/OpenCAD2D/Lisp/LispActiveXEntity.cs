@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The entities of the object model: the value of an entity and its interface (D212), what every record, block and entity
@@ -478,7 +478,7 @@ namespace GeometryHelper.Cad.Lisp
             if (Document.FindEntity(item.Handle) == null)
             {
                 throw new LispException(
-                    "vla-Delete: deleting an object of a block definition is not supported by GeometryHelper.Cad yet"
+                    "vla-Delete: deleting an object of a block definition is not supported by OpenCAD2D yet"
                 );
             }
 

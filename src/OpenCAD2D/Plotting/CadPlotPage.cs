@@ -2,7 +2,7 @@ using System;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A plot laid on its sheet: the sheet as it lies, the printable area inside its margins, the part of the space plotted,

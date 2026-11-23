@@ -9,7 +9,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The window's side of AutoLISP's <c>grread</c> (L8, D1459): the keys pressed on the workspace, the cursor's moves, the

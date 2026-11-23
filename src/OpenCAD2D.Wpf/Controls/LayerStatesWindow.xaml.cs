@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Layer States Manager, which LAYERSTATE shows: the states, the restore options, the buttons that change them

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Pipes;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
     /// The servers of this process, by pipe, that can say whether the calling thread is the one they run their requests on. A
@@ -53,7 +53,7 @@ namespace GeometryHelper.Cad.Remote
             if (RemoteSelf.IsOwnerThread(_pipe))
             {
                 throw new CadRemoteException(
-                    "A script inside GeometryHelper CAD cannot drive the same app through CadApplication: use geometryhelper.cad, which reaches the drawing directly."
+                    "A script inside OpenCAD2D cannot drive the same app through CadApplication: use opencad2d.cad, which reaches the drawing directly."
                 );
             }
 
@@ -87,7 +87,7 @@ namespace GeometryHelper.Cad.Remote
                 {
                     Close();
                     throw new CadRemoteException(
-                        "The connection to GeometryHelper CAD (process " + _processId + ") was lost: " + ex.Message,
+                        "The connection to OpenCAD2D (process " + _processId + ") was lost: " + ex.Message,
                         ex
                     );
                 }
@@ -112,7 +112,7 @@ namespace GeometryHelper.Cad.Remote
             {
                 stream.Dispose();
                 throw new CadRemoteException(
-                    "GeometryHelper CAD (process " + _processId + ") did not take the connection: " + ex.Message,
+                    "OpenCAD2D (process " + _processId + ") did not take the connection: " + ex.Message,
                     ex
                 );
             }
@@ -132,7 +132,7 @@ namespace GeometryHelper.Cad.Remote
             {
                 Close();
                 throw new CadRemoteException(
-                    "GeometryHelper CAD (process " + _processId + ") did not answer: " + ex.Message,
+                    "OpenCAD2D (process " + _processId + ") did not answer: " + ex.Message,
                     ex
                 );
             }
@@ -142,7 +142,7 @@ namespace GeometryHelper.Cad.Remote
                 Close();
                 throw new CadRemoteException(
                     hello.GetBool("ok")
-                        ? "GeometryHelper CAD speaks version "
+                        ? "OpenCAD2D speaks version "
                             + hello.GetLong("protocol")
                             + " of the remote protocol and this client version "
                             + RemoteOps.Version

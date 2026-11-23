@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Global settings, Shortcuts, Import acad.pgp as the maintainer found it on 2026-11-17: an acad.pgp whose alias is the name

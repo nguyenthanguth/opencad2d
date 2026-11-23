@@ -9,7 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The layout of Drafting Settings, measured offscreen on an STA thread: the Object Snap tab's mode check boxes begin

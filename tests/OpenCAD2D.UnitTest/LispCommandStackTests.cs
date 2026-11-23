@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>command-s</c> and the variable NOMUTT against AutoCAD 2021's accoreconsole (probes g6, g6b, g6c, g6d, g10 and g10b of

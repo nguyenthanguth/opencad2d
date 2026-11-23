@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// REGION, and the regions -BOUNDARY makes: the loops of the objects chosen, each made a region of ACIS data as AutoCAD 2021

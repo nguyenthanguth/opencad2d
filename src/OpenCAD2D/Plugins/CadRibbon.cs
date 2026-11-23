@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// A tab of the ribbon a plugin adds, as AutoCAD's <c>RibbonTab</c>: panels of buttons. It comes after the Plugins tab and

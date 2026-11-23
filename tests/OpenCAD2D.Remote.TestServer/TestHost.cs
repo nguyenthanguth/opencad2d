@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Remote.TestServer
+namespace OpenCAD2D.Remote.TestServer
 {
     /// <summary>
     /// Runs the work on the thread that calls it, one piece at a time, under a gate: the server has no window thread to hand
@@ -39,7 +39,7 @@ namespace GeometryHelper.Cad.Remote.TestServer
             new Dictionary<CadDocument, CadCommandSession>();
         private int _newCount;
 
-        public string Title => "GeometryHelper CAD (test server)";
+        public string Title => "OpenCAD2D (test server)";
 
         public IReadOnlyList<CadDocument> Documents => _documents;
 

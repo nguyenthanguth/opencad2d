@@ -11,10 +11,10 @@ from System import ArgumentNullException, Double
 from System import Exception as NetException
 from System.Collections.Generic import List
 
-import geometryhelper  # noqa: F401  (boots .NET and loads the assemblies)
+import opencad2d  # noqa: F401  (boots .NET and loads the assemblies)
 from GeometryHelper import GeometryHelperLog, SolidBooleanOptions, Tolerance
-from GeometryHelper.Cad import CadCommandSession, CadDocument, CadSystemVariable, CadTrueTypeFonts
-from GeometryHelper.Cad.Remote import CadObjectFilter
+from OpenCAD2D import CadCommandSession, CadDocument, CadSystemVariable, CadTrueTypeFonts
+from OpenCAD2D.Remote import CadObjectFilter
 from GeometryHelper.Core import Boolean3, Intersection2, Splition2
 from GeometryHelper.Dxf import DxfBlockLookupRow, DxfBlockReference, DxfBlockTableRecord, DxfDatabase, DxfEraseFlags
 from GeometryHelper.Dxf import DxfEndCap, DxfLine, DxfReadOptions, DxfWriter

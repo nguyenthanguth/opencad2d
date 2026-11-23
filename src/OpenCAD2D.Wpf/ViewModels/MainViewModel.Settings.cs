@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
-using GeometryHelper.Cad.Plugins;
+using GeometryHelper;
+using OpenCAD2D.Plugins;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A source of model objects a host that makes drawings from a model keeps beside the presenter: its name, its state and whether it can give objects. The presenter shows none.</summary>
     public sealed class CadSourceInfo

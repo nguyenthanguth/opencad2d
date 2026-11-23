@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The words of an MTEXT being edited in place, laid out as the canvas will draw them: the one layout of the display,

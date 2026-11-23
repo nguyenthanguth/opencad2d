@@ -11,7 +11,7 @@ using System.Windows.Controls.Primitives;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The first Text Style dialog, which paid for reading 2 500 font files and 1 400 SHX heads and for a row of the font

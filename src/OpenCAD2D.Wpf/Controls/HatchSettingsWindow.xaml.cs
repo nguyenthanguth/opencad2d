@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Hatch Creation tab of AutoCAD as a dialog, for HATCH's seTtings and HATCHEDIT: the pattern file (built-in, or a .pat

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A function of a PDF, the kind a tint transform of a spot colour is: sampled (type 0), exponential (2), stitching (3) or a

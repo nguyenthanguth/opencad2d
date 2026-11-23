@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// An object selection filter, as AutoCAD's FILTER makes one: a list of lines, which an object has to pass all of, except

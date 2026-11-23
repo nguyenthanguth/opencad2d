@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Cells of a table held on the clipboard of the Table Cell tab: what Copy and Cut take, and Paste and Match Cell give, each

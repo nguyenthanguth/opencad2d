@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The names of W2 (D1651 to D1654): <c>@command</c> in place of <c>cad_command</c>, <c>cmd</c> in place of the feeder
@@ -45,7 +45,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string path = Script(
                 "h2-decorated.py",
-                "from geometryhelper.cad import command, write",
+                "from opencad2d.cad import command, write",
                 "@command('H2ONE', alias='H2O', description='Says it ran')",
                 "def run_it():",
                 "    write('H2ONE ran')"
@@ -98,7 +98,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
         private string Selecting(string name, string command, bool usesSelection) =>
             Script(
                 name,
-                "from geometryhelper.cad import command, get_selection, write",
+                "from opencad2d.cad import command, get_selection, write",
                 "@command('" + command + "'" + (usesSelection ? ", uses_selection=True" : string.Empty) + ")",
                 "def work():",
                 "    write('took ' + ','.join(sorted(e.handle for e in get_selection())))"
@@ -304,7 +304,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
                 name,
                 new[]
                 {
-                    "from geometryhelper.cad import on_unload",
+                    "from opencad2d.cad import on_unload",
                     "MARK = " + Raw(marker),
                     "def note(text):",
                     "    with open(MARK, 'a') as f:",

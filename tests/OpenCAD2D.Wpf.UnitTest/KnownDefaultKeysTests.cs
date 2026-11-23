@@ -3,7 +3,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A settings file keeps its own table of keys, so a key added to the defaults later is merged in once: when it is not

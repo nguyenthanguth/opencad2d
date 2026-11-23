@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Select Similar Settings dialog of SELECTSIMILAR's SEttings, shown through a function the workspace sets, so that a

@@ -1,13 +1,13 @@
-"""Two commands of your own for GeometryHelper CAD: RECTC (alias RC) and LAYERCOUNT.
+"""Two commands of your own for OpenCAD2D: RECTC (alias RC) and LAYERCOUNT.
 
-Run in GeometryHelper CAD: PYLOAD, then this file; the commands are there until the app closes.
+Run in OpenCAD2D: PYLOAD, then this file; the commands are there until the app closes.
 RECTC draws a rectangle about a centre you pick, of a width and a height you give; LAYERCOUNT counts the objects on
 each layer.
 """
 
 from collections import Counter
 
-from geometryhelper.cad import active_drawing, command, get_distance, get_point, write
+from opencad2d.cad import active_drawing, command, get_distance, get_point, write
 from GeometryHelper.Geometry import GeoPoint2
 
 

@@ -4,12 +4,13 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
+using static OpenCAD2D.Wpf.UnitTest.CanvasMouseTests;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A viewport clipped by an entity (VPCLIP) on the canvas, offscreen on an STA thread: the room's viewport moved onto the

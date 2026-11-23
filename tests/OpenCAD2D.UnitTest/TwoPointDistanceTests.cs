@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A distance or an angle asked with no base point and given by two points, as AutoCAD 2021's console takes them: a point

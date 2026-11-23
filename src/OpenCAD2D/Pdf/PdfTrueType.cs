@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The outlines of an embedded TrueType font of a PDF, by glyph number. The fonts a PDF embeds are subsets with the tables

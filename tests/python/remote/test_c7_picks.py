@@ -14,7 +14,7 @@ from typing import Any
 import pytest
 from System import TimeSpan
 
-from GeometryHelper.Cad.Remote import CadRemoteException
+from OpenCAD2D.Remote import CadRemoteException
 from GeometryHelper.Dxf import DxfLine
 from GeometryHelper.Geometry import GeoPoint3
 

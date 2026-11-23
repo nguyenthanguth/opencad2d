@@ -4,9 +4,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A clip made in a user coordinate system tilted out of the plane of the drawing (AutoCAD 2021 writes one; the presenter

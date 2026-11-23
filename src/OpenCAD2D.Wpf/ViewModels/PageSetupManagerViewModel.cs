@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// How a page setup plots, as the "Selected page setup details" of the Page Setup Manager and of Import Page Setups list it:

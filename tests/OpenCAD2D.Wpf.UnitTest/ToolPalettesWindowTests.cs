@@ -12,7 +12,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The tool palettes drawn: the window with its tabs along the edge and its tools as icons, icons with names or rows, the

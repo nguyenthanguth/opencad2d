@@ -1,7 +1,7 @@
 using System;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The Drawing Units dialog of UNITS and its Direction Control, as data their command and the window share: LUNITS,

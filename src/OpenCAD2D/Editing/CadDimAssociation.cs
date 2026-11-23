@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Associative dimensions, as AutoCAD 2021 keeps them with DIMASSOC 2: the points a dimension command picked with an

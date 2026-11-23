@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>entmakex</c>, and <c>entmake</c> of the two objects that have no place in a space: an XRECORD and a DICTIONARY. Such

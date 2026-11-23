@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     public sealed partial class LispInterpreter
     {
@@ -65,13 +65,11 @@ namespace GeometryHelper.Cad.Lisp
 
         /// <summary>
         /// Defines a function of AutoCAD alone, which the presenter does not have: calling it is an error naming it and what it
-        /// would need, <c>vl-vbarun: VBA is not supported by GeometryHelper.Cad</c>, never a silent nil.
+        /// would need, <c>vl-vbarun: VBA is not supported by OpenCAD2D</c>, never a silent nil.
         /// </summary>
         private void Refuse(string name, string needs) =>
             Define(name, 0, -1, a =>
-                throw new LispException(
-                    name.ToLowerInvariant() + ": " + needs + " is not supported by GeometryHelper.Cad"
-                )
+                throw new LispException(name.ToLowerInvariant() + ": " + needs + " is not supported by OpenCAD2D")
             );
 
         /// <summary>Takes the name of a symbol an argument gives: a symbol, or a string for the symbol of that name.</summary>

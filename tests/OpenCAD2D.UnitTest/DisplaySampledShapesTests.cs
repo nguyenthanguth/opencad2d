@@ -5,9 +5,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.TestDrawings;
+using static OpenCAD2D.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The arcs and circles of a block placed by an INSERT whose scale factors are not alike, which are drawn as the chains of

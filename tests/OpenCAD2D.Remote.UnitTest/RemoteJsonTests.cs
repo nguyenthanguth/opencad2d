@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using Xunit;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     public class RemoteJsonTests
     {

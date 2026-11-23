@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>grdraw</c>, <c>grvecs</c> and <c>grclear</c>: vectors drawn on the screen for a moment, not part of the drawing. The

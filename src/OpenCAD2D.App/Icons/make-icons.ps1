@@ -1,8 +1,8 @@
-# Writes the icons of GeometryHelper CAD from the vector drawing below: app.ico, the app's (ApplicationIcon and the window's),
+# Writes the icons of OpenCAD2D from the vector drawing below: app.ico, the app's (ApplicationIcon and the window's),
 # and drawing-file.ico, the icon of a .dxf or .dwg file associated with the app (--register). Each holds 16, 24, 32, 48 and
 # 256 pixels: 16 and 24 are drawn on their own pixel grid, the others from one drawing 256 units square. The 256 frame is a
 # PNG, the smaller ones 32-bit bitmaps. Run it with Windows PowerShell from any folder after changing a shape:
-#   powershell -NoProfile -ExecutionPolicy Bypass -File src\GeometryHelper.Cad.App\Icons\make-icons.ps1
+#   powershell -NoProfile -ExecutionPolicy Bypass -File src\OpenCAD2D.App\Icons\make-icons.ps1
 # The drawing is our own: a set square and a point on a blue tile, nothing taken from another program's icon.
 
 $ErrorActionPreference = 'Stop'

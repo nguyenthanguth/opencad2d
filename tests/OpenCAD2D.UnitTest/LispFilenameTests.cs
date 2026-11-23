@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>findfile</c>, the <c>vl-filename-</c> functions, <c>vl-filename-mktemp</c>, <c>vl-file-size</c>,

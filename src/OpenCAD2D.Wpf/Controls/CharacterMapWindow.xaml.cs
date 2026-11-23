@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The character map of the MTEXT editor's Symbol menu (Other…), as AutoCAD 2021 hands it to Windows: a font, its characters by

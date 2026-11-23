@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>Where an external reference or an image of a drawing stands, as AutoCAD's External References palette says it.</summary>
     public enum CadReferenceStatus

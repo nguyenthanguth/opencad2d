@@ -15,7 +15,7 @@ using System.Windows.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Insert tab, as the design draws it, found in the window drawn offscreen: after the extensions' tabs and before

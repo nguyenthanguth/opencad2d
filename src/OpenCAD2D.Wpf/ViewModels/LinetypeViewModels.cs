@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A linetype of a list: its name, its appearance drawn as a line and its description; for the Linetype Manager, whether it

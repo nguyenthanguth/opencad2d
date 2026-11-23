@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The font boxes' second names: a TrueType family shows its English name first and the names its name table holds in

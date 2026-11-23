@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Python;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Python;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// How the window reaches the Python files loaded in the process: load one into a drawing, list those loaded and the
@@ -159,7 +159,7 @@ namespace GeometryHelper.Cad.Wpf
                 LoadCheck = path => _loadSecurity.MayLoad(path) ? null : "File load canceled: " + path,
 
                 // The drawings a script lists, opens, makes, saves and closes are those of the window, as a program outside sees them.
-                DocumentHost = new CadAppRemoteHost(this, () => "GeometryHelper CAD", _pythonDispatcher),
+                DocumentHost = new CadAppRemoteHost(this, () => "OpenCAD2D", _pythonDispatcher),
             };
             _pythonOwner.Watch(host);
             _pythonHost?.Dispose();

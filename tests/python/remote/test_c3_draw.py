@@ -7,7 +7,7 @@ Every coordinate is an integer or a half, so the DXF text the objects travel as 
 from collections.abc import Callable
 from typing import Any
 
-from GeometryHelper.Cad.Remote import CadRemoteLayer
+from OpenCAD2D.Remote import CadRemoteLayer
 from GeometryHelper.Dxf import DxfCircle, DxfColor, DxfColorMethod, DxfLine, DxfMText
 from GeometryHelper.Geometry import GeoPoint3, GeoVector3
 

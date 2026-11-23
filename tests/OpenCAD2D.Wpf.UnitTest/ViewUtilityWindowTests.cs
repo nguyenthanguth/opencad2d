@@ -10,7 +10,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The windows of batch 4 of acad.pgp driven with no window shown: Viewports and the tiles of model space, Object

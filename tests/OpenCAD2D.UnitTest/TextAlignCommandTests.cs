@@ -2,9 +2,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// TEXTALIGN (TA): texts aligned to another text or to a line, as AutoCAD 2021's (probed in its console: "Current

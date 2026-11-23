@@ -4,8 +4,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
     /// The words of the channel. A request is <c>{"id":7,"op":"commit","doc":2,...}</c>, its answer
@@ -103,17 +104,17 @@ namespace GeometryHelper.Cad.Remote
         /// <summary>Gets or sets the file the instance was read from or is written to.</summary>
         public string FilePath { get; set; }
 
-        /// <summary>The folder the apps announce themselves in: <c>%LocalAppData%\GeometryHelper\Remote</c>.</summary>
+        /// <summary>The folder the apps announce themselves in: <c>%LocalAppData%\OpenCAD2D\Remote</c>.</summary>
         public static string DefaultFolder() =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "GeometryHelper",
+                "OpenCAD2D",
                 "Remote"
             );
 
-        /// <summary>The pipe of an app: <c>GeometryHelper.Cad.&lt;process id&gt;</c>, with <c>.&lt;instance&gt;</c> after it for a second server of one process.</summary>
+        /// <summary>The pipe of an app: <c>OpenCAD2D.&lt;process id&gt;</c>, with <c>.&lt;instance&gt;</c> after it for a second server of one process.</summary>
         public static string PipeName(int processId, string instance) =>
-            "GeometryHelper.Cad." + processId.ToString(CultureInfo.InvariantCulture) + Suffix(instance);
+            "OpenCAD2D." + processId.ToString(CultureInfo.InvariantCulture) + Suffix(instance);
 
         /// <summary>The file of an app: <c>&lt;process id&gt;.json</c>, with <c>.&lt;instance&gt;</c> before the extension for a second server of one process.</summary>
         public static string FileName(int processId, string instance) =>

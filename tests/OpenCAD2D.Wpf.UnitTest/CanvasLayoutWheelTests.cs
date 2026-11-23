@@ -7,9 +7,9 @@ using System.Windows.Input;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
+using static OpenCAD2D.Wpf.UnitTest.CanvasMouseTests;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The wheel and the middle button on the paper of a layout and through one of its viewports: each gesture goes on the

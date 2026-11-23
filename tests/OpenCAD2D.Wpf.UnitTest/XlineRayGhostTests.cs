@@ -3,7 +3,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>The ghost a transforming command drags draws an XLINE and a RAY as the canvas does: the part the view shows.</summary>
     public class XlineRayGhostTests

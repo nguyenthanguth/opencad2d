@@ -4,7 +4,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A TrueType family the drawing names that the machine has not (a Korean drawing's 돋움체 on a machine without Gulim and

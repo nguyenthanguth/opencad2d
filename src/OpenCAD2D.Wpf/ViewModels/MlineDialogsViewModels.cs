@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD 2021's Multiline Style dialog over MLSTYLE's request: the styles of the drawing, Set Current, New, Modify,

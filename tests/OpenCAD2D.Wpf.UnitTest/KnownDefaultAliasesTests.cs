@@ -1,7 +1,7 @@
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A settings file keeps its own table of aliases, so an alias added to the defaults later (1 LAYISO, 2 LAYERP, 22 LAYON,

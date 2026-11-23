@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// What AutoLISP's rtos, angtos, distof and angtof write and read, as AutoCAD 2021 gave each text in accoreconsole.

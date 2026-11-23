@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What the Recent Documents lists say of a DXF without opening it: its version, read from <c>$ACADVER</c> near the top of

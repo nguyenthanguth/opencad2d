@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Lineweight Settings dialog, which LWEIGHT shows. OK closes it with true, the settings then applied; its logic is

@@ -1,6 +1,6 @@
 """Type-checks with exactly the errors marked by an expect comment on their lines."""
 
-from GeometryHelper.Cad.Remote import CadObjectFilter
+from OpenCAD2D.Remote import CadObjectFilter
 from GeometryHelper.Dxf import DxfDatabase, DxfEraseFlags, DxfWriter
 
 # only the members that say null take None: the others, and a wrong type, stay errors

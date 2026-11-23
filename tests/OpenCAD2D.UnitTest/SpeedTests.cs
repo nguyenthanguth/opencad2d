@@ -1,12 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Wpf;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     [Collection(ViewerSpeedCollection.Name)]
     public class SpeedTests

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Quick Select dialog of QSELECT and the Find and Replace dialog of FIND, each shown through a function the workspace

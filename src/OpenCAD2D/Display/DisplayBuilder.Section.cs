@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The part of a block that a clip tilted out of the block's plane shows, at the height each entity stands at.</summary>
     internal sealed partial class DisplayBuilder

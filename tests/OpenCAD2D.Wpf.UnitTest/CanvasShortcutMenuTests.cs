@@ -6,9 +6,9 @@ using System.Windows;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
+using static OpenCAD2D.Wpf.UnitTest.CanvasMouseTests;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The canvas's right-click menus, as AutoCAD 2021's with its SHORTCUTMENU 11: the Default menu with nothing selected and no

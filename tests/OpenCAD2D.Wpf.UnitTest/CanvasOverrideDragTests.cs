@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A box dragged at "Select objects:" while an object snap override waits (END typed or chosen from the menu) takes the

@@ -1,10 +1,10 @@
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Wpf;
+using OpenCAD2D.Wpf;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     public class AttributeTests
     {

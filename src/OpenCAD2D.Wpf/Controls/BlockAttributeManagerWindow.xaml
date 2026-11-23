@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Cad.Wpf.BlockAttributeManagerWindow"
+    x:Class="OpenCAD2D.Wpf.BlockAttributeManagerWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Block Attribute Manager"
     Width="820"
     Height="540"
@@ -15,7 +15,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/BlockDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- A row of the grid of attributes; the one chosen on the selection colour. -->

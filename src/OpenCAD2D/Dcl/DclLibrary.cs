@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>
     /// The DCL files one interpreter has loaded, by the ids <c>load_dialog</c> gave (D315): 1 for the first file and one more

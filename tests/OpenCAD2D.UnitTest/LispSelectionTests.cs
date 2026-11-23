@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
-using static GeometryHelper.Cad.UnitTest.LispEntityTests;
+using static OpenCAD2D.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.LispEntityTests;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>ssget</c> with its modes and filters, <c>sslength</c>, <c>ssname</c>, <c>ssadd</c>, <c>ssdel</c> and <c>ssmemb</c>

@@ -6,7 +6,7 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     internal static partial class CadCommands
     {

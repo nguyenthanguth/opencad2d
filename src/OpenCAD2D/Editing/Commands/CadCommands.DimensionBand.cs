@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     internal static partial class CadCommands
     {

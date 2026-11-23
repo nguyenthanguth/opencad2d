@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The object selection filter of FILTER, kept for the session as AutoCAD keeps its named filters.</summary>
     public sealed partial class CadCommandSession

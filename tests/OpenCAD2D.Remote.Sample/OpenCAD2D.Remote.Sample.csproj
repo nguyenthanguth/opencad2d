@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!--
+    The sample program for OpenCAD2D.Remote: a console program that finds the running OpenCAD2D, draws a
+    small framed title on a layer of its own, asks the user to pick a point and draws a circle there. Run it with the
+    app open, with dotnet run on this project. The remote tests run its logic against a headless app, with the pick
+    answered by the test.
+  -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net48</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>OpenCAD2D.Remote.Sample</RootNamespace>
+        <AssemblyName>OpenCAD2D.Remote.Sample</AssemblyName>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj" />
+    </ItemGroup>
+</Project>

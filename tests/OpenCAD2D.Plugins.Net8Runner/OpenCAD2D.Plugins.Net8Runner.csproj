@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!--
+    Checks on .NET 8 what the net48 plugin tests cannot: a plugin rebuilt while it is loaded and reloaded runs its new
+    code, and after unloading its collectible load context is collected (D19 of the plan). A console that prints PASS or
+    FAIL per check and exits 1 on a failure:
+
+      dotnet run -c Release (project tests/OpenCAD2D.Plugins.Net8Runner)
+
+    It builds a second version of the sample plugin with the dotnet SDK, in a folder of the temporary folder.
+  -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <PlatformTarget>x64</PlatformTarget>
+        <IsPackable>false</IsPackable>
+        <Nullable>disable</Nullable>
+        <NoWarn>$(NoWarn);MSB3277</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
+        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Wpf\OpenCAD2D.Wpf.csproj" />
+        <!-- Built first, never referenced: the sample is loaded as a plugin, from SamplePlugin\ beside the runner. -->
+        <ProjectReference
+            Include="..\OpenCAD2D.SamplePlugin\OpenCAD2D.SamplePlugin.csproj"
+            ReferenceOutputAssembly="false"
+        />
+        <!-- Built first, never referenced: the plugin that adds to the window is loaded from SampleUiPlugin\ beside the runner. -->
+        <ProjectReference
+            Include="..\OpenCAD2D.SampleUiPlugin\OpenCAD2D.SampleUiPlugin.csproj"
+            ReferenceOutputAssembly="false"
+        />
+        <!-- Built first, never referenced: the sample that ships in Plugins\DrawingInfo is loaded from DrawingInfo\ beside the runner. -->
+        <ProjectReference
+            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.csproj"
+            ReferenceOutputAssembly="false"
+        />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None
+            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Plugins.DrawingInfo.dll"
+            Link="DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None
+            Include="..\OpenCAD2D.SamplePlugin\bin\$(Configuration)\netstandard2.0\OpenCAD2D.SamplePlugin.dll"
+            Link="SamplePlugin\OpenCAD2D.SamplePlugin.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\OpenCAD2D.SampleUiPlugin\bin\$(Configuration)\netstandard2.0\OpenCAD2D.SampleUiPlugin.dll"
+            Link="SampleUiPlugin\OpenCAD2D.SampleUiPlugin.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\OpenCAD2D.SamplePlugin\CircleTools.cs"
+            Link="SamplePlugin\CircleTools.cs.txt"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\OpenCAD2D.SampleUiPlugin\CircleUi.cs"
+            Link="SampleUiPlugin\CircleUi.cs.txt"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+    </ItemGroup>
+</Project>

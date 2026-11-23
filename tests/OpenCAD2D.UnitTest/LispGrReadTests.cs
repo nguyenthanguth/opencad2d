@@ -4,9 +4,9 @@ using System.Linq;
 using GeometryHelper.Geometry;
 using Xunit;
 using Xunit.Abstractions;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>grread</c>: the wait of a routine for one key, click or move of the cursor (L8, D1458 to D1460), answered through

@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Bind Xrefs/DGN Underlays dialog, which the External References palette's Bind… shows: Bind Type, Bind or

@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What the cells of a table need of the window beyond the Table Cell tab itself: the cells held on the clipboard of the tab

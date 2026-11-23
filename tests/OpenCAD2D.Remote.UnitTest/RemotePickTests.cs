@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     /// <summary>
     /// The user's picks: a program asks, the prompt appears on the drawing's command line, and the answer is fed to the

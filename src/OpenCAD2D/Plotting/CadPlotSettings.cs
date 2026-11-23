@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What part of a space is plotted, as the What to plot list of AutoCAD's Plot dialog.</summary>
     public enum CadPlotArea

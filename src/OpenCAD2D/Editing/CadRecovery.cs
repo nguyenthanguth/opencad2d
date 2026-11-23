@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What RECOVER, AUDIT and the window's opening of a damaged file share: the recovered drawing as a document of no file of

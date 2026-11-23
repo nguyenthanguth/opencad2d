@@ -1,8 +1,9 @@
 using System;
 using System.Globalization;
+using GeometryHelper;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A user coordinate system, as AutoCAD's UCS: an origin and X and Y axes in world coordinates, the Z axis square to both,

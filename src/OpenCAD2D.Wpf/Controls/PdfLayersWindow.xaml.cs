@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's PDF Layers dialog, which PDFLAYERS shows: the layers of the PDF an underlay shows, each switched on or off. Its

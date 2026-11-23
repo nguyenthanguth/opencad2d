@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>Thrown when the source of a data link cannot be read: the file or its sheet or range is not there, or it is no workbook.</summary>
     public sealed class CadDataSourceException : Exception

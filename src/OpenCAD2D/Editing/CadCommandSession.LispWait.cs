@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A routine of AutoLISP that waits for the user: a get function, <c>entsel</c> or <c>ssget</c> asks, the evaluation

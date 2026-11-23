@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// ARRAYPATH and the PAth type of ARRAY as AutoCAD 2021 asks them on the command line (probed through its console): the

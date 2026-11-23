@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>What <see cref="CadPythonHost.Enter"/> did with a palette entry.</summary>
     public enum CadPythonEntry

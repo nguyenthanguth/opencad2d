@@ -1,0 +1,10 @@
+# EditorConfig: Visual Studio reads it as is; VS Code needs the EditorConfig extension.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+
+[*.json]
+indent_style = space
+indent_size = 2

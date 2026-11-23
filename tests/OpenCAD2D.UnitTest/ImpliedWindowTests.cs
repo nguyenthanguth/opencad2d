@@ -1,8 +1,8 @@
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The implied window of the Command prompt, as AutoCAD 2021 asks it: "Specify opposite corner or

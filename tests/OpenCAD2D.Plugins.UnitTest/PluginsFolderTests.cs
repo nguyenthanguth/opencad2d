@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Plugins;
+using GeometryHelper;
 using GeometryHelper.Enums;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>
     /// The Plugins folder beside the app: every .dll directly in it, then every folder of .dlls at any depth, is loaded at start, in the order of

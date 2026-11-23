@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// How the MTEXT editor labels paragraphs as a list (<see cref="CadMTextEditor.SetNumbering"/>), as AutoCAD 2021's Bullets

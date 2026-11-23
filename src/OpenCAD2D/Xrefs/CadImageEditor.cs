@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What the Image tab does to the images selected: a value changed in it is one undo step named after the command that

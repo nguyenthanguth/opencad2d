@@ -1,4 +1,4 @@
-"""G1: every public name of ``geometryhelper.cad`` is documented (D1671): a docstring, an ``Example:`` block, and an
+"""G1: every public name of ``opencad2d.cad`` is documented (D1671): a docstring, an ``Example:`` block, and an
 annotation on every parameter and on the return; and pyright strict finds nothing in the package.
 
 A public name is a name of the module that is not marked private, defined in the package (a function or a class), and
@@ -16,11 +16,11 @@ from typing import Any
 
 import pytest
 
-import geometryhelper.cad as cad
-from geometryhelper.cad._drawing import Layers
+import opencad2d.cad as cad
+from opencad2d.cad._drawing import Layers
 
 STRICT = Path(__file__).resolve().parent / "pyrightconfig.strict.json"
-PREFIX = "geometryhelper.cad"
+PREFIX = "opencad2d.cad"
 
 
 def _is_ours(thing: Any) -> bool:
@@ -43,7 +43,7 @@ def _members(owner: type) -> list[tuple[str, Any]]:
 
 
 def _public() -> list[tuple[str, Any]]:
-    """(dotted name, object) of every public function, class, method and property of ``geometryhelper.cad``."""
+    """(dotted name, object) of every public function, class, method and property of ``opencad2d.cad``."""
     names: list[tuple[str, Any]] = []
     for name, value in sorted(vars(cad).items()):
         if name.startswith("_") or not (inspect.isfunction(value) or inspect.isclass(value)) or not _is_ours(value):

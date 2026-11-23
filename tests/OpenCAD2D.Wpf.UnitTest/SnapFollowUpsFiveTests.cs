@@ -2,7 +2,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The fifth round of snap and grid follow-ups, checked against AutoCAD 2021's console: GRID, SNAP, SETVAR and a snap or

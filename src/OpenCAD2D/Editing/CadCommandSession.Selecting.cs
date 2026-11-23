@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What a selection band drawn on the canvas takes.</summary>
     public enum CadSelectionBandKind

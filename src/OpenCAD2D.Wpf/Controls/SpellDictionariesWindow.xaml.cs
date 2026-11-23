@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Dictionaries dialog of the MTEXT editor's Edit Dictionaries: the main dictionary, the custom dictionary file and its

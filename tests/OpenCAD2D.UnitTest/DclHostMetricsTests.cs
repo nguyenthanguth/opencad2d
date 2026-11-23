@@ -1,12 +1,12 @@
 using System;
 using System.IO;
 using System.Text;
-using GeometryHelper.Cad.Dcl;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Dcl;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The metrics a dialog host gives (L5 part F, item 2): <c>dimx_tile</c> and <c>dimy_tile</c> measure the layout with them,

@@ -1,7 +1,7 @@
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The variants and safearrays of ActiveX in a bare interpreter, against AutoCAD 2021's accoreconsole (probes a2, a3 and

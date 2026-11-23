@@ -3,10 +3,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// What the file tests share: a folder of their own under the temporary folder with the files AutoCAD's probes read

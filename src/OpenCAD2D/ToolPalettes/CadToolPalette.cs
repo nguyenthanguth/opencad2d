@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>How a tool palette lists its tools, as AutoCAD's View Options offers it.</summary>
     public enum CadToolViewStyle

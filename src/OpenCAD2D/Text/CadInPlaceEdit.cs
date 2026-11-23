@@ -1,7 +1,7 @@
 using System;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What a text edited in place is.</summary>
     public enum CadInPlaceKind

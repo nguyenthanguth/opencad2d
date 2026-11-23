@@ -7,8 +7,9 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The presenter's Global settings (16-settings.md, D13): what applies to the whole app and every drawing on this machine,
@@ -131,12 +132,11 @@ namespace GeometryHelper.Cad
         private SortedDictionary<string, string> _aliases = Copy(CadShortcuts.Default.Aliases);
         private SortedDictionary<string, string> _keys = Copy(CadShortcuts.Default.Keys);
 
-        /// <summary>Gets the file the settings are kept in: %AppData%\GeometryHelper\Drawing\settings.json.</summary>
+        /// <summary>Gets the file the settings are kept in: %AppData%\OpenCAD2D\settings.json.</summary>
         public static string DefaultPath =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GeometryHelper",
-                "Drawing",
+                "OpenCAD2D",
                 "settings.json"
             );
 
@@ -640,7 +640,7 @@ namespace GeometryHelper.Cad
 
         /// <summary>
         /// Gets or sets the folders the fonts of text styles are looked for in, in order, before the Fonts folder beside
-        /// GeometryHelper.Cad.dll (<see cref="CadSupportFolders"/>), as AutoCAD's support file search path: none by default
+        /// OpenCAD2D.dll (<see cref="CadSupportFolders"/>), as AutoCAD's support file search path: none by default
         /// (<see cref="CadFonts.DefaultFolders"/>), so that an SHX font is read only from the folders the user lists and the one beside the dll, and AutoCAD's Fonts folders are never looked
         /// for; a TrueType file is looked for in the Fonts folder of Windows as well. A list saved before keeps the folders it
         /// holds. Blank entries are left out and a folder given twice is kept once.
@@ -953,8 +953,8 @@ namespace GeometryHelper.Cad
 
         /// <summary>
         /// Gets the folder the templates are kept in where <see cref="TemplateFolder"/> names none: the DrawingTemplates folder
-        /// beside GeometryHelper.Cad.dll (<see cref="CadSupportKind.DrawingTemplates"/>), where a user puts the drawings saved
-        /// as .dwt. The Template folder beside the settings file (%AppData%\GeometryHelper\Drawing\Template), where templates
+        /// beside OpenCAD2D.dll (<see cref="CadSupportKind.DrawingTemplates"/>), where a user puts the drawings saved
+        /// as .dwt. The Template folder beside the settings file (%AppData%\OpenCAD2D\Template), where templates
         /// were kept before, is taken in its place only while it holds a template and DrawingTemplates holds none.
         /// </summary>
         public static string DefaultTemplateFolder =>
@@ -1045,7 +1045,7 @@ namespace GeometryHelper.Cad
 
         /// <summary>
         /// Gets or sets whether other programs on this computer may connect to the app and drive its drawings, as a program
-        /// built on GeometryHelper.Cad.Remote does (<see cref="CadRemoteServer"/>): on by default. Switched off, the app
+        /// built on OpenCAD2D.Remote does (<see cref="CadRemoteServer"/>): on by default. Switched off, the app
         /// closes its pipe and takes down the file that announces it, and no program finds it; switched on, it opens them
         /// again, with no restart.
         /// </summary>

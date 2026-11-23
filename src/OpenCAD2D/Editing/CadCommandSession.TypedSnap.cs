@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A point typed after an object snap override (END, MID, CEN typed, or chosen from the Shift+right-click menu), which AutoCAD

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The keys and values <c>vl-registry-*</c> read and write: a store of the presenter's own, shaped like the Windows

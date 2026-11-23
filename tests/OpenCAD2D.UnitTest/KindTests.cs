@@ -4,7 +4,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>The kinds of entity the display builder turns into items, beyond lines, arcs, circles, polylines and texts.</summary>
     public class KindTests

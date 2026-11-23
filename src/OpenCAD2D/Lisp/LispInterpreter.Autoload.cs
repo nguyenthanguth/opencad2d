@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>autoload</c>, which AutoCAD 2021 defines in its <c>acad2021doc.lsp</c> and so every drawing has: <c>(autoload "app"

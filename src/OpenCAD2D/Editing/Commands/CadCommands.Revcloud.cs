@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>REVCLOUD, as AutoCAD 2021 asks it and stores the cloud (checked against clouds AutoCAD made in its own console).</summary>
     internal static partial class CadCommands

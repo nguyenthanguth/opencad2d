@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The members of the kinds of entity of the object model (part O2 of L4): a line, a circle, an arc, a light-weight

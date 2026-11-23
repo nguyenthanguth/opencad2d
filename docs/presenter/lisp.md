@@ -2,8 +2,8 @@
 
 The presenter reads and runs AutoLISP, the language AutoCAD's routines are written in. A line typed at the command line,
 a file loaded with `(load)` or APPLOAD, and the files a drawing loads when it opens all run on an interpreter of the
-presenter's own, one for each open drawing: [`LispInterpreter`](xref:GeometryHelper.Cad.Lisp.LispInterpreter), which a
-[`CadCommandSession`](xref:GeometryHelper.Cad.CadCommandSession) makes the first time it is asked for. The values, the
+presenter's own, one for each open drawing: [`LispInterpreter`](xref:OpenCAD2D.Lisp.LispInterpreter), which a
+[`CadCommandSession`](xref:OpenCAD2D.CadCommandSession) makes the first time it is asked for. The values, the
 printing and the error messages were measured against AutoCAD 2021, so a routine that runs there writes the same text here.
 
 This covers five stages. The first is the core of the language: the data, the control forms, `defun` and the `c:` commands,
@@ -94,7 +94,7 @@ session.Feed("(command \"CIRCLE\" '(0 0) 5)");              // Command: (command
 | Dialogs | `load_dialog`, `unload_dialog`, `new_dialog`, `start_dialog`, `done_dialog`, `term_dialog`, `action_tile`, `get_tile`, `set_tile`, `mode_tile`, `get_attr`, `client_data_tile`, `start_list`, `add_list`, `end_list`, `start_image`, `fill_image`, `vector_image`, `slide_image`, `end_image`, `dimx_tile`, `dimy_tile`, and the variables `$key`, `$value`, `$reason`, `$data`, `$x` and `$y` inside an action |
 
 The functions of the last thirteen rows read or change the drawing, so they exist in the interpreter of a drawing and not in a bare
-[`LispInterpreter`](xref:GeometryHelper.Cad.Lisp.LispInterpreter): `(getvar "OSMODE")` there is `; error: no function
+[`LispInterpreter`](xref:OpenCAD2D.Lisp.LispInterpreter): `(getvar "OSMODE")` there is `; error: no function
 definition: GETVAR`. The pure ones, `angle`, `distance`, `polar`, `inters` and `cvunit`, need no drawing and are in both, and
 so are the Visual LISP rows of lists, strings, files and the registry, blackboard and drawings, and the ActiveX variants and
 safearrays. What a bare interpreter lacks of those is what comes from a drawing: `getfiled`, `sssetfirst`, `ssgetfirst` and
@@ -339,14 +339,14 @@ Each drawing that opens runs, in this order:
 
 What the files write goes to the command line, and an error in one is written and does not stop the next. A file that is
 not found is no line for `acad.lsp` and `acaddoc.lsp`, which most machines do not have, and a `; error: LOAD failed:` line
-for a file of the Startup Suite. [`LispStartup`](xref:GeometryHelper.Cad.Lisp.LispStartup) does this for one run of the
+for a file of the Startup Suite. [`LispStartup`](xref:OpenCAD2D.Lisp.LispStartup) does this for one run of the
 program; the window gives it each drawing it opens, and each time it fills the Startup Suite from the settings. AutoCAD
 has no step 3: it loads the files that come with a program, a menu's `.mnl`, between `acaddoc.lsp` and the Startup Suite,
 and the Lisps folder takes that place.
 
 ### The Lisps folder
 
-`Lisps` is the fourth default folder beside `GeometryHelper.Cad.dll`, with `Fonts`, `Hatches` and `Linetypes` (in the app,
+`Lisps` is the fourth default folder beside `OpenCAD2D.dll`, with `Fonts`, `Hatches` and `Linetypes` (in the app,
 beside the exe). Put AutoLISP files in it, and the `.dcl` files they use: every `.lsp` file in it, at any depth, is loaded
 into each drawing when the drawing opens, so a folder of 12 routines is there for every drawing with no APPLOAD and no
 Startup Suite entry.
@@ -432,7 +432,7 @@ The plugin manager keeps [its own trusted folders](plugins.md), and asks about a
 
 A session made by the library, with no window to ask, starts at SECURELOAD 0, so a program that loads routines headless
 loads them as it did before; the window gives every drawing one shared
-[`CadLoadSecurity`](xref:GeometryHelper.Cad.CadLoadSecurity) built from the settings, so a SETVAR of SECURELOAD in one
+[`CadLoadSecurity`](xref:OpenCAD2D.CadLoadSecurity) built from the settings, so a SETVAR of SECURELOAD in one
 drawing holds in the others and after a restart. `(setvar "SECURELOAD" 3)` is
 `; error: AutoCAD variable setting rejected: "SECURELOAD" 3`.
 
@@ -663,7 +663,7 @@ point and the answer alike; `@` measures from the base point during the prompt.
 `getstring` without its first argument ends at a space, as at Enter, and the rest of the typed line is the next input:
 `hello world` answers `Str: ` with `"hello"` and then runs `world` as a command, which is `Unknown command "WORLD"`. With
 `cr` not nil the line is taken whole, `"hello world"`. The window's Space follows that
-([`CadPrompt.TakesSpaces`](xref:GeometryHelper.Cad.CadPrompt.TakesSpaces)).
+([`CadPrompt.TakesSpaces`](xref:OpenCAD2D.CadPrompt.TakesSpaces)).
 
 **initget** sets what the next get function, `entsel`, `nentsel` or interactive `ssget` takes, and is cleared by it, across
 lines too. `(initget [bits] [string])`, the two in either order, gives `nil`. The bits:
@@ -1071,7 +1071,7 @@ Variables added for routines:
 
 | Variable | Value |
 |---|---|
-| `PRODUCT` | `"GeometryHelper.Cad"`, read-only. AutoCAD gives `"AutoCAD"`, so `(= (getvar "PRODUCT") "AutoCAD")` tells a routine which program runs it |
+| `PRODUCT` | `"OpenCAD2D"`, read-only. AutoCAD gives `"AutoCAD"`, so `(= (getvar "PRODUCT") "AutoCAD")` tells a routine which program runs it |
 | `ACADVER` | `"24.0"`, read-only: the AutoCAD version whose behaviour the presenter follows, so a routine that checks the version takes AutoCAD 2021's path |
 | `CMDACTIVE` | read-only: 1 while a command runs, 2 transparent, 4 a script, 32 AutoLISP |
 | `CMDNAMES` | read-only: the name of the command running, `""` for none |
@@ -1116,7 +1116,7 @@ Command: (trans '(1 2 0) 1 0 T)
 `0,0` to `10,0`, `(osnap '(1 0.1) "end")` is `(0.0 0.0 0.0)` and `(osnap '(4 0.1) "mid")` is `(5.0 0.0 0.0)`; a point far
 from the line, or a mode that is no mode, gives `nil`.
 
-`(alert text)` shows the text and gives `nil`: the window shows a message box with OK, titled GeometryHelper.Cad and owned by the
+`(alert text)` shows the text and gives `nil`: the window shows a message box with OK, titled OpenCAD2D and owned by the
 window, and a session with no window writes the lines of the text on the command line. `(grtext [box text [hl]])` gives the
 text, `nil` with no arguments, and has no effect. `(redraw [ename [mode]])` gives `nil`; `(redraw nil 3)` is `bad argument
 type: lentityp nil`.
@@ -1405,17 +1405,17 @@ user cancelled. `title` is the dialog's title, `default` the file or folder it s
 without dots (`"dwg;dxf"`, several with a semicolon; `""` for any), and `flags` is a sum: 1 a new file, which makes it a save
 dialog that asks before it replaces a file unless 32 is added, 4 any extension, 16 `default` is a folder. A session with no
 window gives `nil`, as AutoCAD's console does: `(getfiled "Select a file" "" "txt" 0)` is `nil`. FILEDIA is not read. A host
-that draws its own dialog handles the request `"GETFILED"` of [`CadCommandSession.UiRequested`](xref:GeometryHelper.Cad.CadCommandSession),
-whose [`CadUiRequestEventArgs.GetFile`](xref:GeometryHelper.Cad.CadUiRequestEventArgs.GetFile) is a
-[`CadGetFileRequest`](xref:GeometryHelper.Cad.CadGetFileRequest) with the four arguments, and puts the path in `Answer`; the
+that draws its own dialog handles the request `"GETFILED"` of [`CadCommandSession.UiRequested`](xref:OpenCAD2D.CadCommandSession),
+whose [`CadUiRequestEventArgs.GetFile`](xref:OpenCAD2D.CadUiRequestEventArgs.GetFile) is a
+[`CadGetFileRequest`](xref:OpenCAD2D.CadGetFileRequest) with the four arguments, and puts the path in `Answer`; the
 window does it through `MainViewModel.AskGetFile`.
 
 ### The registry, the blackboard and other drawings
 
 **The registry.** `vl-registry-write`, `-read`, `-delete` and `-descendents` do not touch the Windows registry. They keep
 their keys and values in a store of the presenter's own, the file `lisp-registry.txt` in the folder of the settings file
-(`%AppData%\GeometryHelper\Drawing`), which every open drawing reads before it looks and writes after it changes, so they share
-what is in it. A host sets [`LispInterpreter.RegistryFile`](xref:GeometryHelper.Cad.Lisp.LispInterpreter.RegistryFile) to
+(`%AppData%\OpenCAD2D`), which every open drawing reads before it looks and writes after it changes, so they share
+what is in it. A host sets [`LispInterpreter.RegistryFile`](xref:OpenCAD2D.Lisp.LispInterpreter.RegistryFile) to
 pick the file; left null, as in a bare interpreter, the values live in memory for that interpreter alone. The file is UTF-8
 text, a line for each value, with the key, the name, `S` or `I` and the value separated by tabs.
 
@@ -1473,8 +1473,8 @@ after `(vl-doc-export 'foo)`), `vl-doc-import` and `vl-unload-vlx` are `; error:
 and `vl-vlx-loaded-p`, `vl-list-loaded-vlx` and `vl-get-resource` give `nil`. `.fas` and `.vlx` files are still refused by
 `load`. `vl-exit-with-error` and `vl-exit-with-value` end the evaluation quietly, as [the errors](#errors) say. What belongs to
 AutoCAD alone is refused, not ignored: `vl-vbaload` and `vl-vbarun` write `; error: vl-vbarun: VBA is not supported by
-GeometryHelper.Cad`, and `vl-arx-import`, `vl-acad-defun` and `vl-acad-undefun` write `; error: vl-arx-import: ObjectARX is
-not supported by GeometryHelper.Cad`, each with its own name.
+OpenCAD2D`, and `vl-arx-import`, `vl-acad-defun` and `vl-acad-undefun` write `; error: vl-arx-import: ObjectARX is
+not supported by OpenCAD2D`, each with its own name.
 
 ### Pick-first and nentselp
 
@@ -1907,7 +1907,7 @@ older `vlax-get-property`, `vlax-put-property` and `vlax-invoke-method`, and the
 | an attribute definition | the same, and `PromptString` (writable) | |
 
 The properties of a layer, a text style, a linetype and a dimension style are read only. `vla-put-Color` of a layer is
-`vla-put-Color: changing a table record is not supported by GeometryHelper.Cad yet`, and the setters that only a layer has
+`vla-put-Color: changing a table record is not supported by OpenCAD2D yet`, and the setters that only a layer has
 (`LayerOn`, `Freeze`, `Lock`) are not defined; the layer commands change them. A member the table does not list is not
 defined as a `vla-` function. `vlax-dump-object` [lists the members it does](#vlax-dump-object).
 
@@ -1915,7 +1915,7 @@ defined as a `vla-` function. `vlax-dump-object` [lists the members it does](#vl
 Command: (setq ly (vla-Item lays "Off"))
 #<VLA-OBJECT IAcadLayer 000001e4a7f3c180>
 Command: (vla-put-Color ly 2)
-; error: vla-put-Color: changing a table record is not supported by GeometryHelper.Cad yet
+; error: vla-put-Color: changing a table record is not supported by OpenCAD2D yet
 Command: (vla-put-LayerOn ly :vlax-true)
 ; error: no function definition: VLA-PUT-LAYERON
 Command: (vla-get-Description (vla-Item (vla-get-Linetypes doc) "Continuous"))
@@ -2361,11 +2361,11 @@ the presenter does not. Each is an error that says so, with the function's name 
 
 ```text
 Command: (vlax-get-or-create-object "Excel.Application")
-; error: vlax-get-or-create-object: COM to other programs is not supported by GeometryHelper.Cad: "Excel.Application"
+; error: vlax-get-or-create-object: COM to other programs is not supported by OpenCAD2D: "Excel.Application"
 Command: (vl-catch-all-error-message (vl-catch-all-apply 'vlax-create-object '("Excel.Application")))
-"vlax-create-object: COM to other programs is not supported by GeometryHelper.Cad: \"Excel.Application\""
+"vlax-create-object: COM to other programs is not supported by OpenCAD2D: \"Excel.Application\""
 Command: (vlax-import-type-library :tlb-filename "x.tlb")
-; error: vlax-import-type-library: type libraries are not supported by GeometryHelper.Cad
+; error: vlax-import-type-library: type libraries are not supported by OpenCAD2D
 Command: (vlax-get-or-create-object 5)
 ; error: bad argument type: (or stringp symbolp): 5
 ```
@@ -2845,7 +2845,7 @@ compares the drawings and the transcripts.
 
 ### What is parked in the dialog stage
 
-- `slide_image` draws nothing and gives `nil`, writing `slide_image: slides are not supported by GeometryHelper.Cad yet`
+- `slide_image` draws nothing and gives `nil`, writing `slide_image: slides are not supported by OpenCAD2D yet`
   once for the dialog; the presenter has no slide reader. A dialog with an icon still works.
 - The colour tiles and dialogs of `acad.dcl` (its own file, read where it is found), `audit_level`, the file `acad.dce`,
   `password_char` beyond the look of a password box, `fixed_width_font` beyond a monospace font, the DIASTAT variable, and

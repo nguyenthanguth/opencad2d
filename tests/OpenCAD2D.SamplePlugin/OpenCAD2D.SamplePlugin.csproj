@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!--
+    The sample command plugin, NUMCIRCLES, built for the plugin tests: they load its .dll as a user's plugin would be
+    loaded. It references OpenCAD2D only, as a plugin does (D16), and does not copy it: the presenter gives
+    a plugin its own.
+  -->
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>OpenCAD2D.SamplePlugin</RootNamespace>
+        <AssemblyName>OpenCAD2D.SamplePlugin</AssemblyName>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" Private="false" />
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" Private="false" />
+    </ItemGroup>
+</Project>

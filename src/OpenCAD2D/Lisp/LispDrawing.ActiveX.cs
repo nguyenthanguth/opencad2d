@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The ActiveX functions of AutoLISP on the presenter's own object model (<see cref="LispActiveX"/>): <c>vlax-for</c>, which
@@ -339,16 +339,14 @@ namespace GeometryHelper.Cad.Lisp
                         : throw LispInterpreter.TypeError("(or stringp symbolp):", a[0]);
                     throw new LispException(
                         printed
-                            + ": COM to other programs is not supported by GeometryHelper.Cad: "
+                            + ": COM to other programs is not supported by OpenCAD2D: "
                             + LispInterpreter.Print(progId, true)
                     );
                 });
             }
 
             lisp.Define("VLAX-IMPORT-TYPE-LIBRARY", 0, -1, a =>
-                throw new LispException(
-                    "vlax-import-type-library: type libraries are not supported by GeometryHelper.Cad"
-                )
+                throw new LispException("vlax-import-type-library: type libraries are not supported by OpenCAD2D")
             );
         }
 

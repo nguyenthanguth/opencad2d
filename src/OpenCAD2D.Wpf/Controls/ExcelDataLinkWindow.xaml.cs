@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The New Excel Data Link and Modify Excel Link dialog of the Data Link Manager, dark as the window's other dialogs. Its

@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
     /// The small drawing objects travel in. A request or an answer holds the DXF text of one: the objects in its model space,

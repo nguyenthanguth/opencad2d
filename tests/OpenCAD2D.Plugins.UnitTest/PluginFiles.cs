@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 
 [assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>
     /// A folder of the tests' own under the temporary folder, with the plugin folder, the settings file and the copies of a
@@ -18,7 +18,7 @@ namespace GeometryHelper.Cad.Plugins.UnitTest
     /// </summary>
     internal sealed class PluginFiles : IDisposable
     {
-        public const string SampleName = "GeometryHelper.Cad.SamplePlugin";
+        public const string SampleName = "OpenCAD2D.SamplePlugin";
 
         public PluginFiles()
         {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The draw order, in AutoCAD's words: DRAWORDER puts the objects selected above or under others, or at the front or the

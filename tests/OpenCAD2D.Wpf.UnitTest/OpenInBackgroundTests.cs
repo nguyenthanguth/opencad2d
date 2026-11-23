@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A drawing opened in the background, as the app's window opens one: read and drawn on a worker thread, shown only once

@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Cad.Wpf.AttributeEditorWindow"
+    x:Class="OpenCAD2D.Wpf.AttributeEditorWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Enhanced Attribute Editor"
     Width="600"
     Height="560"
@@ -15,7 +15,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/BlockDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- A row of the list of attributes: tag, prompt, value; the one chosen on the selection colour. -->

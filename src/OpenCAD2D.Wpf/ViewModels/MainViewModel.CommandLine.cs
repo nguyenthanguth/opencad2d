@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A row of the command line's AutoComplete list: a command, a synonym of one or a system variable whose name holds what is

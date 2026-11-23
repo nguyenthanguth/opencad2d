@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace GeometryHelper.PyStubs
+namespace OpenCAD2D.PyStubs
 {
     /// <summary>
     /// The XML documentation of the assemblies, looked up by type or member. A type or member gives the

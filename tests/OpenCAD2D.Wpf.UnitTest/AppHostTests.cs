@@ -7,10 +7,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// The presenter's own app, GeometryHelper CAD: its window named after it, and its screenshot mode run as a process on a
+    /// The presenter's own app, OpenCAD2D: its window named after it, and its screenshot mode run as a process on a
     /// room built in code, drawn with no window shown.
     /// </summary>
     public sealed class AppHostTests
@@ -30,7 +30,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                     _ = PackUriHelper.UriSchemePack;
                     var model = new MainViewModel();
                     Assert.True(model.Open(room));
-                    var window = new CadAppWindow(model, "GeometryHelper CAD");
+                    var window = new CadAppWindow(model, "OpenCAD2D");
 
                     // The bindings are let run, as they run before a window shown is drawn.
                     Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.Background);
@@ -39,8 +39,8 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                     defaultName = new CadWorkspace().AppName;
                 });
 
-                Assert.Equal("GeometryHelper CAD  room.dxf", title);
-                Assert.Equal("GeometryHelper CAD", workspaceName);
+                Assert.Equal("OpenCAD2D  room.dxf", title);
+                Assert.Equal("OpenCAD2D", workspaceName);
                 Assert.Equal("GeometryHelper Drawing", defaultName);
             }
         }
@@ -82,11 +82,11 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
             string exe = Path.Combine(
                 root,
                 "src",
-                "GeometryHelper.Cad.App",
+                "OpenCAD2D.App",
                 "bin",
                 configuration,
                 "net8.0-windows",
-                "GeometryHelper.Cad.App.exe"
+                "OpenCAD2D.App.exe"
             );
             Assert.True(File.Exists(exe), exe);
             var start = new ProcessStartInfo(exe)

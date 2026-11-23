@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The part of a clipped block reference that is shown (XCLIP): a ring in drawing units, and within another ring where the

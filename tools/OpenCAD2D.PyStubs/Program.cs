@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace GeometryHelper.PyStubs
+namespace OpenCAD2D.PyStubs
 {
     /// <summary>
-    /// <c>GeometryHelper.PyStubs --lib &lt;folder&gt; --out &lt;folder&gt;</c>: writes the Python stubs of the GeometryHelper
+    /// <c>OpenCAD2D.PyStubs --lib &lt;folder&gt; --out &lt;folder&gt;</c>: writes the Python stubs of the GeometryHelper
     /// assemblies in the <c>lib</c> folder (with their XML docs) to <c>GeometryHelper-stubs</c> in the <c>out</c> folder, and
     /// prints one line per assembly, the members left out and the types written as <c>typing.Any</c>. The exit code is 0
     /// when the stubs were written and 1 on any error, with the reason on standard error.
@@ -38,7 +38,7 @@ namespace GeometryHelper.PyStubs
 
             if (lib == null || output == null)
             {
-                return Fail("Usage: GeometryHelper.PyStubs --lib <folder with the DLLs and XML docs> --out <folder>");
+                return Fail("Usage: OpenCAD2D.PyStubs --lib <folder with the DLLs and XML docs> --out <folder>");
             }
 
             try

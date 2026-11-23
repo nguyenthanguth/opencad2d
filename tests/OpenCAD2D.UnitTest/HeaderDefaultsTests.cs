@@ -3,9 +3,9 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A DXF whose header leaves out MEASUREMENT, the dimension variables, DIMSTYLE or CELTYPE reads them as AutoCAD 2021

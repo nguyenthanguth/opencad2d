@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// Ends the routines a test leaves waiting. A routine of AutoLISP that asks the user (<c>getpoint</c>, a PAUSE of

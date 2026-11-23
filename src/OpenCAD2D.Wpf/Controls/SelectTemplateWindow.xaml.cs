@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>AutoCAD's Select Template, from NEW; its logic is <see cref="SelectTemplateViewModel"/>.</summary>
     public partial class SelectTemplateWindow : Window

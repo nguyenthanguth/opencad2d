@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The TrueType and OpenType files (.ttf, .ttc, .otf) of some folders, found by the family name inside them, so that a

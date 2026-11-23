@@ -8,9 +8,9 @@ using System.Windows.Input;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
+using static OpenCAD2D.Wpf.UnitTest.CanvasMouseTests;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Drawing Properties (DWGPROPS), hyperlinks and the clean screen in the window's view model: the two dialogs driven

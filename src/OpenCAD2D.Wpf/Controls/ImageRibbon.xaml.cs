@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The contextual Image tab of the ribbon, over an <see cref="ImageTabViewModel"/>.</summary>
     public partial class ImageRibbon : UserControl

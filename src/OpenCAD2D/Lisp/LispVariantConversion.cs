@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// How a variant changes type, and how a number is written as the text of a variant: what <c>vlax-variant-change-type</c>

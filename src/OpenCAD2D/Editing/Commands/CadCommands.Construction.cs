@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The draw commands of the Draw panel's second row: XLINE and RAY, lines without end; POLYGON, a closed polyline of 3 to

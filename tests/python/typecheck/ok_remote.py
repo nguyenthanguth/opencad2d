@@ -5,7 +5,7 @@ The file is never run: it would connect to the app that is open on the machine. 
 
 from System import Array, IDisposable, String, TimeSpan
 
-from GeometryHelper.Cad.Remote import CadApplication, CadObjectFilter, CadRemoteException
+from OpenCAD2D.Remote import CadApplication, CadObjectFilter, CadRemoteException
 from GeometryHelper.Dxf import DxfLine
 
 with CadApplication() as app:

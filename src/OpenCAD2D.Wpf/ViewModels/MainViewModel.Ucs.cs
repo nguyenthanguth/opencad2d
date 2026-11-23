@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The user coordinate system the status bar and dynamic input show their numbers in.</summary>
     public sealed partial class MainViewModel

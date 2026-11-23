@@ -1,13 +1,13 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The object model of <c>vla-</c> and <c>vlax-</c> (part O1 of L4): the application, the document, the collections, the
@@ -472,7 +472,7 @@ namespace GeometryHelper.Cad.UnitTest
 
             // ours: D225 (the Part C rule: refused, never ignored); the record-only setters are not defined (D229).
             Assert.Equal(
-                "vla-put-Color: changing a table record is not supported by GeometryHelper.Cad yet",
+                "vla-put-Color: changing a table record is not supported by OpenCAD2D yet",
                 Error(session, "(vla-put-Color lay 5)")
             );
             Assert.Equal("nil", Value(session, "(type vla-put-LayerOn)"));
@@ -711,7 +711,7 @@ namespace GeometryHelper.Cad.UnitTest
             Assert.Equal("nil", Value(session, "(vla-put-Layer e \"Steel\")"));
             Assert.Equal("\"Steel\"", Value(session, "(vla-get-Layer e)"));
             Assert.Equal(
-                "vla-Delete: deleting an object of a block definition is not supported by GeometryHelper.Cad yet",
+                "vla-Delete: deleting an object of a block definition is not supported by OpenCAD2D yet",
                 Error(session, "(vla-Delete e)")
             );
         }
@@ -1367,28 +1367,28 @@ namespace GeometryHelper.Cad.UnitTest
         [Theory]
         [InlineData(
             "(vlax-get-or-create-object \"Excel.Application\")",
-            "vlax-get-or-create-object: COM to other programs is not supported by GeometryHelper.Cad: \"Excel.Application\""
+            "vlax-get-or-create-object: COM to other programs is not supported by OpenCAD2D: \"Excel.Application\""
         )]
         [InlineData(
             "(vlax-create-object \"Excel.Application\")",
-            "vlax-create-object: COM to other programs is not supported by GeometryHelper.Cad: \"Excel.Application\""
+            "vlax-create-object: COM to other programs is not supported by OpenCAD2D: \"Excel.Application\""
         )]
         [InlineData(
             "(vlax-get-object \"Excel.Application\")",
-            "vlax-get-object: COM to other programs is not supported by GeometryHelper.Cad: \"Excel.Application\""
+            "vlax-get-object: COM to other programs is not supported by OpenCAD2D: \"Excel.Application\""
         )]
         [InlineData(
             "(vlax-get-or-create-object \"GhNoSuch.Application\")",
-            "vlax-get-or-create-object: COM to other programs is not supported by GeometryHelper.Cad: \"GhNoSuch.Application\""
+            "vlax-get-or-create-object: COM to other programs is not supported by OpenCAD2D: \"GhNoSuch.Application\""
         )]
         [InlineData(
             "(vlax-get-or-create-object 'GhProg)",
-            "vlax-get-or-create-object: COM to other programs is not supported by GeometryHelper.Cad: \"GHPROG\""
+            "vlax-get-or-create-object: COM to other programs is not supported by OpenCAD2D: \"GHPROG\""
         )]
         [InlineData("(vlax-get-or-create-object 5)", "bad argument type: (or stringp symbolp): 5")]
         [InlineData(
             "(vlax-import-type-library :tlb-filename \"x.tlb\")",
-            "vlax-import-type-library: type libraries are not supported by GeometryHelper.Cad"
+            "vlax-import-type-library: type libraries are not supported by OpenCAD2D"
         )]
         public void AnyProgIdOfAnotherProgram_IsRefusedWithAMessage(string form, string error)
         {
@@ -1411,7 +1411,7 @@ namespace GeometryHelper.Cad.UnitTest
                 )
             );
             Assert.Equal(
-                "\"vlax-get-or-create-object: COM to other programs is not supported by GeometryHelper.Cad: \\\"Excel.Application\\\"\"",
+                "\"vlax-get-or-create-object: COM to other programs is not supported by OpenCAD2D: \\\"Excel.Application\\\"\"",
                 Value(
                     session,
                     "(vl-catch-all-error-message (vl-catch-all-apply 'vlax-get-or-create-object '(\"Excel.Application\")))"

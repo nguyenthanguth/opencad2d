@@ -1,6 +1,6 @@
 """The vertices of every polyline of a DXF or DWG drawing as numpy arrays, and the extents of all of them.
 
-Run: python coordinates_numpy.py DRAWING   (a .dxf or .dwg file; needs numpy: pip install geometryhelper[numpy])
+Run: python coordinates_numpy.py DRAWING   (a .dxf or .dwg file; needs numpy: pip install opencad2d[numpy])
 Prints, in handle order, each polyline's handle, vertex count and length, then the extents of every vertex.
 """
 
@@ -10,9 +10,9 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-import geometryhelper  # noqa: F401  (starts .NET and loads the assemblies)
-from geometryhelper.arrays import to_numpy
-from geometryhelper.cad import open_file
+import opencad2d  # noqa: F401  (starts .NET and loads the assemblies)
+from opencad2d.arrays import to_numpy
+from opencad2d.cad import open_file
 from GeometryHelper.Dxf import DxfPolyline
 
 

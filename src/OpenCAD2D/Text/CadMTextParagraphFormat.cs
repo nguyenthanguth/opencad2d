@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A tab stop of an MTEXT paragraph, as AutoCAD 2021's ruler and Paragraph dialog set one: where it stands from the left

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>tblsearch</c>, <c>tblnext</c> and <c>tblobjname</c>: the records of the drawing's tables as the short lists AutoLISP

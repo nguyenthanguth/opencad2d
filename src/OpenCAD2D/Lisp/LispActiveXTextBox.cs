@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>textbox</c>, which AutoCAD has before <c>vl-load-com</c> and the ActiveX bounding box of a text shares its measure

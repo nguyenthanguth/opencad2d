@@ -4,9 +4,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The examples of <c>src/python/examples/in_app</c> run as PYRUN runs a file and as PYLOAD loads one (P5 D1002, D1007),

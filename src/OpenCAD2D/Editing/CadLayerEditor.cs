@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The edits of the layer table, as the layer box, the Layer manager and the LAYER command make them: each one undo step

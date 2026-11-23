@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What an Insert Hyperlink dialog links to, as its "Link to" column offers.</summary>
     public enum CadHyperlinkKind

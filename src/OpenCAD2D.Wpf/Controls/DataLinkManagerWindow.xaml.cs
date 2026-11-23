@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Data Link Manager of DATALINK and the Select a Data Link dialog of Link Cell, dark as the window's other dialogs. Its

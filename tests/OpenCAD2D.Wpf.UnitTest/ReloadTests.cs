@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// <see cref="MainViewModel.Reload"/>: a document opened again from its file in the same row of the list after the file

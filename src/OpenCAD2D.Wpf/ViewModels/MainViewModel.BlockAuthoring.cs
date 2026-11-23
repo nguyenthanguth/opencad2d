@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The logic of the Visibility States dialog of BVSTATE, as AutoCAD 2021's: the states of the block open in the Block Editor in

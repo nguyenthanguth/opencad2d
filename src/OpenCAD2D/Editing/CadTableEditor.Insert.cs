@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The Insert group of the Table Cell tab (a block, a field, a formula) and Data Format, and the working out of the

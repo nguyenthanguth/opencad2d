@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>A run of Python that started or ended.</summary>
     public sealed class CadPythonRunEventArgs : EventArgs

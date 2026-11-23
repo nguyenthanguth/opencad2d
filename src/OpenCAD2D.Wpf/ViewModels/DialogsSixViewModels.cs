@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD 2021's Insert Object dialog over INSERTOBJ's file job (design InsertObject and InsertObjectNew): Create New,

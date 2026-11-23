@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The grip modes of AutoCAD 2021, which a click on a grip starts (<see cref="CadCommandSession.StartGripEdit"/>): STRETCH,

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Dcl;
+using OpenCAD2D.Dcl;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The layout of a dialog's tiles (L5 part P, D310-D313) with the headless numbers of D337 and D345: a character 6 by 13,

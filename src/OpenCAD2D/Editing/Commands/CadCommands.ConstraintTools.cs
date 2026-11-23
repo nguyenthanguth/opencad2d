@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// AUTOCONSTRAIN (the constraints a selection already nearly meets, within the distance and angle of the AutoConstrain tab,

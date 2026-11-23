@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The TrueType fonts of the machine by their family, as AutoCAD's Text Style dialog lists them and writes a style of one:

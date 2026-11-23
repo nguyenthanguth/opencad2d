@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// FIELD and UPDATEFIELD, and the variables FIELDEVAL and FIELDDISPLAY, as AutoCAD 2021's. FIELD shows the Field dialog

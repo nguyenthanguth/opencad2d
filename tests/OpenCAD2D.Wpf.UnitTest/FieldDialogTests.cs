@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Field dialog and the text editor's Insert Field and Edit Field, driven with no window: the dialog's logic over its

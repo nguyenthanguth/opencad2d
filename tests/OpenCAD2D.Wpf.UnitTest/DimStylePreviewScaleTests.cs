@@ -3,7 +3,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The sample dimensions the Dimension Style Manager and the style dialogs draw of a style whose overall scale is 25, with

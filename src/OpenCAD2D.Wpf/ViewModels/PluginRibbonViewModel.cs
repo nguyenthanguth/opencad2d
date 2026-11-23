@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D.Plugins;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The content of the Plugins ribbon tab, which shows only while a plugin has added panels with

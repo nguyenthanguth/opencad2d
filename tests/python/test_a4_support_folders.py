@@ -1,12 +1,12 @@
-"""A4: the support folders of the presenter are found beside GeometryHelper.Cad.dll, so ``lib/Fonts``,
+"""A4: the support folders of the presenter are found beside OpenCAD2D.dll, so ``lib/Fonts``,
 ``lib/Hatches`` and ``lib/Linetypes`` of the wheel need no code and no setting (research section 5)."""
 
 from pathlib import Path
 
 import pytest
 
-import geometryhelper  # noqa: F401  (boots .NET and loads the assemblies)
-from GeometryHelper.Cad import CadSupportFolders, CadSupportKind
+import opencad2d  # noqa: F401  (boots .NET and loads the assemblies)
+from OpenCAD2D import CadSupportFolders, CadSupportKind
 
 
 def test_the_program_folder_is_the_lib_folder_of_the_wheel(lib_dir: Path) -> None:

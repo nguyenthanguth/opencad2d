@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The grips of a spline and the edits of their hover menu: stretch a point, add one, take one out.</summary>
     public static partial class CadGrips

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>A layer state of a drawing as the Layer States Manager lists it.</summary>
     public sealed class CadLayerStateRow

@@ -4,10 +4,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using GeometryHelper.Cad.Remote;
+using GeometryHelper;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Remote;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The requests the server answers.</summary>
     public sealed partial class CadRemoteServer
@@ -61,13 +62,13 @@ namespace GeometryHelper.Cad
                     if (_picking)
                     {
                         throw new Refusal(
-                            "GeometryHelper CAD is busy: it is waiting for the user to pick in a drawing, for a program that asked it to. Try again when the pick is done."
+                            "OpenCAD2D is busy: it is waiting for the user to pick in a drawing, for a program that asked it to. Try again when the pick is done."
                         );
                     }
 
                     if (_stopping)
                     {
-                        throw new Refusal("GeometryHelper CAD is shutting down.");
+                        throw new Refusal("OpenCAD2D is shutting down.");
                     }
                 }
 
@@ -92,7 +93,7 @@ namespace GeometryHelper.Cad
             catch (Exception ex) when (!(ex is OutOfMemoryException))
             {
                 GeometryHelperLog.Warn("CadRemoteServer: the request " + op + " failed.", ex);
-                return Failure(id, "GeometryHelper CAD could not do the request " + op + ": " + ex.Message);
+                return Failure(id, "OpenCAD2D could not do the request " + op + ": " + ex.Message);
             }
         }
 
@@ -123,7 +124,7 @@ namespace GeometryHelper.Cad
 
             if (!ran)
             {
-                throw new Refusal("GeometryHelper CAD is shutting down.");
+                throw new Refusal("OpenCAD2D is shutting down.");
             }
 
             if (failure != null)
@@ -189,9 +190,7 @@ namespace GeometryHelper.Cad
                 case RemoteOps.CurrentLayout:
                     return CurrentLayout(Find(request), request.GetString("name"));
                 default:
-                    throw new Refusal(
-                        "GeometryHelper CAD does not know the request " + op + ": it is of an older version."
-                    );
+                    throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }
         }
 
@@ -265,7 +264,7 @@ namespace GeometryHelper.Cad
 
             try
             {
-                return _host.Open(path) ?? throw new Refusal("GeometryHelper CAD could not open " + path + ".");
+                return _host.Open(path) ?? throw new Refusal("OpenCAD2D could not open " + path + ".");
             }
             catch (InvalidOperationException ex)
             {
@@ -277,7 +276,7 @@ namespace GeometryHelper.Cad
         {
             try
             {
-                return _host.New(template) ?? throw new Refusal("GeometryHelper CAD could not start a new drawing.");
+                return _host.New(template) ?? throw new Refusal("OpenCAD2D could not start a new drawing.");
             }
             catch (InvalidOperationException ex)
             {
@@ -292,7 +291,7 @@ namespace GeometryHelper.Cad
 
             if (!_known.TryGetValue((int)id, out Known known))
             {
-                throw new Refusal("GeometryHelper CAD has no drawing with the id " + id + ".");
+                throw new Refusal("OpenCAD2D has no drawing with the id " + id + ".");
             }
 
             if (!_host.Documents.Contains(known.Document))

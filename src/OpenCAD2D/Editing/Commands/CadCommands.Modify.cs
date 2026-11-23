@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The modify commands that cut and run on curves, as AutoCAD 2021's: TRIM, EXTEND, BREAK, BREAKATPOINT, JOIN and LENGTHEN.

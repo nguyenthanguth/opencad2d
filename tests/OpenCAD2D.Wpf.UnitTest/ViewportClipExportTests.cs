@@ -7,7 +7,7 @@ using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A viewport clipped by an entity (VPCLIP) in the image and plot writers, as pixels: the room's viewport on the sheet of 12

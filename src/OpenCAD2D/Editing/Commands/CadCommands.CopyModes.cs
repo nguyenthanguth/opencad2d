@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// COPY's Array and mOde options and the variable COPYMODE, as AutoCAD 2021 asks them: "Enter number of items to array:" and

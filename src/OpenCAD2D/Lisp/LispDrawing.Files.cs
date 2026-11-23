@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// What the files functions take from the session: the drawing's folder, where <c>findfile</c> looks after the current

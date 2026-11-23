@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// SELECT: asks "Select objects:" with every way the prompt has (a pick, a window, a crossing, a fence, ALL, Last, Previous,

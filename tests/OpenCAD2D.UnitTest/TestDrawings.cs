@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>Small drawings written as DXF text, so that a test reads what the file says and not how it was built.</summary>
     internal static class TestDrawings

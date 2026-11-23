@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A date format of the Field dialog's list: the date as the format writes it now, and the format.</summary>
     internal sealed class FieldDateChoice

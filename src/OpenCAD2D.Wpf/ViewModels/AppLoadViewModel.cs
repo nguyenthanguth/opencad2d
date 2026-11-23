@@ -4,9 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D.Plugins;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>How the outcome of loading one application is told: loaded, refused for its type, or failed.</summary>
     public enum AppLoadStatusKind

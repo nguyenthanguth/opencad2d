@@ -4,8 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A drawing opened in the background: its file read and its display list and pick index made on a worker thread, so

@@ -1,9 +1,9 @@
 using System;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The helper the Lisp tests end with, which cancels a routine a test left waiting so that its worker thread, with a

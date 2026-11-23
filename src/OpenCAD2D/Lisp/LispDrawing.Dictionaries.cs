@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The dictionaries of the drawing as AutoLISP reaches them: <c>namedobjdict</c>, <c>dictsearch</c>, <c>dictnext</c>,

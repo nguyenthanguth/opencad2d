@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The known applications of <see cref="GlobalSettings"/>: the AutoLISP files and plugins Load/Unload Applications lists

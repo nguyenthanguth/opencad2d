@@ -2,7 +2,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A blank drawing (NEW with no template, Ctrl+N, QNEW with no default template) holds layer 0 and no other: the layers

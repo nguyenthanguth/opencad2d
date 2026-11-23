@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The pictures of a PDF page turned into files the canvas decodes: a JPEG stays the JPEG it is, any other picture (raw

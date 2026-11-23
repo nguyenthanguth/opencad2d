@@ -1,12 +1,12 @@
 using System;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The reactors of Visual LISP as AutoCAD 2021's accoreconsole did them (probe m1 of the L8 round): the nineteen

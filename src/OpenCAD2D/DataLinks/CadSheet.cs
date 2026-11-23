@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What a cell of a <see cref="CadSheet"/> holds.</summary>
     public enum CadSheetCellKind

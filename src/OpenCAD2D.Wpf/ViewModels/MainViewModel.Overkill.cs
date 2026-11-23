@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The Delete Duplicate Objects dialog of OVERKILL, shown through a function the workspace sets, so that a test drives it with none; with none, OVERKILL asks its options on the command line.</summary>
     public sealed partial class MainViewModel

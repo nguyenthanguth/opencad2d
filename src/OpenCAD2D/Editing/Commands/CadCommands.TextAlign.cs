@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// TEXTALIGN (TA), as AutoCAD 2021's (its prompts and settings probed in its console): the TEXT and MTEXT selected moved

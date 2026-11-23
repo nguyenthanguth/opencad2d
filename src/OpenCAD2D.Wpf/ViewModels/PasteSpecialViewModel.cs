@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// One way Paste Special offers to paste: its name in the list, the paste it runs (PASTECLIP, PASTEBLOCK, PASTEORIG,

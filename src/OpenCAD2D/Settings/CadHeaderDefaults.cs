@@ -1,6 +1,6 @@
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What a DXF the presenter opens is given for the header values it leaves out, as AutoCAD 2021 reads such a file: the

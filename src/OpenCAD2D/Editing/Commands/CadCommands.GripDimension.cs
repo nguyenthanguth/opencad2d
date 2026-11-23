@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The items of a dimension grip's hover menu: Continue Dimension and Baseline Dimension on a linear dimension's extension

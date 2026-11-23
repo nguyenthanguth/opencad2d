@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// SNAP and GRID typed, with AutoCAD 2021's options and words. SNAP asks "Specify snap spacing or

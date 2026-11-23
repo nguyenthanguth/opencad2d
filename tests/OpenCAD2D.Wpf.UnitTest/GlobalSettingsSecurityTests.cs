@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.SecurityKit;
+using static OpenCAD2D.Wpf.UnitTest.SecurityKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Security page of Global settings (D916 as D920 changed it, <c>design/SecSettingsSecurity.png</c>): the SECURELOAD and

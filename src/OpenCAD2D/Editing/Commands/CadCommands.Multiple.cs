@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// MULTIPLE: asks "Enter command name to repeat:" and starts that command again each time it ends, until Esc ends it. A

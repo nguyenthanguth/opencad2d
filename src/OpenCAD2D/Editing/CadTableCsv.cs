@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A table written as the comma separated values TABLEEXPORT makes of it: a line for each row, a field for each column, the

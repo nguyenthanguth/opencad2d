@@ -8,8 +8,8 @@ from typing import Any
 
 import pytest
 
-import geometryhelper  # noqa: F401  (boots .NET and loads the assemblies)
-from GeometryHelper.Cad import CadCommandSession, CadDocument
+import opencad2d  # noqa: F401  (boots .NET and loads the assemblies)
+from OpenCAD2D import CadCommandSession, CadDocument
 from GeometryHelper.Dxf import DxfCircle, DxfDatabase, DxfLine
 from GeometryHelper.Geometry import GeoPoint3
 

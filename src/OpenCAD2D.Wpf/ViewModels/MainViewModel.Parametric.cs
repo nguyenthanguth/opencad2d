@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Parametric ribbon tab, as AutoCAD 2021's for what the presenter has: Geometric (Auto Constrain, the twelve

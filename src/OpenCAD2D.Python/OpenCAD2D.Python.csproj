@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <RootNamespace>OpenCAD2D.Python</RootNamespace>
+        <AssemblyName>OpenCAD2D.Python</AssemblyName>
+        <Description>Runs Python inside OpenCAD2D: finds a CPython 3.11 to 3.15, runs scripts on the thread that owns the drawings, asks their prompts as a command does, and makes their decorated functions commands.</Description>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="pythonnet" Version="3.2.1" />
+        <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
+        <ProjectReference Include="..\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj" />
+        <ProjectReference Include="..\OpenCAD2D\OpenCAD2D.csproj" />
+    </ItemGroup>
+
+    <!-- The app's copy of the Python package, beside the DLLs of every project that uses this one (D702). -->
+    <ItemGroup>
+        <Content
+            Include="..\python\opencad2d\__init__.py"
+            Link="python\opencad2d\__init__.py"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <Content
+            Include="..\python\opencad2d\arrays.py"
+            Link="python\opencad2d\arrays.py"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <Content
+            Include="..\python\opencad2d\cad\*.py"
+            Link="python\opencad2d\cad\%(Filename)%(Extension)"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <Content
+            Include="..\python\opencad2d\_app.py"
+            Link="python\opencad2d\_app.py"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <Content
+            Include="..\python\opencad2d\py.typed"
+            Link="python\opencad2d\py.typed"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="OpenCAD2D.Python.UnitTest" />
+    </ItemGroup>
+</Project>

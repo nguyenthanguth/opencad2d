@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// REVCLOUD's shortest and longest arc kept between sessions, as AutoCAD 2021 keeps them in the profile (L8 probe m/routines,

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What a field of the New, Modify and Override dialogs of dimension styles is: a group's title, a number, an angle, a box to tick, a list, a text.</summary>
     public enum DimFieldKind

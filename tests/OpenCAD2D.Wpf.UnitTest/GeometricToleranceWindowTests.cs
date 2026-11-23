@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Geometric Tolerance dialog of TOLERANCE, LEADER and QLEADER, its Symbol and Material Condition dialogs, Tolerance

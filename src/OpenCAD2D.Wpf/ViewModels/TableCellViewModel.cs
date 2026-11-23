@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A choice of the fill box of the Table Cell tab: None, by block, by layer or a colour of AutoCAD's index.</summary>
     public sealed class TableFillChoice

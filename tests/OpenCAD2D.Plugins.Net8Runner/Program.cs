@@ -9,14 +9,14 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
-using GeometryHelper.Cad;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf;
-using GeometryHelper.Cad.Wpf.Plugins;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf;
+using OpenCAD2D.Wpf.Plugins;
 
-namespace GeometryHelper.Cad.Plugins.Net8Runner
+namespace OpenCAD2D.Plugins.Net8Runner
 {
     /// <summary>
     /// The plugin checks only .NET 8 can make: the sample plugin rebuilt while loaded and reloaded runs its new code, and
@@ -24,8 +24,8 @@ namespace GeometryHelper.Cad.Plugins.Net8Runner
     /// </summary>
     internal static class Program
     {
-        private const string Sample = "GeometryHelper.Cad.SamplePlugin";
-        private const string SampleUi = "GeometryHelper.Cad.SampleUiPlugin";
+        private const string Sample = "OpenCAD2D.SamplePlugin";
+        private const string SampleUi = "OpenCAD2D.SampleUiPlugin";
         private const string FirstDone = "Numbered {0} circles.";
         private const string SecondDone = "Second build: numbered {0} circles.";
 
@@ -429,7 +429,7 @@ namespace GeometryHelper.Cad.Plugins.Net8Runner
         private static CadSnapResult SnapAt(MainViewModel model, GeoPoint2 cursor, double aperture)
         {
             MethodInfo snap = typeof(MainViewModel)
-                .Assembly.GetType("GeometryHelper.Cad.Wpf.CadPicking", true)
+                .Assembly.GetType("OpenCAD2D.Wpf.CadPicking", true)
                 .GetMethod("Snap", BindingFlags.Public | BindingFlags.Static);
             return (CadSnapResult)
                 snap.Invoke(

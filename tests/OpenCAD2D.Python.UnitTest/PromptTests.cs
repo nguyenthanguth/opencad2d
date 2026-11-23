@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The questions a script asks through the carrier (D706, D709): each <c>get_*</c> gives what the user typed or picked, a

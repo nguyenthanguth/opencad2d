@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using GeometryHelper;
 using Python.Runtime;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     public sealed partial class CadPythonHost
     {
@@ -730,7 +731,7 @@ namespace GeometryHelper.Cad.Python
                     return true;
                 case string text:
                     return session.Feed(text);
-                case Geometry.GeoPoint2 point:
+                case GeometryHelper.Geometry.GeoPoint2 point:
                     return session.Feed(point);
                 case IEnumerable<string> handles:
                     if (!session.FeedSelection(handles))
@@ -753,7 +754,7 @@ namespace GeometryHelper.Cad.Python
             {
                 case string text:
                     return text.Length == 0 ? "Enter" : "'" + text + "'";
-                case Geometry.GeoPoint2 point:
+                case GeometryHelper.Geometry.GeoPoint2 point:
                     return point.X.ToString("R", CultureInfo.InvariantCulture)
                         + ","
                         + point.Y.ToString("R", CultureInfo.InvariantCulture);

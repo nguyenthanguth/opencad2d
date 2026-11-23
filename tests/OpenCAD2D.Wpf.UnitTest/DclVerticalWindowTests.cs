@@ -6,12 +6,12 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Dcl;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Dcl;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The windows of two dialogs shaped like the acceptance routines' (L5 part F): E1's must be the 433 by 109 AutoCAD 2021

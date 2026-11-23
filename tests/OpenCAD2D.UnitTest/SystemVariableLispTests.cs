@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// What a system variable gives AutoLISP's <c>getvar</c> and takes from <c>setvar</c> (<c>ValueForLisp</c> and
@@ -166,7 +167,7 @@ namespace GeometryHelper.Cad.UnitTest
         {
             CadCommandSession session = Start(Blank());
 
-            Assert.Equal("GeometryHelper.Cad", Get(session, "PRODUCT")); // ours: D56; AutoCAD 2021 (q6) gives "AutoCAD"
+            Assert.Equal("OpenCAD2D", Get(session, "PRODUCT")); // ours: D56; AutoCAD 2021 (q6) gives "AutoCAD"
             Assert.NotEqual("AutoCAD", Get(session, "PRODUCT"));
             Assert.False(Set(session, "PRODUCT", "AutoCAD"));
         }

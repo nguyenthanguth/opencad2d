@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What AutoCAD's Text Style dialog sets of a style: its font (an SHX file with its big font, or a TrueType typeface with

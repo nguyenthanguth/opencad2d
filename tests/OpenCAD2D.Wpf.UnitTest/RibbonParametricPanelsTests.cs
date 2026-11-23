@@ -12,9 +12,9 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.RibbonWave4Harness;
+using static OpenCAD2D.Wpf.UnitTest.RibbonWave4Harness;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Parametric as AutoCAD 2021's (D1341), found in the window drawn offscreen: Geometric (Auto Constrain large, the twelve

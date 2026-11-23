@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>What kind of value a plugin's setting holds, and so which box the presenter draws for it.</summary>
     public enum CadSettingKind

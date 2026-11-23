@@ -1,4 +1,4 @@
-"""Asks you to pick a point in a running GeometryHelper CAD, and draws a circle of radius 50 there.
+"""Asks you to pick a point in a running OpenCAD2D, and draws a circle of radius 50 there.
 
 Run outside the app, with "Allow other programs to connect" on in its Global settings: python pick_and_mark.py
 It waits up to a minute for you to click on the canvas or type a point, then zooms to the extents. Esc in the app
@@ -9,8 +9,8 @@ import sys
 
 from System import TimeSpan
 
-from geometryhelper.cad import App
-from GeometryHelper.Cad.Remote import CadApplication, CadRemoteException
+from opencad2d.cad import App
+from OpenCAD2D.Remote import CadApplication, CadRemoteException
 
 PICK_TIMEOUT = TimeSpan.FromSeconds(60)  # a pick with no time limit would wait for ever, and Ctrl+C cannot end it
 

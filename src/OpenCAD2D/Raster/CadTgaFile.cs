@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Truevision TGA (.tga): colour-mapped (type 1), true colour (2) and grey (3), plain or run-length coded (types 9, 10 and

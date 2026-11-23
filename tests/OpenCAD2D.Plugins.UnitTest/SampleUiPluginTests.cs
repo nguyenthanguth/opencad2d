@@ -1,11 +1,11 @@
 using System;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>
     /// The sample that adds to the window, CircleUi, loaded from its .dll as a user loads a plugin: what it registered, read
@@ -14,7 +14,7 @@ namespace GeometryHelper.Cad.Plugins.UnitTest
     /// </summary>
     public sealed class SampleUiPluginTests : IDisposable
     {
-        private const string SampleUiName = "GeometryHelper.Cad.SampleUiPlugin";
+        private const string SampleUiName = "OpenCAD2D.SampleUiPlugin";
 
         private readonly PluginFiles _files = new PluginFiles();
         private readonly CadPluginManager _manager;

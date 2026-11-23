@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>grread</c>: waits for one key, one click or one move of the cursor and gives it as a list, the way the loops that

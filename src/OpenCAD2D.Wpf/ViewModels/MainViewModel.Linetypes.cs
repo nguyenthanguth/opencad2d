@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The linetype box of the ribbon's Properties panel ($CELTYPE), the Linetype Manager (LINETYPE) and the Hatch dialog of

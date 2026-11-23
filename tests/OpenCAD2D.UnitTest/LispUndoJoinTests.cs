@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The undo of forms typed one after the other at the Command prompt (D250, part F1 of L4): the changes of the forms typed

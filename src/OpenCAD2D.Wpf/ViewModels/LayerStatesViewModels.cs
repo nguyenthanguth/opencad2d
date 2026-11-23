@@ -2,7 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A row of the Layer States Manager: the state's name, its space, Same as DWG and its description.</summary>
     public sealed class LayerStateRowViewModel

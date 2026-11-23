@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Python;
+using OpenCAD2D.Python;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The window's thread as the Python host sees it: work is posted to the dispatcher at background priority (so the command

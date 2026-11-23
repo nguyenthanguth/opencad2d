@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 
-from GeometryHelper.Cad.Remote import CadRemoteException
+from OpenCAD2D.Remote import CadRemoteException
 from GeometryHelper.Dxf import DxfBlockTableRecord, DxfDimStyleTableRecord, DxfLine, DxfTextStyleTableRecord
 from GeometryHelper.Geometry import GeoPoint3
 

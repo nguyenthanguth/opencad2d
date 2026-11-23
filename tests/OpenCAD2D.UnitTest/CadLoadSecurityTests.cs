@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using GeometryHelper;
 using GeometryHelper.Enums;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <see cref="CadLoadSecurity"/> by itself (decisions D901-D908 of the L6 spec): which folders are trusted and how

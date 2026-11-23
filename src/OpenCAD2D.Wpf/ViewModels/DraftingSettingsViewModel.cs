@@ -4,9 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D.Plugins;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A check box of the Object Snap tab: an object snap of AutoCAD's with its marker, off and greyed where it is not built yet.</summary>
     public sealed class SnapModeRowViewModel : ObservableObject

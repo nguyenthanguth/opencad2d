@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The history LAYERP reads (Layer Previous): before each change or set of changes to the settings of layers, the settings

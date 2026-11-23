@@ -11,7 +11,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The ribbon tabs Annotate and View, the new commands of the window (NEW, SAVEAS, PROPERTIESCLOSE, the toggles typed) and

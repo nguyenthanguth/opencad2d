@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What SPELL gives its Check Spelling dialog: where to check, the word found not in the dictionary with the words nearest

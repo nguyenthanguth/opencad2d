@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// OSNAP and its alias OS open Drafting Settings on the Object Snap tab, as AutoCAD 2021 does, and no longer ask the

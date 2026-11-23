@@ -3,7 +3,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
-namespace GeometryHelper.PyStubs.UnitTest
+namespace OpenCAD2D.PyStubs.UnitTest
 {
     /// <summary>The conversion of documentation comments to docstring text, and the wrapping of it.</summary>
     public class DocTextTests

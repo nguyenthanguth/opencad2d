@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What a field is evaluated for, as AutoCAD's <c>FieldEvaluationContext</c>: the bits of FIELDEVAL, and on demand.</summary>
     internal static class CadFieldContexts

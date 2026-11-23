@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The parametric constraints of AutoCAD 2021's Parametric tab for the presenter: the geometric constraints (GCCOINCIDENT

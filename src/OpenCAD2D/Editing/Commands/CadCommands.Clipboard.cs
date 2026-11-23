@@ -4,10 +4,11 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The clipboard commands as AutoCAD's: COPYCLIP (Ctrl+C), CUTCLIP (Ctrl+X) and COPYBASE (Ctrl+Shift+C) put the objects

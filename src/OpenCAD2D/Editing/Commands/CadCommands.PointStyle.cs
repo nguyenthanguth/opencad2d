@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The point style, in AutoCAD's words: PTYPE (DDPTYPE) shows the window's Point Style dialog, or with none asks PDMODE and

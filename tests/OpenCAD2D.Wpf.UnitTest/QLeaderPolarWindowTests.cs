@@ -7,7 +7,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Polar Tracking tab of Drafting Settings past its increment (additional angles, New and Delete, how tracking runs

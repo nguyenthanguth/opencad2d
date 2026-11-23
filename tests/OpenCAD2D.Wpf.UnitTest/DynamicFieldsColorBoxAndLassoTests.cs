@@ -7,7 +7,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The two fields of dynamic input at a point prompt, the canvas's tip beside them, the colour box of the ribbon and

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <see cref="CadCommandSession.Start(CadCommand)"/> (P3 D708): a host starts a command that is in no registry, as a

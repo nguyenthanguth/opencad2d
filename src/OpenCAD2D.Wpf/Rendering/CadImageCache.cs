@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using GeometryHelper;
 using SkiaSharp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The pictures of the images and OLE frames drawn, decoded once each, an image by its file and its time on disk, so that

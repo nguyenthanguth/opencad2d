@@ -9,7 +9,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>What the tests of Python in the window share: a thread with a dispatcher, as the window's, and a way to let it work.</summary>
     internal static class PythonWindowKit

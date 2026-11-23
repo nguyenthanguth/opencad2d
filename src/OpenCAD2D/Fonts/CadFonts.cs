@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The fonts a document's text is drawn in, found as AutoCAD finds them: a text style's SHX font (romans.shx, txt read as
-    /// txt.shx) and big font in <see cref="Folders"/> in their order and then in the Fonts folder beside GeometryHelper.Cad.dll (<see cref="CadSupportFolders"/>), read once and
+    /// txt.shx) and big font in <see cref="Folders"/> in their order and then in the Fonts folder beside OpenCAD2D.dll (<see cref="CadSupportFolders"/>), read once and
     /// kept; a TrueType typeface as the canvas has it, else a font file of that family in those folders, a file also in the Fonts folder of Windows; a font named in
     /// <see cref="Substitutions"/> looked for as the font it is given for, as AutoCAD's font mapping file does; and one not
     /// found replaced by <see cref="Replacement"/>, as AutoCAD's FONTALT replaces it (a TrueType font not found, by the
@@ -106,7 +107,7 @@ namespace GeometryHelper.Cad
 
         /// <summary>
         /// Gets the folders a drawing's fonts start with: none. SHX fonts are read from the folders
-        /// the user adds in Global settings' Folder preference, then from the Fonts folder beside GeometryHelper.Cad.dll and its subfolders; a TrueType file is looked for in the Fonts folder of Windows as
+        /// the user adds in Global settings' Folder preference, then from the Fonts folder beside OpenCAD2D.dll and its subfolders; a TrueType file is looked for in the Fonts folder of Windows as
         /// well, last. The drawing's own folder is not looked in, and nor are AutoCAD's Fonts folders.
         /// </summary>
         public static IReadOnlyList<string> DefaultFolders { get; } = Array.Empty<string>();
@@ -179,7 +180,7 @@ namespace GeometryHelper.Cad
             return new CadFonts(Folders, Replacement, table, _familyExists) { _roots = _roots };
         }
 
-        /// <summary>These fonts looking in other default folders than those beside GeometryHelper.Cad.dll, as a test puts them.</summary>
+        /// <summary>These fonts looking in other default folders than those beside OpenCAD2D.dll, as a test puts them.</summary>
         internal CadFonts WithRoots(CadSupportFolders roots) =>
             new CadFonts(Folders, Replacement, Substitutions, _familyExists)
             {

@@ -4,9 +4,10 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>An item of a menu of the Text Editor tab: a colour, a symbol, a justification or a line spacing.</summary>
     public sealed class TextEditorChoice

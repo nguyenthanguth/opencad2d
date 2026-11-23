@@ -11,12 +11,12 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Dcl;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Dcl;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The WPF dialogs that show DCL dialogs (L5 part W, D334): every tile kind drawn as a control at the rectangle the layout

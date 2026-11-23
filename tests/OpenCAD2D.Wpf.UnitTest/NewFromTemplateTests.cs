@@ -13,7 +13,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// New from template: a button beside New on the start screen and Ctrl+Shift+N both run NEW with Select Template opened in

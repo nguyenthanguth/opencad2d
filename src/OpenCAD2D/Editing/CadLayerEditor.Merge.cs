@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     public static partial class CadLayerEditor
     {

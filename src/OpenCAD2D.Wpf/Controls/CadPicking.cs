@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What a click and a box do, as AutoCAD does with PICKADD on. With no command running: a click on an entity adds it,

@@ -1,9 +1,9 @@
 using System;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// Lengths and angles in a drawing's units, as -UNITS's examples write them and AutoCAD reads them typed; and UNITS's

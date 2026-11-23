@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The contextual Block Editor tab of the ribbon, over a <see cref="BlockEditorRibbonViewModel"/>.</summary>
     public partial class BlockEditorRibbon : UserControl

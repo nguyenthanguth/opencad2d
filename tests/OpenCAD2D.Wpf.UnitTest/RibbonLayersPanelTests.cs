@@ -14,7 +14,7 @@ using System.Windows.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Home › Layers as AutoCAD 2021's, found in the window drawn offscreen: the body (Layer Properties, the layer box, and

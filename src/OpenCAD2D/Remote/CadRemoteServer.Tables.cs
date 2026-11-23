@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Remote;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Remote;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The layers and the layouts of a drawing, read and set from outside.</summary>
     public sealed partial class CadRemoteServer

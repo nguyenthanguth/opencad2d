@@ -6,7 +6,7 @@ from System import Action, Func
 from System import Exception as NetException
 
 from GeometryHelper import GeometryHelperLog
-from GeometryHelper.Cad import CadSystemVariable, CadTrueTypeFonts
+from OpenCAD2D import CadSystemVariable, CadTrueTypeFonts
 from GeometryHelper.Enums import GeometryHelperLogLevel
 
 seen: list[str] = []

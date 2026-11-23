@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Remote;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Remote;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The window's drawings seen from another program: a <see cref="CadRemoteServer"/> over the view model, spoken to by the
@@ -30,11 +30,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                 var model = new MainViewModel();
                 Assert.True(model.Open(room));
                 Assert.True(model.Open(plan));
-                var host = new CadAppRemoteHost(
-                    model,
-                    () => "plan.dxf - GeometryHelper CAD",
-                    Dispatcher.CurrentDispatcher
-                );
+                var host = new CadAppRemoteHost(model, () => "plan.dxf - OpenCAD2D", Dispatcher.CurrentDispatcher);
                 string files = Path.Combine(folder.FullPath, "remote");
 
                 using (var server = new CadRemoteServer(host, new InlineDispatcher(), files, "wpf"))

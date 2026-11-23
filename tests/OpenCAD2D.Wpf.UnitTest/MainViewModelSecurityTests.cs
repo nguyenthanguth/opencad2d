@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.SecurityKit;
+using static OpenCAD2D.Wpf.UnitTest.SecurityKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// L6's wiring in the window (D903, D906, D911): the drawings of the app share one <see cref="CadLoadSecurity"/> built from

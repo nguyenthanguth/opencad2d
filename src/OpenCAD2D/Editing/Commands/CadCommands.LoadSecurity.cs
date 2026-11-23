@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The three variables of the gate in front of files of code, as AutoCAD 2021 has them, each reading and setting the

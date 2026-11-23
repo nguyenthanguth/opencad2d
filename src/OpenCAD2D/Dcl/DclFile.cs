@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>A loaded DCL file: its definitions, its own and those it included, each resolved to primitives.</summary>
     internal sealed class DclFile

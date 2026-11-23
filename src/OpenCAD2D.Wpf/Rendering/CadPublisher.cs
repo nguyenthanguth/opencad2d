@@ -4,8 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Media;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What a publish did: the PDF files written, the sheets printed, the sheets passed over, and one line for each thing that happened, as the command line says them.</summary>
     public sealed class CadPublishResult

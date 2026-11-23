@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Tables (C18a): TABLE asking for the Insert Table dialog, TABLESTYLE for the Table Style dialog, and the cells of a table

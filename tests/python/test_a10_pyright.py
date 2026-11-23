@@ -54,9 +54,9 @@ def _scripts_errors() -> tuple[tuple[str, int, str, str], ...]:
 
 
 def _site_packages() -> Path:
-    import geometryhelper
+    import opencad2d
 
-    return Path(geometryhelper.__file__).resolve().parent.parent
+    return Path(opencad2d.__file__).resolve().parent.parent
 
 
 def test_the_pyright_that_runs_is_the_one_the_requirements_pin() -> None:
@@ -87,7 +87,7 @@ def test_a_script_written_wrong_has_exactly_the_marked_errors(script: Path) -> N
 
 
 def test_the_installed_package_is_clean_in_strict_mode() -> None:
-    package = _site_packages() / "geometryhelper"
+    package = _site_packages() / "opencad2d"
     assert _pyright(STRICT, *sorted(package.glob("*.py"))) == []
 
 

@@ -1,0 +1,42 @@
+<Project>
+    <!--
+    One place for the things every project in this repository agrees on.
+
+    OpenCAD2D has one version for all its projects. The assembly attributes are generated from it.
+  -->
+
+    <PropertyGroup>
+        <OpenCAD2DVersion>1.0.0</OpenCAD2DVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Version>$(OpenCAD2DVersion)</Version>
+        <AssemblyVersion>$(OpenCAD2DVersion).0</AssemblyVersion>
+        <FileVersion>$(OpenCAD2DVersion).0</FileVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <LangVersion>latest</LangVersion>
+        <Deterministic>true</Deterministic>
+    </PropertyGroup>
+
+    <!--
+    The core library, GeometryHelper (geometry, DXF and DWG), is used as a binary: Lib\GeometryHelper.dll with its XML
+    documentation, built from the GeometryHelper repository (https://github.com/nguyenthanguth/GeometryHelper) at the
+    commit Lib\VERSION.txt names. tools\update-lib.ps1 builds it there and copies it here.
+  -->
+    <PropertyGroup>
+        <GeometryHelperLib>$(MSBuildThisFileDirectory)Lib\</GeometryHelperLib>
+    </PropertyGroup>
+
+    <!-- Shared package identity. Anything specific to one project stays in its own project file. -->
+    <PropertyGroup>
+        <Authors>Nguyen Thang</Authors>
+        <Company>Nguyen Thang</Company>
+        <Product>OpenCAD2D</Product>
+        <Copyright>Copyright © 2026 Nguyen Thang</Copyright>
+        <RepositoryUrl>https://github.com/nguyenthanguth/opencad2d</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+</Project>

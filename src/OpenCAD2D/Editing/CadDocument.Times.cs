@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The clocks of the drawing TIME shows (<see cref="CadDocumentTimes"/>).</summary>
     public sealed partial class CadDocument

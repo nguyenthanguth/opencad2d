@@ -3,10 +3,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.PythonWindowKit;
-using static GeometryHelper.Cad.Wpf.UnitTest.SecurityKit;
+using static OpenCAD2D.Wpf.UnitTest.PythonWindowKit;
+using static OpenCAD2D.Wpf.UnitTest.SecurityKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The two warnings of L6 as windows shown over an owner that is off the screen (D914, D915, D922): what each says, what

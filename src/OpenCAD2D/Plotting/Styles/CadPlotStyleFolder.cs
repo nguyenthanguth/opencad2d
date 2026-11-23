@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The folder of plot style tables the Plot and Page Setup dialogs list and a plot reads, as AutoCAD's Plot Styles folder,
@@ -19,12 +20,11 @@ namespace GeometryHelper.Cad
     /// </remarks>
     public static class CadPlotStyleFolder
     {
-        /// <summary>The name of the folder the presenter makes where Global settings give none: PlotStyles under %AppData%\GeometryHelper\Drawing.</summary>
+        /// <summary>The name of the folder the presenter makes where Global settings give none: PlotStyles under %AppData%\OpenCAD2D.</summary>
         public static string DefaultPath =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GeometryHelper",
-                "Drawing",
+                "OpenCAD2D",
                 "PlotStyles"
             );
 

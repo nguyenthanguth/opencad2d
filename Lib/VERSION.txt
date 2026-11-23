@@ -1,0 +1,1 @@
+GeometryHelper 13.12.0, built in Release from commit 6bb8136e of https://github.com/nguyenthanguth/GeometryHelper

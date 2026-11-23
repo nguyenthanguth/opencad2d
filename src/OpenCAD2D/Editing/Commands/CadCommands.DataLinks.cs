@@ -6,7 +6,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What DATALINK gives the Data Link Manager: the drawing whose links it lists, makes, changes and deletes.</summary>
     public sealed class CadDataLinkManagerRequest

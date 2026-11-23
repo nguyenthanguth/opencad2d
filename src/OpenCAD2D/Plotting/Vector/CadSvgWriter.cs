@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A writer of SVG for SVGOUT (a command of the presenter's own: AutoCAD 2021 writes none): a <see cref="CadVectorPicture"/>

@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The settings of SPELL, as AutoCAD 2021's Check Spelling Settings dialog gives them: what is included and which words

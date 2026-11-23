@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The keys of the user's classes, <c>HKEY_CURRENT_USER\Software\Classes</c>, as the association reads and writes them:
@@ -35,18 +35,25 @@ namespace GeometryHelper.Cad.Wpf
     internal static class CadFileAssociation
     {
         /// <summary>The ProgID of a drawing the app opens.</summary>
-        internal const string ProgId = "GeometryHelper.Drawing";
+        internal const string ProgId = "OpenCAD2D.Drawing";
+
+        /// <summary>
+        /// The ProgID the app had as GeometryHelper CAD, before it was OpenCAD2D: taken out wherever the association is written
+        /// or taken out, so that "Open with" does not list the app twice.
+        /// </summary>
+        internal const string OldProgId = "GeometryHelper.Drawing";
 
         /// <summary>The extensions associated.</summary>
         internal static readonly string[] Extensions = { ".dxf", ".dwg" };
 
         /// <summary>Writes the association.</summary>
         /// <param name="classes">The user's classes.</param>
-        /// <param name="appName">The app's name, shown in the type of a file: "Drawing (GeometryHelper CAD)".</param>
+        /// <param name="appName">The app's name, shown in the type of a file: "Drawing (OpenCAD2D)".</param>
         /// <param name="exePath">The full path of the app's exe, which is given the file as its one argument.</param>
         /// <param name="iconPath">The icon of a drawing file: a .ico file, or an exe and the index of its icon.</param>
         internal static void Register(ICadUserClasses classes, string appName, string exePath, string iconPath)
         {
+            Remove(classes, OldProgId);
             classes.SetValue(ProgId, "", "Drawing (" + appName + ")");
             classes.SetValue(ProgId + @"\DefaultIcon", "", iconPath);
             classes.SetValue(ProgId + @"\shell\open\command", "", "\"" + exePath + "\" \"%1\"");
@@ -68,18 +75,25 @@ namespace GeometryHelper.Cad.Wpf
         /// <param name="classes">The user's classes.</param>
         internal static void Unregister(ICadUserClasses classes)
         {
+            Remove(classes, ProgId);
+            Remove(classes, OldProgId);
+            classes.NotifyShell();
+        }
+
+        /// <summary>Takes a ProgID out of the extensions and deletes its key.</summary>
+        private static void Remove(ICadUserClasses classes, string progId)
+        {
             foreach (string extension in Extensions)
             {
-                classes.DeleteValue(extension + @"\OpenWithProgids", ProgId);
+                classes.DeleteValue(extension + @"\OpenWithProgids", progId);
 
-                if (string.Equals(classes.GetValue(extension, ""), ProgId, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(classes.GetValue(extension, ""), progId, StringComparison.OrdinalIgnoreCase))
                 {
                     classes.DeleteValue(extension, "");
                 }
             }
 
-            classes.DeleteKey(ProgId);
-            classes.NotifyShell();
+            classes.DeleteKey(progId);
         }
     }
 

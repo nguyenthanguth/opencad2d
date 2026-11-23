@@ -1,6 +1,7 @@
 using System;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     public sealed partial class CadDocument
     {

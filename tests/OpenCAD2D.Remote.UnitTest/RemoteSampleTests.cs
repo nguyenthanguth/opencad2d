@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using GeometryHelper.Cad.Remote.Sample;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Remote.Sample;
 using Xunit;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     /// <summary>The sample program's logic, run against a headless app with the pick answered by the test.</summary>
     public class RemoteSampleTests
@@ -54,11 +54,7 @@ namespace GeometryHelper.Cad.Remote.UnitTest
                 Assert.IsType<DxfPolyline>(drawn[0]);
                 Assert.True(((DxfPolyline)drawn[0]).Closed);
                 Assert.IsType<DxfLine>(drawn[1]);
-                Assert.Contains(
-                    "GeometryHelper CAD",
-                    Assert.IsType<DxfMText>(drawn[2]).Contents,
-                    StringComparison.Ordinal
-                );
+                Assert.Contains("OpenCAD2D", Assert.IsType<DxfMText>(drawn[2]).Contents, StringComparison.Ordinal);
                 var circle = Assert.IsType<DxfCircle>(drawn[3]);
                 Assert.Equal(300.0, circle.Center.X, 9);
                 Assert.Equal(120.0, circle.Center.Y, 9);

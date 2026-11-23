@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>A viewport's corner grips dragged on the canvas, and the grid's dots drawn under the drawing, offscreen on an STA thread.</summary>
     public class CanvasRoundTwoTests

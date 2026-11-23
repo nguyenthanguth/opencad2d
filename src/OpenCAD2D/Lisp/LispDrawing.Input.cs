@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>getpoint</c>, <c>getcorner</c>, <c>getdist</c>, <c>getangle</c>, <c>getorient</c>, <c>getint</c>, <c>getreal</c>,

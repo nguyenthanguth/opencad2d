@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What one space of a drawing, model space or a layout, is drawn as: its items in drawing order, the box that holds

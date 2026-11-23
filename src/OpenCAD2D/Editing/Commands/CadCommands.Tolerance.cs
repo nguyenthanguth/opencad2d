@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>TOLERANCE: a feature control frame from the Geometric Tolerance dialog, put where it is picked.</summary>
     internal static partial class CadCommands

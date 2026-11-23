@@ -1,9 +1,9 @@
 using System.Diagnostics;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The list functions with a <c>vl-</c> name (<c>vl-sort</c>, <c>vl-remove</c>, <c>vl-position</c>, <c>vl-every</c> and

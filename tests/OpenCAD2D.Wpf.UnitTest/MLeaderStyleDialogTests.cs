@@ -10,7 +10,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Multileader Style Manager (MLEADERSTYLE) and its Modify dialog, the multileader style box of the Annotate tab, and

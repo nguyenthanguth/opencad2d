@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The shade a dialog takes while a dialog of its own is open over it, as the boards draw it (rgba(10, 12, 16, 0.45)):

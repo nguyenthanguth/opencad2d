@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The SELECT command, with the transcripts of AutoCAD 2021's accoreconsole (the L8 measurements m/entmod, s1 and s2): three

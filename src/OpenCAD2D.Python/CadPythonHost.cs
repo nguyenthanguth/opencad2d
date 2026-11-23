@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using GeometryHelper.Cad.Remote;
+using GeometryHelper;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Remote;
 using Python.Runtime;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>
     /// The one class that calls the Python engine. It starts CPython the first time Python is asked for, runs every script and
@@ -277,7 +278,7 @@ namespace GeometryHelper.Cad.Python
                     using (PyObject path = sys.GetAttr("path"))
                     using (path.InvokeMethod("insert", new PyInt(0), new PyString(folder))) { }
 
-                    _app = Py.Import("geometryhelper._app");
+                    _app = Py.Import("opencad2d._app");
                     var emit = new Action<string, bool>(EmitFromPython);
 
                     using (PyObject delegateObject = emit.ToPython())
@@ -299,9 +300,7 @@ namespace GeometryHelper.Cad.Python
             {
                 string first = (exception.Message ?? string.Empty).Split('\n')[0].Trim();
                 _startProblem =
-                    "Python could not start: "
-                    + first
-                    + ". Fix Global settings > Python and restart GeometryHelper CAD.";
+                    "Python could not start: " + first + ". Fix Global settings > Python and restart OpenCAD2D.";
                 GeometryHelperLog.Warn("CadPythonHost: Python could not start.", exception);
 
                 // Started but not set up (the package not found): the engine holds the GIL on this thread since Initialize,
@@ -330,7 +329,7 @@ namespace GeometryHelper.Cad.Python
         {
             string location = typeof(CadPythonHost).Assembly.Location;
             string beside = string.IsNullOrEmpty(location) ? null : Path.GetDirectoryName(location);
-            return beside != null && Directory.Exists(Path.Combine(beside, "python", "geometryhelper"))
+            return beside != null && Directory.Exists(Path.Combine(beside, "python", "opencad2d"))
                 ? beside
                 : AppDomain.CurrentDomain.BaseDirectory;
         }

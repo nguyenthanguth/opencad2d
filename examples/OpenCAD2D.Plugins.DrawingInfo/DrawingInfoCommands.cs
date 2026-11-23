@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using GeometryHelper.Cad;
-using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Dxf;
+using OpenCAD2D;
+using OpenCAD2D.Plugins;
 
 [assembly: CadPluginApi("1.0")]
 
-namespace GeometryHelper.Cad.Plugins.DrawingInfo
+namespace OpenCAD2D.Plugins.DrawingInfo
 {
     /// <summary>
     /// The sample plugin that ships with the app: GHDWGINFO writes what the drawing holds, and changes nothing. It is the

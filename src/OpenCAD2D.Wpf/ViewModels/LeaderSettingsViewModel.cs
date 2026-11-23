@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A row of the Attachment tab of Leader Settings: its words and whether it is chosen for the text on either side.</summary>
     public sealed class LeaderAttachmentRowViewModel : ObservableObject

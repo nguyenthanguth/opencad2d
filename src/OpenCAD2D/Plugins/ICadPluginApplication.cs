@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// The entry point of a plugin that adds to the window, as AutoCAD's <c>IExtensionApplication</c> is: a public class with

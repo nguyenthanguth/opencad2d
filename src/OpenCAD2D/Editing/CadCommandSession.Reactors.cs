@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The reactors of Visual LISP of a document: the ones its routines made (<c>vlr-command-reactor</c> and the others) and the

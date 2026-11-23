@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Threading;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The app's drawings for the remote channel: a <see cref="CadRemoteServer"/> reads the window's view model through this,

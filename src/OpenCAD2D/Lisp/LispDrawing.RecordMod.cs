@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>entmod</c> of a record of a table (a layer, linetype, text style, dimension style, UCS, view, viewport or

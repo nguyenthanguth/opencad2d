@@ -8,7 +8,7 @@ applied together by one commit; the drawing is then saved as OUT.
 import sys
 from pathlib import Path
 
-from geometryhelper.cad import new_file
+from opencad2d.cad import new_file
 
 
 def main(argv: list[str]) -> int:

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// A button a plugin puts in the header of the DRAWINGS list, left of the presenter's Refresh and Open: an icon with a

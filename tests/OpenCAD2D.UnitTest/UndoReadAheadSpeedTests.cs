@@ -8,7 +8,7 @@ using GeometryHelper.Geometry;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The drawing the next undo goes to read ahead after the Block Editor saves or discards, as after any other step: an undo

@@ -8,7 +8,7 @@ polylines and the circles on the layer, in the drawing's units squared.
 import sys
 from pathlib import Path
 
-from geometryhelper.cad import Entity, open_file
+from opencad2d.cad import Entity, open_file
 from GeometryHelper.Dxf import DxfCircle, DxfPolyline
 
 

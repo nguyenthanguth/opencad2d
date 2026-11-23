@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GeometryHelper.PyStubs
+namespace OpenCAD2D.PyStubs
 {
     /// <summary>
     /// What one stub module has used from elsewhere while it was written: the <c>typing</c> names, the stubs of the .NET
@@ -59,9 +59,15 @@ namespace GeometryHelper.PyStubs
             string local = type.Name;
             if (_taken.Contains(local))
             {
-                string ns = type.Namespace.StartsWith("GeometryHelper.", StringComparison.Ordinal)
-                    ? type.Namespace.Substring("GeometryHelper.".Length)
-                    : type.Namespace;
+                string ns = type.Namespace;
+                foreach (string root in StubGenerator.Roots)
+                {
+                    if (ns.StartsWith(root + ".", StringComparison.Ordinal))
+                    {
+                        ns = ns.Substring(root.Length + 1);
+                        break;
+                    }
+                }
                 local = "_" + ns.Replace('.', '_') + "_" + type.Name;
                 while (_taken.Contains(local))
                 {

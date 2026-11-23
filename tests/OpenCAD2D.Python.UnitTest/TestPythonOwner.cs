@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The owner of the tests (D704): there is no window and no second thread. <see cref="Post"/> keeps the work until

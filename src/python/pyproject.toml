@@ -3,9 +3,9 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "geometryhelper"
+name = "opencad2d"
 dynamic = ["version"]
-description = "GeometryHelper for Python: 2D and 3D geometry, DXF and DWG, and the CAD presenter without a window"
+description = "OpenCAD2D for Python: commands and scripts inside the OpenCAD2D app, driving it from outside, and its drawings without a window"
 readme = "README.md"
 requires-python = ">=3.11,<3.16"
 license = "MIT"
@@ -27,15 +27,15 @@ classifiers = [
 numpy = ["numpy>=1.26"]
 
 [project.urls]
-Documentation = "https://nguyenthanguth.github.io/GeometryHelper/"
-Source = "https://github.com/nguyenthanguth/GeometryHelper"
+Documentation = "https://github.com/nguyenthanguth/opencad2d"
+Source = "https://github.com/nguyenthanguth/opencad2d"
 
 [tool.hatch.metadata.hooks.custom]
 path = "hatch_build.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["geometryhelper", "GeometryHelper-stubs", "System-stubs"]
-artifacts = ["geometryhelper/lib/**", "GeometryHelper-stubs/**"]
+packages = ["opencad2d", "GeometryHelper-stubs", "OpenCAD2D-stubs", "System-stubs"]
+artifacts = ["opencad2d/lib/**", "GeometryHelper-stubs/**", "OpenCAD2D-stubs/**"]
 
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = "hatch_build.py"

@@ -10,7 +10,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The cells of a table on the canvas, to the designs TableCellGrips, TableCellRange, TableCellMenu and TableCellDrags: the

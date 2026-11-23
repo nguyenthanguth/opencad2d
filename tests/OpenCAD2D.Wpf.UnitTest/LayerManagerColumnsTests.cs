@@ -9,7 +9,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The columns of the Layer manager's table in a drawing of 367 layers whose names differ in length: the Name column

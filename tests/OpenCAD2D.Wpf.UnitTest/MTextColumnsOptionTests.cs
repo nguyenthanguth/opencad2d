@@ -2,7 +2,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// MTEXT's Columns option and the MTEXT editor: the editor opens with the columns the option gave, and the MTEXT is

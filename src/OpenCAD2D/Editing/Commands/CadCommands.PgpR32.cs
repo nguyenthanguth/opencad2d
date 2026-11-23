@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What was left of the acad.pgp gap list in round 3, item R3.2, that the drawing alone can do: IMAGEADJUST (and

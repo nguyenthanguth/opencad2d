@@ -1,4 +1,4 @@
-"""A7: ``geometryhelper.arrays``: the four block copies between numpy and .NET arrays of doubles, GeoPoint2 and
+"""A7: ``opencad2d.arrays``: the four block copies between numpy and .NET arrays of doubles, GeoPoint2 and
 GeoPoint3 (D607). The checks read the .NET side one property at a time, which is what the helpers exist to avoid."""
 
 import importlib
@@ -15,7 +15,7 @@ from System import Array, Double
 from System.Collections.Generic import List
 from System.Runtime.InteropServices import Marshal
 
-import geometryhelper  # noqa: F401  (boots .NET and loads the assemblies)
+import opencad2d  # noqa: F401  (boots .NET and loads the assemblies)
 from GeometryHelper.Geometry import GeoPoint2, GeoPoint3, GeoPolygon2
 
 Python = Callable[..., CompletedProcess[str]]
@@ -23,7 +23,7 @@ Python = Callable[..., CompletedProcess[str]]
 
 @pytest.fixture
 def arrays() -> ModuleType:
-    return importlib.import_module("geometryhelper.arrays")
+    return importlib.import_module("opencad2d.arrays")
 
 
 def _random(shape: tuple[int, ...]) -> np.ndarray[Any, np.dtype[np.float64]]:
@@ -202,14 +202,14 @@ def test_a_hundred_thousand_points_copy_in_milliseconds_not_in_a_loop(arrays: Mo
 
 
 def test_the_package_imports_without_numpy(python: Python) -> None:
-    process = python("import sys\nsys.modules['numpy'] = None\nimport geometryhelper\n")
+    process = python("import sys\nsys.modules['numpy'] = None\nimport opencad2d\n")
     assert process.returncode == 0, process.stderr
 
 
 def test_the_arrays_module_without_numpy_fails_with_the_documented_text(python: Python) -> None:
-    process = python("import sys\nsys.modules['numpy'] = None\nimport geometryhelper.arrays\n")
+    process = python("import sys\nsys.modules['numpy'] = None\nimport opencad2d.arrays\n")
     assert process.returncode == 1
     assert (
-        "ImportError: geometryhelper.arrays needs numpy: pip install geometryhelper[numpy]"
+        "ImportError: opencad2d.arrays needs numpy: pip install opencad2d[numpy]"
         in process.stderr.splitlines()
     )

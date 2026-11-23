@@ -3,7 +3,7 @@
 A DXF drawing opened, shown and edited the way AutoCAD does it, by a library that has no window of its own: the document,
 what is drawn, picking, the command line, grips, Properties, layers, undo and redo, the owner contract and the command
 plugins all run in a test with nothing on the screen. The window is a set of controls over it. Its namespace is
-`GeometryHelper.Cad`, and it is not packed yet: the projects are built from the repository.
+`OpenCAD2D`, and it is not packed yet: the projects are built from the repository.
 
 It opens and edits through [`DxfDatabase`](xref:GeometryHelper.Dxf.DxfDatabase) and nothing else, so what a drawing holds
 that the presenter does not draw or edit is kept as the file had it: a drawing opened and saved with no edit is written
@@ -14,20 +14,20 @@ own entities answer to their [owner](owners.md).
 
 | Project | What it holds | Runs on |
 |---|---|---|
-| `GeometryHelper.Cad` | the document, display lists, picking, the command line and its commands, snaps, grips, Properties, layers, owners, plugins and global settings; no window | netstandard2.0 |
-| `GeometryHelper.Cad.Wpf` | the controls: the canvas drawn through SkiaSharp 4.155.0, the file list, Properties, the layer box, the command line and the status bar | net48 and net8.0-windows |
-| `GeometryHelper.Cad.App` | GeometryHelper CAD, the presenter's own app, `GeometryHelper.Cad.App.exe plan.dxf` (see [The apps](app.md#the-apps)) | net8.0-windows |
+| `OpenCAD2D` | the document, display lists, picking, the command line and its commands, snaps, grips, Properties, layers, owners, plugins and global settings; no window | netstandard2.0 |
+| `OpenCAD2D.Wpf` | the controls: the canvas drawn through SkiaSharp 4.155.0, the file list, Properties, the layer box, the command line and the status bar | net48 and net8.0-windows |
+| `OpenCAD2D.App` | OpenCAD2D, the presenter's own app, `OpenCAD2D.App.exe plan.dxf` (see [The apps](app.md#the-apps)) | net8.0-windows |
 
 The core is the part to build on: it is what a test drives, and what the controls call. The controls and the window are
 not in the API reference; the pages here say what they do where it matters.
 
 ## A first look
 
-A [`CadDocument`](xref:GeometryHelper.Cad.CadDocument) opened, drawn into a display list, picked in and edited through its
-[`CadCommandSession`](xref:GeometryHelper.Cad.CadCommandSession):
+A [`CadDocument`](xref:OpenCAD2D.CadDocument) opened, drawn into a display list, picked in and edited through its
+[`CadCommandSession`](xref:OpenCAD2D.CadCommandSession):
 
 ```csharp
-using GeometryHelper.Cad;
+using OpenCAD2D;
 
 CadDocument document = CadDocument.Open("plate.dxf");              // a plate 100 by 60 with a hole of 20 and a TEXT
 DisplayList2 display = document.GetDisplay(document.ModelSpace);   // 6 items: four lines, a circle, a text
@@ -52,7 +52,7 @@ What each line does is on the page that follows.
 
 | Page | What it covers |
 |---|---|
-| [Opening, drawing and picking](display.md) | the document and its spaces, what each entity is drawn as, the view and its zoom, [`PickIndex`](xref:GeometryHelper.Cad.PickIndex), the selection |
+| [Opening, drawing and picking](display.md) | the document and its spaces, what each entity is drawn as, the view and its zoom, [`PickIndex`](xref:OpenCAD2D.PickIndex), the selection |
 | [Editing as AutoCAD does](editing.md) | one edit, one undo step; the command line, its aliases and its commands; object snaps; grips; Properties; layers; saving |
 | [Plotting to PDF](plot.md) | the page setup a layout keeps, named page setups and the Page Setup Manager, the sheet a plot is laid on, the plot style tables, the PDF, printing on a printer of Windows, PLOT, -PLOT, PREVIEW and PAGESETUP |
 | [Owners](owners.md) | the entities a model drawing wrote, and how the presenter asks their owner before it changes one |
@@ -115,5 +115,5 @@ its neighbours and the threads gain nothing.
 
 ## See also
 
-- [DXF files](../dxf/index.md): the model the presenter opens and edits.
-- [Editing rules and what the model does not do](../dxf/rules.md): what each entity accepts.
+- [DXF files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md): the model the presenter opens and edits.
+- [Editing rules and what the model does not do](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/rules.md): what each entity accepts.

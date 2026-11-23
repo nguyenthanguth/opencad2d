@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What a <see cref="CadRemoteServer"/> needs of the app it serves: the drawings open, the one the user works in, and
@@ -11,7 +11,7 @@ namespace GeometryHelper.Cad
     /// </summary>
     public interface ICadRemoteHost
     {
-        /// <summary>Gets the title of the app's window, as <c>A-101.dwg - GeometryHelper CAD</c>.</summary>
+        /// <summary>Gets the title of the app's window, as <c>A-101.dwg - OpenCAD2D</c>.</summary>
         string Title { get; }
 
         /// <summary>Gets the drawings open now.</summary>

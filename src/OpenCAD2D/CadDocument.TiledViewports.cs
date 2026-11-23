@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The tiled viewports model space is shown through.</summary>
     public sealed partial class CadDocument

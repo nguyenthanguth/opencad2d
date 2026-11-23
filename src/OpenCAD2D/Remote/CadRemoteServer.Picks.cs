@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using GeometryHelper.Cad.Remote;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Remote;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>Waiting for the user to pick a point or objects in a drawing, on the drawing's own command line.</summary>
     public sealed partial class CadRemoteServer
@@ -46,7 +46,7 @@ namespace GeometryHelper.Cad
 
             if (kind != "point" && kind != "objects" && kind != "object")
             {
-                throw new Refusal("GeometryHelper CAD does not know the pick " + kind + ": it is of an older version.");
+                throw new Refusal("OpenCAD2D does not know the pick " + kind + ": it is of an older version.");
             }
 
             _picking = true;
@@ -109,7 +109,7 @@ namespace GeometryHelper.Cad
                 throw abandoned
                     ? new Refusal(
                         _stopping
-                            ? "GeometryHelper CAD is shutting down."
+                            ? "OpenCAD2D is shutting down."
                             : "The user did not pick in time; the pick was ended in the drawing " + document.Title + "."
                     )
                     : new Refusal("The user cancelled the pick.", true);

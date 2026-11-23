@@ -1,11 +1,11 @@
 using System;
 using System.IO;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// What loads when a drawing is opened (from the published reference of AutoCAD 2021, which the console cannot show

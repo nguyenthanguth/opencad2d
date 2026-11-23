@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Import Page Setups, from Import… of the Page Setup Manager: the page setups of the drawing chosen, each ticked to be

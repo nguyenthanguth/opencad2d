@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Insert Hyperlink and Edit Hyperlink dialog, which HYPERLINK shows: Link to (Existing File or Web Page, View of

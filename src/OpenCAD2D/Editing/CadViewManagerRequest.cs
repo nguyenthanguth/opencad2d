@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>A named view of a drawing as the View Manager lists it.</summary>
     public sealed class CadViewRow

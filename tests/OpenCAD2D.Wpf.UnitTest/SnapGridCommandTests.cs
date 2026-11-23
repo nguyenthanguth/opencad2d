@@ -4,7 +4,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// SNAP, GRID and the variables of the snap and the grid typed, in AutoCAD 2021's words as accoreconsole gives them:

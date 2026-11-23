@@ -11,7 +11,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     public class RemoteChannelTests
     {
@@ -22,7 +22,7 @@ namespace GeometryHelper.Cad.Remote.UnitTest
         {
             using (var harness = new Harness())
             {
-                var host = new TestHost { Title = "A-101.dxf - GeometryHelper CAD" };
+                var host = new TestHost { Title = "A-101.dxf - OpenCAD2D" };
                 host.Add(Blank("A-101.dxf"));
                 host.Add(Blank("B-202.dxf"));
                 CadRemoteServer server = harness.Serve(host);
@@ -30,14 +30,10 @@ namespace GeometryHelper.Cad.Remote.UnitTest
                 CadRunningApp app = Assert.Single(CadApplication.GetRunning(harness.Folder));
 
                 Assert.Equal(Process.GetCurrentProcess().Id, app.ProcessId);
-                Assert.Equal("A-101.dxf - GeometryHelper CAD", app.Title);
+                Assert.Equal("A-101.dxf - OpenCAD2D", app.Title);
                 Assert.Equal(new[] { "A-101.dxf", "B-202.dxf" }, app.Drawings);
                 Assert.Equal(server.PipeName, app.Instance.Pipe);
-                Assert.StartsWith(
-                    "GeometryHelper.Cad." + app.ProcessId + ".",
-                    server.PipeName,
-                    StringComparison.Ordinal
-                );
+                Assert.StartsWith("OpenCAD2D." + app.ProcessId + ".", server.PipeName, StringComparison.Ordinal);
                 Assert.True((DateTime.UtcNow - app.LastActivated).TotalSeconds < 30);
             }
         }
@@ -55,7 +51,7 @@ namespace GeometryHelper.Cad.Remote.UnitTest
                 Assert.Empty(Directory.GetFiles(harness.Folder, "*.json"));
                 Assert.Empty(CadApplication.GetRunning(harness.Folder));
                 CadRemoteException refused = Assert.Throws<CadRemoteException>(() => harness.Connect());
-                Assert.Contains("No GeometryHelper CAD is running", refused.Message, StringComparison.Ordinal);
+                Assert.Contains("No OpenCAD2D is running", refused.Message, StringComparison.Ordinal);
             }
         }
 
@@ -70,7 +66,7 @@ namespace GeometryHelper.Cad.Remote.UnitTest
                     ProcessId = 2147480000,
                     Title = "gone",
                     LastActivated = DateTime.UtcNow,
-                    Pipe = "GeometryHelper.Cad.2147480000",
+                    Pipe = "OpenCAD2D.2147480000",
                     FilePath = stale,
                 }.Write();
                 harness.Serve(new TestHost());

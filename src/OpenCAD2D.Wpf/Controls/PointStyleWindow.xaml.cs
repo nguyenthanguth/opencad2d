@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Point Style dialog, which PTYPE (DDPTYPE) shows: the twenty tiles of PDMODE, the point size and whether it is

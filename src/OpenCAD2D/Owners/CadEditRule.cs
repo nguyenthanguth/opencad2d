@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What the presenter may do to an entity, as its owner answers through <see cref="ICadEntityOwner.GetEditRule"/>: a

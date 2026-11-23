@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>getenv</c>, <c>setenv</c>, <c>getcfg</c> and <c>setcfg</c>: the text a routine keeps between drawings and sessions, as

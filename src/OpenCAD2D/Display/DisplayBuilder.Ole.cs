@@ -2,7 +2,7 @@ using System;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The OLE frames of a drawing, drawn as AutoCAD 2021 shows them: the picture a frame holds, then its frame.</summary>
     internal sealed partial class DisplayBuilder

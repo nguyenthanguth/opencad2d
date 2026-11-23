@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>
     /// The predefined tiles (D306): a DCL text written for this project from what the AutoCAD DCL reference says the standard
@@ -14,7 +14,7 @@ namespace GeometryHelper.Cad.Dcl
 
         /// <summary>The text of the predefined tiles.</summary>
         internal const string Text = """
-            // The predefined tiles of GeometryHelper.Cad.
+            // The predefined tiles of OpenCAD2D.
             // Written for this project from the description of the standard tiles in the AutoCAD DCL reference.
 
             // Clusters. A row or a column adds no margin of its own; a boxed one has a frame and a label (a blank one).

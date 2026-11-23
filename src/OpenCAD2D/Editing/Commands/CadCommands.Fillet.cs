@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// FILLET and CHAMFER as AutoCAD 2021 asks them: two objects picked by the parts to keep, an arc of the radius or a line at

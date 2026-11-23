@@ -1,7 +1,7 @@
 using System;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
     /// What <see cref="CadRemoteDocument.GetObjects"/> asks for: the objects of one kind, on one layer, in one space. A member

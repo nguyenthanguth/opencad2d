@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <LangVersion>latest</LangVersion>
+        <Deterministic>true</Deterministic>
+        <IsPackable>false</IsPackable>
+        <PlatformTarget>x64</PlatformTarget>
+        <NoWarn>$(NoWarn);MSB3277</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+        <PackageReference Include="xunit" Version="2.9.2" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\Shared\SpeedGuard.cs" Link="SpeedGuard.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
+        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Wpf\OpenCAD2D.Wpf.csproj" />
+        <!-- Built first, never referenced: the plugin tests load its .dll as a plugin, from SamplePlugin\ beside them. -->
+        <ProjectReference
+            Include="..\OpenCAD2D.SamplePlugin\OpenCAD2D.SamplePlugin.csproj"
+            ReferenceOutputAssembly="false"
+        />
+        <!-- Built first, never referenced: the plugin tests load its .dll as a plugin that adds to the window, from SampleUiPlugin\ beside them. -->
+        <ProjectReference
+            Include="..\OpenCAD2D.SampleUiPlugin\OpenCAD2D.SampleUiPlugin.csproj"
+            ReferenceOutputAssembly="false"
+        />
+        <!-- Built first, never referenced: the app tests run its screenshot mode as a process, from its own bin folder. -->
+        <ProjectReference
+            Include="..\..\src\OpenCAD2D.App\OpenCAD2D.App.csproj"
+            ReferenceOutputAssembly="false"
+            SkipGetTargetFrameworkProperties="true"
+        />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None
+            Include="..\OpenCAD2D.SamplePlugin\bin\$(Configuration)\netstandard2.0\OpenCAD2D.SamplePlugin.dll"
+            Link="SamplePlugin\OpenCAD2D.SamplePlugin.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\OpenCAD2D.SampleUiPlugin\bin\$(Configuration)\netstandard2.0\OpenCAD2D.SampleUiPlugin.dll"
+            Link="SampleUiPlugin\OpenCAD2D.SampleUiPlugin.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+    </ItemGroup>
+
+    <!--
+    The Lisps folder of the program ships the sample routine GH-DrawingInfo.lsp, which loads into every drawing that opens, and
+    the Pythons folder ships GH-DrawingInfo.py, which starts the Python engine at the start of the app. These tests list the
+    files a drawing loaded and expect only their own, so the samples are taken out of their copy of the folders.
+  -->
+    <Target Name="LeaveOutTheSampleRoutine" AfterTargets="CopyFilesToOutputDirectory">
+        <Delete Files="$(OutDir)Lisps\GH-DrawingInfo.lsp;$(OutDir)Pythons\GH-DrawingInfo.py" />
+    </Target>
+</Project>

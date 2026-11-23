@@ -8,7 +8,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// What C13 left of the block dialogs, driven with no window: the Enhanced Attribute Editor showing a value as it is typed,

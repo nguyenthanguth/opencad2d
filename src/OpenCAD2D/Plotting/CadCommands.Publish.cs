@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// PUBLISH and -PUBLISH, as AutoCAD 2021's. PUBLISH hands the window the list of the drawing open (its Model and layouts, each

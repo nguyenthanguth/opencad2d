@@ -2,7 +2,7 @@ using System;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What the presenter does with OLE frames beyond what the library does: a frame kept upright by an edit that would turn it,

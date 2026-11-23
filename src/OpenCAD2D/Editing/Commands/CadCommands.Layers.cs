@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The layer commands of the Layers panel that act on the layer of an object picked: LAYOFF and LAYFRZ, a layer for each

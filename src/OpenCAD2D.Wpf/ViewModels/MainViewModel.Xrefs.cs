@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The External References palette (XREF, EXTERNALREFERENCES, IMAGE) and the attach dialogs (XATTACH, IMAGEATTACH), each

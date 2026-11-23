@@ -1,9 +1,9 @@
 using System;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// <c>command(...)</c> (D715): a presenter command run to its end on the session of the run, each answer fed in order as

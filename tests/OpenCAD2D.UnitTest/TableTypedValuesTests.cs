@@ -1,9 +1,9 @@
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// Numbers typed in a table's cells, as AutoCAD 2021's <c>SetValue</c> of a text with <c>ConvertTextToValue</c> reads them:

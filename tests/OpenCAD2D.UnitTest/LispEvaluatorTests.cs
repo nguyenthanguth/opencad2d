@@ -1,10 +1,10 @@
 using System;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.UnitTest;
+using OpenCAD2D.Lisp;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// What the interpreter computes, against AutoCAD 2021's accoreconsole (probes p1, p2 and p4): the numbers, strings, lists,

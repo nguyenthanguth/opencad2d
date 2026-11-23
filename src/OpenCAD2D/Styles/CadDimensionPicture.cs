@@ -1,7 +1,7 @@
 using System;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The drawn picture of a dimension, for code that makes or changes dimensions outside the commands (a Python tool in

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// -DIMSTYLE and DIMUPDATE, as AutoCAD 2021 asks them on the command line (probed in its console). -DIMSTYLE writes the

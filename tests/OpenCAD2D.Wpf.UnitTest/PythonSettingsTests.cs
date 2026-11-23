@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Python;
+using OpenCAD2D.Python;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Python section of Global settings, in Folder preference (D720, D721, <c>design/PySettingsPython.png</c>): its path
@@ -131,7 +131,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
 
             Assert.False(dialog.IsPythonUsable);
             Assert.Equal(
-                Path.Combine(folder, "python.exe") + " is Python 3.10: GeometryHelper CAD needs 3.11 to 3.15.",
+                Path.Combine(folder, "python.exe") + " is Python 3.10: OpenCAD2D needs 3.11 to 3.15.",
                 dialog.PythonFound
             );
         }
@@ -146,7 +146,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
 
             Assert.False(dialog.IsPythonUsable);
             Assert.Equal(
-                Path.Combine(folder, "python.exe") + " is a 32-bit Python: GeometryHelper CAD needs a 64-bit one.",
+                Path.Combine(folder, "python.exe") + " is a 32-bit Python: OpenCAD2D needs a 64-bit one.",
                 dialog.PythonFound
             );
         }

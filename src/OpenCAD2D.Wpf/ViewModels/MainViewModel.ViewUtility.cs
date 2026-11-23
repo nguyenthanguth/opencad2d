@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Batch 4 of acad.pgp: the Viewports dialog of VPORTS and the tiles of model space it makes, the Object Selection Filters

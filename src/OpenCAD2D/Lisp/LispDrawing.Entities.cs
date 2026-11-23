@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>entget</c>, <c>entmod</c>, <c>entmake</c>, <c>entdel</c>, <c>entnext</c>, <c>entlast</c>, <c>entupd</c> and

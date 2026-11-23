@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The writers of EXPORT that draw vectors, and the commands that stand for them. WMFOUT writes the objects selected as

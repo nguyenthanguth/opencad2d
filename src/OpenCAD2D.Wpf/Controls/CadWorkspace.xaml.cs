@@ -11,7 +11,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The presenter's whole window content, laid out as AutoCAD's own (A20): the title bar, the ribbon, the DRAWINGS list on
@@ -226,7 +226,7 @@ namespace GeometryHelper.Cad.Wpf
 
         /// <summary>
         /// Gets or sets the name of the app, shown at the left of the title in the title bar and as the heading of the start
-        /// screen: "GeometryHelper Drawing" unless a host gives its own, as GeometryHelper CAD does.
+        /// screen: "GeometryHelper Drawing" unless a host gives its own, as OpenCAD2D does.
         /// </summary>
         public string AppName
         {
@@ -919,7 +919,7 @@ namespace GeometryHelper.Cad.Wpf
                     MessageBox.Show(
                         Window.GetWindow(this),
                         text,
-                        "GeometryHelper.Cad",
+                        "OpenCAD2D",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning
                     );

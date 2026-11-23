@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A writer of Encapsulated PostScript of its own, for PSOUT: a level 2 file (<c>%!PS-Adobe-3.0 EPSF-3.0</c>) of a

@@ -13,8 +13,8 @@ from typing import Any
 
 from c1_acceptance import move_the_selection_to_the_layer_of_the_picked_object
 
-from geometryhelper.cad import App
-from GeometryHelper.Cad.Remote import CadRemoteLayer
+from opencad2d.cad import App
+from OpenCAD2D.Remote import CadRemoteLayer
 
 ANSWER_GAP = 0.5
 

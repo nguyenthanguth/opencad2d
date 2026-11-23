@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The basic commands of AutoCAD 2021's acad.pgp the presenter lacked: DIVIDE and MEASURE, DIMCENTER, COLOR and -COLOR,

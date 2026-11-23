@@ -1,7 +1,7 @@
 """A3: a host that already started a runtime (D604 step 1, D622). Cad.App will do this in P3: the package must start no
 second runtime and load no second copy of an assembly the host has loaded.
 
-Each case is a subprocess that plays the host with plain pythonnet calls, then imports geometryhelper.
+Each case is a subprocess that plays the host with plain pythonnet calls, then imports opencad2d.
 """
 
 import shutil
@@ -13,7 +13,7 @@ import pytest
 
 Python = Callable[..., CompletedProcess[str]]
 
-ASSEMBLIES = ("GeometryHelper", "GeometryHelper.Cad.Remote", "GeometryHelper.Cad")
+ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D")
 
 # argv: runtime, runtime config, folder to load the assemblies from ("-" loads none). Prints one line per assembly:
 # its name, how many copies the AppDomain holds, and the location of the first.
@@ -26,11 +26,11 @@ if runtime == "coreclr":
 else:
     pythonnet.load("netfx")
 import clr
-names = ("GeometryHelper", "GeometryHelper.Cad.Remote", "GeometryHelper.Cad")
+names = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D")
 if folder != "-":
     for name in names:
         clr.AddReference(folder + "/" + name + ".dll")
-import geometryhelper
+import opencad2d
 from System import AppDomain
 for name in names:
     found = [a for a in AppDomain.CurrentDomain.GetAssemblies() if a.GetName().Name == name]
@@ -50,7 +50,7 @@ def _parse(output: str) -> dict[str, tuple[int, Path]]:
 def test_a_host_that_loaded_the_wheels_assemblies_gets_no_second_copy(
     python: Python, pkg_dir: Path, runtime: str
 ) -> None:
-    config = str(pkg_dir / "geometryhelper.runtimeconfig.json")
+    config = str(pkg_dir / "opencad2d.runtimeconfig.json")
     process = python(HOST, runtime, config, (pkg_dir / "lib").as_posix())
     assert process.returncode == 0, process.stderr
     assert _parse(process.stdout) == {name: (1, pkg_dir / "lib" / f"{name}.dll") for name in ASSEMBLIES}
@@ -66,7 +66,7 @@ def test_a_host_that_loaded_its_own_copies_keeps_them_and_gets_no_second_copy(
     host_folder.mkdir()
     for name in ASSEMBLIES:
         shutil.copy2(pkg_dir / "lib" / f"{name}.dll", host_folder / f"{name}.dll")
-    config = str(pkg_dir / "geometryhelper.runtimeconfig.json")
+    config = str(pkg_dir / "opencad2d.runtimeconfig.json")
     process = python(HOST, runtime, config, host_folder.as_posix())
     assert process.returncode == 0, process.stderr
     assert _parse(process.stdout) == {name: (1, host_folder.resolve() / f"{name}.dll") for name in ASSEMBLIES}
@@ -76,7 +76,7 @@ def test_a_host_that_loaded_its_own_copies_keeps_them_and_gets_no_second_copy(
 def test_a_host_that_only_started_the_runtime_gets_the_assemblies_added(
     python: Python, pkg_dir: Path, runtime: str
 ) -> None:
-    config = str(pkg_dir / "geometryhelper.runtimeconfig.json")
+    config = str(pkg_dir / "opencad2d.runtimeconfig.json")
     process = python(HOST, runtime, config, "-")
     assert process.returncode == 0, process.stderr
     assert _parse(process.stdout) == {name: (1, pkg_dir / "lib" / f"{name}.dll") for name in ASSEMBLIES}
@@ -84,8 +84,8 @@ def test_a_host_that_only_started_the_runtime_gets_the_assemblies_added(
 
 @pytest.mark.parametrize("runtime", ["coreclr", "netfx"])
 def test_runtime_names_the_runtime_a_host_started(python: Python, pkg_dir: Path, runtime: str) -> None:
-    config = str(pkg_dir / "geometryhelper.runtimeconfig.json")
-    process = python(HOST + "print(geometryhelper.runtime())\n", runtime, config, "-")
+    config = str(pkg_dir / "opencad2d.runtimeconfig.json")
+    process = python(HOST + "print(opencad2d.runtime())\n", runtime, config, "-")
     assert process.returncode == 0, process.stderr
     assert process.stdout.splitlines()[-1] == runtime
 
@@ -93,6 +93,6 @@ def test_runtime_names_the_runtime_a_host_started(python: Python, pkg_dir: Path,
 def test_the_runtime_variable_is_not_read_when_a_host_started_a_runtime(python: Python, pkg_dir: Path) -> None:
     # Step 1 of D604: with clr in sys.modules nothing is started and the variable is not looked at, so a value that
     # would refuse the import on its own does not.
-    config = str(pkg_dir / "geometryhelper.runtimeconfig.json")
-    process = python(HOST, "coreclr", config, "-", env={"GEOMETRYHELPER_RUNTIME": "bogus"})
+    config = str(pkg_dir / "opencad2d.runtimeconfig.json")
+    process = python(HOST, "coreclr", config, "-", env={"OPENCAD2D_RUNTIME": "bogus"})
     assert process.returncode == 0, process.stderr

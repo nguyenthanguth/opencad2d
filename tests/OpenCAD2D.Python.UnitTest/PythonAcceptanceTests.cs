@@ -6,9 +6,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The acceptance of Python commands like AutoLISP's (D1677). C1: a command loaded from a Pythons folder at start, run in
@@ -97,7 +97,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
                     "import sys",
                     "sys.path.insert(0, " + Raw(PythonTestsFolder()) + ")",
                     "from c1_acceptance import move_the_selection_to_the_layer_of_the_picked_object",
-                    "from geometryhelper.cad import active_drawing, command",
+                    "from opencad2d.cad import active_drawing, command",
                     "",
                     "@command('C1')",
                     "def c1() -> None:",
@@ -144,7 +144,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
 
         private static readonly string[] DimlayPython =
         {
-            "from geometryhelper.cad import active_drawing, command",
+            "from opencad2d.cad import active_drawing, command",
             "",
             "@command('DIMLAY')",
             "def dimlay() -> None:",

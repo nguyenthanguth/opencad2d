@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A row of the Data Link Manager: a link's name, what it links, how many tables it fills and when it was last updated.</summary>
     public sealed class DataLinkRowViewModel

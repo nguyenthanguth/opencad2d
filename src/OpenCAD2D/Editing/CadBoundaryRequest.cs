@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What BOUNDARY gives its Boundary Creation dialog: the settings it shares with -BOUNDARY, island detection and the

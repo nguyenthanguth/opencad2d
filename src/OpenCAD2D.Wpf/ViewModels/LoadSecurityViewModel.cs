@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What the warning of SECURELOAD 1 shows about a file of code outside the trusted folders, in the words of AutoCAD 2021's

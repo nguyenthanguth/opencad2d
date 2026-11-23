@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// An Excel workbook of the .xlsx kind (Office Open XML), read and written by the presenter's own small code, with no

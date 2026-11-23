@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using SkiaSharp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Splits the letters of a text drawn in a TrueType face into runs, each in a face that has its glyph, as AutoCAD 2021 draws

@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 
-from GeometryHelper.Cad.Remote import CadApplication, CadRemoteException
+from OpenCAD2D.Remote import CadApplication, CadRemoteException
 
 
 def test_the_connection_reports_the_process_and_the_window_of_the_server(
@@ -20,7 +20,7 @@ def test_the_connection_reports_the_process_and_the_window_of_the_server(
     with connect(server.folder) as app:
         assert isinstance(app, CadApplication)
         assert app.Running.ProcessId == server.pid
-        assert app.Running.Title == "GeometryHelper CAD (test server)"
+        assert app.Running.Title == "OpenCAD2D (test server)"
 
 
 def test_the_block_of_with_gets_the_connection_itself(server: Any, connect: Callable[[str], Any]) -> None:
@@ -68,5 +68,5 @@ def test_two_connections_at_once_see_the_same_drawings(server: Any, connect: Cal
 
 
 def test_a_folder_with_no_app_announced_refuses_the_connection(connect: Callable[[str], Any], tmp_path: Any) -> None:
-    with pytest.raises(CadRemoteException, match="No GeometryHelper CAD is running"):
+    with pytest.raises(CadRemoteException, match="No OpenCAD2D is running"):
         connect(str(tmp_path / "nobody"))

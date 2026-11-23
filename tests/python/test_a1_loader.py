@@ -1,4 +1,4 @@
-"""A1: the loader. What ``import geometryhelper`` leaves in the process: version, runtime, the three assemblies."""
+"""A1: the loader. What ``import opencad2d`` leaves in the process: version, runtime, the three assemblies."""
 
 import importlib
 import importlib.metadata as metadata
@@ -13,9 +13,9 @@ import pytest
 from System import AppDomain
 from System.Runtime.InteropServices import RuntimeInformation
 
-import geometryhelper
+import opencad2d
 
-ASSEMBLIES = ("GeometryHelper", "GeometryHelper.Cad.Remote", "GeometryHelper.Cad")
+ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D")
 
 Python = Callable[..., CompletedProcess[str]]
 
@@ -35,23 +35,23 @@ def _installed_net_runtimes() -> list[tuple[int, ...]]:
 
 
 def test_version_is_the_assembly_version_without_its_fourth_part() -> None:
-    # GeometryHelper.dll of 13.12.0 carries the AssemblyName version 13.12.0.0; __version__ drops the fourth part.
-    from GeometryHelper.Geometry import GeoPoint3
+    # OpenCAD2D.dll of 1.0.0 carries the AssemblyName version 1.0.0.0; __version__ drops the fourth part.
+    from OpenCAD2D import CadDocument
 
-    assembly_version = str(clr.GetClrType(GeoPoint3).Assembly.GetName().Version)
-    assert geometryhelper.__version__ == ".".join(assembly_version.split(".")[:3])
+    assembly_version = str(clr.GetClrType(CadDocument).Assembly.GetName().Version)
+    assert opencad2d.__version__ == ".".join(assembly_version.split(".")[:3])
 
 
 def test_version_is_the_version_pip_installed() -> None:
     # One number for NuGet and pip: the metadata of the installed distribution says what __version__ says.
-    distributions = metadata.packages_distributions()["geometryhelper"]
-    assert [metadata.version(name) for name in distributions] == [geometryhelper.__version__]
+    distributions = metadata.packages_distributions()["opencad2d"]
+    assert [metadata.version(name) for name in distributions] == [opencad2d.__version__]
 
 
 def test_runtime_is_the_one_the_session_asked_for(session_runtime: str) -> None:
     description = str(RuntimeInformation.FrameworkDescription)
     assert description.startswith(".NET Framework") == (session_runtime == "netfx")
-    assert geometryhelper.runtime() == session_runtime
+    assert opencad2d.runtime() == session_runtime
 
 
 @pytest.mark.parametrize("simple_name", ASSEMBLIES)
@@ -65,7 +65,7 @@ def test_each_assembly_is_loaded_once_and_from_the_wheel(simple_name: str, lib_d
 def test_importing_again_loads_no_assembly_a_second_time() -> None:
     # importlib.reload runs the boot code a second time: clr is in sys.modules and the assemblies are in the AppDomain.
     before = {name: len(_loaded(name)) for name in ASSEMBLIES}
-    importlib.reload(geometryhelper)
+    importlib.reload(opencad2d)
     assert {name: len(_loaded(name)) for name in ASSEMBLIES} == before == dict.fromkeys(ASSEMBLIES, 1)
 
 
@@ -79,7 +79,7 @@ def test_the_library_folder_holds_the_three_assemblies_and_no_debug_files(lib_di
 
 
 def test_the_runtime_config_asks_for_net8_and_rolls_forward_by_major(pkg_dir: Path) -> None:
-    config = json.loads((pkg_dir / "geometryhelper.runtimeconfig.json").read_text(encoding="utf-8"))
+    config = json.loads((pkg_dir / "opencad2d.runtimeconfig.json").read_text(encoding="utf-8"))
     assert config == {
         "runtimeOptions": {
             "tfm": "net8.0",
@@ -97,10 +97,10 @@ def test_the_runtime_is_the_lowest_installed_major_from_8_with_its_latest_patch(
     lowest_major = installed[0][0]
     expected = ".".join(str(part) for part in max(v for v in installed if v[0] == lowest_major))
     process = python(
-        "import geometryhelper\n"
+        "import opencad2d\n"
         "from System.Runtime.InteropServices import RuntimeInformation\n"
         "print(RuntimeInformation.FrameworkDescription)\n",
-        env={"GEOMETRYHELPER_RUNTIME": "coreclr", "DOTNET_ROLL_FORWARD": None},
+        env={"OPENCAD2D_RUNTIME": "coreclr", "DOTNET_ROLL_FORWARD": None},
     )
     assert process.returncode == 0, process.stderr
     assert process.stdout.strip() == f".NET {expected}"
@@ -113,10 +113,10 @@ def test_dotnet_roll_forward_in_the_environment_wins_over_the_runtime_config(pyt
     assert installed, "no .NET 8 or later is installed: install the .NET 8 runtime to run this suite"
     expected = ".".join(str(part) for part in installed[-1])
     process = python(
-        "import geometryhelper\n"
+        "import opencad2d\n"
         "from System.Runtime.InteropServices import RuntimeInformation\n"
         "print(RuntimeInformation.FrameworkDescription)\n",
-        env={"GEOMETRYHELPER_RUNTIME": "coreclr", "DOTNET_ROLL_FORWARD": "LatestMajor"},
+        env={"OPENCAD2D_RUNTIME": "coreclr", "DOTNET_ROLL_FORWARD": "LatestMajor"},
     )
     assert process.returncode == 0, process.stderr
     assert process.stdout.strip() == f".NET {expected}"

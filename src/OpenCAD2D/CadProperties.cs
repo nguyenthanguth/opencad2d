@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>One row of the Properties panel: a label and a value, which may be read-only.</summary>
     public sealed class CadPropertyRow

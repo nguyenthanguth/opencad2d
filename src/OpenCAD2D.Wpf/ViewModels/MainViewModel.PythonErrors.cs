@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     public sealed partial class MainViewModel
     {

@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>vlax-ldata-put</c>, <c>-get</c>, <c>-delete</c>, <c>-list</c> and <c>-test</c>: AutoLISP data kept in the drawing. Where

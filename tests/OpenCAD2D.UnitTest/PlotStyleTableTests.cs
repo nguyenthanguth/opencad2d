@@ -7,7 +7,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// Plot style tables as files (plot item 15): the .ctb and .stb reader and writer, the tables the presenter makes itself,
@@ -301,7 +301,7 @@ namespace GeometryHelper.Cad.UnitTest
                 CadPlotStyleFolder.Resolve(" D:\\Standards\\Plot Styles ", settings)
             );
             Assert.Equal(CadPlotStyleFolder.DefaultPath, CadPlotStyleFolder.Resolve(null));
-            Assert.EndsWith(Path.Combine("GeometryHelper", "Drawing", "PlotStyles"), CadPlotStyleFolder.DefaultPath);
+            Assert.EndsWith(Path.Combine("OpenCAD2D", "PlotStyles"), CadPlotStyleFolder.DefaultPath);
         }
 
         [Fact]

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The grips of an MTEXT: its location and the corners of its box, or the grips of its columns, as AutoCAD 2021 gives them.</summary>
     public static partial class CadGrips

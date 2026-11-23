@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// TIME: shows the time now and the times of the drawing as AutoCAD 2021 writes them (when it was made and last saved, the

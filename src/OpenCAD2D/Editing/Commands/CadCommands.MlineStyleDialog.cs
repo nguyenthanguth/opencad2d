@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// MLSTYLE with its Multiline Style dialog, and MLEDIT with its Multiline Edit Tools dialog; with no window, both ask on the

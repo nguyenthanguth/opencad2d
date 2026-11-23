@@ -10,7 +10,7 @@ is what the files do.
 | Folder | Where it runs | How a file is run |
 |---|---|---|
 | `library` | outside the app, on the libraries alone | `python list_layers.py plan.dxf`, in the virtual environment the wheel is installed in ([Installing](python.md#installing)) |
-| `in_app` | inside GeometryHelper CAD | PYRUN runs a file and PYLOAD loads one ([Python commands and tools](presenter/python.md)) |
+| `in_app` | inside OpenCAD2D | PYRUN runs a file and PYLOAD loads one ([Python commands and tools](presenter/python.md)) |
 | `remote` | outside the app, driving one that is running | `python draw_and_read.py` while the app runs with "Allow other programs to connect" on ([the setting](presenter/remote.md#the-setting)) |
 
 | File | What it does |
@@ -60,14 +60,14 @@ layer name is one name in whatever case, while an object keeps the spelling it w
 circle of radius 10 on `walls` are counted together under the layer table's spelling: `Walls` with 2 objects and an area
 of 314.159.
 
-[!code-python[](../../python/examples/library/list_layers.py)]
+[!code-python[](../src/python/examples/library/list_layers.py)]
 
 ### The vertices of the polylines in numpy
 
 `coordinates_numpy.py DRAWING` reads the file with `open_file`, takes every polyline of model space in the order of its handles, and copies its vertices
-into a numpy array of shape (n, 2) through [`geometryhelper.arrays`](python.md#numpy-in-blocks), which takes a whole .NET
+into a numpy array of shape (n, 2) through [`opencad2d.arrays`](python.md#numpy-in-blocks), which takes a whole .NET
 array in one copy where a loop over the points would call into .NET three times a point. It needs numpy
-(`pip install geometryhelper[numpy]`).
+(`pip install opencad2d[numpy]`).
 
 ```text
 104	4	14000.000
@@ -80,7 +80,7 @@ Each line is a polyline's handle, its vertex count and its length: the closed po
 numpy. A closed polyline's corners come from `ToGeoPolygon2`, since `ToGeoPolyline2` repeats the first corner at the end
 and would give five.
 
-[!code-python[](../../python/examples/library/coordinates_numpy.py)]
+[!code-python[](../src/python/examples/library/coordinates_numpy.py)]
 
 ### Make a drawing in code
 
@@ -96,7 +96,7 @@ saved plan.dwg
 
 Opened again, the file holds a polyline of area 12 000 000 and a circle of radius 500 on `Outline`, as DXF and as DWG.
 
-[!code-python[](../../python/examples/library/make_drawing.py)]
+[!code-python[](../src/python/examples/library/make_drawing.py)]
 
 ### Union, difference and offset of regions
 
@@ -114,7 +114,7 @@ offset -10 6400.000
 The squares share 50 by 50, 2 500, so the union is 10 000 plus 10 000 less 2 500. A grown to 120 by 120 is 14 400, shrunk
 to 80 by 80 6 400. Each call comes back as an array of faces or polygons, and the script adds their areas.
 
-[!code-python[](../../python/examples/library/regions.py)]
+[!code-python[](../src/python/examples/library/regions.py)]
 
 ### A box with a hole measured
 
@@ -135,7 +135,7 @@ that comes after an out parameter is keyword-only in Python, so the script gives
 `Tolerance.Global` is: run with a global tolerance of 120, wider than the hole, a cut that read the global one would leave
 the box uncut, 100 000 000 and 1 600 000.
 
-[!code-python[](../../python/examples/library/solids.py)]
+[!code-python[](../src/python/examples/library/solids.py)]
 
 ### A CSV report of a folder
 
@@ -164,7 +164,7 @@ The version is the one the file says it is: a drawing made in code with `DxfWrit
 `DwgWriter` writes AC1032 (AutoCAD 2018) unless it is told another. The `except Exception` takes the .NET exception that a file which is no drawing
 raises; its first line is the error.
 
-[!code-python[](../../python/examples/library/batch_folder.py)]
+[!code-python[](../src/python/examples/library/batch_folder.py)]
 
 ### Convert between DXF and DWG
 
@@ -184,12 +184,12 @@ writer does not write, AC1009 (R12) for a DWG, is a line on the standard error, 
 with an MText converted to AC1009 prints `warning: Written as the lines, texts and polylines each breaks into, which AC1009
 holds: MTEXT 1.` The DWG writer says nothing of what it leaves out: it logs it.
 
-[!code-python[](../../python/examples/library/convert.py)]
+[!code-python[](../src/python/examples/library/convert.py)]
 
 ## Inside the app
 
-These files are run in GeometryHelper CAD with PYRUN and PYLOAD, and have no `main`: PYRUN runs the file, and PYLOAD runs it
-once to find the functions marked `@command`. They use [`geometryhelper.cad`](presenter/python.md) for the prompts and the
+These files are run in OpenCAD2D with PYRUN and PYLOAD, and have no `main`: PYRUN runs the file, and PYLOAD runs it
+once to find the functions marked `@command`. They use [`opencad2d.cad`](presenter/python.md) for the prompts and the
 `Drawing` API, and each run is one undo step, so one `U` takes back all it drew.
 
 ### Number the points you pick
@@ -204,7 +204,7 @@ height 2.5 at each point with `add_text`, the numbers counting up; the texts are
 The three texts read 1, 2 and 3 at the points picked. Enter at the first question and at the first point writes
 `No point picked.` and draws nothing.
 
-[!code-python[](../../python/examples/in_app/number_points.py)]
+[!code-python[](../src/python/examples/in_app/number_points.py)]
 
 ### Commands of your own
 
@@ -222,7 +222,7 @@ less, which it refuses with `The width and the height must be more than 0.` and 
 polyline with nothing inside it). On a drawing with one rectangle on layer `0`, LAYERCOUNT writes
 `0: 1`; an object on `walls` counts with the layer the table calls `Walls`.
 
-[!code-python[](../../python/examples/in_app/drawing_tools.py)]
+[!code-python[](../src/python/examples/in_app/drawing_tools.py)]
 
 ### The length of a selection
 
@@ -237,11 +237,11 @@ line from 0,0 to 300,400, a circle of radius 120, a closed polyline rectangle 10
 The length is the line's 500, the circle's 753.982 and the rectangle's 300; the area the circle's 45 238.934 and the
 rectangle's 5 000. With nothing selected it writes `Nothing selected.`
 
-[!code-python[](../../python/examples/in_app/selection_lengths.py)]
+[!code-python[](../src/python/examples/in_app/selection_lengths.py)]
 
 ## Driving a running app
 
-These files connect to GeometryHelper CAD from another process with [`CadApplication`](xref:GeometryHelper.Cad.Remote.CadApplication),
+These files connect to OpenCAD2D from another process with [`CadApplication`](xref:OpenCAD2D.Remote.CadApplication),
 so the app has to be running with "Allow other programs to connect" on ([the setting](presenter/remote.md#the-setting)). Each
 has a `main` that works on the connection it is given, wrapped in the `Drawing` API with `App(connection)` (what `connect()` gives),
 and a `__main__` block that makes the connection with `with CadApplication() as app:`, which closes it at the end. [From Python](presenter/remote.md#from-python) tells how
@@ -258,7 +258,7 @@ and, when `OUT` is given, saves the drawing.
 saved grid.dxf
 ```
 
-[!code-python[](../../python/examples/remote/draw_and_read.py)]
+[!code-python[](../src/python/examples/remote/draw_and_read.py)]
 
 ### Pick a point and mark it
 
@@ -273,7 +273,7 @@ and the script returns 0. Esc in the app throws a `CadRemoteException` whose `Is
 `Cancelled.` and returns 1. Any other exception, a timeout among them, is raised again. The time limit is there because
 Ctrl+C does not end a call into .NET that waits for the user ([From Python](presenter/remote.md#from-python)).
 
-[!code-python[](../../python/examples/remote/pick_and_mark.py)]
+[!code-python[](../src/python/examples/remote/pick_and_mark.py)]
 
 ### The open drawings
 
@@ -286,4 +286,4 @@ Drawing1.dxf	3	DxfCircle:1, DxfLine:2
 Drawing2.dxf *	0	
 ```
 
-[!code-python[](../../python/examples/remote/open_documents.py)]
+[!code-python[](../src/python/examples/remote/open_documents.py)]

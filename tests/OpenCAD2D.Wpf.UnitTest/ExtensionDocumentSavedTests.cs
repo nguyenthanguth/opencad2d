@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// <see cref="CadWorkspaceExtension.DocumentSaved"/>: told after every save that reaches a file, whichever way it was

@@ -5,9 +5,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// MIRROR, ROTATE and -OBJECTSCALE on a hatch, as AutoCAD 2021's console does them (probed, mirror-6 GHM6, 1 800 cases of

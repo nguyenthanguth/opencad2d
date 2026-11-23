@@ -6,7 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The logic of AutoCAD's Select Color dialog, with no window: the Index Color tab, the 255 colours of AutoCAD's index as

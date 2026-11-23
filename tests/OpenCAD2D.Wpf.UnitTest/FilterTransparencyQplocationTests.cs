@@ -3,7 +3,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Object Selection Filters dialog with a Transparency line (Select... lists ByLayer, ByBlock and the per cents in use,

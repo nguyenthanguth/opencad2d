@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// LAYCUR and COPYTOLAYER, as AutoCAD 2021 asks them on the command line (COPYTOLAYER as -COPYTOLAYER does; its dialog is

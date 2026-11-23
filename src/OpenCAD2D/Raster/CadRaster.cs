@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A picture read from a raster file: its size in pixels, the millimetres a pixel is across and up where the file gives a

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The authoring edits of the Block Editor, as AutoCAD 2021's: the visibility states of the block open (BVSTATE) and the

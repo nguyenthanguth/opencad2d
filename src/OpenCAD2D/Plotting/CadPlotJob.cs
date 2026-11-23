@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A plot a command hands to the window (<see cref="CadUiRequestEventArgs.Plot"/>): the space, how it is plotted, what the

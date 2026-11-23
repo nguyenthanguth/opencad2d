@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The geometric constraints of AutoCAD 2021's Parametric tab, asked as it asks them (the prompts read from its console):

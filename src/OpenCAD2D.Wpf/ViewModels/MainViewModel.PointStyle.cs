@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Point Style dialog of PTYPE (DDPTYPE), shown through a function the workspace sets, so that a test drives it with

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using GeometryHelper.Cad.Dcl;
+using OpenCAD2D.Dcl;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The vertical rule of the layout (L5 part F, item 1): the room above and below each kind of tile and what a spacer takes

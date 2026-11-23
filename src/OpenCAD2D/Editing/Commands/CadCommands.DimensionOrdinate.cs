@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The ordinate dimensions: DIMORDINATE, and the picture of an ordinate dimension.</summary>
     /// <remarks>

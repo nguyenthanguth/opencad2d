@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>An axis-aligned box in drawing coordinates, as the extents of a display item or of a whole space.</summary>
     public readonly struct DisplayBox

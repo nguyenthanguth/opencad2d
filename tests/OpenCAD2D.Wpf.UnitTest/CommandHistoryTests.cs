@@ -11,7 +11,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The history above the command line, made like AutoCAD 2021's (design A1): the number of lines kept in the settings, the

@@ -5,7 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The lists of choices the Plot Style Table Editor offers for a style's properties, by the words AutoCAD 2021 shows.</summary>
     public static class PlotStyleChoices

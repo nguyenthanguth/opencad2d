@@ -10,9 +10,9 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using GeometryHelper.Cad.Dcl;
+using OpenCAD2D.Dcl;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The window of one DCL dialog (D334), built in code from the dialog's tiles: a title bar with the dialog's <c>label</c>
@@ -53,7 +53,7 @@ namespace GeometryHelper.Cad.Wpf
             Metrics = CreateMetrics();
             Theme = new ResourceDictionary
             {
-                Source = new Uri("/GeometryHelper.Cad.Wpf;component/Themes/Dcl.xaml", UriKind.Relative),
+                Source = new Uri("/OpenCAD2D.Wpf;component/Themes/Dcl.xaml", UriKind.Relative),
             };
             Resources.MergedDictionaries.Add(Theme);
             WindowStyle = WindowStyle.None;

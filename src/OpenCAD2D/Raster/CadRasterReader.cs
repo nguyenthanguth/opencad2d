@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The raster files the presenter reads with its own decoders, which the platform's do not: TGA, PCX, TIFF (plain, packed,

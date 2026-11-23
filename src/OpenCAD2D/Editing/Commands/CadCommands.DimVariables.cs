@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The dimension variables as system variables, each typed alone at the command line or set by SETVAR as AutoCAD's: DIMASZ

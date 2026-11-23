@@ -1,4 +1,4 @@
-GeometryHelper CAD - Plugins folder
+OpenCAD2D - Plugins folder
 ===================================
 
 Put command plugins here, and they are loaded when the app starts, as AutoCAD loads what its

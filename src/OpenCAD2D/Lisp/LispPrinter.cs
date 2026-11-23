@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// Writes AutoLISP values as AutoCAD does. A real is C's <c>%g</c> with six digits and a <c>.0</c> added where the

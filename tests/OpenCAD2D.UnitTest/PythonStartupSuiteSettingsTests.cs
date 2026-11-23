@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <see cref="GlobalSettings.PythonStartupSuite"/> (D1616): the .py files loaded at every start, kept in the settings

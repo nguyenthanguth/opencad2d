@@ -6,7 +6,7 @@ using System.Linq;
 using GeometryHelper.Dwg;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Template and SAveas of LAYOUT and -LAYOUT, as AutoCAD 2021's console asks and answers them (probed with layouts made

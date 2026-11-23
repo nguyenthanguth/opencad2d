@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// One row of the Publish dialog's sheet list: a space of a drawing, Model or a layout, with the name it goes by in the

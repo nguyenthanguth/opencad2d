@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// What the tests of the Insert and Annotate tabs share: the window drawn offscreen with its dialogs let go, one tab's strip

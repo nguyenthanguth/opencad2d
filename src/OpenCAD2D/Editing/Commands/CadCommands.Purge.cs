@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// -PURGE, in AutoCAD's words: the named objects of a kind nothing uses, those whose names match a pattern, each asked

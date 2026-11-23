@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The variants and safearrays of ActiveX, what <c>(vl-load-com)</c> brings besides the objects: <c>vlax-make-variant</c>,

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The words of an MTEXT laid out as AutoCAD 2021 lays them, in the MTEXT's own frame: its location at nought, x along its

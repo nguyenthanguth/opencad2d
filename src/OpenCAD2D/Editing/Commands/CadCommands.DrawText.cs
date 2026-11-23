@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// TEXT and MTEXT with the options AutoCAD 2021 offers: TEXT's Justify and Style at its start point, and Enter there going on

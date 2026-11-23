@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     /// <summary>
     /// Closing a drawing of the app from outside (D1609, D1625): an unmodified one closes; a modified one is refused unless

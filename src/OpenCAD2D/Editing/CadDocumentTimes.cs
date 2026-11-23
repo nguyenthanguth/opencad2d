@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The clocks of one drawing that TIME shows and TDINDWG and TDUSRTIMER read: when it was opened, the time the user's timer

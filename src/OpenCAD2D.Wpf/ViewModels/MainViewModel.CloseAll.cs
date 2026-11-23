@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>SAVEALL and CLOSEALL: every drawing the window has open saved, or closed with the question about those not saved.</summary>
     public sealed partial class MainViewModel

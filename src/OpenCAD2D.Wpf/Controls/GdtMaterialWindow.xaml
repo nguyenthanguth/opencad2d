@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Cad.Wpf.GdtMaterialWindow"
+    x:Class="OpenCAD2D.Wpf.GdtMaterialWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Material Condition"
     Width="226"
     Height="112"
@@ -15,7 +15,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/BlockDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <Style x:Key="Choice" TargetType="Button">
                 <Setter Property="Width" Value="44" />

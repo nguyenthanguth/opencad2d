@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// RENAME and -RENAME, as AutoCAD 2021 asks them: the kind of thing, its old name, its new name; the layer, block,

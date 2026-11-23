@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The Block Editor's commands, in AutoCAD 2021's words: BEDIT and -BEDIT open it, BSAVE and BSAVEAS save the block,

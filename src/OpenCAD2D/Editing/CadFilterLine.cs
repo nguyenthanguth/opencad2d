@@ -5,7 +5,7 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What a line of an object selection filter tests, as the Select Filter list of AutoCAD 2021's FILTER names it: a

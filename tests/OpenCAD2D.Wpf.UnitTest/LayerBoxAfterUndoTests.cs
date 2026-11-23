@@ -8,7 +8,7 @@ using System.Windows.Controls;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The layer box of the ribbon after U, REDO, UNDO n and a change of the layer filter. Each of them makes the list of

@@ -6,7 +6,7 @@ using GeometryHelper.Geometry;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     public class RemoteSpeedTests
     {

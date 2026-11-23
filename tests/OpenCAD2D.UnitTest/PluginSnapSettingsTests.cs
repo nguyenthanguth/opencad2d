@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>The user's choice of the object snaps plugins add, kept in the settings by keyword as "CTOP=1" and "BOLT=0" (D515).</summary>
     public class PluginSnapSettingsTests

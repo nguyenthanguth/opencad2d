@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D.Plugins;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The command plugins of the presenter's window: the manager and the commands that reach them.</summary>
     public sealed partial class MainViewModel

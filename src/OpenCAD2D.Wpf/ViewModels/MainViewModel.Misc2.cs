@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Drawing Properties (DWGPROPS), hyperlinks and the clean screen: the two dialogs shown through functions the workspace

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What a node of the Layer manager's filter tree is.</summary>
     public enum LayerFilterNodeKind

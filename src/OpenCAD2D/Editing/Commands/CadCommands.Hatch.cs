@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The hatch commands, in AutoCAD's words: HATCH (points picked or objects selected, the settings by the window's dialog or

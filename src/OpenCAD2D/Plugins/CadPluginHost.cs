@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// What a plugin adds to the window in <see cref="ICadPluginApplication.Initialize"/>: ribbon tabs and panels, Properties

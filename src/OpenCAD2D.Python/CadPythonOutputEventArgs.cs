@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>One whole line a script wrote, or an error the host reports.</summary>
     public sealed class CadPythonOutputEventArgs : EventArgs

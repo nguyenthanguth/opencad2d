@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
+using GeometryHelper;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>
     /// The Python the app will run scripts with, found before the engine starts, because a start that fails cannot be tried again
@@ -158,7 +159,7 @@ namespace GeometryHelper.Cad.Python
                 {
                     return "{path} has no python3XY.dll in "
                         + baseFolder
-                        + ": GeometryHelper CAD needs a Python installed with its DLL.";
+                        + ": OpenCAD2D needs a Python installed with its DLL.";
                 }
             }
 
@@ -167,14 +168,14 @@ namespace GeometryHelper.Cad.Python
 
             if (!name.Success)
             {
-                return "{path} is not a python3XY.dll: GeometryHelper CAD needs the versioned DLL, never python3.dll.";
+                return "{path} is not a python3XY.dll: OpenCAD2D needs the versioned DLL, never python3.dll.";
             }
 
             if (dllMinor < OldestMinor || dllMinor > NewestMinor)
             {
                 return "{path} is Python 3."
                     + dllMinor.ToString(CultureInfo.InvariantCulture)
-                    + ": GeometryHelper CAD needs 3.11 to 3.15.";
+                    + ": OpenCAD2D needs 3.11 to 3.15.";
             }
 
             switch (ReadMachine(library))
@@ -182,9 +183,9 @@ namespace GeometryHelper.Cad.Python
                 case 0x8664:
                     break;
                 case 0x14C:
-                    return "{path} is a 32-bit Python: GeometryHelper CAD needs a 64-bit one.";
+                    return "{path} is a 32-bit Python: OpenCAD2D needs a 64-bit one.";
                 default:
-                    return "{path} is not an x64 Python: GeometryHelper CAD needs a 64-bit x64 one.";
+                    return "{path} is not an x64 Python: OpenCAD2D needs a 64-bit x64 one.";
             }
 
             version = version ?? "3." + dllMinor.ToString(CultureInfo.InvariantCulture);

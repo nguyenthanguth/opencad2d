@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace GeometryHelper.PyStubs
+namespace OpenCAD2D.PyStubs
 {
     /// <summary>
     /// The documentation comment ID of a type or member: the key the compiler writes in the XML file

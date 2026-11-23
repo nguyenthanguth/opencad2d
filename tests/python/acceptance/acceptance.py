@@ -1,4 +1,4 @@
-"""Acceptance script of the geometryhelper package.
+"""Acceptance script of the opencad2d package.
 
 In a fresh virtual environment with the wheel installed (``pip install "<wheel>[numpy]"``) it makes a drawing in code,
 saves it as DXF and as DWG, reads both back, edits the DWG through a document and its command session, saves the
@@ -11,10 +11,10 @@ from pathlib import Path
 
 import numpy as np
 
-import geometryhelper
-from geometryhelper import undo_group
-from geometryhelper.arrays import to_numpy, to_points2
-from GeometryHelper.Cad import CadCommandSession, CadDocument
+import opencad2d
+from opencad2d import undo_group
+from opencad2d.arrays import to_numpy, to_points2
+from OpenCAD2D import CadCommandSession, CadDocument
 from GeometryHelper.Dwg import DwgReader, DwgWriter
 from GeometryHelper.Dxf import DxfDatabase, DxfLine, DxfWriter
 from GeometryHelper.Geometry import GeoPoint3, GeoPolygon2
@@ -25,7 +25,7 @@ def count_lines(database: DxfDatabase) -> int:
 
 
 def main() -> None:
-    print(f"geometryhelper {geometryhelper.__version__} on {geometryhelper.runtime()}")
+    print(f"opencad2d {opencad2d.__version__} on {opencad2d.runtime()}")
     with tempfile.TemporaryDirectory() as folder:
         work = Path(folder)
 

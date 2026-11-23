@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The members the remote channel (<see cref="CadRemoteServer"/>) drives the window's drawings through.</summary>
     public sealed partial class MainViewModel

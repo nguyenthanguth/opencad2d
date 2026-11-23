@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
     /// A JSON object: its members in the order they were set, so that a message is written the same way every time. A

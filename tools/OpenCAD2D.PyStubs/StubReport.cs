@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.PyStubs
+namespace OpenCAD2D.PyStubs
 {
     /// <summary>The stubs written for one assembly: how many types and members, and in how many modules (namespaces).</summary>
     public sealed class AssemblyStubs
@@ -16,7 +16,7 @@ namespace GeometryHelper.PyStubs
             Modules = modules;
         }
 
-        /// <summary>The simple name of the assembly, <c>GeometryHelper.Cad</c>.</summary>
+        /// <summary>The simple name of the assembly, <c>OpenCAD2D</c>.</summary>
         public string Name { get; }
 
         /// <summary>How many public types of the assembly were written.</summary>

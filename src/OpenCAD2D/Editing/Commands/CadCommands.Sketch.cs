@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// SKETCH: freehand lines. It writes "Type = Lines  Increment = 0.1000  Tolerance = 0.5000" and asks "Specify sketch or

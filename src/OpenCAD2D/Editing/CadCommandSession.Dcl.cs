@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using GeometryHelper.Cad.Dcl;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Dcl;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The dialogs of AutoLISP's DCL functions: what shows them for this session.</summary>
     public sealed partial class CadCommandSession

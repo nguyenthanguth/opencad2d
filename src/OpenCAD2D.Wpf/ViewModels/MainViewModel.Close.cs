@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What to do with the changes of a document closed: save them, drop them, or not close it.</summary>
     public enum CadSaveChoice

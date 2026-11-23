@@ -4,7 +4,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Text Editor tab's Bullets and Numbering menu and the Bullets and Lists menu of the editor's right-click, to the design

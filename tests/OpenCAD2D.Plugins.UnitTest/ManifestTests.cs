@@ -1,9 +1,9 @@
 using System;
 using System.IO;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     public sealed class ManifestTests : IDisposable
     {

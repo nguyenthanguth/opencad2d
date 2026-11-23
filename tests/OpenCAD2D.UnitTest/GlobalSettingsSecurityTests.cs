@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The four security settings of <see cref="GlobalSettings"/> (decision D911 of the L6 spec): SECURELOAD, TRUSTEDPATHS,

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// CENTERMARK and CENTERLINE of AutoCAD 2021, and the variables that size them (CENTEREXE, CENTERMARKEXE, CENTERLTYPE,

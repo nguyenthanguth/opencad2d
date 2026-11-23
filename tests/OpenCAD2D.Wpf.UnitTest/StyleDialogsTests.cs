@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The style forms of C10 with no window: the Text Style dialog, the Dimension Style Manager with its New, Modify,

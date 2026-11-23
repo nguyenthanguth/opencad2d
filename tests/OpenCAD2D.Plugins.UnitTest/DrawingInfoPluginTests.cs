@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>
     /// The sample plugin that ships in the Plugins folder, Drawing info: it loads at start from <c>Plugins\DrawingInfo</c> as the
@@ -59,7 +59,7 @@ namespace GeometryHelper.Cad.Plugins.UnitTest
             Install();
 
             Assert.Equal(
-                new[] { "GeometryHelper.Cad.Plugins.DrawingInfo.dll" },
+                new[] { "OpenCAD2D.Plugins.DrawingInfo.dll" },
                 Directory
                     .GetFiles(Path.Combine(_files.PluginFolder, "DrawingInfo"))
                     .Select(Path.GetFileName)

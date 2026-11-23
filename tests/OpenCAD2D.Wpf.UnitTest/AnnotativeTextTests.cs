@@ -3,7 +3,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Annotative text: the Annotative box of the Text Style dialog (the style's own flag) and the Annotative button of the MTEXT

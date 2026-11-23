@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The canvas and its menus against pictures of AutoCAD 2021: SCALE draws the objects faded where they stand and their
@@ -369,11 +369,11 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                 string exe = System.IO.Path.Combine(
                     bin.Parent.Parent.Parent.Parent.Parent.FullName,
                     "src",
-                    "GeometryHelper.Cad.App",
+                    "OpenCAD2D.App",
                     "bin",
                     bin.Parent.Name,
                     "net8.0-windows",
-                    "GeometryHelper.Cad.App.exe"
+                    "OpenCAD2D.App.exe"
                 );
                 Assert.True(System.IO.File.Exists(exe), exe);
                 var start = new System.Diagnostics.ProcessStartInfo(exe)

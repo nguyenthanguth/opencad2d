@@ -12,7 +12,7 @@ using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The External References palette and the attach dialogs of C18b, driven with no window through their view models, and

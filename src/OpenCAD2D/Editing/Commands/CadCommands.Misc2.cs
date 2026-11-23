@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The registry entries of DWGPROPS, HYPERLINK, -HYPERLINK, GROUPEDIT and ATTREDEF; each command is in its own file

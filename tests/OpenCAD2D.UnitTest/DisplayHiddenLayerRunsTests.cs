@@ -8,9 +8,9 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.TestDrawings;
+using static OpenCAD2D.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A layer switched off is patched into the display list by taking the runs of the entities that read it and nothing else

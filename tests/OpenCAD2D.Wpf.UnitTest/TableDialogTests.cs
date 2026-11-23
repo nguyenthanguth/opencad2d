@@ -11,7 +11,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Tables in the window (C18a) with every dialog stubbed: TABLE through the Insert Table dialog's view model, the cell opened

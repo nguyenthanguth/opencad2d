@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <RootNamespace>OpenCAD2D</RootNamespace>
+        <AssemblyName>OpenCAD2D</AssemblyName>
+        <Description>The 2D presenter of GeometryHelper: opens a DXF as a document, turns its entities into 2D display lists, picks and selects them. No UI.</Description>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
+        <ProjectReference Include="..\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Text\english-words.txt.gz" LogicalName="OpenCAD2D.english-words.txt.gz" />
+    </ItemGroup>
+
+    <!-- The default support folders, beside OpenCAD2D.dll in the output of every project that uses it. -->
+    <ItemGroup>
+        <None
+            Update="Fonts\**;Hatches\**;Linetypes\**;Lisps\**;Pythons\**;Plugins\**;DrawingTemplates\**"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="OpenCAD2D.UnitTest" />
+        <InternalsVisibleTo Include="OpenCAD2D.Remote.UnitTest" />
+        <InternalsVisibleTo Include="OpenCAD2D.Wpf" />
+        <InternalsVisibleTo Include="OpenCAD2D.Python" />
+        <InternalsVisibleTo Include="OpenCAD2D.Wpf.UnitTest" />
+    </ItemGroup>
+</Project>

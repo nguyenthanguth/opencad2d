@@ -8,7 +8,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The fourth round of snap and grid follow-ups, checked against AutoCAD 2021's console: SNAPMODE 2 kept by each space,

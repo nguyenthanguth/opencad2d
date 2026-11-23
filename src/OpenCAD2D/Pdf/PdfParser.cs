@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Reads the objects of a PDF from bytes: numbers, strings, names, arrays, dictionaries, references and, for a content

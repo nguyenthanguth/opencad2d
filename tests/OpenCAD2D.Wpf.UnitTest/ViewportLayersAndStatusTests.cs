@@ -4,7 +4,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Layer manager's VP columns and the status bar's MODEL/PAPER button, scale and padlock, on the room whose Layout1

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Layer manager in a layout, as AutoCAD 2021's: the VP columns (VP Freeze, New VP Freeze, VP Color, VP Linetype, VP

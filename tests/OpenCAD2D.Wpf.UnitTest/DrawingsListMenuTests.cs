@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The DRAWINGS list as a list of files (C5): a click selects, a double click or Enter opens, the right-click menu opens

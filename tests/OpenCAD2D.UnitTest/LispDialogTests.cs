@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using GeometryHelper.Cad.Dcl;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Dcl;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The 22 dialog functions of AutoLISP and the dialogs they run (L5 part E, D314-D330 and section 2c). The dialogs are
@@ -884,10 +884,7 @@ namespace GeometryHelper.Cad.UnitTest
                 first
                     .Output.Split('\n')
                     .Count(l =>
-                        l.StartsWith(
-                            "slide_image: slides are not supported by GeometryHelper.Cad yet",
-                            StringComparison.Ordinal
-                        )
+                        l.StartsWith("slide_image: slides are not supported by OpenCAD2D yet", StringComparison.Ordinal)
                     )
             );
             Assert.Empty(host.Dialogs);

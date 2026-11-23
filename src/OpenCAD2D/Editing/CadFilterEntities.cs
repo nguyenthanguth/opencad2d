@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What the lines of an object selection filter read of an entity: its kind, its names and its numbers.</summary>
     internal static class CadFilterEntities

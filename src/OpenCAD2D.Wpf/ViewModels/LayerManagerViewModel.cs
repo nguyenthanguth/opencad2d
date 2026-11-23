@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The logic of the Layer manager: the layer table of a drawing with its on, frozen and locked flags, colour, linetype and

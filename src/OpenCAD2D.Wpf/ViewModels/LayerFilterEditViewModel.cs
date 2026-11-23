@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// One row of the filter definition of AutoCAD's Layer Filter Properties dialog: a cell for each property of a layer, empty where

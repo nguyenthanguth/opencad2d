@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The contextual Image tab: shown while images (and nothing else) are selected, its Adjust, Clipping and Options groups

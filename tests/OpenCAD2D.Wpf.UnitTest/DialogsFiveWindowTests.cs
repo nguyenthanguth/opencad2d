@@ -6,7 +6,7 @@ using System.Windows;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The dialogs left by earlier rounds driven with no window shown: Multiline Style (MLSTYLE) with its New, Modify, Rename,
@@ -489,13 +489,13 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                 {
                     var database = new DxfDatabase("AC1027");
                     DxfDBDictionary images = DxfRasterImageDef.CreateImageDictionary(database);
-                    var definition = new DxfRasterImageDef("logo.png", new Geometry.GeoVector2(40, 30));
+                    var definition = new DxfRasterImageDef("logo.png", new GeometryHelper.Geometry.GeoVector2(40, 30));
                     images.SetAt("logo", definition);
                     var image = new DxfRasterImage(definition);
                     image.SetOrientation(
-                        new Geometry.GeoPoint3(0, 0, 0),
-                        new Geometry.GeoVector3(40, 0, 0),
-                        new Geometry.GeoVector3(0, 30, 0)
+                        new GeometryHelper.Geometry.GeoPoint3(0, 0, 0),
+                        new GeometryHelper.Geometry.GeoVector3(40, 0, 0),
+                        new GeometryHelper.Geometry.GeoVector3(0, 30, 0)
                     );
                     database.ModelSpace.AppendEntity(image);
                     var model = new MainViewModel();
@@ -536,7 +536,13 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                 grid.LayerTable.Add(new DxfLayerTableRecord { Name = "GRID" });
                 grid.LayerTable.Add(new DxfLayerTableRecord { Name = "AXIS" });
                 grid.ModelSpace.AppendEntity(
-                    new DxfLine(new Geometry.GeoPoint3(0, 0, 0), new Geometry.GeoPoint3(100, 0, 0)) { Layer = "GRID" }
+                    new DxfLine(
+                        new GeometryHelper.Geometry.GeoPoint3(0, 0, 0),
+                        new GeometryHelper.Geometry.GeoPoint3(100, 0, 0)
+                    )
+                    {
+                        Layer = "GRID",
+                    }
                 );
                 string gridPath = folder.Write("grid.dxf", grid);
                 MainViewModel model = Open(folder);

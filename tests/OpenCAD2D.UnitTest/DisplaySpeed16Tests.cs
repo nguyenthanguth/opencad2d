@@ -7,9 +7,9 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.UnitTest;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.TestDrawings;
+using static OpenCAD2D.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The work of speed14 in the display: the build of a list made whole through less garbage and with the room it needs made

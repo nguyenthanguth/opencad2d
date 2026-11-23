@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>One check box of the Property Settings dialog: its words, the source's value beside it, whether it is checked, and whether it can be.</summary>
     public sealed class MatchPropOptionViewModel : ObservableObject

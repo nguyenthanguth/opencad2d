@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.SecurityKit;
+using static OpenCAD2D.Wpf.UnitTest.SecurityKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// What AutoLISP's <c>setenv</c> and <c>setcfg</c> keep, in the window (C4a, D1218): the drawings of the app share one store

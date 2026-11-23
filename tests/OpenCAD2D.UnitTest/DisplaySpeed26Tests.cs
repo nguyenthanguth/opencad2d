@@ -10,9 +10,9 @@ using GeometryHelper.Dwg;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.TestDrawings;
+using static OpenCAD2D.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The work of speed17 in the display: a chain (<see cref="DisplayPolyline2"/>) of 72 bytes where it was 80, its four

@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// The picture of a ribbon button or a DRAWINGS button, described without WPF: path data, or the bytes of an image. The

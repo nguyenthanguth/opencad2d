@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The four items PROGRESS.md parked after the L2 wave, each typed as AutoCAD 2021's console took it (probes p1 to p7 of the
@@ -320,7 +321,7 @@ namespace GeometryHelper.Cad.UnitTest
 
             Assert.Equal("\"acad\"", Value(session, "(getvar \"PROGRAM\")"));
             Assert.Equal("\"Microsoft Windows NT Version 6.2 (x64)\"", Value(session, "(getvar \"PLATFORM\")"));
-            Assert.Equal("\"GeometryHelper.Cad\"", Value(session, "(getvar \"PRODUCT\")"));
+            Assert.Equal("\"OpenCAD2D\"", Value(session, "(getvar \"PRODUCT\")"));
             Assert.Equal(
                 "; error: AutoCAD variable setting rejected: \"PROGRAM\" \"x\"",
                 Value(session, "(setvar \"PROGRAM\" \"x\")")

@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The functions only AutoCAD can run: ObjectARX, the Visual LISP compiler and projects, AutoCAD's command table and

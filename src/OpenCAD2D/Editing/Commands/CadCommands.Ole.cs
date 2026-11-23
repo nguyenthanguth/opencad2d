@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// INSERTOBJ and the variables of OLE objects: OLEFRAME (their frames shown and plotted), OLEHIDE (the spaces whose objects

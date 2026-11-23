@@ -11,7 +11,7 @@ using System.Windows.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The first MLEADER of a drawing with no multileader style, committed with its words on the Annotate tab, whose style

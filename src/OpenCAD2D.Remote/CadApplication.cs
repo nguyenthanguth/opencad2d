@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
-    /// A running GeometryHelper CAD, driven from another program the way a Tekla Open API program drives a running Tekla
+    /// A running OpenCAD2D, driven from another program the way a Tekla Open API program drives a running Tekla
     /// Structures: <c>new CadApplication()</c> connects, <see cref="Documents"/> lists the drawings it has open and each
     /// <see cref="CadRemoteDocument"/> reads and edits one of them.
     /// </summary>
@@ -36,7 +37,7 @@ namespace GeometryHelper.Cad.Remote
         private readonly Dictionary<int, CadRemoteDocument> _documents = new Dictionary<int, CadRemoteDocument>();
 
         /// <summary>Connects to the app the user activated last.</summary>
-        /// <exception cref="CadRemoteException">Thrown when no GeometryHelper CAD is running or it does not take the connection.</exception>
+        /// <exception cref="CadRemoteException">Thrown when no OpenCAD2D is running or it does not take the connection.</exception>
         public CadApplication()
             : this(RemoteInstance.DefaultFolder()) { }
 
@@ -68,7 +69,7 @@ namespace GeometryHelper.Cad.Remote
             if (found.Count == 0)
             {
                 throw new CadRemoteException(
-                    "No GeometryHelper CAD is running. Start the app, or check that it allows other programs to connect."
+                    "No OpenCAD2D is running. Start the app, or check that it allows other programs to connect."
                 );
             }
 
@@ -155,7 +156,7 @@ namespace GeometryHelper.Cad.Remote
                 }
             }
 
-            throw new CadRemoteException("No running GeometryHelper CAD has " + full + " open.");
+            throw new CadRemoteException("No running OpenCAD2D has " + full + " open.");
         }
 
         /// <summary>Gets the drawing the user works in, or null when the app has none open.</summary>

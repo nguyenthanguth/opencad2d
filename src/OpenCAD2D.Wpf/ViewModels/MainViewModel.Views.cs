@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The named views and drawing units of the window: the View Manager (VIEW) and Drawing Units (UNITS), each shown through

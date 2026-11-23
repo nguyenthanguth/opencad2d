@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The link under the load warning opens the page of the guide that tells about it, on the documentation site, in the

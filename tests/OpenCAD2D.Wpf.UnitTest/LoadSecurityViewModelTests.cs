@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Input;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.SecurityKit;
+using static OpenCAD2D.Wpf.UnitTest.SecurityKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The warning of SECURELOAD 1 as a view model (D914, <c>design/SecLoadWarning.png</c>): AutoCAD 2021's words, the rows

@@ -5,7 +5,7 @@ using System.IO;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// STATUS: writes the report AutoCAD 2021's STATUS writes: how many objects the drawing holds and where it is; the limits of

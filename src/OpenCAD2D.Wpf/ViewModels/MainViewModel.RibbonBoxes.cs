@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// One choice of the Lineweight box of Home › Properties: its name as the Properties palette writes it (ByLayer, ByBlock,

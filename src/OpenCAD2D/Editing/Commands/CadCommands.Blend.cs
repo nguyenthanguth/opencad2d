@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>BLEND in AutoCAD 2021's words: a spline between the ends of two open curves, with Tangent or Smooth continuity.</summary>
     internal static partial class CadCommands

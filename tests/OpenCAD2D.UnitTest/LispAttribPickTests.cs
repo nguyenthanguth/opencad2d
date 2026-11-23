@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>nentselp</c> and <c>nentsel</c> on the text of an attribute, and <c>entdel</c> of one, as AutoCAD 2021 gave them in its

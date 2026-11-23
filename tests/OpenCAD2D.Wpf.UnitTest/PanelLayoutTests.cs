@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Where DRAWINGS and PROPERTIES are docked and how wide they are: kept in the settings file, saved when the user lets a

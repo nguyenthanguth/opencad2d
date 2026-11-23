@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Property Settings dialog of MATCHPROP's Settings, shown through a function the workspace sets, so that a test drives

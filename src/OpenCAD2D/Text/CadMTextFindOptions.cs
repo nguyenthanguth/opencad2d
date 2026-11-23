@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// How the MTEXT editor's Find and Replace dialog matches words, as AutoCAD 2021's has it: Match case, Whole words only, Use

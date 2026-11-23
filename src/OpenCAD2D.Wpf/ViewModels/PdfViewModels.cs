@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>One line of AutoCAD's PDF Layers dialog: a layer of the PDF and whether it is on.</summary>
     public sealed class PdfLayerRowViewModel : ObservableObject

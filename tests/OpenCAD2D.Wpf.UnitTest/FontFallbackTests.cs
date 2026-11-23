@@ -6,7 +6,7 @@ using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A letter the font of a text has no glyph for is drawn from a font that has it, as AutoCAD 2021 draws it through the font

@@ -11,7 +11,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Drawing templates in the window: NEW with Select Template (and typed with FILEDIA 0), QNEW and the quick New from the

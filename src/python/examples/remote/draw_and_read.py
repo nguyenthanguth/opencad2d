@@ -1,4 +1,4 @@
-"""Draws a grid in a running GeometryHelper CAD, reads it back, and saves it when you name a file.
+"""Draws a grid in a running OpenCAD2D, reads it back, and saves it when you name a file.
 
 Run outside the app, with "Allow other programs to connect" on in its Global settings: python draw_and_read.py [OUT]
 A new drawing gets a layer Grid and 22 lines, 11 each way over 1000 by 1000 at 100 spacing, as one undo step; the
@@ -8,8 +8,8 @@ lines are read back by layer and kind, and the drawing is saved as OUT (.dxf or 
 import sys
 from pathlib import Path
 
-from geometryhelper.cad import App
-from GeometryHelper.Cad.Remote import CadApplication
+from opencad2d.cad import App
+from OpenCAD2D.Remote import CadApplication
 
 LAYER = "Grid"
 

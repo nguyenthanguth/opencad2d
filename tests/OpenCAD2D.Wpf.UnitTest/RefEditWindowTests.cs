@@ -3,7 +3,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The edit of a reference in place in the window: Edit Block In-place of the object menu of a block reference starts REFEDIT

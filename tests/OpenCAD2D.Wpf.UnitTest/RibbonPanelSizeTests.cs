@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The ribbon laid out as AutoCAD 2021's, found in the window drawn offscreen: Home's panels in AutoCAD's order, shrunk in

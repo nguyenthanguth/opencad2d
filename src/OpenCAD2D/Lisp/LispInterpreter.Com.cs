@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>vl-load-com</c> and what it brings: AutoCAD 2021 has only <c>vlax-for</c> before it, and <c>:vlax-true</c> and

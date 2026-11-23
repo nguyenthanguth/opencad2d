@@ -19,7 +19,7 @@ Delete this file if you do not want the command: every .py file in this folder l
 import os
 from collections import Counter
 
-from geometryhelper.cad import active_drawing, command, write
+from opencad2d.cad import active_drawing, command, write
 
 
 @command("GHPYINFO")

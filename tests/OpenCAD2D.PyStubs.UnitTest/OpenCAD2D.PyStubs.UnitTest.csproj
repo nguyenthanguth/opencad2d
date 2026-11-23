@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!--
+    Tests of the stub generator (tools/OpenCAD2D.PyStubs), which is a net8.0 program, so the tests are net8.0 too.
+    They run it on the fixture assembly in Fixture\ (one type for each rule) and on the real assemblies. Both are built
+    first and never referenced: they are copied beside the tests, the fixture to fixture\ and the real ones to lib\, the
+    way the tool is given them, as DLLs and XML docs in a folder.
+  -->
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <LangVersion>latest</LangVersion>
+        <Deterministic>true</Deterministic>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Remove="Fixture\**" />
+        <EmbeddedResource Remove="Fixture\**" />
+        <None Remove="Fixture\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+        <PackageReference Include="xunit" Version="2.9.2" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\tools\OpenCAD2D.PyStubs\OpenCAD2D.PyStubs.csproj" />
+        <ProjectReference Include="Fixture\GeometryHelper.Fixture.csproj" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" ReferenceOutputAssembly="false" />
+        <ProjectReference
+            Include="..\..\src\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj"
+            ReferenceOutputAssembly="false"
+        />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None
+            Include="Fixture\bin\out\GeometryHelper.Fixture.dll"
+            Link="fixture\GeometryHelper.Fixture.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="Fixture\bin\out\GeometryHelper.Fixture.xml"
+            Link="fixture\GeometryHelper.Fixture.xml"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="$(GeometryHelperLib)GeometryHelper.dll"
+            Link="lib\GeometryHelper.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="$(GeometryHelperLib)GeometryHelper.xml"
+            Link="lib\GeometryHelper.xml"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\src\OpenCAD2D\bin\$(Configuration)\netstandard2.0\OpenCAD2D.dll"
+            Link="lib\OpenCAD2D.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\src\OpenCAD2D\bin\$(Configuration)\netstandard2.0\OpenCAD2D.xml"
+            Link="lib\OpenCAD2D.xml"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\src\OpenCAD2D.Remote\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Remote.dll"
+            Link="lib\OpenCAD2D.Remote.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\src\OpenCAD2D.Remote\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Remote.xml"
+            Link="lib\OpenCAD2D.Remote.xml"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+    </ItemGroup>
+</Project>

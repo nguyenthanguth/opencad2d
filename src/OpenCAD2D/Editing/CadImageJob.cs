@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The kinds of file PNGOUT, JPGOUT and BMPOUT write.</summary>
     public enum CadImageFormat

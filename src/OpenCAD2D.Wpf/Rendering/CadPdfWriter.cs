@@ -4,10 +4,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using SkiaSharp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The presenter's plotter, GeometryHelper PDF: writes a plot as one page of a PDF through SkiaSharp's

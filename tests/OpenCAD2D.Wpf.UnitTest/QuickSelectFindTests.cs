@@ -3,7 +3,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Quick Select and Find and Replace dialogs of QSELECT and FIND, driven with no window through their requests, the

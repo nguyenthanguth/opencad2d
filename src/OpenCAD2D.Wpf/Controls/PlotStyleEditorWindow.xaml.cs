@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Plot Style Table Editor, over a .ctb or .stb file: the General, Table View and Form View tabs. Save &amp; Close

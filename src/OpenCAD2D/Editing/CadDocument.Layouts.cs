@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The switch from one space to another, model space or a layout, and MSPACE and PSPACE, as undo steps.</summary>
     public sealed partial class CadDocument

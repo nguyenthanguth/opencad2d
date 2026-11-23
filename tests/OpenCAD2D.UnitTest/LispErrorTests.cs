@@ -1,8 +1,8 @@
 using System.Linq;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// Errors, <c>*error*</c>, <c>vl-catch-all-apply</c>, the hard error of the stack limit, and <c>c:</c> commands, against

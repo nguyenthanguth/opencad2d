@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What a tool of a tool palette is, as AutoCAD's tool palettes have them.</summary>
     public enum CadToolKind

@@ -4,8 +4,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Windows clipboard as the presenter's (<see cref="ICadClipboard"/>): objects go under the private format

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>getvar</c> and <c>setvar</c>: the system variables of the presenter (<see cref="CadCommandRegistry.Variables"/>) read

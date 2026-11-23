@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// Which Python the app starts (D713): the Global settings path, <c>PYTHONNET_PYDLL</c>, then PEP 514, each checked on
@@ -124,10 +124,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadPythonEnvironment environment = Find(exe, null);
 
             Assert.False(environment.IsUsable);
-            Assert.Equal(
-                exe + " is Python 3." + minor + ": GeometryHelper CAD needs 3.11 to 3.15.",
-                environment.Problem
-            );
+            Assert.Equal(exe + " is Python 3." + minor + ": OpenCAD2D needs 3.11 to 3.15.", environment.Problem);
         }
 
         [Theory]
@@ -152,7 +149,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadPythonEnvironment environment = Find(exe, null);
 
             Assert.False(environment.IsUsable);
-            Assert.Equal(exe + " is a 32-bit Python: GeometryHelper CAD needs a 64-bit one.", environment.Problem);
+            Assert.Equal(exe + " is a 32-bit Python: OpenCAD2D needs a 64-bit one.", environment.Problem);
         }
 
         [Fact]

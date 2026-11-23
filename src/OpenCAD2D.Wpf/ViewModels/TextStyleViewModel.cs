@@ -7,9 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Windows.Input;
 using System.Windows.Media;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A style of the list of the Text Style dialog or the Dimension Style Manager: its name, whether it is current, how many

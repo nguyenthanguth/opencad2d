@@ -3,9 +3,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 
-namespace GeometryHelper.PyStubs.UnitTest
+namespace OpenCAD2D.PyStubs.UnitTest
 {
-    /// <summary>The generator on the real assemblies: GeometryHelper, GeometryHelper.Cad and GeometryHelper.Cad.Remote.</summary>
+    /// <summary>The generator on the real assemblies: GeometryHelper, OpenCAD2D and OpenCAD2D.Remote.</summary>
     public class LibraryStubsTests
     {
         private static readonly Lazy<StubRun> Run = new Lazy<StubRun>(() => StubRun.OfTheLibrary());
@@ -17,7 +17,7 @@ namespace GeometryHelper.PyStubs.UnitTest
 
             Assert.Equal(18, report.Modules.Count);
             Assert.Equal(
-                new[] { "GeometryHelper", "GeometryHelper.Cad", "GeometryHelper.Cad.Remote" },
+                new[] { "GeometryHelper", "OpenCAD2D", "OpenCAD2D.Remote" },
                 report.Assemblies.Select(a => a.Name)
             );
             Assert.All(report.Assemblies, a => Assert.True(a.Types > 0 && a.Members > a.Types, a.Name));
@@ -39,7 +39,7 @@ namespace GeometryHelper.PyStubs.UnitTest
         [Fact]
         public void CadApplication_IsAContextManager_AndTheKindOfAFilterTakesAPythonClass()
         {
-            string remote = Run.Value.Module("Cad/Remote");
+            string remote = Run.Value.Module("OpenCAD2D/Remote");
             string application = StubRun.ClassOf(remote, "CadApplication");
             string filter = StubRun.ClassOf(remote, "CadObjectFilter");
 
@@ -52,7 +52,7 @@ namespace GeometryHelper.PyStubs.UnitTest
         [Fact]
         public void TheFilterAndTheLogWriter_TakeNone_AsTheirSummariesAndPythonnetSay()
         {
-            string filter = StubRun.ClassOf(Run.Value.Module("Cad/Remote"), "CadObjectFilter");
+            string filter = StubRun.ClassOf(Run.Value.Module("OpenCAD2D/Remote"), "CadObjectFilter");
             string log = StubRun.ClassOf(Run.Value.Module(""), "GeometryHelperLog");
 
             Assert.Contains("    def Layer(self, value: str | None) -> None: ...\n", filter);
@@ -97,9 +97,13 @@ namespace GeometryHelper.PyStubs.UnitTest
         }
 
         [Fact]
-        public void TheTypesWrittenAsAny_AreTheTwoThatTheTableDoesNotKnow()
+        public void TheTypesWrittenAsAny_AreTheThreeThatTheTableDoesNotKnow()
         {
-            Assert.Equal(new[] { "System.Double[,]", "System.Xml.Linq.XDocument" }, Run.Value.Report.AnyMapped);
+            // System.Threading.Tasks.Task is what CadTrueTypeFonts.WarmUp returns.
+            Assert.Equal(
+                new[] { "System.Double[,]", "System.Threading.Tasks.Task", "System.Xml.Linq.XDocument" },
+                Run.Value.Report.AnyMapped
+            );
         }
 
         [Fact]
@@ -107,7 +111,7 @@ namespace GeometryHelper.PyStubs.UnitTest
         {
             Assert.NotEmpty(Run.Value.Report.LeftOut);
             Assert.All(Run.Value.Report.LeftOut, item =>
-                Assert.Matches(@"^keyword name: GeometryHelper(\.[A-Za-z0-9]+)+\.(None|True|False)$", item)
+                Assert.Matches(@"^keyword name: (GeometryHelper|OpenCAD2D)(\.[A-Za-z0-9]+)+\.(None|True|False)$", item)
             );
         }
 

@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Multilines, as AutoCAD 2021 asks for them: MLINE here, MLEDIT in CadCommands.MlineEdit.cs and MLSTYLE in

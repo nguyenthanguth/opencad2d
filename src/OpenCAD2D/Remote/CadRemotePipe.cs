@@ -1,9 +1,10 @@
 using System;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using GeometryHelper;
 using Microsoft.Win32.SafeHandles;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Makes the pipe the remote server listens on, open to the Windows user who runs the app and to nobody else, and shut

@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A file of Recent Documents, as the application menu and the start screen list it: its name, folder and when it was
@@ -309,7 +310,7 @@ namespace GeometryHelper.Cad.Wpf
         internal AppMenuViewModel(MainViewModel model, string appName)
         {
             _model = model;
-            ExitText = "Exit " + (string.IsNullOrWhiteSpace(appName) ? "GeometryHelper" : appName.Trim());
+            ExitText = "Exit " + (string.IsNullOrWhiteSpace(appName) ? "OpenCAD2D" : appName.Trim());
             bool open = model.HasDocument;
             Items = new[]
             {
@@ -626,7 +627,7 @@ namespace GeometryHelper.Cad.Wpf
         /// <summary>Gets the command of Exit at the foot.</summary>
         public ICommand ExitCommand { get; }
 
-        /// <summary>Gets the words of Exit, with the name of the app: "Exit GeometryHelper CAD".</summary>
+        /// <summary>Gets the words of Exit, with the name of the app: "Exit OpenCAD2D".</summary>
         public string ExitText { get; }
 
         /// <summary>Opens a file of Recent Documents; the menu closes.</summary>
@@ -756,7 +757,7 @@ namespace GeometryHelper.Cad.Wpf
         internal Func<DateTime> Now { get; set; } = () => DateTime.Now;
 
         /// <summary>Makes the application menu of the G button, its items as the drawing shown allows.</summary>
-        /// <param name="appName">The name of the app, which Exit names: "GeometryHelper CAD"; null for "GeometryHelper".</param>
+        /// <param name="appName">The name of the app, which Exit names: "OpenCAD2D"; null for "OpenCAD2D".</param>
         /// <returns>The menu.</returns>
         public AppMenuViewModel CreateAppMenu(string appName = null) => new AppMenuViewModel(this, appName);
 

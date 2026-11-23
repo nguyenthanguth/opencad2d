@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A scale of AutoCAD's Edit Drawing Scales: its name, its paper and drawing units, and whether the drawing keeps it (the

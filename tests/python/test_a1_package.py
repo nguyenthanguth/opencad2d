@@ -14,7 +14,7 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 
 def _distribution() -> Distribution:
     # The distribution name is a constant of the package (D619) and may change; the import name does not.
-    (name,) = metadata.packages_distributions()["geometryhelper"]
+    (name,) = metadata.packages_distributions()["opencad2d"]
     return metadata.distribution(name)
 
 
@@ -63,38 +63,39 @@ def test_the_licence_is_in_the_dist_info() -> None:
 
 def test_the_wheel_holds_the_files_of_the_list_and_nothing_else() -> None:
     files = _files()
-    own = [f for f in files if f.startswith("geometryhelper/")]
-    assert [f for f in own if not f.startswith("geometryhelper/lib/")] == [
-        "geometryhelper/__init__.py",
-        "geometryhelper/_app.py",
-        "geometryhelper/arrays.py",
-        "geometryhelper/cad/__init__.py",
-        "geometryhelper/cad/_drawing.py",
-        "geometryhelper/cad/_local.py",
-        "geometryhelper/cad/_remote.py",
-        "geometryhelper/cad/_ui.py",
-        "geometryhelper/geometryhelper.runtimeconfig.json",
-        "geometryhelper/py.typed",
+    own = [f for f in files if f.startswith("opencad2d/")]
+    assert [f for f in own if not f.startswith("opencad2d/lib/")] == [
+        "opencad2d/__init__.py",
+        "opencad2d/_app.py",
+        "opencad2d/arrays.py",
+        "opencad2d/cad/__init__.py",
+        "opencad2d/cad/_drawing.py",
+        "opencad2d/cad/_local.py",
+        "opencad2d/cad/_remote.py",
+        "opencad2d/cad/_ui.py",
+        "opencad2d/opencad2d.runtimeconfig.json",
+        "opencad2d/py.typed",
     ]
-    assert [f for f in files if not f.startswith(("geometryhelper/", "GeometryHelper-stubs/", "System-stubs/"))
+    assert [f for f in files if not f.startswith(("opencad2d/", "GeometryHelper-stubs/", "OpenCAD2D-stubs/", "System-stubs/"))
             and ".dist-info/" not in f] == []
 
 
 @pytest.mark.parametrize("folder", ["Fonts", "Hatches", "Linetypes"])
 def test_the_lib_folder_has_each_support_folder_with_files_in_it(folder: str) -> None:
-    assert [f for f in _files() if f.startswith(f"geometryhelper/lib/{folder}/")] != []
+    assert [f for f in _files() if f.startswith(f"opencad2d/lib/{folder}/")] != []
 
 
 def test_the_stub_packages_are_there_with_one_module_per_namespace() -> None:
     files = _files()
     assert "GeometryHelper-stubs/__init__.pyi" in files
+    assert "OpenCAD2D-stubs/__init__.pyi" in files
     assert "System-stubs/__init__.pyi" in files
     modules = sorted(
         PurePosixPath(f).parent.as_posix()
         for f in files
-        if f.startswith("GeometryHelper-stubs/") and f.endswith("/__init__.pyi")
+        if f.startswith(("GeometryHelper-stubs/", "OpenCAD2D-stubs/")) and f.endswith("/__init__.pyi")
     )
-    # 18 namespaces in the three assemblies, the root GeometryHelper among them (research section 3).
+    # 18 namespaces in the three assemblies: 14 of GeometryHelper (its root among them), 4 of OpenCAD2D (its root too).
     assert len(modules) == 18
-    assert [f for f in files if f.startswith("GeometryHelper-stubs/") and f.endswith(".py")] == []
+    assert [f for f in files if f.startswith(("GeometryHelper-stubs/", "OpenCAD2D-stubs/")) and f.endswith(".py")] == []
     assert [f for f in files if f.startswith("System-stubs/") and f.endswith(".py")] == []

@@ -5,13 +5,13 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The sample that ships in the Pythons folder, <c>GH-DrawingInfo.py</c>, as the build leaves it beside
-    /// GeometryHelper.Cad.dll: loading it defines GHPYINFO and writes nothing, and GHPYINFO writes the drawing's name and
+    /// OpenCAD2D.dll: loading it defines GHPYINFO and writes nothing, and GHPYINFO writes the drawing's name and
     /// folder, the current layer, the objects of model space by type, the layers and blocks, and the extents. It changes nothing.
     /// </summary>
     public sealed class DrawingInfoSampleTests : PythonHostTestBase

@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>
     /// How DCL's units become pixels: widths are counted in character widths and heights in character heights, as DCL counts

@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>AutoCAD's Page Setup Override, from Save As PDF; its logic is <see cref="PageSetupOverrideViewModel"/>.</summary>
     public partial class PageSetupOverrideWindow : Window

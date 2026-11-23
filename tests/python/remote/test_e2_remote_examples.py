@@ -19,8 +19,8 @@ from typing import Any
 
 import pytest
 
-from GeometryHelper.Cad import CadDocument
-from GeometryHelper.Cad.Remote import CadObjectFilter
+from OpenCAD2D import CadDocument
+from OpenCAD2D.Remote import CadObjectFilter
 from GeometryHelper.Dxf import DxfCircle, DxfLine, DxfMText
 from GeometryHelper.Geometry import GeoPoint3, GeoVector3
 

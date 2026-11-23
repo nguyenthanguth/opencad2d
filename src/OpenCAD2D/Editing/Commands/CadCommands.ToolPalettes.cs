@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// TOOLPALETTES and TOOLPALETTESCLOSE, AutoCAD 2021's Tool Palettes commands: the window's tool palettes are shown, or

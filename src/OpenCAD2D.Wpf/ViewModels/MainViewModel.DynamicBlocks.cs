@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Dynamic blocks in use, as AutoCAD 2021 drives them: a flip grip clicked flips the block, a visibility or lookup grip

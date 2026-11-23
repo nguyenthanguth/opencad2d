@@ -1,8 +1,8 @@
 # Driving the app from another program
 
-Another program can read and edit the drawings of a running GeometryHelper CAD, run commands on its command line, ask
+Another program can read and edit the drawings of a running OpenCAD2D, run commands on its command line, ask
 the user to pick a point or objects on the canvas and save, in the way a Tekla Open API program drives a running Tekla
-Structures. The client is the project `GeometryHelper.Cad.Remote` (netstandard2.0, referencing only GeometryHelper, so a
+Structures. The client is the project `OpenCAD2D.Remote` (netstandard2.0, referencing only GeometryHelper, so a
 Tekla 2020 plugin on .NET Framework 4.8 can use it as well as a console program or a tool on .NET 8). Nothing is
 installed on the app's side: the app opens the channel when it starts, and Global settings can close it
 ([the setting](#the-setting)).
@@ -15,9 +15,9 @@ what it makes in code it can put in the drawing.
 
 | In Tekla Structures | Here | What differs |
 |---|---|---|
-| `new Model()` | [`new CadApplication()`](xref:GeometryHelper.Cad.Remote.CadApplication) | connects to the app the user activated last; `CadApplication.GetRunning()` lists the apps |
-| `model.GetConnectionStatus()` | the constructor throws [`CadRemoteException`](xref:GeometryHelper.Cad.Remote.CadRemoteException) when no app takes it | |
-| the model open | `app.ActiveDocument`, `app.Documents`, `app.Open(path)`, `app.New()` | an app holds several drawings; each is a [`CadRemoteDocument`](xref:GeometryHelper.Cad.Remote.CadRemoteDocument) |
+| `new Model()` | [`new CadApplication()`](xref:OpenCAD2D.Remote.CadApplication) | connects to the app the user activated last; `CadApplication.GetRunning()` lists the apps |
+| `model.GetConnectionStatus()` | the constructor throws [`CadRemoteException`](xref:OpenCAD2D.Remote.CadRemoteException) when no app takes it | |
+| the model open | `app.ActiveDocument`, `app.Documents`, `app.Open(path)`, `app.New()` | an app holds several drawings; each is a [`CadRemoteDocument`](xref:OpenCAD2D.Remote.CadRemoteDocument) |
 | `beam.Insert()` | `drawing.Insert(entity)` | queued; returns a ticket such as `~1` until the commit |
 | `beam.Modify()` | `drawing.Modify(entity)` | queued, on an object read from the drawing |
 | `beam.Delete()` | `drawing.Delete(handle)` or `Delete(entity)` | queued |
@@ -87,7 +87,7 @@ block that is neither in the drawing nor defined with at least one object is ref
 
 ## Layers and layouts
 
-`drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:GeometryHelper.Cad.Remote.CadRemoteLayer)
+`drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)
 with `Name`, `IsOn`, `IsFrozen`, `IsLocked`, `IsPlottable`, `Color` (an AutoCAD index or a true colour), `Linetype`,
 `LineWeight` and `Description`. They are copies, asked of the app each time.
 
@@ -148,7 +148,7 @@ DxfEntity plate = drawing.PickObject("Select the plate");
 While a pick waits, the app is free: its window answers, the user can pan, zoom and use the ribbon, and nothing is locked on
 the UI thread. The server looks every 20 milliseconds whether the pick has ended, and each look is a short piece of work on
 the UI thread of its own. **Another program that asks the app meanwhile is not made to wait:** it is told at once
-`GeometryHelper CAD is busy: it is waiting for the user to pick in a drawing, for a program that asked it to`, and its
+`OpenCAD2D is busy: it is waiting for the user to pick in a drawing, for a program that asked it to`, and its
 `CadApplication` is still good for the next request; `CadApplication.GetRunning()` lists such an app with no drawings.
 
 ## The setting
@@ -157,17 +157,17 @@ Global settings › Save and export › Other programs: **Allow other programs t
 file as `"remote": { "allowRemoteConnections": true }`. It is applied when the settings are, with no restart:
 
 - off: the app closes its pipe, deletes its instance file and drops the connections it has; no program finds it, and a program
-  that tries gets `No GeometryHelper CAD is running. Start the app, or check that it allows other programs to connect.`;
+  that tries gets `No OpenCAD2D is running. Start the app, or check that it allows other programs to connect.`;
 - on: the app opens a new pipe and writes the file again.
 
-The line under the switch says which: `Other programs can connect: GeometryHelper.Cad.12840` or `Other programs cannot connect.`
+The line under the switch says which: `Other programs can connect: OpenCAD2D.12840` or `Other programs cannot connect.`
 
 ## Security
 
-The pipe is `GeometryHelper.Cad.<process id>`, open to the Windows user who runs the app and to nobody else, and to this computer
+The pipe is `OpenCAD2D.<process id>`, open to the Windows user who runs the app and to nobody else, and to this computer
 only: other users on the machine and other machines cannot connect. Any program that user runs can drive the app, as any
 program can drive the user's Tekla; turn the setting off where that is not wanted. The app announces itself in
-`%LocalAppData%\GeometryHelper\Remote\<process id>.json` (process id, window title, time last activated) and deletes the file
+`%LocalAppData%\OpenCAD2D\Remote\<process id>.json` (process id, window title, time last activated) and deletes the file
 when it stops; a file left by a process that died is ignored and removed by the next client that finds it. No new package
 is used, and nothing is installed on the machine.
 
@@ -193,7 +193,7 @@ next request until it ends, as it holds the user.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Remote;
+using OpenCAD2D.Remote;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
@@ -231,27 +231,27 @@ using (var app = new CadApplication())                         // the app the us
 }
 ```
 
-The same program is in the repository as `tests/GeometryHelper.Cad.Remote.Sample`, and the remote tests run its code against a
-headless app with the pick answered by the test. To try it by hand, open GeometryHelper CAD with a drawing, run
-`dotnet run --project tests/GeometryHelper.Cad.Remote.Sample`, and click a point in the drawing when the command line asks
+The same program is in the repository as `tests/OpenCAD2D.Remote.Sample`, and the remote tests run its code against a
+headless app with the pick answered by the test. To try it by hand, open OpenCAD2D with a drawing, run
+`dotnet run --project tests/OpenCAD2D.Remote.Sample`, and click a point in the drawing when the command line asks
 `Pick the centre of the circle:`.
 
 ## From a Tekla plugin
 
-A Tekla plugin or macro on .NET Framework 4.8 references `GeometryHelper.Cad.Remote.dll` and `GeometryHelper.dll` (the client has
+A Tekla plugin or macro on .NET Framework 4.8 references `OpenCAD2D.Remote.dll` and `GeometryHelper.dll` (the client has
 no other dependency) and draws what it finds in the model into the drawing the user has open. The code below is the shape of it,
 for Tekla 2020, 2025 and 2026 alike, since the client does not touch Tekla's assemblies; it has not been run against Tekla.
 
 ```csharp
 using System.Collections.Generic;
-using GeometryHelper.Cad.Remote;
+using OpenCAD2D.Remote;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Tekla.Structures.Model;
 
 public static class BeamsToCad
 {
-    /// <summary>Draws the centre line of each selected beam in the plan of the drawing the user has open in GeometryHelper CAD.</summary>
+    /// <summary>Draws the centre line of each selected beam in the plan of the drawing the user has open in OpenCAD2D.</summary>
     public static int Send()
     {
         var selected = new Tekla.Structures.Model.UI.ModelObjectSelector().GetSelectedObjects();
@@ -278,16 +278,16 @@ public static class BeamsToCad
 
 ## From Python
 
-A Python script drives the app with `connect()` of `geometryhelper.cad`, which wraps the same client,
-[`CadApplication`](xref:GeometryHelper.Cad.Remote.CadApplication), in the `Drawing` that a command written in Python inside the
+A Python script drives the app with `connect()` of `opencad2d.cad`, which wraps the same client,
+[`CadApplication`](xref:OpenCAD2D.Remote.CadApplication), in the `Drawing` that a command written in Python inside the
 app uses ([Python commands and tools](python.md#the-drawing)): a script written for one runs in the other with only `connect()`
-or `active_drawing()` changed. It needs the `geometryhelper` wheel ([Installing](../python.md#installing)), Windows, the Windows
+or `active_drawing()` changed. It needs the `opencad2d` wheel ([Installing](../python.md#installing)), Windows, the Windows
 user who runs the app (the pipe admits nobody else), and [the setting](#the-setting) on.
 
 ```python
-from geometryhelper.cad import connect
+from opencad2d.cad import connect
 
-with connect() as app:                                  # the only GeometryHelper CAD running; the block's end disconnects
+with connect() as app:                                  # the only OpenCAD2D running; the block's end disconnects
     drawing = app.new()                                 # a new drawing, shown
     drawing.layers.add("Steel", color=1)
     drawing.add_line((0, 0), (100, 0), layer="Steel")
@@ -308,9 +308,9 @@ Below that, the client is run by pythonnet with its .NET names, the calls of the
 `CadRemoteDocument` of a `Drawing`. Everything in the rest of this section works the same through `with CadApplication() as app:`.
 
 ```python
-import geometryhelper
+import opencad2d
 from System import Array, String, TimeSpan
-from GeometryHelper.Cad.Remote import CadApplication, CadObjectFilter, CadRemoteException, CadRemoteLayer
+from OpenCAD2D.Remote import CadApplication, CadObjectFilter, CadRemoteException, CadRemoteLayer
 from GeometryHelper.Dxf import DxfColor, DxfColorMethod, DxfLine, DxfMText
 from GeometryHelper.Geometry import GeoPoint3
 
@@ -404,8 +404,8 @@ Python or .NET types made from it, waited 260 to 281 ms for it.
 **A script that runs inside the app does not connect to that app.** The Python of PYRUN, PYLOAD and the commands of loaded `.py` files
 runs on the app's own UI thread, and a request from it to the same app would wait for that thread, which is the script
 itself, for good. The app refuses such a connection before anything is sent, with a `CadRemoteException`:
-`A script inside GeometryHelper CAD cannot drive the same app through CadApplication: use geometryhelper.cad, which
-reaches the drawing directly.` Inside the app, use `geometryhelper.cad` ([Python commands and tools](python.md));
+`A script inside OpenCAD2D cannot drive the same app through CadApplication: use opencad2d.cad, which
+reaches the drawing directly.` Inside the app, use `opencad2d.cad` ([Python commands and tools](python.md));
 `CadApplication` is for a script that runs outside it.
 
 Three scripts that drive the app, one that draws a grid and reads it back, one that waits for a pick and one that lists the

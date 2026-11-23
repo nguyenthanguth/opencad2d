@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// ATTIPEDIT (ATI), as AutoCAD 2021's: "Select an attribute:", the attribute clicked (the one of the INSERT clicked that is

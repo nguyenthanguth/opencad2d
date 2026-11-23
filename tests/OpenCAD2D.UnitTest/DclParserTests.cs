@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Dcl;
+using OpenCAD2D.Dcl;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The DCL parser (L5 part P, D301-D309): the grammar, the values, comments, prototypes, includes, the errors of D307 and

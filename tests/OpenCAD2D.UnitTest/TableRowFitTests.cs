@@ -5,7 +5,7 @@ using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A table's rows grow to hold their cells' words as AutoCAD 2021 lays a table out: each cell's text wrapped at the cell's

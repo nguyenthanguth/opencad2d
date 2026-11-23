@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>How a command ended.</summary>
     public enum CadCommandOutcome

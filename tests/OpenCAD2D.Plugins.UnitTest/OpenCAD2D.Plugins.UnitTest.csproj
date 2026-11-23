@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Deterministic>true</Deterministic>
+        <IsPackable>false</IsPackable>
+        <PlatformTarget>x64</PlatformTarget>
+        <NoWarn>$(NoWarn);MSB3277</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+        <PackageReference Include="xunit" Version="2.9.2" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
+        <ProjectReference Include="..\..\src\OpenCAD2D\OpenCAD2D.csproj" />
+        <ProjectReference Include="..\..\src\OpenCAD2D.Wpf\OpenCAD2D.Wpf.csproj" />
+        <!-- Built first, never referenced: the tests load its .dll as a plugin, from SamplePlugin\ beside them. -->
+        <ProjectReference
+            Include="..\OpenCAD2D.SamplePlugin\OpenCAD2D.SamplePlugin.csproj"
+            ReferenceOutputAssembly="false"
+        />
+        <!-- Built first, never referenced: the tests load its .dll as a plugin that adds to the window, from SampleUiPlugin\ beside them. -->
+        <ProjectReference
+            Include="..\OpenCAD2D.SampleUiPlugin\OpenCAD2D.SampleUiPlugin.csproj"
+            ReferenceOutputAssembly="false"
+        />
+        <!-- Built first, never referenced: the sample that ships in Plugins\DrawingInfo is loaded from DrawingInfo\ beside the tests. -->
+        <ProjectReference
+            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.csproj"
+            ReferenceOutputAssembly="false"
+        />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None
+            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Plugins.DrawingInfo.dll"
+            Link="DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None
+            Include="..\OpenCAD2D.SamplePlugin\bin\$(Configuration)\netstandard2.0\OpenCAD2D.SamplePlugin.dll"
+            Link="SamplePlugin\OpenCAD2D.SamplePlugin.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\OpenCAD2D.SampleUiPlugin\bin\$(Configuration)\netstandard2.0\OpenCAD2D.SampleUiPlugin.dll"
+            Link="SampleUiPlugin\OpenCAD2D.SampleUiPlugin.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+    </ItemGroup>
+</Project>

@@ -5,7 +5,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The pattern file of the Hatch dialog, the file box of Load or Reload Linetypes and the Missing SHX files dialog, as the

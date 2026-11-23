@@ -7,10 +7,10 @@ using System.Windows;
 using GeometryHelper.Dwg;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.PythonWindowKit;
-using static GeometryHelper.Cad.Wpf.UnitTest.SecurityKit;
+using static OpenCAD2D.Wpf.UnitTest.PythonWindowKit;
+using static OpenCAD2D.Wpf.UnitTest.SecurityKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Files dropped on the window, as AutoCAD 2021 takes them (measured in part M, rows 1 to 14 of drop.md): a .lsp, .fas or

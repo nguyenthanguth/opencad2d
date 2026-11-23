@@ -1,9 +1,9 @@
 using System;
 using System.Globalization;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// What AutoLISP's rtos, angtos, distof and angtof gave in AutoCAD 2021 (accoreconsole, en-US, blank drawing), each text

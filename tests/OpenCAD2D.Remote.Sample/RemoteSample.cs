@@ -4,7 +4,7 @@ using System.IO;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Remote.Sample
+namespace OpenCAD2D.Remote.Sample
 {
     /// <summary>
     /// What the sample program does with a connected app, apart from finding the app: it lists the drawings, draws a small
@@ -58,7 +58,7 @@ namespace GeometryHelper.Cad.Remote.Sample
             drawing.Insert(
                 new DxfMText
                 {
-                    Contents = "GeometryHelper CAD\\Pdriven from another program",
+                    Contents = "OpenCAD2D\\Pdriven from another program",
                     Location = new GeoPoint3(10, 50, 0),
                     TextHeight = 8.0,
                     Layer = LayerName,

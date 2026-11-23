@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Remote;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Remote;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The text styles, dimension styles and blocks of a drawing, read from outside.</summary>
     /// <remarks>

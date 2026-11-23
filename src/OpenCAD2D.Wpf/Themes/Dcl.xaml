@@ -6,7 +6,7 @@
          drawn inside the rectangles the layout gives them (a button 22 high, an edit box 19, a popup 21, a toggle 15, a radio
          button 19, a slider 17, list rows 13). -->
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
+        <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <SolidColorBrush x:Key="DclDisabledText" Color="#6B7480" />

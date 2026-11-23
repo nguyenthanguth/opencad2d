@@ -4,7 +4,7 @@ using System.Globalization;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The system variables an AutoCAD user types most that SETVAR lacked, each with the range, the refusal and the start
@@ -19,7 +19,7 @@ namespace GeometryHelper.Cad
     /// UNITMODE, LIMCHECK, SPLFRAME, SPLINETYPE, SPLINESEGS, QTEXTMODE, ATTMODE and USERI1 to USERI5 and USERR1 to USERR5, keep
     /// their value where AutoCAD does, in the drawing's header or for the session. DISTANCE, AREA and PERIMETER give the last
     /// measure DIST and AREA made, and LASTPOINT the last point given, in the user coordinate system. What AutoLISP routines
-    /// ask of the program: PRODUCT, which is "GeometryHelper.Cad" where AutoCAD gives "AutoCAD", ACADVER "24.0", the version of
+    /// ask of the program: PRODUCT, which is "OpenCAD2D" where AutoCAD gives "AutoCAD", ACADVER "24.0", the version of
     /// AutoCAD whose behaviour the presenter follows, CMDACTIVE and CMDNAMES for what runs, LISPINIT, BLIPMODE and MENUECHO, and
     /// the axes of the user coordinate system, UCSXDIR and UCSYDIR.
     /// </summary>
@@ -322,9 +322,7 @@ namespace GeometryHelper.Cad
             );
 
             // What AutoLISP routines ask of the program: which one it is, and what is running.
-            registry.AddVariable(
-                CadSystemVariable.ReadOnly("PRODUCT", CadVariableKind.Text, s => "\"GeometryHelper.Cad\"")
-            );
+            registry.AddVariable(CadSystemVariable.ReadOnly("PRODUCT", CadVariableKind.Text, s => "\"OpenCAD2D\""));
             registry.AddVariable(CadSystemVariable.ReadOnly("ACADVER", CadVariableKind.Text, s => "\"24.0\""));
 
             // PROGRAM and PLATFORM read as AutoCAD 2021's console gives them (probe q6), so that a routine that tests them takes

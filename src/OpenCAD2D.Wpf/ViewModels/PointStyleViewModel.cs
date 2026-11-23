@@ -6,7 +6,7 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A tile of the Point Style dialog: one PDMODE, its symbol drawn as the canvas draws a point of that mode, chosen when

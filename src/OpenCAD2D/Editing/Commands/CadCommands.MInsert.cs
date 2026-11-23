@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// MINSERT: a block placed as an array of rows and columns, one entity (a MINSERT) that draws, picks and plots as the block

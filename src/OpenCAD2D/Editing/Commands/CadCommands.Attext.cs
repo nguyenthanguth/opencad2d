@@ -8,7 +8,7 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// ATTEXT and -ATTEXT: the attributes of the blocks of a drawing written to a file for a spreadsheet or a database, as

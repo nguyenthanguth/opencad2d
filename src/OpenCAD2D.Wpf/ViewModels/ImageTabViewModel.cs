@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The images selected on the canvas and the contextual Image tab over them, as AutoCAD 2021 shows it: Adjust (Brightness,

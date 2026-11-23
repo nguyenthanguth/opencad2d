@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The input of <c>grread</c>: the keys, clicks and moves the window gives a routine that reads the mouse. Each is one answer

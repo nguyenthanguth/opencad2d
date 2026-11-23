@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// Small compiled SHX fonts made in code, byte by byte as AutoCAD compiles them, so that no font file of Autodesk's is

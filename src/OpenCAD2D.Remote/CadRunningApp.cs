@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
-    /// One GeometryHelper CAD that is running, as <see cref="CadApplication.GetRunning()"/> lists it: which process, what its
+    /// One OpenCAD2D that is running, as <see cref="CadApplication.GetRunning()"/> lists it: which process, what its
     /// window says, when the user last worked in it and which drawings it has open.
     /// </summary>
     public sealed class CadRunningApp
@@ -23,7 +23,7 @@ namespace GeometryHelper.Cad.Remote
         /// <summary>Gets the id of the app's process.</summary>
         public int ProcessId => Instance.ProcessId;
 
-        /// <summary>Gets the title of the app's window when it last said, as <c>A-101.dwg - GeometryHelper CAD</c>.</summary>
+        /// <summary>Gets the title of the app's window when it last said, as <c>A-101.dwg - OpenCAD2D</c>.</summary>
         public string Title => Instance.Title;
 
         /// <summary>Gets the time the user last activated the app, in UTC; the app that was activated last is the one <c>new CadApplication()</c> connects to.</summary>

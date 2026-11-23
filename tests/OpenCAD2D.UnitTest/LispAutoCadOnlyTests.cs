@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The functions of AutoCAD the presenter has no use for or cannot have, against AutoCAD 2021's accoreconsole (probes g7,

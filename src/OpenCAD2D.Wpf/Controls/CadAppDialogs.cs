@@ -6,7 +6,7 @@ using System.Windows;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The dialogs of rounds 5 to 9 that <c>--dialog</c> draws in screenshot mode: Multiline Style and its pages, Multiline
@@ -524,12 +524,7 @@ namespace GeometryHelper.Cad.Wpf
                     page = editing;
                     return false;
                 };
-                string styleFile = Path.Combine(
-                    Path.GetTempPath(),
-                    "GeometryHelper",
-                    "ScreenshotStyles",
-                    "workshop.mln"
-                );
+                string styleFile = Path.Combine(Path.GetTempPath(), "OpenCAD2D", "ScreenshotStyles", "workshop.mln");
                 dialog.AskLoad = loading =>
                 {
                     // The file of styles WALL-240 is saved to, so that the list has one to offer.
@@ -663,7 +658,7 @@ namespace GeometryHelper.Cad.Wpf
         /// </summary>
         private static (Window, FrameworkElement, string) LayoutTemplate(MainViewModel model, string kind)
         {
-            string folder = Path.Combine(Path.GetTempPath(), "GeometryHelper", "ScreenshotTemplates");
+            string folder = Path.Combine(Path.GetTempPath(), "OpenCAD2D", "ScreenshotTemplates");
             Directory.CreateDirectory(folder);
             string template = Path.Combine(folder, "sheets.dxf");
             DxfDatabase sheets = CadTemplate.CreateMetric();
@@ -836,7 +831,7 @@ namespace GeometryHelper.Cad.Wpf
         /// <summary>The Drawing Recovery Manager over three copies autosave kept of two drawings, written in the temporary folder.</summary>
         private static DrawingRecoveryViewModel RecoveryCopies()
         {
-            string folder = Path.Combine(Path.GetTempPath(), "GeometryHelper", "ScreenshotRecovery");
+            string folder = Path.Combine(Path.GetTempPath(), "OpenCAD2D", "ScreenshotRecovery");
             Directory.CreateDirectory(folder);
             var rows = new List<BackupFileRow>();
 

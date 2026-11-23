@@ -4,9 +4,10 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 using SkiaSharp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Draws a plot for a printer of Windows: the page the PDF writer writes and the preview shows, drawn by

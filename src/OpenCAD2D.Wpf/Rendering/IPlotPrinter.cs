@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Media;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A page for a printer: the plot drawn on its sheet as a WPF visual, with the paper it is printed on and how many copies.

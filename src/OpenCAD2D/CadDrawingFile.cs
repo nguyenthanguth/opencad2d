@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+using GeometryHelper;
 using GeometryHelper.Dwg;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The drawing files the presenter opens, attaches and inserts: a DWG, read by <see cref="DwgReader"/>, of AutoCAD 2000

@@ -5,8 +5,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Media;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What a row of DesignCenter's tree is.</summary>
     public enum DesignCenterNodeKind

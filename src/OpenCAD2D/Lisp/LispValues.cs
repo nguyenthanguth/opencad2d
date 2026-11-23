@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// A symbol of an AutoLISP interpreter. Its name is upper case (<c>abc</c>, <c>AbC</c> and <c>ABC</c> are one

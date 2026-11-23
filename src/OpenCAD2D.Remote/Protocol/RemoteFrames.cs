@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
     /// The frames of the channel: a message is its JSON in UTF-8 behind its length as four bytes, least significant first.

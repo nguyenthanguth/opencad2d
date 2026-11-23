@@ -5,7 +5,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>Small follow-ups of the batch 4 commands in the window: HATCHEDIT's Click to set new origin, and -OSNAP's short names.</summary>
     public class SmallFollowUpsWindowTests

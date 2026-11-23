@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>Where the sheets of a publish go, as the Publish to list of AutoCAD 2021's Publish dialog: its Plotter named in page setup, or a PDF. DWF and DWFx have no writer here.</summary>
     public enum CadPublishTo

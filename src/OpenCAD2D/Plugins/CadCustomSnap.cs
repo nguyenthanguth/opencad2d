@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// An object snap a plugin adds, as AutoCAD's <c>CustomObjectSnapMode</c>: a name, a keyword typed as an override, a glyph,

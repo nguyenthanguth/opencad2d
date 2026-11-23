@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The Rename, Delete, Load and Save of MLSTYLE typed: the buttons of AutoCAD 2021's Multiline Style dialog as questions,

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Plugins;
+using GeometryHelper;
+using OpenCAD2D.Plugins;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The object snaps the plugins loaded add (<see cref="CadPluginHost.ObjectSnaps"/>): read again when the plugins change,

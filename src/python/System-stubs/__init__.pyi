@@ -1,4 +1,4 @@
-# Hand-written stubs of the .NET types that the stubs of GeometryHelper name (the table of GeometryHelper.PyStubs). They
+# Hand-written stubs of the .NET types that the stubs of GeometryHelper name (the table of OpenCAD2D.PyStubs). They
 # carry only what a script touches. pythonnet makes the module System at run time; these stubs are for the editor.
 import builtins
 from collections.abc import Iterable, Iterator

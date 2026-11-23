@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Cad.Wpf.GlobalSettingsWindow"
+    x:Class="OpenCAD2D.Wpf.GlobalSettingsWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Global settings"
     Width="840"
     Height="600"
@@ -15,8 +15,8 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Icons.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Icons.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <local:BoolToVisibilityConverter x:Key="Shown" />
             <local:BoolToVisibilityConverter x:Key="Hidden" Invert="True" />

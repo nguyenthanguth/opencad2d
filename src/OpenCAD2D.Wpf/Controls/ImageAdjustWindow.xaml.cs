@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>AutoCAD's Image Adjust dialog, which IMAGEADJUST shows; its logic is <see cref="ImageAdjustViewModel"/>.</summary>
     public partial class ImageAdjustWindow : Window

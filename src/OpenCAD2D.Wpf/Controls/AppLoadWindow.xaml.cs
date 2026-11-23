@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Load/Unload Applications, from APPLOAD and from the Plugin manager button, as the design draws it: 900 by 700, Load…,

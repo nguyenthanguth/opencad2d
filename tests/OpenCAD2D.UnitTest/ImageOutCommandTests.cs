@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Wpf;
+using OpenCAD2D.Wpf;
 using SkiaSharp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// PNGOUT, JPGOUT and BMPOUT with no window: AutoCAD 2021's prompts, "Enter file name &lt;file&gt;:" and "Select objects

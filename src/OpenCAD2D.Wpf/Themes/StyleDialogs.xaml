@@ -1,12 +1,12 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
 >
     <!-- The look the style dialogs (Text Style, Dimension Style Manager and its dialogs) share, dark as the window's others. -->
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
-        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Icons.xaml" />
+        <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+        <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Icons.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <local:BoolToVisibilityConverter x:Key="Shown" />
     <local:RgbBrushConverter x:Key="RgbBrush" />

@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Cad.Wpf.ExternalReferencesWindow"
+    x:Class="OpenCAD2D.Wpf.ExternalReferencesWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="External References"
     Width="460"
     Height="760"
@@ -15,7 +15,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/BlockDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <local:BoolToVisibilityConverter x:Key="HiddenWhen" Invert="True" />

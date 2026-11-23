@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The user coordinate systems of the drawing.</summary>
     public sealed partial class CadDocument

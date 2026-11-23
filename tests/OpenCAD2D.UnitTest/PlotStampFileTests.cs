@@ -4,7 +4,7 @@ using System.IO.Compression;
 using System.Text;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The plot stamp parameter file, AutoCAD's .pss: a PIA file (PIAFILEVERSION_2.0, plotstampcompress) holding a zlib stream

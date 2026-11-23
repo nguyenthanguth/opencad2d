@@ -3,8 +3,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The dialogs left by earlier rounds in the workspace: Multiline Style, Multiline Edit Tools, Plot Stamp, Image Adjust,

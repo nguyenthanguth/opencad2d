@@ -1,7 +1,7 @@
 """Fixtures and the session guard of the Python suite.
 
 The suite runs only against the built wheel installed in a fresh virtual environment, on the .NET runtime named by
-GEOMETRYHELPER_RUNTIME. The guard stops the session when either is not so: a green run against the source tree, or on
+OPENCAD2D_RUNTIME. The guard stops the session when either is not so: a green run against the source tree, or on
 the other runtime than the one the report names, would say nothing about the wheel.
 """
 
@@ -23,34 +23,34 @@ def _installed_under_site_packages(package_file: str) -> bool:
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:
-    asked = os.environ.get("GEOMETRYHELPER_RUNTIME", "")
+    asked = os.environ.get("OPENCAD2D_RUNTIME", "")
     if asked not in ("coreclr", "netfx"):
         pytest.exit(
-            f"GEOMETRYHELPER_RUNTIME is '{asked}': set it to coreclr or netfx, so the runtime under test is named.",
+            f"OPENCAD2D_RUNTIME is '{asked}': set it to coreclr or netfx, so the runtime under test is named.",
             returncode=3,
         )
-    import geometryhelper
+    import opencad2d
 
-    if not _installed_under_site_packages(geometryhelper.__file__):
+    if not _installed_under_site_packages(opencad2d.__file__):
         pytest.exit(
-            f"geometryhelper was imported from {geometryhelper.__file__}, not from the site-packages of the venv "
+            f"opencad2d was imported from {opencad2d.__file__}, not from the site-packages of the venv "
             "with the wheel installed: install the wheel into a fresh venv and run pytest there.",
             returncode=3,
         )
-    # The runtime is read from .NET itself, not from geometryhelper.runtime(): the function is under test.
+    # The runtime is read from .NET itself, not from opencad2d.runtime(): the function is under test.
     from System.Runtime.InteropServices import RuntimeInformation
 
     running = "netfx" if RuntimeInformation.FrameworkDescription.startswith(".NET Framework") else "coreclr"
     if running != asked:
-        pytest.exit(f"GEOMETRYHELPER_RUNTIME is {asked} but the process runs {running}.", returncode=3)
+        pytest.exit(f"OPENCAD2D_RUNTIME is {asked} but the process runs {running}.", returncode=3)
 
 
 @pytest.fixture(scope="session")
 def pkg_dir() -> Path:
-    """The folder of the installed package ``geometryhelper``."""
-    import geometryhelper
+    """The folder of the installed package ``opencad2d``."""
+    import opencad2d
 
-    return Path(geometryhelper.__file__).resolve().parent
+    return Path(opencad2d.__file__).resolve().parent
 
 
 @pytest.fixture(scope="session")
@@ -62,7 +62,7 @@ def lib_dir(pkg_dir: Path) -> Path:
 @pytest.fixture(scope="session")
 def session_runtime() -> str:
     """``coreclr`` or ``netfx``: the runtime this pytest run was asked to test."""
-    return os.environ["GEOMETRYHELPER_RUNTIME"]
+    return os.environ["OPENCAD2D_RUNTIME"]
 
 
 @pytest.fixture

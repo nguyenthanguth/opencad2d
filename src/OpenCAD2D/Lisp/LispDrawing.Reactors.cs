@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The reactors of Visual LISP: the nineteen <c>vlr-...-reactor</c> constructors and the functions that read and change a

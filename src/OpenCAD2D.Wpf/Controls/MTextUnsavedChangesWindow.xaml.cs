@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The question Esc in the MTEXT editor asks where the words were changed, as AutoCAD 2021's Multiline Text - Unsaved

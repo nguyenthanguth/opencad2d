@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The grid drawn by GRIDSTYLE and GRIDDISPLAY, as AutoCAD 2021's help describes them: dots where the lines would cross in

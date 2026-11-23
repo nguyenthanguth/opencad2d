@@ -11,7 +11,7 @@ using System.Xml.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Table Cell Format dialog opened by the Format "..." button of the Modify Table Style dialog: the window made as its
@@ -210,11 +210,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
         private static string SourceFolder()
         {
             var bin = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar));
-            string folder = Path.Combine(
-                bin.Parent.Parent.Parent.Parent.Parent.FullName,
-                "src",
-                "GeometryHelper.Cad.Wpf"
-            );
+            string folder = Path.Combine(bin.Parent.Parent.Parent.Parent.Parent.FullName, "src", "OpenCAD2D.Wpf");
             Assert.True(Directory.Exists(folder), folder);
             return folder;
         }

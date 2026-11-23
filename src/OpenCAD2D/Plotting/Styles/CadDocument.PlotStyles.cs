@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The folder a document's plot style tables are read from.</summary>
     public sealed partial class CadDocument

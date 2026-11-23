@@ -3,14 +3,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Input;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>CLOSE and the window closed; autosave; the text height of Global settings; the canvas colours and crosshair.</summary>
     public sealed class CloseAndAutosaveTests : IDisposable

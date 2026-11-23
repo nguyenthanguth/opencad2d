@@ -1,6 +1,6 @@
 # Python commands and tools
 
-GeometryHelper CAD runs Python as it runs AutoLISP. A `.py` file loads from a Pythons folder when the app starts, from APPLOAD,
+OpenCAD2D runs Python as it runs AutoLISP. A `.py` file loads from a Pythons folder when the app starts, from APPLOAD,
 from PYLOAD, from the Python Startup Suite and by dropping it on the window; PYRUN runs a file once, as `(load "x")` loads a
 routine. A function marked `@command("C1")` becomes a command of the command line, talks to the user through the `get_*`
 prompts and edits the drawing as one undo step. A file adds to the window as a [command plugin](plugins.md) does: ribbon
@@ -14,7 +14,7 @@ This page is about Python inside the app; a script that runs outside it, on the 
 [Python](../python.md) and [Driving the app from another program](remote.md).
 
 ```python
-from geometryhelper.cad import active_drawing, command, get_distance, get_point
+from opencad2d.cad import active_drawing, command, get_distance, get_point
 
 @command("RING", alias="RG", description="Draws a circle of the radius asked")
 def ring() -> None:
@@ -27,14 +27,14 @@ def ring() -> None:
 
 Units are the drawing's, millimetres in a drawing made in them; nothing is converted. No tolerance is chosen for you: a script
 passes a [`Tolerance`](xref:GeometryHelper.Tolerance) where the C# would. The presenter is 2D, so a point asked is a
-[`GeoPoint2`](xref:GeometryHelper.Geometry.GeoPoint2). Every public name of `geometryhelper.cad` has a docstring with an
+[`GeoPoint2`](xref:GeometryHelper.Geometry.GeoPoint2). Every public name of `opencad2d.cad` has a docstring with an
 `Example:` block and is typed inline (the package carries `py.typed`, so an editor and pyright read the types from the code).
 
 ## Where files load from
 
 | How | What happens |
 |---|---|
-| The **Pythons** folder, beside `GeometryHelper.Cad.dll` as Lisps is | the `.py` files directly in it load at start, by name ignoring case then ordinal; the folders under it are packages they import and do not run as startup files. A `.py` in Lisps is not loaded, nor a `.lsp` in Pythons |
+| The **Pythons** folder, beside `OpenCAD2D.dll` as Lisps is | the `.py` files directly in it load at start, by name ignoring case then ordinal; the folders under it are packages they import and do not run as startup files. A `.py` in Lisps is not loaded, nor a `.lsp` in Pythons |
 | The **Python Startup Suite** of Load/Unload Applications (APPLOAD), saved in the settings as `support.pythonStartupSuite` | its files load after the Pythons folder, in the order of the list |
 | **APPLOAD**, Load… | a `.py` row of kind Python, with the commands it defined; Reload loads it again, Unload takes its commands out of every drawing |
 | **PYLOAD** | the multi-select picker for `.py` files, loading them as APPLOAD does so that they show in its list |
@@ -78,7 +78,7 @@ Global settings lists as "Passed over".
 
 A virtual environment is read through its `pyvenv.cfg`, beside or above its `python.exe`: it names the base install that
 holds the DLL, and the version. Its packages come with it, so `import numpy` works where the environment has numpy. Whatever
-the environment holds, `import geometryhelper` gives the app's own copy of the package, which is first on `sys.path`.
+the environment holds, `import opencad2d` gives the app's own copy of the package, which is first on `sys.path`.
 
 Before Python starts the app checks `python3XY.dll` in the base folder (XY from 11 to 15, never the stable-ABI
 `python3.dll`, which does not work) and that the DLL is a 64-bit one. What is wrong is written where Python was asked for,
@@ -89,12 +89,12 @@ on the command line, in one of these sentences:
 | nothing found automatically | `No Python 3.11 to 3.15 (64-bit) was found. Install one from python.org, or set its python.exe in Global settings > Python.` |
 | the setting names nothing | `The Python set in Global settings (<path>) was not found.` |
 | `PYTHONNET_PYDLL` names nothing | `The Python set in PYTHONNET_PYDLL (<path>) was not found.` |
-| another version | `<path> is Python 3.<n>: GeometryHelper CAD needs 3.11 to 3.15.` |
-| a 32-bit Python | `<path> is a 32-bit Python: GeometryHelper CAD needs a 64-bit one.` |
-| a DLL of another machine | `<path> is not an x64 Python: GeometryHelper CAD needs a 64-bit x64 one.` |
-| no versioned DLL | `<path> has no python3XY.dll in <folder>: GeometryHelper CAD needs a Python installed with its DLL.` |
-| `python3.dll` named | `<path> is not a python3XY.dll: GeometryHelper CAD needs the versioned DLL, never python3.dll.` |
-| the start failed | `Python could not start: <first line of the error>. Fix Global settings > Python and restart GeometryHelper CAD.` |
+| another version | `<path> is Python 3.<n>: OpenCAD2D needs 3.11 to 3.15.` |
+| a 32-bit Python | `<path> is a 32-bit Python: OpenCAD2D needs a 64-bit one.` |
+| a DLL of another machine | `<path> is not an x64 Python: OpenCAD2D needs a 64-bit x64 one.` |
+| no versioned DLL | `<path> has no python3XY.dll in <folder>: OpenCAD2D needs a Python installed with its DLL.` |
+| `python3.dll` named | `<path> is not a python3XY.dll: OpenCAD2D needs the versioned DLL, never python3.dll.` |
+| the start failed | `Python could not start: <first line of the error>. Fix Global settings > Python and restart OpenCAD2D.` |
 
 `<path>` is the `python.exe` the finder tried, or the DLL where `PYTHONNET_PYDLL` named one with no `python.exe` beside it.
 PYRUN and PYLOAD write the sentence and end; every other command works. Once the engine has started, a changed setting takes
@@ -141,7 +141,7 @@ On a line from 0,0 to 300,400, a circle of radius 120, a closed polyline rectang
 `4 objects: length 1553.982, closed area 50238.934, 1 skipped` (the test `TheFourObjectsOfDrawingH_GiveALengthAnAreaAndOneSkipped`
 of `ExampleTests` runs this file).
 
-[!code-python[](../../../python/examples/in_app/selection_lengths.py)]
+[!code-python[](../../src/python/examples/in_app/selection_lengths.py)]
 
 ### A command that draws
 
@@ -149,7 +149,7 @@ of `ExampleTests` runs this file).
 of 200 and a height of 100 draws one closed polyline of 20 000 square units, one undo step named RECTC; the width and the height
 default to 1 000 and 500 on Enter.
 
-[!code-python[](../../../python/examples/in_app/drawing_tools.py)]
+[!code-python[](../../src/python/examples/in_app/drawing_tools.py)]
 
 ### An edit that numbers
 
@@ -157,7 +157,7 @@ default to 1 000 and 500 on Enter.
 2.5 with the next number at each point. With a first number of 5 and the points 100,200, 300,200 and 500,200 it adds the texts
 5, 6 and 7 and writes `3 points numbered, 5 to 7.`; one U takes all three away.
 
-[!code-python[](../../../python/examples/in_app/number_points.py)]
+[!code-python[](../../src/python/examples/in_app/number_points.py)]
 
 ## The prompts
 
@@ -173,7 +173,7 @@ default to 1 000 and 500 on Enter.
 | `get_entity(message, keywords)` | one object, as an `Entity` of the run's drawing, or `None` on Enter |
 | `get_selection()` | the objects selected at "Select objects:", until Enter, as a list of `Entity` |
 | `write(text)` | writes one line or more on the command line |
-| `session()` | the raw .NET [`CadCommandSession`](xref:GeometryHelper.Cad.CadCommandSession) of the run's drawing |
+| `session()` | the raw .NET [`CadCommandSession`](xref:OpenCAD2D.CadCommandSession) of the run's drawing |
 | `Cancelled` | the exception of Esc at a prompt |
 
 A prompt behaves as a command's own prompt does: the object snaps, typed coordinates, the rubber band from `base`, and Esc.
@@ -241,7 +241,7 @@ A point is a `GeoPoint2`, a `GeoPoint3` or a tuple of two or three numbers. An `
 and `linetype` are set on the `Entity` and committed with the drawing; after changing `net`, call `drawing.modify(entity)`. A
 `Layer` has `name` (read only) and settable `color`, `linetype`, `description`, `is_on`, `is_frozen`, `is_locked` and
 `is_plottable`. A dimension added or modified from Python is drawn by the app, so its picture holds the lines, arrows and words
-of its measurement ([`CadDimensionPicture.Redraw`](xref:GeometryHelper.Cad.CadDimensionPicture)): a rotated dimension from
+of its measurement ([`CadDimensionPicture.Redraw`](xref:OpenCAD2D.CadDimensionPicture)): a rotated dimension from
 0,0 to 100,0 comes with the words `100`, and one moved to 150 with `150`.
 
 An object added from the app has the handle `~1`, `~2`... until `commit()` returns the real ones. In the app a command or run
@@ -255,7 +255,7 @@ that drawing, named after the run.
 by 3 000 and a circle of radius 500 on it, and saves the drawing as `OUT`, DXF or DWG by its extension. It prints `objects 2`,
 `layers 0, Outline` and `saved plan.dwg`, and the file holds a polyline of area 12 000 000 and the circle on `Outline`.
 
-[!code-python[](../../../python/examples/library/make_drawing.py)]
+[!code-python[](../../src/python/examples/library/make_drawing.py)]
 
 ## One undo step
 
@@ -266,7 +266,7 @@ still queued, so the drawing is as it was before the run and nothing is left ope
 
 A file that draws a circle with `cmd("CIRCLE", (0, 0), 25)` and then divides by zero fails the run: the drawing has 0 objects,
 not 1, and no undo step. A run that only asks and writes makes no step and does not mark the drawing modified. An
-`undo_group` of the script, from `geometryhelper`, nests in the run's step. Autosave skips a drawing while a run waits at a
+`undo_group` of the script, from `opencad2d`, nests in the run's step. Autosave skips a drawing while a run waits at a
 prompt with its step open.
 
 ## Adding to the window
@@ -274,7 +274,7 @@ prompt with its step open.
 A loaded file adds to the window as a plugin's `Initialize` does, through functions that take the same objects:
 
 ```python
-from geometryhelper.cad import add_ribbon_tab, ribbon_button, ribbon_panel, ribbon_tab
+from opencad2d.cad import add_ribbon_tab, ribbon_button, ribbon_panel, ribbon_tab
 
 circle = ribbon_button("Circle", command="CIRCLE")
 hello = ribbon_button("Hello", run=lambda context: context.write("Hello"))
@@ -286,7 +286,7 @@ This adds a tab `Tools` with one panel `Draw` holding the buttons Circle, which 
 callback is given a `Context` with `drawing` (a `Drawing`, or `None`), `selected` (a list of `Entity`), `is_command_running`,
 `write(text)` and `run_command(text)`.
 
-Every public member of `GeometryHelper.Cad.Plugins` has a Python name, or is left out with a reason:
+Every public member of `OpenCAD2D.Plugins` has a Python name, or is left out with a reason:
 
 | C# | Python |
 |---|---|
@@ -322,7 +322,7 @@ raises counts as false or as no items.
 
 Esc ends a script in either of two places.
 
-At a prompt Esc is the command line's own: the question ends, the prompt function raises `geometryhelper.cad.Cancelled`, and
+At a prompt Esc is the command line's own: the question ends, the prompt function raises `opencad2d.cad.Cancelled`, and
 every prompt the same run asks after it raises at once without asking, so a script that catches the first cannot go on
 asking. `Cancelled` is a `KeyboardInterrupt`, so `except Exception` does not swallow it, and Esc at a prompt and Esc during
 work end a run alike: the groups are cancelled, and the command line writes `*Cancel*`. A script that catches `BaseException`
@@ -392,7 +392,7 @@ content, and Do Not Load writes `File load canceled: <full path>` on the command
 SECURELOAD 2 such a file is refused with no question. The folder of the app, with the Pythons folder in it, is always trusted.
 
 The gate is in front of the files the app is asked to run. The modules a script imports are Python's own business, found on
-`sys.path`, and are not checked. A script outside the app, on the `geometryhelper` package alone, meets no gate: a session made
+`sys.path`, and are not checked. A script outside the app, on the `opencad2d` package alone, meets no gate: a session made
 by the library starts at SECURELOAD 0.
 
 ## `print`, `input` and the threads
@@ -408,10 +408,10 @@ marshalled between threads: a .NET call from Python took 3.1 to 3.5 microseconds
 as AutoCAD's does not during a loop of AutoLISP; what the script writes appears at the next prompt or at its end. A script
 may start threads of its own, but one that leaves a thread running at exit makes the app skip Python's shutdown, which would
 wait for it for ever, and log it. A script that runs inside the app cannot open a
-[`CadApplication`](xref:GeometryHelper.Cad.Remote.CadApplication) to that same app: the app answers it on the thread the
+[`CadApplication`](xref:OpenCAD2D.Remote.CadApplication) to that same app: the app answers it on the thread the
 script holds, so it would wait for itself. Such a connection is refused before anything is sent, with a
-[`CadRemoteException`](xref:GeometryHelper.Cad.Remote.CadRemoteException): `A script inside GeometryHelper CAD cannot drive
-the same app through CadApplication: use geometryhelper.cad, which reaches the drawing directly.`
+[`CadRemoteException`](xref:OpenCAD2D.Remote.CadRemoteException): `A script inside OpenCAD2D cannot drive
+the same app through CadApplication: use opencad2d.cad, which reaches the drawing directly.`
 
 ## What is not there yet
 

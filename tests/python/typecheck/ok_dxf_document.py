@@ -1,6 +1,6 @@
 """Type-checks clean: a drawing made in code, saved, read, edited through a document and its command session."""
 
-from GeometryHelper.Cad import CadCommandSession, CadDocument
+from OpenCAD2D import CadCommandSession, CadDocument
 from GeometryHelper.Dwg import DwgReader, DwgWriter
 from GeometryHelper.Dxf import DxfDatabase, DxfEntity, DxfLine, DxfWriter
 from GeometryHelper.Geometry import GeoPoint3

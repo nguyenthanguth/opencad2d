@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>BOUNDARY with its Boundary Creation dialog, which -BOUNDARY's Advanced options ask on the command line.</summary>
     internal static partial class CadCommands

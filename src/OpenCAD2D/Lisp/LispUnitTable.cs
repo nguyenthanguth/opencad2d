@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The table <c>cvunit</c> converts by, of our own: lengths (mm, cm, m, km, inch, foot, yard, mile), angles (degree,

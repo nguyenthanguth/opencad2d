@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The text window of TEXTSCR and F2, shown through a function the workspace sets, so that a test drives it with none; with

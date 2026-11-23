@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The style commands: STYLE (the Text Style dialog, else -STYLE's prompts), -STYLE typed in AutoCAD's words, and DIMSTYLE

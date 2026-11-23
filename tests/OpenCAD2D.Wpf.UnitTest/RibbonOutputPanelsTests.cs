@@ -4,9 +4,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.RibbonWave4Harness;
+using static OpenCAD2D.Wpf.UnitTest.RibbonWave4Harness;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Output as AutoCAD 2021's (D1346, D1340), found in the window drawn offscreen: Plot (Plot, Batch Plot and Preview large, Page

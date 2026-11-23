@@ -15,7 +15,7 @@ using System.Windows.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Home as AutoCAD 2021's, found in the window drawn offscreen: its ten panels in AutoCAD's order (Draw, Modify, Annotation,

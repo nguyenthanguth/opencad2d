@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>
     /// What one emitted application class does: it writes "init NAME" and "term NAME" lines to the log file of its assembly,
@@ -255,7 +255,7 @@ namespace GeometryHelper.Cad.Plugins.UnitTest
     /// <summary>The sample plugin that adds to the window, as the build left it beside the tests.</summary>
     internal static class UiSample
     {
-        public const string Name = "GeometryHelper.Cad.SampleUiPlugin";
+        public const string Name = "OpenCAD2D.SampleUiPlugin";
 
         public static string Built =>
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SampleUiPlugin", Name + ".dll");

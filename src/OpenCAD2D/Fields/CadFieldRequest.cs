@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>How the Field dialog was closed.</summary>
     internal enum CadFieldAction

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>
     /// A host that drives dialogs from a script, for tests and for the harness that compares a routine run here with the same

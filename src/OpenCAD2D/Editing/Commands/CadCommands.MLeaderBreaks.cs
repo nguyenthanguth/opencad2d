@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// DIMBREAK on a multileader, as AutoCAD 2021 breaks one (probed in its console, some 150 breaks of leader lines of one

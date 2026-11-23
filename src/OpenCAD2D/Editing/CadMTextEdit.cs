@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What editing reads of an MTEXT's layout (<see cref="CadMTextLayout"/>): the box its grips stand at, and the TEXTs and

@@ -9,7 +9,7 @@ using GeometryHelper.UnitTest;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The layout of an MTEXT is kept from one drawing of it to the next, so that a drawing drawn again from the start (REGEN)

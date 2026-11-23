@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// What a callback of a plugin is given when the window runs it: a ribbon button's, a DRAWINGS button's, a menu item's, a

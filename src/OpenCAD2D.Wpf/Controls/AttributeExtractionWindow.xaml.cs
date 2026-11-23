@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The classic Attribute Extraction dialog, which ATTEXT shows; Select Objects closes it, ATTEXT then asking the objects

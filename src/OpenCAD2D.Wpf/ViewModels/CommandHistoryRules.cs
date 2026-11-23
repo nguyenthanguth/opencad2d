@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What the history above the command line does with a key pressed while it holds the keyboard.</summary>
     internal enum CommandHistoryKey

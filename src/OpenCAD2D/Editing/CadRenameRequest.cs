@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What RENAME gives its dialog: the kinds of named objects of AutoCAD 2021's Rename dialog, the names of each that can be

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Remote;
+using GeometryHelper;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Remote;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>Reading objects: by handle, by filter, and the packing of them into the small drawing they travel in.</summary>
     public sealed partial class CadRemoteServer

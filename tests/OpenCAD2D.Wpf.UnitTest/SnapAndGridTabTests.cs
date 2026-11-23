@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Snap and Grid tab of Drafting Settings as AutoCAD 2021's: SNAPUNIT, POLARDIST, SNAPTYPE, SNAPSTYL, GRIDSTYLE,

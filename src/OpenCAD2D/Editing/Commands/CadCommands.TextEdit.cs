@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// TEXTEDIT (ED, DDEDIT; a double click on a text) and MTEDIT, as AutoCAD 2021's: a TEXT or a dimension's text edited in

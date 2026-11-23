@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The mark of an owned entity: the name of its owner, the id of the object it draws and, where the owner wants one,

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Faults of Load/Unload Applications found by driving the real app (a real mouse, the Delete key, an Open dialog, a drop):
@@ -17,7 +17,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
     /// </summary>
     public sealed class AppLoadWindowAttackTests : IDisposable
     {
-        private const string SampleName = "GeometryHelper.Cad.SamplePlugin";
+        private const string SampleName = "OpenCAD2D.SamplePlugin";
         private readonly TestFolder _folder = new TestFolder();
         private readonly List<IDisposable> _disposables = new List<IDisposable>();
 

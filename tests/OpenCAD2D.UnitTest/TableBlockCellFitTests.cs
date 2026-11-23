@@ -5,7 +5,7 @@ using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A table's rows and columns grow to hold the block of a block cell, and a row that mixes cells of looks of their own is

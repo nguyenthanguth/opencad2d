@@ -2,9 +2,10 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What a point of the MTEXT editor's ruler, or a height grip under the frame, is over.</summary>
     internal enum MTextRulerPart

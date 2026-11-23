@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The Reference Edit dialog of REFEDIT, shown through a function the workspace sets.</summary>
     public sealed partial class MainViewModel

@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Custom Image Size, from Custom… of a raster device's Paper size list: the width and the height in pixels, each a whole

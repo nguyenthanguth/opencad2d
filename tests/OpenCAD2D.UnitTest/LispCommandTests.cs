@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>command</c> and <c>vl-cmdf</c> as AutoCAD 2021's accoreconsole wrote them (probes q1, q2, q4 and q8 of the L2

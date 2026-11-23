@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>
     /// What a plugin adds to the window, read through the public API only: the sample UI plugin's registrations, the order and

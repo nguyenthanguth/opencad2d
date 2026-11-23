@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// DIMREASSOCIATE and DIMDISASSOCIATE (-DIMDISASSOCIATE at the command line): a dimension tied to new points of objects, or

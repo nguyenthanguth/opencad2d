@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>A layer of the LayerWalk dialog's list: its name and whether anything is drawn on it.</summary>
     public sealed class CadLayerWalkRow

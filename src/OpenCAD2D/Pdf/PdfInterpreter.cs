@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Runs the content stream of a PDF page and gathers what it draws as a <see cref="PdfScene"/>: paths filled and stroked

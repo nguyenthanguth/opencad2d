@@ -1,13 +1,14 @@
 using System;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dwg;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// MINSERT: the questions of AutoCAD 2021's console, the entity it makes (3 rows and 4 columns of the block BOX at (100, 100),

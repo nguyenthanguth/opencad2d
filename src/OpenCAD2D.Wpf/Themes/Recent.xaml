@@ -1,15 +1,15 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
 >
     <!--
     What Recent Documents shows of a file, in the application menu and on the start screen: the tooltip of a row (its preview
     picture, name, path, version, date and size, read only when the pointer rests on it) and the pin.
     -->
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
-        <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Icons.xaml" />
+        <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+        <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Icons.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <local:BoolToVisibilityConverter x:Key="RecentShown" />

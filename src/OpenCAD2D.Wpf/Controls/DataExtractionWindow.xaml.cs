@@ -8,7 +8,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>Shows a page of the Data Extraction wizard while the wizard is at it: the parameter is the page's number from nought.</summary>
     public sealed class PageShownConverter : IValueConverter

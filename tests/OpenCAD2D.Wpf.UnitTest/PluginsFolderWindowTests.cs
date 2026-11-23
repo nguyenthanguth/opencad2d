@@ -1,11 +1,11 @@
 using System;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Plugins folder beside the app, as the window meets it: the folder the app loads from, the plugins found in it at
@@ -13,7 +13,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
     /// </summary>
     public sealed class PluginsFolderWindowTests : IDisposable
     {
-        private const string SampleName = "GeometryHelper.Cad.SamplePlugin";
+        private const string SampleName = "OpenCAD2D.SamplePlugin";
         private readonly TestFolder _folder = new TestFolder();
 
         public void Dispose() => _folder.Dispose();

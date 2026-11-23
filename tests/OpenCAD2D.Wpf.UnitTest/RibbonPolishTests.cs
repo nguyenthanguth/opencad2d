@@ -8,9 +8,9 @@ using System.Windows.Controls;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.RibbonWave4Harness;
+using static OpenCAD2D.Wpf.UnitTest.RibbonWave4Harness;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The small follow-ups of ribbon waves 3 and 4: the title of a collapsed panel broken only between words, the Table Style box

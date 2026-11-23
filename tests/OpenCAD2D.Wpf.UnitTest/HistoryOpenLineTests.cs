@@ -1,7 +1,7 @@
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The history of the window follows a line a routine left open: the text of <c>princ</c> with no new line after it is shown

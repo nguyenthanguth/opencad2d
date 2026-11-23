@@ -5,10 +5,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Media;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A block of a drawing as a tile of the Blocks palette: its name and its picture, drawn by the canvas's own renderer

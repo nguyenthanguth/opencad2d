@@ -5,9 +5,9 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// TABLEEXPORT as AutoCAD 2021 runs it: "Select a table:" (asked again, "Object selected is not a table.", for any other

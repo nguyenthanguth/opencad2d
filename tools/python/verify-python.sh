@@ -15,7 +15,7 @@ timeout 600 bash "$root/tools/python/make-stubs.sh"
 
 # 3. The wheel.
 timeout 1500 bash "$root/tools/python/build-wheel.sh"
-wheel=$(ls "$root"/artifacts/python/geometryhelper-*.whl)
+wheel=$(ls "$root"/artifacts/python/opencad2d-*.whl)
 
 # 4. A fresh venv with the wheel and its numpy extra, and the test requirements.
 venv=$root/artifacts/python/venv
@@ -30,7 +30,7 @@ summary=""
 for runtime in coreclr netfx; do
     echo "== pytest tests/python on $runtime =="
     log=$root/artifacts/python/pytest-$runtime.log
-    if GEOMETRYHELPER_RUNTIME=$runtime timeout 1800 "$venv/Scripts/python.exe" -m pytest tests/python -q >"$log" 2>&1; then
+    if OPENCAD2D_RUNTIME=$runtime timeout 1800 "$venv/Scripts/python.exe" -m pytest tests/python -q >"$log" 2>&1; then
         :
     else
         failed=1

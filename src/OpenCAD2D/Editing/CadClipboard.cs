@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The clipboard COPYCLIP puts objects on and PASTECLIP takes them from: the window's is the Windows clipboard, shared by

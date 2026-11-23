@@ -7,7 +7,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>Which object types the Select Objects page of the Data Extraction wizard lists.</summary>
     public enum CadExtractionDisplay

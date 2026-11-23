@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>(load)</c> against AutoCAD 2021's accoreconsole (probes p2 and p3): a name with a folder is that file, any other is

@@ -6,7 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The presenter's TIFF decoders against Windows' own encoder: a picture saved by <see cref="TiffBitmapEncoder"/> with LZW,

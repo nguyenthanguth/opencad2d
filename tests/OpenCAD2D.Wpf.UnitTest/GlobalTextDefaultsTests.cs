@@ -1,7 +1,7 @@
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>The text height and width factor of Global settings given to the command line of each drawing.</summary>
     public sealed class GlobalTextDefaultsTests

@@ -2,10 +2,10 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
-using static GeometryHelper.Cad.UnitTest.LispEntityTests;
+using static OpenCAD2D.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.LispEntityTests;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>sssetfirst</c>, <c>ssgetfirst</c> and <c>nentselp</c>, with the values of AutoCAD 2021's accoreconsole (probe r9 of

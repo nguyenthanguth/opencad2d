@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     internal static partial class CadCenterMarks
     {
@@ -187,7 +188,7 @@ namespace GeometryHelper.Cad
 
             if (at >= 0)
             {
-                file.SetValueAt(action, at, Export.Numbers.Exact(value + 0.0));
+                file.SetValueAt(action, at, GeometryHelper.Export.Numbers.Exact(value + 0.0));
             }
         }
 
@@ -533,7 +534,7 @@ namespace GeometryHelper.Cad
 
                 if (code == 10 || code == 20 || code == 30 || code == 40)
                 {
-                    file.SetValueAt(item, i, Export.Numbers.Exact(numbers[number++] + 0.0));
+                    file.SetValueAt(item, i, GeometryHelper.Export.Numbers.Exact(numbers[number++] + 0.0));
                 }
             }
         }

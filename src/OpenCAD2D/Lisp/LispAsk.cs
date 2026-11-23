@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>What a routine waits for: the kind of a <see cref="LispAsk"/>.</summary>
     internal enum LispAskKind

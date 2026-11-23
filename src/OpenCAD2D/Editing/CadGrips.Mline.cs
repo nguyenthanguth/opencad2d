@@ -2,7 +2,7 @@ using System;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The grips of a multiline: one at each vertex, which drags the vertex and builds the multiline anew.</summary>
     public static partial class CadGrips

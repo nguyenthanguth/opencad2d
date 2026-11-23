@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>A rectangle of a laid-out tile, in device-independent pixels from the dialog's top-left.</summary>
     internal struct DclRect

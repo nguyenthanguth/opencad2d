@@ -5,9 +5,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>DIMORDINATE (and its rows of DIMCONTINUE, DIMBASELINE and QDIM), DIMJOGLINE and DIM, run in a session with no window.</summary>
     public class DimensionOrdinateJogDimTests

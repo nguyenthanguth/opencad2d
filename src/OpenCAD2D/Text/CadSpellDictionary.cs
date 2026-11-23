@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>A word of the MTEXT editor that is not in the dictionary: where it stands, how long it is, and the letters.</summary>
     public sealed class CadMisspelledWord

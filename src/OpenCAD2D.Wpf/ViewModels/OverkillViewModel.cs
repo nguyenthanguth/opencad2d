@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>One box of the Ignore object property group of the Delete Duplicate Objects dialog: the property's name and whether OVERKILL leaves it out of its comparison.</summary>
     public sealed class OverkillIgnoreViewModel : ObservableObject

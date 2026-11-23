@@ -10,11 +10,12 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
+using GeometryHelper;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Starts a standalone app of the presenter: the window on the drawing named on the command line, or, with
@@ -75,11 +76,11 @@ namespace GeometryHelper.Cad.Wpf
     {
         /// <summary>Makes the host of an app.</summary>
         /// <param name="appName">
-        /// The name of the app, shown before the drawing's title in the title bar and on the start screen: "GeometryHelper CAD".
+        /// The name of the app, shown before the drawing's title in the title bar and on the start screen: "OpenCAD2D".
         /// </param>
         /// <param name="pluginFolder">
         /// The folder of the app's settings for command plugins: the startup list and the trusted folders in its
-        /// <c>plugins.json</c>, as <c>%AppData%\GeometryHelper\Dxf</c>. The plugins themselves are those of the <c>Plugins</c>
+        /// <c>plugins.json</c>, as <c>%AppData%\OpenCAD2D</c>. The plugins themselves are those of the <c>Plugins</c>
         /// folder beside the app, not of a folder here.
         /// </param>
         /// <exception cref="ArgumentNullException">Thrown when the name or the folder is null.</exception>
@@ -89,7 +90,7 @@ namespace GeometryHelper.Cad.Wpf
             PluginFolder = pluginFolder ?? throw new ArgumentNullException(nameof(pluginFolder));
         }
 
-        /// <summary>Gets the name of the app, as "GeometryHelper CAD".</summary>
+        /// <summary>Gets the name of the app, as "OpenCAD2D".</summary>
         public string AppName { get; }
 
         /// <summary>Gets the folder of the app's settings for command plugins: their startup list and their trusted folders.</summary>
@@ -104,7 +105,7 @@ namespace GeometryHelper.Cad.Wpf
         /// <summary>
         /// Gets or sets whether the window uses Python: the commands PYRUN and
         /// PYLOAD (the Python set in Global settings, else found on the machine). False by default, so that a presenter hosted
-        /// in another program (as in Tekla Structures) loads nothing of Python; GeometryHelper CAD sets it. Python itself starts
+        /// in another program (as in Tekla Structures) loads nothing of Python; OpenCAD2D sets it. Python itself starts
         /// at the first run, not with the window, and an app with no Python installed works as it did.
         /// </summary>
         public bool EnablePython { get; set; }
@@ -283,7 +284,7 @@ namespace GeometryHelper.Cad.Wpf
 
         /// <summary>
         /// Starts the remote server on the window's thread where the settings allow it: the pipe
-        /// <c>GeometryHelper.Cad.&lt;process id&gt;</c> for the user who runs the app, and the file that tells other programs it
+        /// <c>OpenCAD2D.&lt;process id&gt;</c> for the user who runs the app, and the file that tells other programs it
         /// is there. The window announces itself again each time it is activated, which is how a program that connects to "the
         /// app" finds the one the user worked in last, and the server follows the setting each time the settings are applied.
         /// </summary>
@@ -298,7 +299,7 @@ namespace GeometryHelper.Cad.Wpf
         }
 
         /// <summary>
-        /// The folder the app loads its command plugins from at every start: <c>Plugins</c> beside GeometryHelper.Cad.dll
+        /// The folder the app loads its command plugins from at every start: <c>Plugins</c> beside OpenCAD2D.dll
         /// (<see cref="CadSupportKind.Plugins"/>), which is the folder of the exe in the app; <c>Plugins</c> beside the program
         /// where the dll has no place on disk.
         /// </summary>
@@ -533,7 +534,7 @@ namespace GeometryHelper.Cad.Wpf
             {
                 string pluginRoot = Path.Combine(
                     Path.GetTempPath(),
-                    "GeometryHelper",
+                    "OpenCAD2D",
                     "ScreenshotPlugins",
                     Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture)
                 );
@@ -641,7 +642,7 @@ namespace GeometryHelper.Cad.Wpf
             else if (string.Equals(dialogName, "secureload", StringComparison.OrdinalIgnoreCase))
             {
                 // Security - Unsigned Executable File, the warning of SECURELOAD 1, over a file made for the picture.
-                string lispFolder = Path.Combine(Path.GetTempPath(), "GeometryHelper", "ScreenshotSecurity", "lisp");
+                string lispFolder = Path.Combine(Path.GetTempPath(), "OpenCAD2D", "ScreenshotSecurity", "lisp");
                 Directory.CreateDirectory(lispFolder);
                 string lisp = Path.Combine(lispFolder, "area-table.lsp");
                 File.WriteAllText(lisp, "(defun c:AT () (princ))\n");
@@ -1304,7 +1305,7 @@ namespace GeometryHelper.Cad.Wpf
                     // hatch-file: a .pat file of six patterns chosen by Browse…, GRATING-30 of it chosen.
                     if (name == "hatch-file")
                     {
-                        string folder = Path.Combine(Path.GetTempPath(), "GeometryHelper", "ScreenshotPatterns");
+                        string folder = Path.Combine(Path.GetTempPath(), "OpenCAD2D", "ScreenshotPatterns");
                         Directory.CreateDirectory(folder);
                         string pat = Path.Combine(folder, "steel-works.pat");
                         File.WriteAllText(

@@ -3,7 +3,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// 3DPOLY as AutoCAD 2021's console asks it: "Specify start point of polyline:", then "Specify endpoint of line or

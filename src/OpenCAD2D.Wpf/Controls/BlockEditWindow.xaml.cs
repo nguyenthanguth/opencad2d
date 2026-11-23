@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Edit Block Definition dialog, which BEDIT (BE) shows, and the same window titled Save Block As for BSAVEAS:

@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>AutoCAD's New Layer State to Save: the name and an optional description. Its logic is <see cref="NewLayerStateViewModel"/>.</summary>
     public partial class NewLayerStateWindow : Window

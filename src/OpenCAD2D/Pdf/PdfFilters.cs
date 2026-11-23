@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The filters of a PDF stream that turn bytes into bytes: Flate (with the PNG and TIFF predictors), LZW, ASCII85, ASCIIHex and

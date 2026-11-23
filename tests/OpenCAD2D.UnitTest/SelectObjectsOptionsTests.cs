@@ -5,9 +5,9 @@ using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest;
 using Xunit;
 using Xunit.Abstractions;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The options of "Select objects:", as AutoCAD 2021 offers them: Window, Crossing, BOX, Fence, WPolygon, CPolygon, Last,

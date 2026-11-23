@@ -5,11 +5,11 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The layout of the "Plugin snaps" group of Drafting Settings' Object Snap tab, measured offscreen on an STA thread as

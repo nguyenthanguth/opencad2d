@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The words of the questions the presenter asks in a <see cref="CadQuestionWindow"/>, each as AutoCAD 2021 words its own:

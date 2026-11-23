@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Input;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Insert ribbon tab, as AutoCAD 2021's for what the presenter has built: Block (Insert, its gallery of the drawing's

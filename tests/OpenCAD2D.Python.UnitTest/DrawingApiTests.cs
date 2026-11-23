@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The Drawing API inside the app (D1655 to D1659, D1662, D1642): the scenarios of <c>tests/python/drawing_scenarios.py</c>,
@@ -109,7 +109,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
                         .Concat(
                             new[]
                             {
-                                "from geometryhelper.cad import active_drawing",
+                                "from opencad2d.cad import active_drawing",
                                 "drawing_scenarios.check(drawing_scenarios.named('" + item[0] + "'), active_drawing())",
                             }
                         )
@@ -191,7 +191,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string path = Script(
                 "h2-draws.py",
-                "import geometryhelper.cad as cad",
+                "import opencad2d.cad as cad",
                 "@cad.command('H2DRAW')",
                 "def draw():",
                 "    d = cad.active_drawing()",

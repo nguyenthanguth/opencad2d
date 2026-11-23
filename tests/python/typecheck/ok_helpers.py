@@ -1,17 +1,17 @@
-"""Type-checks clean: the helpers of geometryhelper and geometryhelper.arrays."""
+"""Type-checks clean: the helpers of opencad2d and opencad2d.arrays."""
 
 from typing import Literal
 
 import numpy as np
 
-import geometryhelper
-from geometryhelper import undo_group
-from geometryhelper.arrays import to_doubles, to_numpy, to_points2, to_points3
-from GeometryHelper.Cad import CadDocument
+import opencad2d
+from opencad2d import undo_group
+from opencad2d.arrays import to_doubles, to_numpy, to_points2, to_points3
+from OpenCAD2D import CadDocument
 from GeometryHelper.Geometry import GeoPoint2, GeoPolygon2
 
-version: str = geometryhelper.__version__
-runtime: Literal["coreclr", "netfx"] = geometryhelper.runtime()
+version: str = opencad2d.__version__
+runtime: Literal["coreclr", "netfx"] = opencad2d.runtime()
 
 
 def edit(document: CadDocument) -> int:

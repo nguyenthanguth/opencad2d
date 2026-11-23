@@ -7,7 +7,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The command line's AutoComplete, AutoCorrect, Recent Commands and right-click menu, the application menu of the G button,
@@ -1011,13 +1011,13 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
         [Fact]
         public void TheAppMenu_HasTheDesignsItems_GreysWhatNeedsADrawing_AndShowsAnItemsListOnHover()
         {
-            AppMenuViewModel start = new MainViewModel().CreateAppMenu("GeometryHelper CAD");
+            AppMenuViewModel start = new MainViewModel().CreateAppMenu("OpenCAD2D");
 
             Assert.Equal(
                 new[] { "New", "Open", "Save", "Save As", "", "Import", "Export", "Print", "", "Close" },
                 start.Items.Select(i => i.Name)
             );
-            Assert.Equal("Exit GeometryHelper CAD", start.ExitText);
+            Assert.Equal("Exit OpenCAD2D", start.ExitText);
             Assert.False(start.Items.Single(i => i.Key == "save").IsEnabled);
             Assert.False(start.Items.Single(i => i.Key == "export").IsEnabled);
             Assert.False(start.Items.Single(i => i.Key == "import").IsEnabled);

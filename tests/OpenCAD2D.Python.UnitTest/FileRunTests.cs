@@ -4,9 +4,9 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// A file run as PYRUN runs it (D705, D711): its globals, its folder on <c>sys.path</c>, what it prints, how it ends,
@@ -364,14 +364,9 @@ namespace GeometryHelper.Cad.Python.UnitTest
             // D702: <app folder>/python is first on sys.path, so the package beside the DLLs wins over a pip install. The app
             // folder is the output folder, not where xUnit shadow-copies the assemblies on .NET Framework (D734).
             CadCommandSession session = NewSession();
-            string expected = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "python",
-                "geometryhelper",
-                "__init__.py"
-            );
+            string expected = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "python", "opencad2d", "__init__.py");
 
-            RunLines(session, new[] { "import geometryhelper", "print(geometryhelper.__file__)" });
+            RunLines(session, new[] { "import opencad2d", "print(opencad2d.__file__)" });
 
             Assert.Equal(new[] { expected }, Printed, StringComparer.OrdinalIgnoreCase);
         }
@@ -379,12 +374,12 @@ namespace GeometryHelper.Cad.Python.UnitTest
         [Fact]
         public void TheVersionOfThePackage_IsTheVersionOfTheLibraryWithoutItsFourthPart()
         {
-            // The app's copy has no dist-info to read the version from (D712): it takes the assembly's, 13.12.0 for 13.12.0.0.
+            // The app's copy has no dist-info to read the version from (D712): it takes OpenCAD2D.dll's, 1.0.0 for 1.0.0.0.
             CadCommandSession session = NewSession();
-            Version assembly = typeof(GeoPoint3).Assembly.GetName().Version;
+            Version assembly = typeof(CadDocument).Assembly.GetName().Version;
             string expected = assembly.Major + "." + assembly.Minor + "." + assembly.Build;
 
-            RunLines(session, new[] { "import geometryhelper", "print(geometryhelper.__version__)" });
+            RunLines(session, new[] { "import opencad2d", "print(opencad2d.__version__)" });
 
             Assert.Equal(new[] { expected }, Printed);
         }
@@ -400,14 +395,14 @@ namespace GeometryHelper.Cad.Python.UnitTest
                 session,
                 new[]
                 {
-                    "import geometryhelper",
-                    "from GeometryHelper.Cad import CadDocument",
+                    "import opencad2d",
+                    "from OpenCAD2D import CadDocument",
                     "from GeometryHelper.Geometry import GeoPoint3",
                 }
             );
 
             Assert.Equal(CadPythonOutcome.Completed, run.Outcome);
-            string[] names = { "GeometryHelper", "GeometryHelper.Cad.Remote", "GeometryHelper.Cad" };
+            string[] names = { "GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D" };
             foreach (string name in names)
             {
                 Assert.Single(AppDomain.CurrentDomain.GetAssemblies(), a => a.GetName().Name == name);

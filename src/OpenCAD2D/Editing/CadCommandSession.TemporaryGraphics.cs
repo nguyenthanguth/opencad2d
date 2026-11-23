@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// One vector AutoLISP's <c>grdraw</c> or <c>grvecs</c> drew on the screen: its two ends in drawing units (millimetres), the

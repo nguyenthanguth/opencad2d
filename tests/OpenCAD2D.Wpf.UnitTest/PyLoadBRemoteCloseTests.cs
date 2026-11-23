@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Remote;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Remote;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>A drawing of the window closed from another program: no question, no dialog, nothing saved.</summary>
     public sealed class PyLoadBRemoteCloseTests
@@ -33,7 +33,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                     asked++;
                     return CadSaveChoice.Cancel;
                 };
-                var host = new CadAppRemoteHost(model, () => "GeometryHelper CAD", Dispatcher.CurrentDispatcher);
+                var host = new CadAppRemoteHost(model, () => "OpenCAD2D", Dispatcher.CurrentDispatcher);
                 string files = Path.Combine(folder.FullPath, "remote");
 
                 using (var server = new CadRemoteServer(host, new InlineDispatcher(), files, "wpf"))

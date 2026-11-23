@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// DIST, ID, LAYER, COLOR, LINETYPE, LWEIGHT, UNITS, QUICKCALC, TEXTSCR and the name of any system variable run inside

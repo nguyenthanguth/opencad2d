@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Batch 3 of acad.pgp's 2D commands: SOLID, HATCHTOBACK, GRADIENT and CLASSICINSERT here, REGION in CadCommands.Regions.cs, -BOUNDARY in

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The DrawingTemplates folder beside the program: it ships with a README.txt, and it is where NEW looks for templates

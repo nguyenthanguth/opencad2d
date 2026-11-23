@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>
     /// Reads the text of a DCL file into its resolved definitions (D301-D309): the definitions, <c>@include</c>, and the

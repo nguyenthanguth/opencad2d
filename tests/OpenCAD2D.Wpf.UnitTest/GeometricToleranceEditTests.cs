@@ -3,7 +3,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A feature control frame edited by a double click, as AutoCAD 2021's TEXTEDIT edits one: the Geometric Tolerance dialog

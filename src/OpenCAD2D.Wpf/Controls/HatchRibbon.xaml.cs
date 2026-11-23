@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The contextual Hatch Creation and Hatch Editor tabs of the ribbon, over a <see cref="HatchTabViewModel"/>.</summary>
     public partial class HatchRibbon : UserControl

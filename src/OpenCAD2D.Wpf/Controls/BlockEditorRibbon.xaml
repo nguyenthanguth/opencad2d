@@ -1,5 +1,5 @@
 <UserControl
-    x:Class="GeometryHelper.Cad.Wpf.BlockEditorRibbon"
+    x:Class="OpenCAD2D.Wpf.BlockEditorRibbon"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 >

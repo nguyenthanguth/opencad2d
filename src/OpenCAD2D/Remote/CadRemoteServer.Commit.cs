@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Remote;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Remote;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>Writing objects: the queued inserts, modifies and deletes of a client, applied as one undo step.</summary>
     public sealed partial class CadRemoteServer
@@ -112,7 +112,7 @@ namespace GeometryHelper.Cad
                         planned.Add(new CadEditRecord(CadEditRecordKind.Erased, handle, "Remote"));
                         break;
                     default:
-                        throw new Refusal("GeometryHelper CAD does not know the change " + kind + ".");
+                        throw new Refusal("OpenCAD2D does not know the change " + kind + ".");
                 }
             }
 

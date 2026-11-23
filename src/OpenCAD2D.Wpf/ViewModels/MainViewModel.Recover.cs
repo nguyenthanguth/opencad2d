@@ -1,9 +1,10 @@
 using System;
 using System.Globalization;
 using System.IO;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The window's part of repairing drawings: a file that cannot be read as it is opened as what could be recovered of it,

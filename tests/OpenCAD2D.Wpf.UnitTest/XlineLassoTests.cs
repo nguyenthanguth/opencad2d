@@ -2,7 +2,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>A lasso over an XLINE, as AutoCAD's: a crossing lasso it runs through takes it, a window lasso never does.</summary>
     public class XlineLassoTests

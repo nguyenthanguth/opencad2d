@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// CLASSICGROUP, AutoCAD's Object Grouping dialog, as AutoCAD 2021 opens it (its GROUP being the command-line form): the

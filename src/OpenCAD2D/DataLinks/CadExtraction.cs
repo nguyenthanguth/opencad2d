@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>An object type of the Select Objects page: a kind of object (Line, Circle) or a block's name, with how many there are.</summary>
     public sealed class CadExtractionType

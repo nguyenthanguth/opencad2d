@@ -2,11 +2,12 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using GeometryHelper;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// An MTEXT's rotation through <c>entmake</c>, <c>entmakex</c> and <c>entmod</c> (I6 of L9): group 50 is in radians, group 11

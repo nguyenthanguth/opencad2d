@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The base of the view models: raises <see cref="PropertyChanged"/> when a property set takes a new value.</summary>
     public abstract class ObservableObject : INotifyPropertyChanged

@@ -8,7 +8,7 @@ printed as its area. Every call passes Tolerance.Default (a thousandth of a mill
 import sys
 from collections.abc import Iterable
 
-import geometryhelper  # noqa: F401  (starts .NET and loads the assemblies)
+import opencad2d  # noqa: F401  (starts .NET and loads the assemblies)
 from GeometryHelper import Tolerance
 from GeometryHelper.Enums import OffsetJoin
 from GeometryHelper.Geometry import GeoFace2, GeoPoint2, GeoPolygon2

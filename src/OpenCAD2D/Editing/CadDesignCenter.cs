@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What <see cref="CadDesignCenter.Add"/> did: the names brought in, those the drawing kept as they were, and what went wrong.</summary>
     public sealed class CadDesignCenterResult

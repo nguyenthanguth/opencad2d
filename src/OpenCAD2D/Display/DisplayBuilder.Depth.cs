@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The clipping planes of a clipped block reference (XCLIP Clipdepth) laid on what its block holds.</summary>
     internal sealed partial class DisplayBuilder

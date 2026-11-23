@@ -2,10 +2,10 @@ using System;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
-using static GeometryHelper.Cad.UnitTest.LispEntityTests;
+using static OpenCAD2D.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.LispEntityTests;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>entget</c> of the entities that came with no slots of their own: an ATTRIB, an ATTDEF, a SEQEND, an MTEXT, a POLYLINE

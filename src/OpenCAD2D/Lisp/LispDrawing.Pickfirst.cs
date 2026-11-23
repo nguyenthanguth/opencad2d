@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>sssetfirst</c>, <c>ssgetfirst</c> and <c>nentselp</c>. The pick-first selection is the selection of the document, the

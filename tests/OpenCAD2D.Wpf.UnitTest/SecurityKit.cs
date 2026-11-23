@@ -10,9 +10,9 @@ using System.Security.Principal;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using static GeometryHelper.Cad.Wpf.UnitTest.PythonWindowKit;
+using static OpenCAD2D.Wpf.UnitTest.PythonWindowKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>What the tests of the load warning, the Security page and the gate share (L6, wave 2).</summary>
     internal static class SecurityKit

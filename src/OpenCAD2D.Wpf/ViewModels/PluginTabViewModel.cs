@@ -5,10 +5,11 @@ using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using GeometryHelper.Cad.Plugins;
+using GeometryHelper;
+using OpenCAD2D.Plugins;
 using WpfGeometry = System.Windows.Media.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What a tooltip of a plugin's button says: a title, a body where the plugin gave one, and under a line the name of the

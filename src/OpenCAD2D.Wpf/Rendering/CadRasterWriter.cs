@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using GeometryHelper;
 using SkiaSharp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Writes the image of PNGOUT, JPGOUT and BMPOUT (<see cref="CadImageJob"/>): the view drawn by

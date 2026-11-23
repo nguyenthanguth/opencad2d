@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A DIESEL expression, as the field of a DieselExpression evaluates it (checked in AutoCAD 2021's console):

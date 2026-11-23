@@ -4,11 +4,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
-using GeometryHelper.Cad.Plugins;
+using GeometryHelper;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Plugins;
 using WpfGeometry = System.Windows.Media.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What the command plugins loaded, and the Python files loaded, add to the window: the ribbon tabs and the panels of the Plugins tab (shown while a plugin has panels), rows of Properties,

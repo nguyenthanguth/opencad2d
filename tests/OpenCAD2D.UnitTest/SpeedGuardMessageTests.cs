@@ -6,7 +6,7 @@ using GeometryHelper.UnitTest;
 using Xunit;
 using Xunit.Sdk;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// What a failed timing guard says: the time of every run it made, also where a run threw for want of memory or disk, so

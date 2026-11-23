@@ -3,9 +3,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>entmake</c> of the complex entities (a polyline with its vertices and end, a block with its entities and end, a block

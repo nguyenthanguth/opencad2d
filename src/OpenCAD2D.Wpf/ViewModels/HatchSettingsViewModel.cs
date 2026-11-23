@@ -7,10 +7,11 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using SkiaSharp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A pattern offered by the Hatch dialog: its name, its description and the file it is of.</summary>
     public sealed class HatchPatternChoice

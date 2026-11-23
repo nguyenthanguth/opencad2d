@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>The kinds of reactor Visual LISP makes, one for each <c>vlr-...-reactor</c> constructor.</summary>
     internal enum LispReactorKind

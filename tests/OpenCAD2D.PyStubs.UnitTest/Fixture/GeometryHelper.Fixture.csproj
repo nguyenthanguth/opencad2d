@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <!--
-    A small assembly of hand-made types, one for each rule of the stub generator, that the tests of GeometryHelper.PyStubs
+    A small assembly of hand-made types, one for each rule of the stub generator, that the tests of OpenCAD2D.PyStubs
     read the way the tool reads the real ones: as netstandard 2.0 with its XML docs. Many members have no summary on
     purpose, and some members are never used.
   -->

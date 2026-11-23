@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// PNGOUT, JPGOUT and BMPOUT, as AutoCAD 2021's: the file asked for, by the window's Create Raster File dialog or on the

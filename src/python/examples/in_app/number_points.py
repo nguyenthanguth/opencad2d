@@ -1,10 +1,10 @@
 """Numbers the points you pick: a text of height 2.5 with the next number at each point, until Enter.
 
-Run in GeometryHelper CAD: PYRUN, then this file. It asks for the first number (1 on Enter), then for points.
+Run in OpenCAD2D: PYRUN, then this file. It asks for the first number (1 on Enter), then for points.
 The texts are added to the drawing and applied when the run ends, as one undo step, so one U takes every number back.
 """
 
-from geometryhelper.cad import active_drawing, get_integer, get_point, write
+from opencad2d.cad import active_drawing, get_integer, get_point, write
 from GeometryHelper.Geometry import GeoPoint2
 
 

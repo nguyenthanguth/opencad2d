@@ -4,7 +4,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>Asking the user to pick on the canvas, as Tekla's <c>Picker</c> does.</summary>
     public sealed partial class CadRemoteDocument

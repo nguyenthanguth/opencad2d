@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Batch 5 of acad.pgp's commands, output: EXPORTPDF, EXPORTDWF, EXPORTDWFX, IMPORT and PLOTSTAMP with -PLOTSTAMP, and

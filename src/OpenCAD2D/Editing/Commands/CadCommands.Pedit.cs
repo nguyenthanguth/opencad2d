@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>PEDIT, as AutoCAD 2021 asks it and stores what it makes (checked in AutoCAD's own console).</summary>
     internal static partial class CadCommands

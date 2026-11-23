@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The annotation scale of model space (CANNOSCALE) set as AutoCAD 2021 sets it: the scale named, and with ANNOAUTOSCALE on

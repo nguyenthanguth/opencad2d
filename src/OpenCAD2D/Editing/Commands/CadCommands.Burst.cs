@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// BURST, the Express Tools command, as AutoCAD 2021's own does it (its source reads it): "Select objects:" for block

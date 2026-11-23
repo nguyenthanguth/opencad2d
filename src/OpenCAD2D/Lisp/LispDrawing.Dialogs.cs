@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryHelper.Cad.Dcl;
+using OpenCAD2D.Dcl;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The 22 functions of AutoLISP's DCL dialogs, which every session's interpreter has as AutoCAD has them from the start:
@@ -757,7 +757,7 @@ namespace GeometryHelper.Cad.Lisp
                 if (dialog != null && !dialog.SlideNoticeWritten)
                 {
                     dialog.SlideNoticeWritten = true;
-                    _lisp.Write("slide_image: slides are not supported by GeometryHelper.Cad yet\n");
+                    _lisp.Write("slide_image: slides are not supported by OpenCAD2D yet\n");
                 }
 
                 return null;

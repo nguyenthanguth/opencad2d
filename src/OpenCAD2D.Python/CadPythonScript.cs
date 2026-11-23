@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>
-    /// What <c>geometryhelper.cad</c> calls while a script runs: the drawing and its command session, and the questions a script
+    /// What <c>opencad2d.cad</c> calls while a script runs: the drawing and its command session, and the questions a script
     /// asks, each asked as the prompt of a small command of its own so that object snaps, typed points and Esc work as at any
     /// prompt. It is valid during a run only.
     /// </summary>

@@ -1,10 +1,10 @@
 """Totals the length and the closed area of the objects you select.
 
-Run in GeometryHelper CAD: PYRUN, then this file; it asks "Select objects:" as a command does.
+Run in OpenCAD2D: PYRUN, then this file; it asks "Select objects:" as a command does.
 Lines, arcs, circles (their circumference) and polylines add to the length; circles and closed polylines to the area.
 """
 
-from geometryhelper.cad import get_selection, write
+from opencad2d.cad import get_selection, write
 from GeometryHelper.Dxf import DxfArc, DxfCircle, DxfLine, DxfPolyline
 
 

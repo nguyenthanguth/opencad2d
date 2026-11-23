@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A row of the LayerWalk list: the layer's name, shown dimmed where nothing is on it.</summary>
     public sealed class LayerWalkRowViewModel

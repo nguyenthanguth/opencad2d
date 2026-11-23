@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A reference of the Reference Edit dialog's list: its name, indented by how deep it is nested, and where it comes from.</summary>
     public sealed class ReferenceEditRowViewModel

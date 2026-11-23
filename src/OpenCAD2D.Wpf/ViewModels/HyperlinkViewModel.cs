@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Insert Hyperlink dialog, which HYPERLINK shows (Edit Hyperlink, with Remove Link, where an object already has a

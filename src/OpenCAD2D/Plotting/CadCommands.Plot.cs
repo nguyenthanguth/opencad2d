@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// PLOT, PREVIEW and PAGESETUP, which the window shows as the Plot dialog and the preview, and -PLOT, AutoCAD's plot on

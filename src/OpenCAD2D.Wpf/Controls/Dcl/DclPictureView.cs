@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
-using GeometryHelper.Cad.Dcl;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Dcl;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The picture of a DCL <c>image</c> or <c>image_button</c>: a ground and the operations <c>fill_image</c> and

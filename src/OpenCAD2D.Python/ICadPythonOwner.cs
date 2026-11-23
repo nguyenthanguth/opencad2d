@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>The thread that owns the drawings, as the host of a Python run sees it.</summary>
     public interface ICadPythonOwner

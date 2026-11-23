@@ -1,0 +1,28 @@
+<Solution>
+    <Folder Name="/src/">
+        <Project Path="src/OpenCAD2D.App/OpenCAD2D.App.csproj" />
+        <Project Path="src/OpenCAD2D.Python/OpenCAD2D.Python.csproj" />
+        <Project Path="src/OpenCAD2D.Remote/OpenCAD2D.Remote.csproj" />
+        <Project Path="src/OpenCAD2D.Wpf/OpenCAD2D.Wpf.csproj" />
+        <Project Path="src/OpenCAD2D/OpenCAD2D.csproj" />
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/OpenCAD2D.Plugins.Net8Runner/OpenCAD2D.Plugins.Net8Runner.csproj" />
+        <Project Path="tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj" />
+        <Project Path="tests/OpenCAD2D.PyStubs.UnitTest/OpenCAD2D.PyStubs.UnitTest.csproj" />
+        <Project Path="tests/OpenCAD2D.Python.UnitTest/OpenCAD2D.Python.UnitTest.csproj" />
+        <Project Path="tests/OpenCAD2D.Remote.Sample/OpenCAD2D.Remote.Sample.csproj" />
+        <Project Path="tests/OpenCAD2D.Remote.TestServer/OpenCAD2D.Remote.TestServer.csproj" />
+        <Project Path="tests/OpenCAD2D.Remote.UnitTest/OpenCAD2D.Remote.UnitTest.csproj" />
+        <Project Path="tests/OpenCAD2D.SamplePlugin/OpenCAD2D.SamplePlugin.csproj" />
+        <Project Path="tests/OpenCAD2D.SampleUiPlugin/OpenCAD2D.SampleUiPlugin.csproj" />
+        <Project Path="tests/OpenCAD2D.UnitTest/OpenCAD2D.UnitTest.csproj" />
+        <Project Path="tests/OpenCAD2D.Wpf.UnitTest/OpenCAD2D.Wpf.UnitTest.csproj" />
+    </Folder>
+    <Folder Name="/tools/">
+        <Project Path="tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj" />
+    </Folder>
+    <Folder Name="/examples/">
+        <Project Path="examples/OpenCAD2D.Plugins.DrawingInfo/OpenCAD2D.Plugins.DrawingInfo.csproj" />
+    </Folder>
+</Solution>

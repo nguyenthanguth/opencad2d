@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The formula of a table cell, as AutoCAD 2021 reads one (<c>=Sum(A1:B3)</c>, <c>=A1+B2*2</c>): the arithmetic of

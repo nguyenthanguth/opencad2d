@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// What AutoCAD loads when a drawing is opened, in its order: <c>acad.lsp</c> from the support folders once for the

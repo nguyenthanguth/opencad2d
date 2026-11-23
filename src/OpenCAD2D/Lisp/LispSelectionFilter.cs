@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The filter list of <c>ssget</c>: groups an object has to have, each <c>(code . value)</c> equal to a group of the object

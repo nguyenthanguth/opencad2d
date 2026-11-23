@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// P6 (D925, D926): every way a script can end badly leaves the app running. For each script of D925 (not
@@ -217,7 +217,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             // The same exception from a palette entry: one line, with no file part and no stack trace.
             CadCommandSession session = NewSession();
 
-            Enter(session, "import geometryhelper.cad as cad; cad.session().Document.BeginGroup(None)");
+            Enter(session, "import opencad2d.cad as cad; cad.session().Document.BeginGroup(None)");
 
             Assert.Equal(CadPythonOutcome.Failed, Finished.Last().Outcome);
             string line = Assert.Single(session.History, entry =>

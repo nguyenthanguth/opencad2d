@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The file EXPORT, -EXPORT, EXPORTPDF or IMPORT asks the window for (<see cref="CadUiRequestEventArgs.Export"/>), or

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Dcl;
+using OpenCAD2D.Dcl;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What shows the DCL dialogs of a window's routines (D329, D330, D334): <see cref="Open"/> makes a

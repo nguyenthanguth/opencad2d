@@ -1,8 +1,8 @@
 <UserControl
-    x:Class="GeometryHelper.Cad.Wpf.ImageRibbon"
+    x:Class="OpenCAD2D.Wpf.ImageRibbon"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
 >
     <!--
     The contextual Image tab, as AutoCAD 2021 draws it for images: Adjust (Brightness, Contrast and Fade, each a slider and a

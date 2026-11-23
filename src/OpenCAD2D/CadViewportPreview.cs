@@ -2,7 +2,7 @@ using System;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A viewport of a layout as MOVE, COPY, ROTATE, SCALE and MIRROR will leave it, for the ghost that follows the cursor:

@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The keywords of -HATCH that set what the hatch is made of and looks like, asked as AutoCAD 2021 asks them: draW boundary,

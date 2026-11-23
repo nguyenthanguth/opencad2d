@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The name asked by New and Rename of the style dialogs, as AutoCAD's Create New Dimension Style asks it: the name, and

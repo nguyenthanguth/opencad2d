@@ -1,7 +1,7 @@
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The <c>vl-string-</c> functions, <c>vl-string-&gt;list</c> and <c>vl-list-&gt;string</c>, and the Unicode rows around

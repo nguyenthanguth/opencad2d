@@ -1,4 +1,4 @@
-GeometryHelper CAD - DrawingTemplates folder
+OpenCAD2D - DrawingTemplates folder
 ============================================
 
 Save a drawing as a template (SAVEAS, Files of type: Drawing Template (*.dwt)) and put it in
@@ -29,7 +29,7 @@ subfolders, then as typed.
 A different folder: Global settings > Save and export > Template folder (TEMPLATEPATH) names
 one, and it is used in place of this one.
 
-An older Template folder beside the settings file (%AppData%\GeometryHelper\Drawing\Template)
+An older Template folder beside the settings file (%AppData%\OpenCAD2D\Template)
 is used only while it holds a template and this folder holds none. Put a template here and
 this folder is used from then on.
 

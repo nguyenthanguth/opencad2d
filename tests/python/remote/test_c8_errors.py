@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from System import Array, ArgumentNullException, ArgumentOutOfRangeException, String, TimeSpan
 
-from GeometryHelper.Cad.Remote import CadRemoteException
+from OpenCAD2D.Remote import CadRemoteException
 
 
 def test_opening_a_file_that_is_not_there_is_refused_and_the_message_names_the_path(app: Any, tmp_path: Any) -> None:

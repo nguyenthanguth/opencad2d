@@ -5,7 +5,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The canvas's part of the temporary graphics of AutoLISP's <c>grdraw</c> and <c>grvecs</c>: the vectors the session keeps

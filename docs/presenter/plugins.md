@@ -15,8 +15,8 @@ objects:"), asks for the number to start at, and writes a TEXT of each number at
 using System.Collections.Generic;
 using System.Globalization;
 using GeometryHelper.Dxf;
-using GeometryHelper.Cad;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D;
+using OpenCAD2D.Plugins;
 
 [assembly: CadPluginApi("1.0")]
 
@@ -73,7 +73,7 @@ public sealed class CircleTools
 }
 ```
 
-The method is an iterator, like the presenter's own commands: it yields each [`CadPrompt`](xref:GeometryHelper.Cad.CadPrompt)
+The method is an iterator, like the presenter's own commands: it yields each [`CadPrompt`](xref:OpenCAD2D.CadPrompt)
 and reads the answer from `c.Input` when it is resumed, so it runs inside the command line with no thread of its own. That
 is the one difference from AutoCAD's `[CommandMethod]`, which blocks on its prompts: a method that returns `void` and blocks
 is refused, because it would have to run on a thread while the window waits and then reach the canvas from that thread,
@@ -81,19 +81,19 @@ which WPF does not allow.
 
 | The attribute | Says |
 |---|---|
-| [`[CadCommand("NAME")]`](xref:GeometryHelper.Cad.Plugins.CadCommandAttribute) | the method is a command; `Alias`, `Description`, and `UsesSelection` for a command that takes the objects selected before it, as MOVE does |
-| [`[CadSetting("Label")]`](xref:GeometryHelper.Cad.Plugins.CadSettingAttribute) | a public property is a setting the presenter shows; `Description`, `Minimum`, `Maximum` |
-| [`[assembly: CadPluginApi("1.0")]`](xref:GeometryHelper.Cad.Plugins.CadPluginApiAttribute) | the least version of the plugin API the assembly needs; none is taken as 1.0 |
+| [`[CadCommand("NAME")]`](xref:OpenCAD2D.Plugins.CadCommandAttribute) | the method is a command; `Alias`, `Description`, and `UsesSelection` for a command that takes the objects selected before it, as MOVE does |
+| [`[CadSetting("Label")]`](xref:OpenCAD2D.Plugins.CadSettingAttribute) | a public property is a setting the presenter shows; `Description`, `Minimum`, `Maximum` |
+| [`[assembly: CadPluginApi("1.0")]`](xref:OpenCAD2D.Plugins.CadPluginApiAttribute) | the least version of the plugin API the assembly needs; none is taken as 1.0 |
 
 A command method may be static, or an instance method of a public class that is not generic and has a public constructor
 that takes nothing, of which the plugin makes one when it is loaded. A setting is a property with a public get and set of
 type `double`, `int`, `bool`, `string` or an enumeration, which the presenter draws a box for itself, so a plugin never
-touches the window. A method or a class that cannot be one is left out, and each is a line in [`CadPlugin`](xref:GeometryHelper.Cad.Plugins.CadPlugin)`.Problems`.
+touches the window. A method or a class that cannot be one is left out, and each is a line in [`CadPlugin`](xref:OpenCAD2D.Plugins.CadPlugin)`.Problems`.
 
-What the plugin can use is the public API of [`CadCommandContext`](xref:GeometryHelper.Cad.CadCommandContext) and
-[`CadDocument`](xref:GeometryHelper.Cad.CadDocument): `SelectObjects()`, `Selected`, `Input`, `Write`, `Apply`,
+What the plugin can use is the public API of [`CadCommandContext`](xref:OpenCAD2D.CadCommandContext) and
+[`CadDocument`](xref:OpenCAD2D.CadDocument): `SelectObjects()`, `Selected`, `Input`, `Write`, `Apply`,
 `OpenUndoStep()`, `Remembered`, the document's entities, layers and selection, the `CadPrompt.For...` methods for a point, a
-distance, an angle, an object, a keyword, a string or an integer, and the [`CadLayerEditor`](xref:GeometryHelper.Cad.CadLayerEditor), [`CadGrips`](xref:GeometryHelper.Cad.CadGrips) and [`CadPropertyEditor`](xref:GeometryHelper.Cad.CadPropertyEditor)
+distance, an angle, an object, a keyword, a string or an integer, and the [`CadLayerEditor`](xref:OpenCAD2D.CadLayerEditor), [`CadGrips`](xref:OpenCAD2D.CadGrips) and [`CadPropertyEditor`](xref:OpenCAD2D.CadPropertyEditor)
 calls. It reaches no internals.
 
 ## Running it
@@ -111,13 +111,13 @@ session.Feed("7");       // three circles: TEXTs 7, 8 and 9, "Numbered 3 circles
 ```
 
 The three circles are numbered 7, 8 and 9 in one undo step, `NUMCIRCLES (3)`. This is also how a plugin's own tests run it:
-`FromAssemblies` makes the plugin from assemblies already loaded, and a [`CadCommandSession`](xref:GeometryHelper.Cad.CadCommandSession) runs its commands with no window.
+`FromAssemblies` makes the plugin from assemblies already loaded, and a [`CadCommandSession`](xref:OpenCAD2D.CadCommandSession) runs its commands with no window.
 
 Every run is one undo step whatever it edits through the document. A run that throws has every change of it taken back, the
 error is written on the command line with the plugin's name and logged as a Warn, and the document is as it was.
 Entities that have an [owner](owners.md) are refused by the owner's rule, not by the plugin: the gate is the document's.
 
-A setting is read from and written to the plugin's property through [`CadPluginSetting`](xref:GeometryHelper.Cad.Plugins.CadPluginSetting)`.Value`, and a value out of its range
+A setting is read from and written to the plugin's property through [`CadPluginSetting`](xref:OpenCAD2D.Plugins.CadPluginSetting)`.Value`, and a value out of its range
 is refused, the plugin keeping the one it had: setting the text height to 0.05 throws `The setting Text height lies from 0.1
 to 1000.`
 
@@ -131,18 +131,18 @@ A plugin says what it is in a `plugin.json`, read without loading any code:
 ```
 
 Only the name is needed: the id is the name where none is given, the kind "command", the API version 1.0.
-[`CadPluginManifest.Parse(json)`](xref:GeometryHelper.Cad.Plugins.CadPluginManifest) reads it, and `Refusal()` says
+[`CadPluginManifest.Parse(json)`](xref:OpenCAD2D.Plugins.CadPluginManifest) reads it, and `Refusal()` says
 why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.1
 (`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.1: it needs a
 newer presenter.` A plugin that adds to the window, as [below](#what-a-plugin-adds-to-the-window), states 1.1.
 
-A plugin targets netstandard2.0 and references `GeometryHelper.Cad` only, without copying it: the presenter gives a
+A plugin targets netstandard2.0 and references `OpenCAD2D` only, without copying it: the presenter gives a
 plugin its own, so that the `CadCommandContext` it is handed is of the type it was built against.
 
 ## Where a plugin lives
 
-The app has a `Plugins` folder beside `GeometryHelper.Cad.App.exe`, as it has `Fonts`, `Hatches`, `Linetypes` and `Lisps`
-([`CadSupportKind.Plugins`](xref:GeometryHelper.Cad.CadSupportKind)). The build copies it, with a `README.txt`, to the
+The app has a `Plugins` folder beside `OpenCAD2D.App.exe`, as it has `Fonts`, `Hatches`, `Linetypes` and `Lisps`
+([`CadSupportKind.Plugins`](xref:OpenCAD2D.CadSupportKind)). The build copies it, with a `README.txt`, to the
 output of every project that uses the presenter. To install a plugin, put it there:
 
 - **A .dll** directly in `Plugins`: one plugin, named as the file without its extension (`NumberCircles.dll` is the plugin
@@ -170,7 +170,7 @@ the startup list below.
 
 ## Loading and unloading
 
-[`CadPluginManager`](xref:GeometryHelper.Cad.Plugins.CadPluginManager) keeps the plugins of a presenter. Its commands
+[`CadPluginManager`](xref:OpenCAD2D.Plugins.CadPluginManager) keeps the plugins of a presenter. Its commands
 are the ones AutoCAD users know:
 
 | Command | Alias | Does |
@@ -200,25 +200,25 @@ folder, one for each process, those of processes that have ended deleted at the 
 .dll its author builds is never locked: build again, and PLUGINRELOAD picks it up.
 
 **What unloading can do** depends on the runtime, and the loader given to the manager is what differs. The window gives
-[`CadPluginLoader`](xref:GeometryHelper.Cad.Plugins.CadPluginLoader)s of its own (`CadPluginAssemblyLoader`):
+[`CadPluginLoader`](xref:OpenCAD2D.Plugins.CadPluginLoader)s of its own (`CadPluginAssemblyLoader`):
 
 | Runtime | Loading | `PLUGINUNLOAD` |
 |---|---|---|
 | .NET 8, the standalone app | each plugin into a collectible load context of its own, so two plugins' dependencies do not clash | frees the code; a new build is taken without a restart |
 | .NET Framework, hosted in Tekla | every plugin into the one AppDomain | only switches it off: `Switched Circle tools off: its commands are gone, and its code stays loaded until the presenter restarts.` A reload says the build loaded first runs |
 
-The presenter's own assemblies (`GeometryHelper`, `GeometryHelper.Cad` and the controls) are never loaded from a
+The presenter's own assemblies (`GeometryHelper`, `OpenCAD2D` and the controls) are never loaded from a
 plugin's folder, on either runtime. The manager's files are `plugins.json`, the startup list and the trusted folders; the
-app keeps them in a folder of its own, GeometryHelper CAD in `%AppData%\GeometryHelper\Dxf`; the `Plugins` folder is not
+app keeps them in a folder of its own, OpenCAD2D in `%AppData%\OpenCAD2D`; the `Plugins` folder is not
 there but beside the app, so that every user of an install has the same plugins. A plugin that earlier versions installed
-into `%AppData%\GeometryHelper\Dxf\Plugins` is not loaded now: move its folder to `Plugins` beside the app.
+into `%AppData%\OpenCAD2D\Plugins` is not loaded now: move its folder to `Plugins` beside the app.
 
 ## The sample plugin
 
 A sample plugin ships in `Plugins\DrawingInfo`: the command `GHDWGINFO`, which reads the drawing and writes what it holds on
 the command line, and changes nothing. It is the smallest plugin that does something useful, one class with one command that
-takes no prompt, and its source is the project `examples/GeometryHelper.Cad.Plugins.DrawingInfo` of the repository, a netstandard2.0
-library that references `GeometryHelper.Cad` without copying it. The app loads it at every start with no question, and its
+takes no prompt, and its source is the project `examples/OpenCAD2D.Plugins.DrawingInfo` of the repository, a netstandard2.0
+library that references `OpenCAD2D` without copying it. The app loads it at every start with no question, and its
 command is typed at the command line, as every command is. A drawing of three circles and a line in model space, with one
 layer and no block, gives
 
@@ -233,7 +233,7 @@ Extents: (-10.00,-40.00) to (110.00,30.00)
 ```
 
 The folder holds the plugin's .dll and its `plugin.json` and nothing else, since the app gives a plugin its own
-`GeometryHelper.Cad.dll`. The build of `GeometryHelper.Cad.App` builds the plugin first and copies those two files there. To
+`OpenCAD2D.dll`. The build of `OpenCAD2D.App` builds the plugin first and copies those two files there. To
 remove the sample, delete the folder `Plugins\DrawingInfo`; to start a plugin of your own, copy its project.
 
 ## What the window adds
@@ -254,15 +254,15 @@ A command that works long shows it on the status bar's progress meter through `c
 
 A plugin may add to the window what AutoCAD's plugins add to theirs: ribbon tabs and panels, rows of PROPERTIES, buttons
 and items of the DRAWINGS list, items of the canvas's right-click menu, and object snaps of its own. It describes them
-with the types of `GeometryHelper.Cad.Plugins`, none of them WPF's, so the same .dll runs on .NET 8 and .NET Framework;
+with the types of `OpenCAD2D.Plugins`, none of them WPF's, so the same .dll runs on .NET 8 and .NET Framework;
 the window draws them in its own look and takes them away when the plugin is unloaded.
 
-A public class that implements [`ICadPluginApplication`](xref:GeometryHelper.Cad.Plugins.ICadPluginApplication), as
+A public class that implements [`ICadPluginApplication`](xref:OpenCAD2D.Plugins.ICadPluginApplication), as
 AutoCAD's `IExtensionApplication`, is made once when the plugin is loaded and given a
-[`CadPluginHost`](xref:GeometryHelper.Cad.Plugins.CadPluginHost) in `Initialize`; `Terminate` is called when the plugin
+[`CadPluginHost`](xref:OpenCAD2D.Plugins.CadPluginHost) in `Initialize`; `Terminate` is called when the plugin
 is unloaded or reloaded, and when the manager is disposed. What `Initialize` adds is all the plugin adds: an `Add...`
 call after it has returned throws. A class that also holds commands uses the same object for both, and a plugin with no
-command but such a class is loaded. The sample below, cut short from the test plugin `GeometryHelper.Cad.SampleUiPlugin`,
+command but such a class is loaded. The sample below, cut short from the test plugin `OpenCAD2D.SampleUiPlugin`,
 adds a tab, a group of Properties, a DRAWINGS button and a snap:
 
 ```csharp
@@ -305,7 +305,7 @@ public sealed class CircleUi : ICadPluginApplication
 An `Initialize` that throws leaves the plugin's commands loaded and everything it added out, with a line in
 `CadPlugin.Problems` and a Warn in the log.
 
-**Ribbon.** [`CadRibbonTab`](xref:GeometryHelper.Cad.Plugins.CadRibbonTab)s come after the Plugins tab, in the order the
+**Ribbon.** [`CadRibbonTab`](xref:OpenCAD2D.Plugins.CadRibbonTab)s come after the Plugins tab, in the order the
 plugins were loaded; `AddRibbonPanel` puts a panel on the Plugins tab instead, which shows only while a plugin has added a
 panel and holds nothing but those panels, plugin by plugin. The presenter has no "Command plugins" or "Manage" panel any more,
 so `ShowsCommandButtons` changes nothing. A panel's items are buttons and split
@@ -315,13 +315,13 @@ panels do. An icon is a path on a square of 24 drawn 2 wide like the presenter's
 JPEG, GIF or ICO from bytes, an embedded resource or a file by its full path (`FromImage`, `FromResource`, `FromFile`,
 `Path.Combine(host.Folder, "icons", "count.png")`): its bytes are copied when it is made, so no file stays locked. An icon
 the window cannot draw shows the plugin icon. A button runs a command, started as the presenter's ribbon buttons start
-theirs, or a callback given a [`CadPluginContext`](xref:GeometryHelper.Cad.Plugins.CadPluginContext) (the document, the
+theirs, or a callback given a [`CadPluginContext`](xref:OpenCAD2D.Plugins.CadPluginContext) (the document, the
 handles selected, `Write`, `RunCommand`); `CanRun` greys it, asked as the selection, the drawing and the command change.
 A callback that throws writes its message on the command line after the plugin's name. A split button shows and runs the
 one used last, as AutoCAD's Circle button does. A tab with `ShowWhen` is contextual: shown in green after the presenter's
 contextual tabs while it says true, as "Circle" while only circles are selected, and taken up when it shows.
 
-**Properties.** A [`CadPropertyProvider`](xref:GeometryHelper.Cad.Plugins.CadPropertyProvider) is asked, after the
+**Properties.** A [`CadPropertyProvider`](xref:OpenCAD2D.Plugins.CadPropertyProvider) is asked, after the
 extensions, with the document, the handles shown and what Properties shows, and returns what it shows, usually the same
 groups and one of its own. Its rows are the extension's: a setter returns null where it made the change and the words of
 the refusal otherwise. `CadPropertyRow` makes rows of a kind: `Number`, `Length` and `Angle` (written and read in the
@@ -333,10 +333,10 @@ step a change.
 **DRAWINGS and the canvas.** `AddDrawingsButton` puts an icon button first in the header of the list;
 `AddDrawingsMenu` adds items after a separator at the end of a file row's right-click menu, given the row's path, its
 document where it is open and the rows selected; `AddCanvasMenu` adds items to the canvas's menu for the objects
-selected, after the extensions' and before the presenter's own. [`CadPluginMenuItem`](xref:GeometryHelper.Cad.Plugins.CadPluginMenuItem)
+selected, after the extensions' and before the presenter's own. [`CadPluginMenuItem`](xref:OpenCAD2D.Plugins.CadPluginMenuItem)
 makes an item, a grey or ticked one, a submenu and a separator.
 
-**Object snaps.** A [`CadCustomSnap`](xref:GeometryHelper.Cad.Plugins.CadCustomSnap), as AutoCAD's
+**Object snaps.** A [`CadCustomSnap`](xref:OpenCAD2D.Plugins.CadCustomSnap), as AutoCAD's
 `CustomObjectSnapMode`, has a name, a keyword, the entity types it applies to (all where none is given), a glyph drawn
 as a snap marker (a square with a dot where none is given) and a finder that gives its points for an entity under the
 aperture. It is listed in the Object Snap tab of Drafting Settings under "Plugin snaps", in the OSNAP menu and in the

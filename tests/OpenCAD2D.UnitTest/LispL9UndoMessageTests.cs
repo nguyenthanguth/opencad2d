@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The words U, UNDO and REDO write for a step, and which changes a step of a routine holds (I4 of L9). The expected values are

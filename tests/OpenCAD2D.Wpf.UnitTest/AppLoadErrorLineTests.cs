@@ -6,11 +6,11 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The load-result line of Load/Unload Applications: red, above the hint, hidden until a load fails, naming the last file

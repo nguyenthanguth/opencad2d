@@ -1,8 +1,8 @@
 <Window
-    x:Class="GeometryHelper.Cad.Wpf.LoadLinetypesWindow"
+    x:Class="OpenCAD2D.Wpf.LoadLinetypesWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Load or Reload Linetypes"
     Width="560"
     Height="460"
@@ -15,8 +15,8 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Icons.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Icons.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- The file box: read only, in mono type, muted while it names the built-in set. -->

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The folder of this run of the tests, %TEMP%\gk\drawing\viewer-tests-&lt;a new id&gt;: the pictures and drawings the tests write

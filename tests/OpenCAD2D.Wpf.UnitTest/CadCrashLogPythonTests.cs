@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using GeometryHelper.Cad.Python;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Python;
 using Python.Runtime;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.PythonWindowKit;
+using static OpenCAD2D.Wpf.UnitTest.PythonWindowKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A script's handler of a .NET event that raises after its run has ended (P6, D926). pythonnet builds the delegate and the
@@ -66,7 +66,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                     Script(
                         "hang.py",
                         "import builtins",
-                        "import geometryhelper.cad as cad",
+                        "import opencad2d.cad as cad",
                         "def handler(sender, args):",
                         "    raise RuntimeError(" + message + ")",
                         "builtins.p6_handler = handler",
@@ -89,7 +89,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                     Script(
                         "off.py",
                         "import builtins",
-                        "import geometryhelper.cad as cad",
+                        "import opencad2d.cad as cad",
                         "cad.session().Document.Changed -= builtins.p6_handler",
                         "del builtins.p6_handler"
                     )

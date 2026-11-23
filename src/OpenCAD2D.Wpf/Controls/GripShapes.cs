@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The sizes of the grips the canvas draws at a grip size (AutoCAD's GRIPSIZE), in device-independent pixels. The square

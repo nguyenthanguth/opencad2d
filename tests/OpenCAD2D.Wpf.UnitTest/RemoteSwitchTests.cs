@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Remote;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Remote;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>"Allow other programs to connect": the setting, its place in Global settings, and the server it starts and stops.</summary>
     public sealed class RemoteSwitchTests
@@ -65,11 +65,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                 string room = folder.Write("room.dxf", TestFiles.Room(out _, out _));
                 var model = new MainViewModel();
                 Assert.True(model.Open(room));
-                var host = new CadAppRemoteHost(
-                    model,
-                    () => "room.dxf - GeometryHelper CAD",
-                    Dispatcher.CurrentDispatcher
-                );
+                var host = new CadAppRemoteHost(model, () => "room.dxf - OpenCAD2D", Dispatcher.CurrentDispatcher);
 
                 using (var remote = new CadRemoteSwitch(model, host, new InlineDispatcher(), files, "sw"))
                 {

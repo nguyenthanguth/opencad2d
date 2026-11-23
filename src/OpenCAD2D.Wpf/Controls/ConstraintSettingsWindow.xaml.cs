@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Constraint Settings dialog (CONSTRAINTSETTINGS): the Geometric, Dimensional and AutoConstrain tabs, dark as the

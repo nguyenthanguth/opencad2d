@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The Lisps folder beside the program (D1210 to D1216 of the lispux spec): every <c>.lsp</c> in it, at any depth, loads into each

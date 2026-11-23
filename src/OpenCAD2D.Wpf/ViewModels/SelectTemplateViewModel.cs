@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What the Select Template dialog ended with.</summary>
     public enum SelectTemplateChoice

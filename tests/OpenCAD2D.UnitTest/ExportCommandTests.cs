@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// EXPORT and -EXPORT, as AutoCAD 2021's: EXPORT's Export Data types, Bitmap written through BMPOUT's image and the rest

@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// DIMBREAK Auto on the arcs of a dimension's picture, the arc of an angular dimension and of an arc length one, as AutoCAD

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The canvas's right-click menus, as AutoCAD 2021's with its default SHORTCUTMENU 11: the Default, Edit, Command and

@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The dialogs of data links and data extraction: the Data Link Manager (DATALINK), the Excel data link dialog, the Data

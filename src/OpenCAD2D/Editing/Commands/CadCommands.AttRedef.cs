@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// ATTREDEF, as AutoCAD 2021's Express Tools routine does it: "Enter name of the block you wish to redefine:", "Select

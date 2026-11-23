@@ -4,7 +4,7 @@ using System.IO;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What an attach dialog attaches: a DXF as an external reference (XATTACH), a picture as an image (IMAGEATTACH), or a PDF as underlays (PDFATTACH).</summary>
     public enum CadAttachKind

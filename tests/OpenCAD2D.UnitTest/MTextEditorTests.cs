@@ -3,7 +3,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>The MTEXT editor's changes written in AutoCAD's inline codes, by value, and the runs the display draws of them.</summary>
     public class MTextEditorTests

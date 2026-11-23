@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Threading;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>What a VLA-OBJECT stands for.</summary>
     internal enum LispVlaKind

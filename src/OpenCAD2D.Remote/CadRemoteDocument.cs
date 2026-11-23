@@ -5,10 +5,10 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
-    /// One drawing of a running GeometryHelper CAD. It always means its own drawing, whichever tab the user has shown
+    /// One drawing of a running OpenCAD2D. It always means its own drawing, whichever tab the user has shown
     /// meanwhile; if the user closes the drawing, the next call throws a <see cref="CadRemoteException"/> and never reaches
     /// another drawing in its place.
     /// </summary>

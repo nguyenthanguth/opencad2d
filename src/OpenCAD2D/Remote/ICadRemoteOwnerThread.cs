@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What a dispatcher that owns one thread can say about it: whether the caller is on that thread. A server whose dispatcher

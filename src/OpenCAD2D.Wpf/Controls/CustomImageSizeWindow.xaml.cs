@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Custom Image Size (design PlotRasterCustom): the width and the height of an image in pixels, each 16 to 8 000, from

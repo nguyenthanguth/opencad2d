@@ -12,7 +12,7 @@ import pytest
 
 import drawing_scenarios
 from drawing_scenarios import BLANK, SCENARIOS, Scenario
-from geometryhelper.cad import new_file, open_file
+from opencad2d.cad import new_file, open_file
 
 
 def _drawing_for(scenario: Scenario, tmp_path: Path) -> Any:
@@ -74,7 +74,7 @@ def test_a_drawing_saved_as_and_opened_again_reads_back_the_same_objects(tmp_pat
 
 
 def _needs_the_app() -> list[tuple[str, Callable[[], object]]]:
-    import geometryhelper.cad as cad
+    import opencad2d.cad as cad
 
     return [
         ("get_point", lambda: cad.get_point("Where")),
@@ -101,4 +101,4 @@ def test_a_function_that_needs_the_app_says_so_in_the_words_of_the_spec(name: st
     with pytest.raises(RuntimeError) as raised:
         call()
 
-    assert str(raised.value) == f"{name} works inside GeometryHelper CAD only"
+    assert str(raised.value) == f"{name} works inside OpenCAD2D only"

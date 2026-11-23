@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>getvar</c> and <c>setvar</c> typed at the command line, with the values and the refusals of AutoCAD 2021's
@@ -23,7 +23,7 @@ namespace GeometryHelper.Cad.UnitTest
         }
 
         [Theory]
-        [InlineData("(getvar \"PRODUCT\")", "\"GeometryHelper.Cad\"")] // AutoCAD 2021 (q6): "AutoCAD"; ours (D56): tells the program
+        [InlineData("(getvar \"PRODUCT\")", "\"OpenCAD2D\"")] // AutoCAD 2021 (q6): "AutoCAD"; ours (D56): tells the program
         [InlineData("(getvar \"ACADVER\")", "\"24.0\"")] // AutoCAD 2021 (q6)
         [InlineData("(getvar \"OSMODE\")", "167")] // AutoCAD 2021 (q6)
         [InlineData("(getvar \"osmode\")", "167")] // AutoCAD 2021 (q6): any case

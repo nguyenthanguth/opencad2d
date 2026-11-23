@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD 2021's Rename dialog: the Named Objects list, the Items of the kind picked, Old Name, and Rename To with the

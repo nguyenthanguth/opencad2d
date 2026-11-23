@@ -8,7 +8,7 @@ version, and each is printed first, a line for each; then the file written and i
 import sys
 from pathlib import Path
 
-import geometryhelper  # noqa: F401  (starts .NET and loads the assemblies)
+import opencad2d  # noqa: F401  (starts .NET and loads the assemblies)
 from GeometryHelper.Dwg import DwgReader, DwgWriter
 from GeometryHelper.Dxf import DxfDatabase
 

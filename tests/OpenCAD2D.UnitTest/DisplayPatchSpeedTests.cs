@@ -7,7 +7,7 @@ using GeometryHelper.UnitTest;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     [Collection(ViewerSpeedCollection.Name)]
     public class DisplayPatchSpeedTests

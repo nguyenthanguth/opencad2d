@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>AutoCAD's New and Modify Multiline Style dialog: caps, fill, joints and elements; its logic is <see cref="MlineStyleEditViewModel"/>.</summary>
     public partial class MlineStyleEditWindow : Window

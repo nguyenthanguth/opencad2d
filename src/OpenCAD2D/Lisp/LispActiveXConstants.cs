@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The constants of the enumerations of AutoCAD 2021's ActiveX library, which AutoLISP binds as ordinary symbols

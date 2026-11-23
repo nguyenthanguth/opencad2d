@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// -DIMSTYLE and DIMUPDATE, as AutoCAD 2021 asks them (probed in its console): the current style and its overrides written

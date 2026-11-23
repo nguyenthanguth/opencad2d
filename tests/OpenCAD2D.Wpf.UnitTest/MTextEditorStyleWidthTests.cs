@@ -3,7 +3,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A width in times (<c>\W1.2x;</c>) in an MTEXT of a style of letters 0.8 wide is 0.96 wide, as AutoCAD 2021 draws it

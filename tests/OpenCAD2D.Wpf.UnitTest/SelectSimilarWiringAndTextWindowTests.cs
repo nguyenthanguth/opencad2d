@@ -10,7 +10,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// What was greyed with a working command behind it, now wired: Select Similar, Add Selected, QuickCalc and Quick

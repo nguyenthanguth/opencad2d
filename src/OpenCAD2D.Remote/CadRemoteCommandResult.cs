@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>What <see cref="CadRemoteDocument.SendCommand(string)"/> got back: whether the command ended, and what the command line wrote.</summary>
     public sealed class CadRemoteCommandResult

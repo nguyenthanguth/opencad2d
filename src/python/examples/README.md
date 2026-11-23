@@ -1,9 +1,9 @@
 # Python examples
 
 Thirteen scripts for the three places Python works with GeometryHelper: outside the app on the libraries, inside
-GeometryHelper CAD, and outside it driving a running app. Each does one common task, and a test of the repository runs
+OpenCAD2D, and outside it driving a running app. Each does one common task, and a test of the repository runs
 each against a drawing it builds, on .NET 8 and on .NET Framework 4.8, so they keep working. They are not part of the
-wheel. The guide, [Python examples](../../GeometryHelper/docs/python-examples.md), shows what each prints.
+wheel. The guide, [Python examples](../../../docs/python-examples.md), shows what each prints.
 
 | File | Place | Task | How to run |
 |---|---|---|---|
@@ -21,6 +21,6 @@ wheel. The guide, [Python examples](../../GeometryHelper/docs/python-examples.md
 | [remote/pick_and_mark.py](remote/pick_and_mark.py) | a script driving the app | a circle drawn where the user picks | `python pick_and_mark.py` |
 | [remote/open_documents.py](remote/open_documents.py) | a script driving the app | the open drawings and what is in each | `python open_documents.py` |
 
-The library scripts run in the virtual environment the wheel is installed in (`pip install geometryhelper[numpy]`, then
-`python <file>`). The scripts in `in_app` are run from the command line of GeometryHelper CAD, with PYRUN or PYLOAD. The
-scripts in `remote` need GeometryHelper CAD running, with "Allow other programs to connect" on in Global settings.
+The library scripts run in the virtual environment the wheel is installed in (`pip install opencad2d[numpy]`, then
+`python <file>`). The scripts in `in_app` are run from the command line of OpenCAD2D, with PYRUN or PYLOAD. The
+scripts in `remote` need OpenCAD2D running, with "Allow other programs to connect" on in Global settings.

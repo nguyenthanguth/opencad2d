@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Drawing Properties dialog, which DWGPROPS shows: General, Summary, Statistics and Custom tabs. Its logic is

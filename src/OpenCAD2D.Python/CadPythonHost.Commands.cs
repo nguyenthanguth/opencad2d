@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D.Plugins;
 using Python.Runtime;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     public sealed partial class CadPythonHost
     {

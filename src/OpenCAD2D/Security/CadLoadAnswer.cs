@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The answer to the warning of SECURELOAD 1, the one AutoCAD shows for a file of code outside the trusted folders

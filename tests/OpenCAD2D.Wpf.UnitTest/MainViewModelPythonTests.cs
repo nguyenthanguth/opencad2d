@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Windows.Threading;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.PythonWindowKit;
+using static OpenCAD2D.Wpf.UnitTest.PythonWindowKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Python in the window (D720, D1670): with the app's Python off nothing of it is in the commands; with it on, every drawing

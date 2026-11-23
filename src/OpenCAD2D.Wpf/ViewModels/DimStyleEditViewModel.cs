@@ -7,7 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>What the dialog of a dimension style does with OK: makes a new style, changes one, or overrides the current one on the dimensions selected.</summary>
     public enum DimStyleEditMode

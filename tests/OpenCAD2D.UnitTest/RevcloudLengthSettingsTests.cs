@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The shortest and longest arc of a revision cloud kept in the settings file, as AutoCAD 2021 keeps REVCLOUDMINARCLENGTH and

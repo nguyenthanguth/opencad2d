@@ -3,9 +3,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>tblsearch</c>, <c>tblnext</c> and <c>tblobjname</c> typed at the command line, with the lists of AutoCAD 2021's

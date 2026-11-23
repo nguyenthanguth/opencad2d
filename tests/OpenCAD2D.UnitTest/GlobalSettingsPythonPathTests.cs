@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
-    /// <see cref="GlobalSettings.PythonPath"/> (P3 D721): the python.exe, or its folder, that GeometryHelper CAD starts
+    /// <see cref="GlobalSettings.PythonPath"/> (P3 D721): the python.exe, or its folder, that OpenCAD2D starts
     /// Python from; empty for the automatic choice, never null, and kept in the settings file.
     /// </summary>
     public sealed class GlobalSettingsPythonPathTests : IDisposable

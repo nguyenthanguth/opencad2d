@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using GeometryHelper.Cad.Plugins;
+using GeometryHelper;
 using GeometryHelper.Enums;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>Loading, unloading, reloading, installing and the startup list, with the loader of .NET Framework, as hosted in Tekla.</summary>
     public sealed class PluginManagerTests : IDisposable

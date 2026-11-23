@@ -6,9 +6,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The leftovers of the L2 parked line that round 1 measured (second round, scratch of l2p2): the group 1 of the BLOCK entity

@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The one host of the test process (D719, D723): Python starts once per process, so every test class of the collection

@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// EXPORTPDF's Save As PDF with Page Setup Override and Export to PDF Options, each shown through a function the workspace

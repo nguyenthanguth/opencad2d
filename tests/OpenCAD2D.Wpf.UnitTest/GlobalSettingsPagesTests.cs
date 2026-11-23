@@ -9,7 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Global settings as the maintainer asked on 2026-11-12: the keys of a shortcut taken by pressing them, acad.pgp imported,

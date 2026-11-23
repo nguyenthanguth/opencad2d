@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Batch 4 of acad.pgp, the view and utility commands with a window of their own: VPORTS and -VPORTS (the tiled

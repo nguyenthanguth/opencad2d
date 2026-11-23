@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// GROUPEDIT, as AutoCAD 2021 asks it: "Select group or [Name]:" (an object of the group, or the group by name), then

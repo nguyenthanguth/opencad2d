@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The outline of a clipped viewport (VPCLIP): a closed ring of vertices in paper units, an edge going from a vertex to the

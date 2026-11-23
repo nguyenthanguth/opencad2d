@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>vl-registry-read</c>, <c>-write</c>, <c>-delete</c> and <c>-descendents</c> against AutoCAD 2021's accoreconsole

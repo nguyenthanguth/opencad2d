@@ -1,4 +1,4 @@
-# GeometryHelper.Cad: the plan
+# OpenCAD2D: the plan
 
 A 2D presenter like AutoCAD (Part A, A16). It opens, shows and edits any 2D drawing held in a `DxfDatabase`: a DXF from
 anywhere, model space and layouts with viewports, layers, AutoCAD's commands and shortcuts, and command plugins loaded at
@@ -9,9 +9,9 @@ uses this presenter and this presenter never refers to it; what it needs from he
 contract (`ICadEntityOwner`, `CadOwnerRegistry`, `CadOwnerTag`), `CadWorkspaceExtension` with its `CadNewDocumentOffer`,
 and `CadAppHost`.
 
-**Status: built, not yet packed.** `GeometryHelper.Cad` (the core, no window), `GeometryHelper.Cad.Wpf` (the controls),
-`GeometryHelper.Cad.App` (its own window, GeometryHelper CAD) and `GeometryHelper.Cad.Remote` (another program drives the
-running app). The guides start at [The 2D presenter](../../GeometryHelper/docs/presenter/index.md).
+**Status: built, not yet packed.** `OpenCAD2D` (the core, no window), `OpenCAD2D.Wpf` (the controls),
+`OpenCAD2D.App` (its own window, OpenCAD2D) and `OpenCAD2D.Remote` (another program drives the
+running app). The guides start at [The 2D presenter](../../../docs/presenter/index.md).
 
 Where the plan and the code differ, the code and the guides are right.
 
@@ -29,4 +29,4 @@ Where the plan and the code differ, the code and the guides are right.
 | [76-linetype-hatch.md](76-linetype-hatch.md) | C9: linetypes and hatches as AutoCAD makes them |
 | [77-styles.md](77-styles.md) | C10: the style forms (Text Style, Dimension Style Manager) |
 | [78-dwg.md](78-dwg.md) | our own DWG reader and writer |
-| [79-remote-api.md](79-remote-api.md) | driving a running GeometryHelper CAD from another program |
+| [79-remote-api.md](79-remote-api.md) | driving a running OpenCAD2D from another program |

@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>AutoCAD's Add Scales to Object, from Add… of Annotation Object Scale; its logic is <see cref="ObjectScaleAddViewModel"/>.</summary>
     public partial class ObjectScaleAddWindow : Window

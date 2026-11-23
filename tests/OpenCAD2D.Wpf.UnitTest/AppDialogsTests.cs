@@ -13,7 +13,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The dialogs of rounds 5 to 9 in the app's screenshot mode (<c>--dialog</c>): each made over a sample drawing as the

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The form of a compiled SHX file, as its first line names it.</summary>
     public enum ShxFontKind

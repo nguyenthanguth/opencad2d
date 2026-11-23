@@ -10,7 +10,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// OVERKILL's Delete Duplicate Objects dialog: its view model (the boxes, the tolerance, what OK hands back), the command

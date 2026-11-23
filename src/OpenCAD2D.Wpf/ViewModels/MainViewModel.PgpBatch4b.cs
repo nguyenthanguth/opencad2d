@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Batch 4 of acad.pgp's commands that are the window's own: QUIT (and EXIT), COMMANDLINE and COMMANDLINEHIDE, HIDEPALETTES

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// PAN, ZOOM, CAL, SETVAR, the settings ORTHO, POLAR, OSNAP, GRID and SNAP, DIST, ID, LAYER, COLOR, LINETYPE, LWEIGHT,

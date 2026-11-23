@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using SkiaSharp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The previews of the style dialogs: a drawing of their own (a sample text, sample dimensions) drawn by the canvas's own
@@ -42,7 +43,7 @@ namespace GeometryHelper.Cad.Wpf
                 style.Font = settings.Font;
                 var text = new DxfDBText
                 {
-                    Position = new Geometry.GeoPoint3(0, 0, 0),
+                    Position = new GeometryHelper.Geometry.GeoPoint3(0, 0, 0),
                     Height = 10.0,
                     TextString = SampleText,
                     TextStyleName = "Preview",
@@ -161,7 +162,10 @@ namespace GeometryHelper.Cad.Wpf
                 throw new ArgumentException("The drawing has no block " + name + ".", nameof(name));
             }
 
-            var carrier = new DxfBlockReference(new Geometry.GeoPoint3(0, 0, 0), scratch.BlockTable[name]);
+            var carrier = new DxfBlockReference(
+                new GeometryHelper.Geometry.GeoPoint3(0, 0, 0),
+                scratch.BlockTable[name]
+            );
             scratch.ModelSpace.AppendEntity(carrier);
             var database = new DxfDatabase("AC1027");
             scratch.WblockCloneObjects(new[] { carrier }, database.ModelSpace);
@@ -197,8 +201,8 @@ namespace GeometryHelper.Cad.Wpf
             DxfDatabase database = own ? new DxfDatabase("AC1027") : scratch;
             DxfBlockTableRecord block = CadArrowheads.Ensure(database, name);
             var leader = new DxfLeader();
-            leader.AppendVertex(new Geometry.GeoPoint3(0, 0, 0));
-            leader.AppendVertex(new Geometry.GeoPoint3(2, 0, 0));
+            leader.AppendVertex(new GeometryHelper.Geometry.GeoPoint3(0, 0, 0));
+            leader.AppendVertex(new GeometryHelper.Geometry.GeoPoint3(2, 0, 0));
             database.ModelSpace.AppendEntity(leader);
             leader.Dimasz = 1.0;
             leader.Dimscale = 1.0;
@@ -306,7 +310,7 @@ namespace GeometryHelper.Cad.Wpf
 
             foreach (var point in new[] { (0.0, 0.0), (5.0, 0.0), (8.0, -2.5), (12.0, -2.5) })
             {
-                builder.Points.Add(new Geometry.GeoPoint3(point.Item1 * unit, point.Item2 * unit, 0.0));
+                builder.Points.Add(new GeometryHelper.Geometry.GeoPoint3(point.Item1 * unit, point.Item2 * unit, 0.0));
             }
 
             database.ModelSpace.AppendEntity(builder.Build());

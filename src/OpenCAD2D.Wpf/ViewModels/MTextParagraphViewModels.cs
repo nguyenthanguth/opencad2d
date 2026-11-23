@@ -4,9 +4,10 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A row of the Paragraph dialog's list of tab stops: its kind and its position.</summary>
     public sealed class ParagraphTabStopRow

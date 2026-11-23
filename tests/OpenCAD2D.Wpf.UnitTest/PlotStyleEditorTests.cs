@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Plot style tables in the presenter's dialogs (plot item 15): a plot with a table drawn in the colours, lineweight,

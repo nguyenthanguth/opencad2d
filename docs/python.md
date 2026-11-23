@@ -1,14 +1,14 @@
 # Python
 
 The library and the presenter from Python: geometry, DXF and DWG read and written, and a
-[`CadDocument`](xref:GeometryHelper.Cad.CadDocument) edited through its command session and saved, with no window. It is
-the .NET library itself, run by [pythonnet](https://pythonnet.github.io/), in a package named `geometryhelper`. The .NET
+[`CadDocument`](xref:OpenCAD2D.CadDocument) edited through its command session and saved, with no window. It is
+the .NET library itself, run by [pythonnet](https://pythonnet.github.io/), in a package named `opencad2d`. The .NET
 names stay as they are, so a script reads like the C# of the other pages; the package adds only the few Python helpers
 that pythonnet makes slow or easy to get wrong, and type stubs, so that an editor completes and checks every name.
 
 The package is not on PyPI yet. It is a wheel built from the repository ([Installing](#installing)), and the name it
-will be published under is not chosen: `geometryhelper` is taken on PyPI by an unrelated project, so a wheel called so
-can never be uploaded. The name to `import` stays `geometryhelper` whichever name is chosen.
+will be published under is not chosen: `opencad2d` is taken on PyPI by an unrelated project, so a wheel called so
+can never be uploaded. The name to `import` stays `opencad2d` whichever name is chosen.
 
 Nothing is converted and no tolerance is chosen for you. Lengths are the library's own, in millimetres when the
 drawing is, and a script passes a [`Tolerance`](xref:GeometryHelper.Tolerance) where the C# would.
@@ -30,23 +30,23 @@ Build the wheel from a checkout of the repository, in Git Bash, from its root. T
 and the stub generator, the last two write the stubs and the wheel:
 
 ```bash
-dotnet build src/GeometryHelper.Cad/GeometryHelper.Cad.csproj -c Release
-dotnet build tools/GeometryHelper.PyStubs/GeometryHelper.PyStubs.csproj -c Release
+dotnet build src/OpenCAD2D/OpenCAD2D.csproj -c Release
+dotnet build tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj -c Release
 bash tools/python/make-stubs.sh
 bash tools/python/build-wheel.sh
 ```
 
-The wheel is `artifacts/python/geometryhelper-13.12.0-py3-none-win_amd64.whl` (the version is the library's, the one
-`Directory.Build.props` carries, so a NuGet package and a wheel of one number hold the same code). Install it into a
+The wheel is `artifacts/python/opencad2d-1.0.0-py3-none-win_amd64.whl` (the version is OpenCAD2D's, the one
+`Directory.Build.props` carries, so the app and a wheel of one number hold the same code). Install it into a
 virtual environment, with the `numpy` extra if you want [the array helpers](#numpy-in-blocks):
 
 ```
 python -m venv .venv
-.venv\Scripts\python -m pip install "artifacts\python\geometryhelper-13.12.0-py3-none-win_amd64.whl[numpy]"
+.venv\Scripts\python -m pip install "artifacts\python\opencad2d-1.0.0-py3-none-win_amd64.whl[numpy]"
 ```
 
-The wheel is 10 200 681 bytes. It holds the three assemblies (`GeometryHelper.dll`, `GeometryHelper.Cad.dll` and
-`GeometryHelper.Cad.Remote.dll`) with the `Fonts`, `Hatches` and `Linetypes` folders the presenter finds beside them (8
+The wheel is 10 200 681 bytes. It holds the three assemblies (`GeometryHelper.dll`, `OpenCAD2D.dll` and
+`OpenCAD2D.Remote.dll`) with the `Fonts`, `Hatches` and `Linetypes` folders the presenter finds beside them (8
 files, 15 723 467 bytes unpacked), the Python module (6 files, 30 652 bytes), and the stubs (18 files, 4 449 463 bytes
 for `GeometryHelper`, 8 files, 8 930 bytes for `System`). It holds no XML documentation and no PDB: the XML is read once,
 when the stubs are written.
@@ -59,17 +59,17 @@ the Python to start). On the test machine, 390 tests pass on .NET 8 (73.2 s) and
 ## A first script
 
 ```python
-import geometryhelper
-from GeometryHelper.Cad import CadCommandSession, CadDocument
+import opencad2d
+from OpenCAD2D import CadCommandSession, CadDocument
 from GeometryHelper.Dxf import DxfDatabase, DxfWriter
 from GeometryHelper.Geometry import GeoPoint3
 
-print(geometryhelper.__version__, geometryhelper.runtime())      # 13.12.0 coreclr
+print(opencad2d.__version__, opencad2d.runtime())      # 1.0.0 coreclr
 print(GeoPoint3(0, 0, 0).DistanceTo(GeoPoint3(3, 4, 0)))         # 5.0
 
 document = CadDocument.From(DxfDatabase.Parse(DxfWriter().ToString()))   # an empty drawing
 session = CadCommandSession(document)                                     # its command line
-with geometryhelper.undo_group(document, "A circle"):                     # one undo step
+with opencad2d.undo_group(document, "A circle"):                     # one undo step
     for answer in ("CIRCLE", "0,0", "25"):                                # what a user types
         session.Feed(answer)
 print(document.EntityCount)                                               # 1
@@ -78,22 +78,22 @@ document.SaveAs("circle.dwg")                                    # DWG, by the e
 print(CadDocument.Open("circle.dwg").EntityCount)                # 1
 ```
 
-`import geometryhelper` comes first: it starts .NET and loads the three assemblies, and only after it can
+`import opencad2d` comes first: it starts .NET and loads the three assemblies, and only after it can
 `from GeometryHelper.Geometry import ...` find anything (before it, the import fails with `ModuleNotFoundError: No module
-named 'GeometryHelper'`). The drawing is read, edited and saved as the pages on [DXF](dxf/index.md),
-[DWG](dxf/dwg.md) and [the 2D presenter](presenter/index.md) describe; this page is about what differs from C#.
+named 'GeometryHelper'`). The drawing is read, edited and saved as the pages on [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md),
+[DWG](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) and [the 2D presenter](presenter/index.md) describe; this page is about what differs from C#.
 
-`import geometryhelper` takes 498 to 512 ms on .NET 8 and 562 to 589 ms on .NET Framework 4.8 (three runs of the whole
+`import opencad2d` takes 498 to 512 ms on .NET 8 and 562 to 589 ms on .NET Framework 4.8 (three runs of the whole
 process, which includes starting Python: a bare `python -c pass` takes 56 ms). A script that reads a DXF and a DWG, draws,
 edits, saves both and reads geometry into numpy takes 927 ms on .NET 8 and 1 257 ms on .NET Framework 4.8, whole process.
 
-`geometryhelper.__version__` is the version of the library, and `geometryhelper.runtime()` is `"coreclr"` or `"netfx"`,
+`opencad2d.__version__` is the version of the library, and `opencad2d.runtime()` is `"coreclr"` or `"netfx"`,
 the runtime the script runs on: what a bug report needs.
 
 ## Choosing the runtime
 
-The environment variable `GEOMETRYHELPER_RUNTIME` says which .NET runs the script. It is read once, when
-`geometryhelper` is imported, and its case is ignored:
+The environment variable `OPENCAD2D_RUNTIME` says which .NET runs the script. It is read once, when
+`opencad2d` is imported, and its case is ignored:
 
 | Value | Runs on |
 |---|---|
@@ -101,9 +101,9 @@ The environment variable `GEOMETRYHELPER_RUNTIME` says which .NET runs the scrip
 | `coreclr` | .NET 8 or later; an `ImportError` when none is installed |
 | `netfx` | .NET Framework 4.8 |
 
-Any other value is an `ImportError`: `GEOMETRYHELPER_RUNTIME is 'bogus': use auto, coreclr or netfx.` With `coreclr` and
-no .NET 8, it says `GEOMETRYHELPER_RUNTIME is coreclr but no .NET 8 or later is installed: install the .NET 8 runtime from
-https://dotnet.microsoft.com/download or set GEOMETRYHELPER_RUNTIME=netfx.` The package does not read `PYTHONNET_RUNTIME`.
+Any other value is an `ImportError`: `OPENCAD2D_RUNTIME is 'bogus': use auto, coreclr or netfx.` With `coreclr` and
+no .NET 8, it says `OPENCAD2D_RUNTIME is coreclr but no .NET 8 or later is installed: install the .NET 8 runtime from
+https://dotnet.microsoft.com/download or set OPENCAD2D_RUNTIME=netfx.` The package does not read `PYTHONNET_RUNTIME`.
 
 On .NET the package asks for 8.0 and lets the runtime roll forward to the lowest major installed from 8 up, at its latest
 patch. On a machine with 8.0.11, 8.0.28, 9.0.17, 10.0.0, 10.0.9 and 10.0.13 that is 8.0.28. To run on the newest
@@ -111,7 +111,7 @@ installed instead, set the .NET variable `DOTNET_ROLL_FORWARD=LatestMajor`: the 
 that variable overrides the package's own setting.
 
 When .NET is already running (the program called `pythonnet.load` itself, or it embeds Python and has `clr` imported),
-the package starts nothing and uses it, so `GEOMETRYHELPER_RUNTIME` is not read. Of its three assemblies, one whose name is
+the package starts nothing and uses it, so `OPENCAD2D_RUNTIME` is not read. Of its three assemblies, one whose name is
 already loaded is used as it is, not loaded a second time, so a host's own copy stays the only one.
 
 ## The .NET names stay as they are
@@ -119,7 +119,7 @@ already loaded is used as it is, not loaded a second time, so a host's own copy 
 A script imports the .NET namespaces as they are written in C#, and uses members as C# does:
 
 ```python
-import geometryhelper
+import opencad2d
 from GeometryHelper.Geometry import GeoPoint3, GeoPolygon2, GeoPoint2
 
 p = GeoPoint3(x=1, y=2, z=3)           # arguments by their .NET names work
@@ -333,9 +333,9 @@ no argument are a `TypeError`, and a number past 32 bits an `OverflowError`. All
 ## numpy in blocks
 
 Reading a point array from Python one property at a time, `p.X`, `p.Y`, `p.Z` of each element, crosses into .NET three
-times a point. `geometryhelper.arrays` copies a whole array in one block instead: it pins the .NET array and copies it
-with one `memmove`. It needs numpy (`pip install "<wheel>[numpy]"`); without it `import geometryhelper.arrays` is an
-`ImportError`: `geometryhelper.arrays needs numpy: pip install geometryhelper[numpy]`.
+times a point. `opencad2d.arrays` copies a whole array in one block instead: it pins the .NET array and copies it
+with one `memmove`. It needs numpy (`pip install "<wheel>[numpy]"`); without it `import opencad2d.arrays` is an
+`ImportError`: `opencad2d.arrays needs numpy: pip install opencad2d[numpy]`.
 
 | Function | Takes | Gives |
 |---|---|---|
@@ -351,7 +351,7 @@ A collection that is not an array, such as `GeoPolygon2.Vertices`, goes through 
 
 ```python
 import numpy as np
-from geometryhelper.arrays import to_numpy, to_points2
+from opencad2d.arrays import to_numpy, to_points2
 from GeometryHelper.Geometry import GeoPolygon2
 
 rectangle = np.array([[0.0, 0.0], [40.0, 0.0], [40.0, 30.0], [0.0, 30.0]])    # 40 by 30
@@ -375,13 +375,13 @@ offered: nobody has asked for them.
 
 ## Undo groups
 
-An edit of a [`CadDocument`](xref:GeometryHelper.Cad.CadDocument) made through its command session is one undo step per
+An edit of a [`CadDocument`](xref:OpenCAD2D.CadDocument) made through its command session is one undo step per
 command. `BeginGroup(name)` and `EndGroup()` make several of them one; `CancelGroup()` takes the group back. The pair has to
 stay balanced: a group left open by an exception makes the next `SaveAs` throw `InvalidOperationException: A command is
-running: end it before saving.` `geometryhelper.undo_group` keeps it balanced:
+running: end it before saving.` `opencad2d.undo_group` keeps it balanced:
 
 ```python
-from geometryhelper import undo_group
+from opencad2d import undo_group
 
 with undo_group(document, "Two circles"):
     for answer in ("CIRCLE", "0,0", "25", "CIRCLE", "100,0", "10"):
@@ -406,7 +406,7 @@ A drawing of a file is read and changed through a `Drawing`, the same one a comm
 a DWG and `new_file()` makes a blank drawing of AutoCAD 2013 with layer 0 only, with no app and no window:
 
 ```python
-from geometryhelper.cad import new_file, open_file
+from opencad2d.cad import new_file, open_file
 
 drawing = new_file()                                   # drawing.name is 'Drawing'
 drawing.layers.add("Steel", color=1)
@@ -427,11 +427,11 @@ wheel on .NET 8 (`new_file`, the three adds, `commit`, `save_as`, `open_file`). 
 to ask, so on a drawing of a file they raise `RuntimeError`. `make_drawing.py` and `list_layers.py` of
 [Python examples](python-examples.md) are written this way.
 
-## Inside GeometryHelper CAD
+## Inside OpenCAD2D
 
-The same library runs inside the app. GeometryHelper CAD loads `.py` files from a Pythons folder at start, from APPLOAD and
+The same library runs inside the app. OpenCAD2D loads `.py` files from a Pythons folder at start, from APPLOAD and
 PYLOAD, and runs one with PYRUN; a function marked `@command("C1")` becomes a command that asks the user for points,
-distances and objects through `geometryhelper.cad`, with one undo step for the whole run. It starts a CPython 3.11 to 3.15 of
+distances and objects through `opencad2d.cad`, with one undo step for the whole run. It starts a CPython 3.11 to 3.15 of
 your own, which Global settings can name; the wheel is not used there, as the app brings its own copy of the package.
 [Python commands and tools](presenter/python.md) is the guide.
 
@@ -483,12 +483,12 @@ DxfEraseFlags.ZeroLengthCurve | 1                    # Operator "|" not supporte
 
 each is reported before the script runs. On the test machine pyright 1.1.414 checks the acceptance script in 1.62
 to 1.68 s from the command line (five runs), against 0.89 to 0.92 s for a file of one line, so the stubs add about 0.75 s
-to a command-line check; an editor's language server reads them once. The package itself, `geometryhelper`, type-checks
+to a command-line check; an editor's language server reads them once. The package itself, `opencad2d`, type-checks
 with no error in pyright's strict mode, and `py.typed` says its annotations are for use.
 
 Do not install `dotnet-stubs` (from domdfcoding) beside it: it installs a `System-stubs` of its own, and the two clash.
 
-The stubs are written by our own tool, `tools/GeometryHelper.PyStubs` (`bash tools/python/make-stubs.sh`), which reads the
+The stubs are written by our own tool, `tools/OpenCAD2D.PyStubs` (`bash tools/python/make-stubs.sh`), which reads the
 assemblies without running them and the XML documentation, and writes the same bytes on a rerun. It takes ideas from two
 MIT-licensed projects and no code: a stub package per namespace, `@overload` for each .NET overload and out parameters as a
 tuple from [mcneel/pythonstubs](https://github.com/mcneel/pythonstubs), and the table of .NET base class types from
@@ -500,25 +500,25 @@ tuple from [mcneel/pythonstubs](https://github.com/mcneel/pythonstubs), and the 
 - Installing from PyPI, until the package is published under a name of its own.
 - A frozen application (PyInstaller and the like): the package gives no hook, so the assemblies would have to be added
   by hand.
-- A module for the presenter outside the app: `geometryhelper.cad` works inside GeometryHelper CAD only (see
-  [Inside GeometryHelper CAD](#inside-geometryhelper-cad)), and from outside `GeometryHelper.Cad` is imported as any other
+- A module for the presenter outside the app: `opencad2d.cad` works inside OpenCAD2D only (see
+  [Inside OpenCAD2D](#inside-opencad2d)), and from outside `OpenCAD2D` is imported as any other
   namespace.
 
 ## Driving a running app
 
-A script outside the app can connect to a running GeometryHelper CAD and draw, select, run commands and ask the user to
-pick, with `connect()` of `geometryhelper.cad` (`with connect() as app:`, the same `Drawing` as above), or with `CadApplication`
-of `GeometryHelper.Cad.Remote`, which `import geometryhelper` has already loaded; either closes the connection at the end of
+A script outside the app can connect to a running OpenCAD2D and draw, select, run commands and ask the user to
+pick, with `connect()` of `opencad2d.cad` (`with connect() as app:`, the same `Drawing` as above), or with `CadApplication`
+of `OpenCAD2D.Remote`, which `import opencad2d` has already loaded; either closes the connection at the end of
 the block, also when it raises. A script that runs
-inside the app is refused a connection to that app (it uses `geometryhelper.cad`).
+inside the app is refused a connection to that app (it uses `opencad2d.cad`).
 [From Python](presenter/remote.md#from-python) has a full script, the points where Python differs from C#, and the timings.
 
 ## Where to go next
 
 | Page | What it covers |
 |---|---|
-| [How do I](howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
+| [How do I](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
 | [Python examples](python-examples.md) | thirteen scripts, on the library, in the app and driving a running app, each shown with what it prints |
 | [Python API](../../../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
-| [DXF](dxf/index.md), [Reading and writing DWG files](dxf/dwg.md) | the drawing, its tables and entities, read and written |
+| [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md), [Reading and writing DWG files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) | the drawing, its tables and entities, read and written |
 | [The 2D presenter](presenter/index.md), [Editing as AutoCAD does](presenter/editing.md) | `CadDocument`, its command session and undo |

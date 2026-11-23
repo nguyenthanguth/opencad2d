@@ -5,9 +5,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.RibbonTabHarness;
+using static OpenCAD2D.Wpf.UnitTest.RibbonTabHarness;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Insert as AutoCAD 2021's, found in the window drawn offscreen: its six panels in AutoCAD's order (Block, Block

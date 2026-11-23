@@ -1,9 +1,9 @@
 using System.IO;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The undo step of a run (D705 steps 3 and 5): everything a run draws, through the object model and through
@@ -74,9 +74,9 @@ namespace GeometryHelper.Cad.Python.UnitTest
                 {
                     UsesCad,
                     AddLineInPython,
-                    "import geometryhelper",
+                    "import opencad2d",
                     "doc = cad.session().Document",
-                    "with geometryhelper.undo_group(doc, 'inner'):",
+                    "with opencad2d.undo_group(doc, 'inner'):",
                     "    add_line(doc, 0)",
                     "add_line(doc, 50)",
                 }
@@ -120,10 +120,10 @@ namespace GeometryHelper.Cad.Python.UnitTest
                 {
                     UsesCad,
                     AddLineInPython,
-                    "import geometryhelper",
+                    "import opencad2d",
                     "doc = cad.session().Document",
                     "add_line(doc, 0)",
-                    "with geometryhelper.undo_group(doc, 'inner'):",
+                    "with opencad2d.undo_group(doc, 'inner'):",
                     "    add_line(doc, 50)",
                     "    raise ValueError('boom')",
                 }

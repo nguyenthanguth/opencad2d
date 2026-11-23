@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A disabled button of a dialog (GhDialogButton) is dimmed once, as every flat button of the theme is: its words at 45
@@ -23,9 +23,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
                 // Registers the pack scheme, which the theme is loaded through, with no Application running.
                 _ = PackUriHelper.UriSchemePack;
                 var theme = (ResourceDictionary)
-                    Application.LoadComponent(
-                        new Uri("/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml", UriKind.Relative)
-                    );
+                    Application.LoadComponent(new Uri("/OpenCAD2D.Wpf;component/Themes/Dark.xaml", UriKind.Relative));
                 Color text = ((SolidColorBrush)theme["GhText"]).Color;
                 var button = new Button
                 {

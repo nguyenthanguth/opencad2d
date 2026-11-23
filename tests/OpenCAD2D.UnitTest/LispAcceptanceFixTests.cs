@@ -3,9 +3,9 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The faults the acceptance of L4 (part H4) and its documentation pass found against the full AutoCAD 2021, each typed

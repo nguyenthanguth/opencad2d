@@ -6,12 +6,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
-using GeometryHelper.Cad.Dcl;
-using GeometryHelper.Cad.Lisp;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Dcl;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The logic of the presenter's main window, with no window: the DRAWINGS list, the document and space shown with their
@@ -174,7 +175,7 @@ namespace GeometryHelper.Cad.Wpf
 
         /// <summary>
         /// Gets what an extension offers as a new document of its own, beside NEW: the first offer of the extensions added, in
-        /// the order they were added; null where none offers one, as in GeometryHelper CAD. With an offer the start screen and
+        /// the order they were added; null where none offers one, as in OpenCAD2D. With an offer the start screen and
         /// the New entry of the application menu show it and Ctrl+N runs it; without, Ctrl+N is NEW.
         /// </summary>
         public CadNewDocumentOffer NewDocumentOffer =>
@@ -209,7 +210,7 @@ namespace GeometryHelper.Cad.Wpf
 
         /// <summary>
         /// Gets the buttons added to the header of the DRAWINGS list: those of the plugins loaded first (in the order they were
-        /// loaded, <see cref="GeometryHelper.Cad.Plugins.CadPluginHost.AddDrawingsButton"/>), then the extensions', those of the first extension added first.
+        /// loaded, <see cref="OpenCAD2D.Plugins.CadPluginHost.AddDrawingsButton"/>), then the extensions', those of the first extension added first.
         /// Each extension is asked for them as it is added; each read gives a new list.
         /// </summary>
         public IReadOnlyList<CadExtensionButton> FileListButtons =>

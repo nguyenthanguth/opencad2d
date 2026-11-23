@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from GeometryHelper.Cad import CadDocument, CadDocumentChangedEventArgs
+from OpenCAD2D import CadDocument, CadDocumentChangedEventArgs
 
 
 def on_changed(sender: Any, args: CadDocumentChangedEventArgs) -> None:

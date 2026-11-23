@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A colour space of a PDF, reduced to what a drawing needs: how many numbers a colour has and which red, green and blue it

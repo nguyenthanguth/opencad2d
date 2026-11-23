@@ -7,35 +7,67 @@ using System.Runtime.InteropServices;
 using System.Windows.Media.Imaging;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// The shell of GeometryHelper CAD: its icon, the association of .dxf and .dwg files with it (written to a fake of the
+    /// The shell of OpenCAD2D: its icon, the association of .dxf and .dwg files with it (written to a fake of the
     /// user's classes, never to the registry), and the Home tab of its screenshot.
     /// </summary>
     public sealed class AppShellTests
     {
-        private const string Exe = @"C:\Tools\GeometryHelper CAD\GeometryHelper.Cad.App.exe";
-        private const string Icon = @"C:\Tools\GeometryHelper CAD\drawing-file.ico";
+        private const string Exe = @"C:\Tools\OpenCAD2D\OpenCAD2D.App.exe";
+        private const string Icon = @"C:\Tools\OpenCAD2D\drawing-file.ico";
 
         [Fact]
         public void Register_WritesTheProgIdAndOpenWithForDxfAndDwg_IntoTheUserClasses()
         {
             var classes = new FakeUserClasses();
 
-            CadFileAssociation.Register(classes, "GeometryHelper CAD", Exe, Icon);
+            CadFileAssociation.Register(classes, "OpenCAD2D", Exe, Icon);
 
-            Assert.Equal("GeometryHelper.Drawing", CadFileAssociation.ProgId);
-            Assert.Equal("Drawing (GeometryHelper CAD)", classes.Get("GeometryHelper.Drawing", ""));
-            Assert.Equal(Icon, classes.Get(@"GeometryHelper.Drawing\DefaultIcon", ""));
-            Assert.Equal("\"" + Exe + "\" \"%1\"", classes.Get(@"GeometryHelper.Drawing\shell\open\command", ""));
-            Assert.Equal("", classes.Get(@".dxf\OpenWithProgids", "GeometryHelper.Drawing"));
-            Assert.Equal("", classes.Get(@".dwg\OpenWithProgids", "GeometryHelper.Drawing"));
+            Assert.Equal("OpenCAD2D.Drawing", CadFileAssociation.ProgId);
+            Assert.Equal("Drawing (OpenCAD2D)", classes.Get("OpenCAD2D.Drawing", ""));
+            Assert.Equal(Icon, classes.Get(@"OpenCAD2D.Drawing\DefaultIcon", ""));
+            Assert.Equal("\"" + Exe + "\" \"%1\"", classes.Get(@"OpenCAD2D.Drawing\shell\open\command", ""));
+            Assert.Equal("", classes.Get(@".dxf\OpenWithProgids", "OpenCAD2D.Drawing"));
+            Assert.Equal("", classes.Get(@".dwg\OpenWithProgids", "OpenCAD2D.Drawing"));
 
             // No program had the extensions: the app is their default.
-            Assert.Equal("GeometryHelper.Drawing", classes.Get(".dxf", ""));
-            Assert.Equal("GeometryHelper.Drawing", classes.Get(".dwg", ""));
+            Assert.Equal("OpenCAD2D.Drawing", classes.Get(".dxf", ""));
+            Assert.Equal("OpenCAD2D.Drawing", classes.Get(".dwg", ""));
             Assert.Equal(1, classes.Notified);
+        }
+
+        [Fact]
+        public void Register_TakesOutTheProgIdOfGeometryHelperCad_SoOpenWithListsTheAppOnce()
+        {
+            // What GeometryHelper CAD, as the app was called before, wrote: its ProgID, the default of .dxf, Open with.
+            var classes = new FakeUserClasses();
+            classes.SetValue("GeometryHelper.Drawing", "", "Drawing (GeometryHelper CAD)");
+            classes.SetValue(@"GeometryHelper.Drawing\shell\open\command", "", "\"old.exe\" \"%1\"");
+            classes.SetValue(".dxf", "", "GeometryHelper.Drawing");
+            classes.SetValue(@".dxf\OpenWithProgids", "GeometryHelper.Drawing", "");
+            classes.SetValue(@".dwg\OpenWithProgids", "GeometryHelper.Drawing", "");
+
+            CadFileAssociation.Register(classes, "OpenCAD2D", Exe, Icon);
+
+            Assert.False(classes.HasKey("GeometryHelper.Drawing"));
+            Assert.False(classes.HasKey(@"GeometryHelper.Drawing\shell\open\command"));
+            Assert.Null(classes.Get(@".dxf\OpenWithProgids", "GeometryHelper.Drawing"));
+            Assert.Null(classes.Get(@".dwg\OpenWithProgids", "GeometryHelper.Drawing"));
+            Assert.Equal("OpenCAD2D.Drawing", classes.Get(".dxf", ""));
+            Assert.Equal("OpenCAD2D.Drawing", classes.Get(".dwg", ""));
+            Assert.Equal("", classes.Get(@".dxf\OpenWithProgids", "OpenCAD2D.Drawing"));
+
+            // Unregister takes the old one out too, where a build of GeometryHelper CAD wrote it again.
+            classes.SetValue("GeometryHelper.Drawing", "", "Drawing (GeometryHelper CAD)");
+            classes.SetValue(@".dwg\OpenWithProgids", "GeometryHelper.Drawing", "");
+            CadFileAssociation.Unregister(classes);
+
+            Assert.False(classes.HasKey("GeometryHelper.Drawing"));
+            Assert.False(classes.HasKey("OpenCAD2D.Drawing"));
+            Assert.Null(classes.Get(@".dwg\OpenWithProgids", "GeometryHelper.Drawing"));
+            Assert.Null(classes.Get(".dxf", ""));
         }
 
         [Fact]
@@ -45,17 +77,17 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
             classes.SetValue(".dwg", "", "Other.Drawing.24");
             classes.SetValue(@".dwg\OpenWithProgids", "Other.Drawing.24", "");
 
-            CadFileAssociation.Register(classes, "GeometryHelper CAD", Exe, Icon);
+            CadFileAssociation.Register(classes, "OpenCAD2D", Exe, Icon);
             Assert.Equal("Other.Drawing.24", classes.Get(".dwg", ""));
-            Assert.Equal("", classes.Get(@".dwg\OpenWithProgids", "GeometryHelper.Drawing"));
+            Assert.Equal("", classes.Get(@".dwg\OpenWithProgids", "OpenCAD2D.Drawing"));
 
             CadFileAssociation.Unregister(classes);
             Assert.Equal("Other.Drawing.24", classes.Get(".dwg", ""));
             Assert.Equal("", classes.Get(@".dwg\OpenWithProgids", "Other.Drawing.24"));
-            Assert.Null(classes.Get(@".dwg\OpenWithProgids", "GeometryHelper.Drawing"));
+            Assert.Null(classes.Get(@".dwg\OpenWithProgids", "OpenCAD2D.Drawing"));
             Assert.Null(classes.Get(".dxf", ""));
-            Assert.False(classes.HasKey("GeometryHelper.Drawing"));
-            Assert.False(classes.HasKey(@"GeometryHelper.Drawing\shell\open\command"));
+            Assert.False(classes.HasKey("OpenCAD2D.Drawing"));
+            Assert.False(classes.HasKey(@"OpenCAD2D.Drawing\shell\open\command"));
             Assert.Equal(2, classes.Notified);
         }
 
@@ -63,16 +95,16 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
         public void TheRegisterSwitch_WritesThroughTheUserClasses_AndSaysWhatItDid()
         {
             var classes = new FakeUserClasses();
-            var host = new CadAppHost("GeometryHelper CAD", Path.GetTempPath());
+            var host = new CadAppHost("OpenCAD2D", Path.GetTempPath());
             var output = new StringWriter();
 
             Assert.Equal(0, host.Associate("--register", classes, Exe, output));
-            Assert.Equal("\"" + Exe + "\" \"%1\"", classes.Get(@"GeometryHelper.Drawing\shell\open\command", ""));
-            Assert.Contains(".dxf and .dwg files open with GeometryHelper CAD", output.ToString());
+            Assert.Equal("\"" + Exe + "\" \"%1\"", classes.Get(@"OpenCAD2D.Drawing\shell\open\command", ""));
+            Assert.Contains(".dxf and .dwg files open with OpenCAD2D", output.ToString());
 
             Assert.Equal(0, host.Associate("--unregister", classes, Exe, output));
-            Assert.False(classes.HasKey("GeometryHelper.Drawing"));
-            Assert.Contains("no longer open with GeometryHelper CAD", output.ToString());
+            Assert.False(classes.HasKey("OpenCAD2D.Drawing"));
+            Assert.Contains("no longer open with OpenCAD2D", output.ToString());
 
             // The registry refusing is said and given as 1.
             classes.Refuse = true;
@@ -124,11 +156,11 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
             string exe = Path.Combine(
                 root,
                 "src",
-                "GeometryHelper.Cad.App",
+                "OpenCAD2D.App",
                 "bin",
                 configuration,
                 "net8.0-windows",
-                "GeometryHelper.Cad.App.exe"
+                "OpenCAD2D.App.exe"
             );
             Assert.True(File.Exists(exe), exe);
             return exe;

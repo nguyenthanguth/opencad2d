@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The MTEXT editor's Paragraph dialog, as AutoCAD 2021's and the design draw it: tab stops, indents, alignment,

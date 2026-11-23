@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A row of the Content type list of Input Search Options: a kind of named object and whether it is searched.</summary>
     public sealed class ContentTypeRowViewModel : ObservableObject

@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The text encodings of AutoLISP files, as AutoCAD 2021 measured them: a file read with no encoding named is UTF-8 when

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// PYRUN and PYLOAD typed at the command line, and the commands a loaded file defines with <c>@command</c> (D716,
@@ -19,7 +19,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
         private string Tools(string name, params string[] commands)
         {
             // One function for each command: it writes "<name> ran".
-            var lines = new List<string> { "from geometryhelper.cad import command, write" };
+            var lines = new List<string> { "from opencad2d.cad import command, write" };
 
             foreach (string command in commands)
             {
@@ -37,7 +37,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             // FILEDIA is 0 in NewSession, so no dialog. The run is posted: when the script starts, PYRUN is over and the
             // session is at the Command prompt, which the script reads from its own session.
             CadCommandSession session = NewSession();
-            string path = Script("typed.py", "import geometryhelper.cad as cad", "print(cad.session().IsRunning)");
+            string path = Script("typed.py", "import opencad2d.cad as cad", "print(cad.session().IsRunning)");
 
             Assert.True(session.Feed("PYRUN"));
             Assert.StartsWith("Enter Python file name", session.PromptText, StringComparison.Ordinal);
@@ -123,7 +123,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string path = Script(
                 "h11-clash.py",
-                "from geometryhelper.cad import command, write",
+                "from opencad2d.cad import command, write",
                 "@command('LINE')",
                 "def not_line():",
                 "    write('hijacked')",
@@ -148,7 +148,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string path = Script(
                 "h11-fails.py",
-                "from geometryhelper.cad import command, write",
+                "from opencad2d.cad import command, write",
                 "@command('H11GOOD')",
                 "def good():",
                 "    write('good ran')",
@@ -169,7 +169,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string path = Script(
                 "h11-draws.py",
-                "import geometryhelper.cad as cad",
+                "import opencad2d.cad as cad",
                 "cad.cmd('CIRCLE', (0, 0), 5)",
                 "cad.cmd('CIRCLE', (50, 0), 5)"
             );
@@ -190,7 +190,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string path = Script(
                 "h11-draw-command.py",
-                "import geometryhelper.cad as cad",
+                "import opencad2d.cad as cad",
                 "@cad.command('H11DRAW')",
                 "def draw():",
                 "    cad.cmd('CIRCLE', (0, 0), 5)"

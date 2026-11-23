@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What an element of a linetype's pattern carries.</summary>
     public enum CadLinetypeElementKind

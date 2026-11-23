@@ -2,10 +2,10 @@ using System;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
-using static GeometryHelper.Cad.UnitTest.LispEntityTests;
+using static OpenCAD2D.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.LispEntityTests;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The matrix <c>nentselp</c> and <c>nentsel</c> give for an object inside a block reference. AutoCAD 2021 in its own window

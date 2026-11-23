@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
-using static GeometryHelper.Cad.UnitTest.LispEntityTests;
+using static OpenCAD2D.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.LispEntityTests;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// UCS Previous as AutoCAD 2021's accoreconsole gives it (probed with 3-point, World, View, Z, Move, NAmed Save and

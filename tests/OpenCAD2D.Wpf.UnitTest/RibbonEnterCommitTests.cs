@@ -15,7 +15,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The boxes of the ribbon commit at Enter, as AutoCAD 2021's do: typing 10 in the Scale box of the Hatch Editor tab and

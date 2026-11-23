@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// MLEADEREDIT (MLE), as AutoCAD 2021's (its prompts probed in its console): "Select a multileader:", then "Specify leader

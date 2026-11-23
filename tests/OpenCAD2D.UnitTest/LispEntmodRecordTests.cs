@@ -1,9 +1,9 @@
 using System;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>entmod</c> of the records of the tables, of an XRECORD, of a VERTEX of a polyline, and <c>entdel</c> of an entity that

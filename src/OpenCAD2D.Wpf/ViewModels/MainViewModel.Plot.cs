@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// PLOT (Ctrl+P), PAGESETUP and PREVIEW shown through functions the workspace sets, so that a test drives them with none,

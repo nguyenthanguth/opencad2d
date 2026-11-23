@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The hand-off between the thread that calls the interpreter (the owner: the UI thread in the window, the test thread

@@ -1,8 +1,9 @@
 using System;
 using System.IO;
 using System.Windows.Threading;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Keeps the app's remote channel as Global settings' "Allow other programs to connect" says: a <see cref="CadRemoteServer"/>

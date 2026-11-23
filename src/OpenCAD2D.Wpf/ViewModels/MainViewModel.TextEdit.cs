@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The clipboard of the window's drawings, text edited in place (TEXTEDIT's edit box, the MTEXT editor and its Text Editor

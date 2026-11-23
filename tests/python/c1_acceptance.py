@@ -4,7 +4,7 @@ test ``PythonAcceptanceTests`` loads it from a Pythons folder) and through ``con
 the object; the whole of it is one undo step.
 """
 
-from geometryhelper.cad import Drawing
+from opencad2d.cad import Drawing
 
 
 def move_the_selection_to_the_layer_of_the_picked_object(drawing: Drawing) -> int:

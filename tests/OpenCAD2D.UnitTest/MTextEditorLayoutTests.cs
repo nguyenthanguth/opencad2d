@@ -4,7 +4,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The MTEXT editor lays its words out as the canvas draws them (<see cref="CadMTextEditorLayout"/>): the same line breaks,

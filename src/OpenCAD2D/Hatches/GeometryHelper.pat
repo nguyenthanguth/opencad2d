@@ -1,4 +1,4 @@
-;; GeometryHelper.pat - the 48 built-in hatch patterns of GeometryHelper CAD, in millimetres.
+;; GeometryHelper.pat - the 48 built-in hatch patterns of OpenCAD2D, in millimetres.
 ;; A copy for reference and to start your own file from: the name GeometryHelper.pat always means the built-in set,
 ;; so changing this file changes nothing. Written from the built-in definitions; a test keeps the two equal.
 *ANSI31,ANSI Iron, Brick, Stone masonry

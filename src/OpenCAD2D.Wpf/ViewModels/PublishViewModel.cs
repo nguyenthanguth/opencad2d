@@ -4,8 +4,9 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A row of the Publish dialog's sheet list: the sheet's name (edited in place), the page setup it is plotted with (a list

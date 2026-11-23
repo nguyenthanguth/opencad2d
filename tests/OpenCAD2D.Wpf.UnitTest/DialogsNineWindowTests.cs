@@ -9,7 +9,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The items of dialogs9 driven with no window shown: EXPORTPDF's Save As PDF, Page Setup Override and Export to PDF

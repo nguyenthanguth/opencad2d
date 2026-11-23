@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The symbols of geometric dimensioning and tolerancing the presenter draws for the letters of AutoCAD's gdt font, one set

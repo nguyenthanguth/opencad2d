@@ -7,8 +7,9 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// The command plugins of the presenter, as AutoCAD's NETLOAD and APPLOAD keep them (A14 of the plan): loaded from a
@@ -60,10 +61,10 @@ namespace GeometryHelper.Cad.Plugins
         private int _loads;
 
         /// <summary>Makes the manager of the presenter's plugins, reading its startup list and trusted folders from <paramref name="settingsPath"/>.</summary>
-        /// <param name="loader">The loader of the runtime: <c>new CadPluginAssemblyLoader()</c> of GeometryHelper.Cad.Wpf.</param>
+        /// <param name="loader">The loader of the runtime: <c>new CadPluginAssemblyLoader()</c> of OpenCAD2D.Wpf.</param>
         /// <param name="pluginFolder">
         /// The plugin folder, always trusted: each .dll directly in it and each folder below it that holds .dll files is loaded at start. The app
-        /// gives its <c>Plugins</c> folder beside GeometryHelper.Cad.dll (<see cref="CadSupportKind.Plugins"/>).
+        /// gives its <c>Plugins</c> folder beside OpenCAD2D.dll (<see cref="CadSupportKind.Plugins"/>).
         /// </param>
         /// <param name="settingsPath">The JSON file of the startup list and the trusted folders; read when it exists, written on each change.</param>
         /// <param name="shadowFolder">The folder the plugins' files are copied to and loaded from; a folder of this process's
@@ -82,7 +83,7 @@ namespace GeometryHelper.Cad.Plugins
 
             if (shadowFolder == null)
             {
-                string root = Path.Combine(Path.GetTempPath(), "GeometryHelper", "PluginCopies");
+                string root = Path.Combine(Path.GetTempPath(), "OpenCAD2D", "PluginCopies");
                 DeleteLeftCopies(root);
                 shadowFolder = Path.Combine(
                     root,

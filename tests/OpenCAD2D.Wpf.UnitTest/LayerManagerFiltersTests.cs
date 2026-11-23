@@ -8,7 +8,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Layer manager's Plot, Transparency, Plot Style and Description columns, and its filter tree as AutoCAD 2021's Layer

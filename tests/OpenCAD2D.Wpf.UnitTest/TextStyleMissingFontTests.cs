@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Text Style dialog's font boxes where a style names a font this machine lacks (a TrueType family nobody installed, a

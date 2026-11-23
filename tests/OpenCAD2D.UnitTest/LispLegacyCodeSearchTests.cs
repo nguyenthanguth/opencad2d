@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// LEGACYCODESEARCH (decisions D908 and D909 of the L6 spec): with 0, the default, a search for a code file does not look

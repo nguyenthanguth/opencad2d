@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Viewports dialog of VPORTS (design ViewportsDialog and ViewportsNamed): New Viewports, a standard configuration

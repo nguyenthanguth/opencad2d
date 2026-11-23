@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>What a member of an ActiveX object takes in or gives: how a LISP value is turned into it (D215).</summary>
     internal enum LispAxType

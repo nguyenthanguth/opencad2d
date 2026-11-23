@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The line a routine leaves open: text written with <c>princ</c> and no new line after it is continued, not broken, by what

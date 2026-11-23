@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// CHANGE (-CH), as AutoCAD 2021 asks it: the objects, then a change point or Properties. A change point moves the end of

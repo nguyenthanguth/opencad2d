@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Controls;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The % button beside a text box of the attribute dialogs: it asks the Field dialog for a field and puts the field, in

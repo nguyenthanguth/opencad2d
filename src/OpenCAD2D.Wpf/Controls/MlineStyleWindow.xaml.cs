@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Multiline Style dialog, which MLSTYLE shows, with its Create New Multiline Style, New and Modify Multiline

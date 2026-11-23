@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Windows bitmaps: a BMP with its file header, a DIB (the same without that header, .dib) and an RLE (a bitmap of 4 or 8

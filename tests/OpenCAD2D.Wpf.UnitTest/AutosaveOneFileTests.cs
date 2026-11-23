@@ -8,7 +8,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Autosave as the maintainer asked on 2026-11-17: one copy beside each drawing, written over each time (plan.autosave.dxf,

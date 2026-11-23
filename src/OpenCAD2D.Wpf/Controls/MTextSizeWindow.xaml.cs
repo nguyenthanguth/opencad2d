@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The ruler's Set Mtext Width and Set Mtext Height, as AutoCAD 2021's. Its logic is <see cref="MTextSizeViewModel"/>.</summary>
     public partial class MTextSizeWindow : Window

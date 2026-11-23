@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The words of an MTEXT being edited in place, as AutoCAD's text editor holds them: letters of a look each, paragraphs, a

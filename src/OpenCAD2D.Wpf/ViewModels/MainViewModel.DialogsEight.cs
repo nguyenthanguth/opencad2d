@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// LAYOUT Template's and SAveas's dialogs: Select Template From File and Create Drawing File through

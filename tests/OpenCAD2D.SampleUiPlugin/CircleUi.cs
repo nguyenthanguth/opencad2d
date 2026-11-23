@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using GeometryHelper.Cad;
-using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D;
+using OpenCAD2D.Plugins;
 
 [assembly: CadPluginApi("1.1")]
 
-namespace GeometryHelper.Cad.SampleUiPlugin
+namespace OpenCAD2D.SampleUiPlugin
 {
     /// <summary>
     /// The sample plugin that adds to the window: a ribbon tab "Circles", a contextual tab "Circle" shown while only circles
@@ -18,7 +18,7 @@ namespace GeometryHelper.Cad.SampleUiPlugin
     /// </summary>
     public sealed class CircleUi : ICadPluginApplication
     {
-        private const string IconResource = "GeometryHelper.Cad.SampleUiPlugin.circle16.png";
+        private const string IconResource = "OpenCAD2D.SampleUiPlugin.circle16.png";
 
         /// <summary>The path of the plus-in-a-circle icon of the large button, on a square of 24.</summary>
         private const string NumberIcon = "M3 12 A9 9 0 1 0 21 12 A9 9 0 1 0 3 12 Z M8 10 L12 7 V17";

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The geometric constraints of AutoCAD 2021's Parametric tab that the presenter solves.</summary>
     internal enum CadGeoKind

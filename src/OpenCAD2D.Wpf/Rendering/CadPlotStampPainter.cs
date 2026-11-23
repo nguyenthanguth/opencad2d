@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using SkiaSharp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Draws a plot stamp (<see cref="CadPlotStamp"/>) on a PDF page or a PNG or JPG plot: its lines in the stamp's font,

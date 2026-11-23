@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The views ZOOM Previous goes back to, as AutoCAD keeps them: a list for model space, one for the paper of each layout,

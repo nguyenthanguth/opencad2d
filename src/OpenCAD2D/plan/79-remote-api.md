@@ -1,18 +1,18 @@
-# Remote API: driving a running GeometryHelper CAD from another program
+# Remote API: driving a running OpenCAD2D from another program
 
 The maintainer's request of 2026-11-18: another program (a Tekla plugin, a console tool, Python) connects to the running
-GeometryHelper CAD the way a Tekla Open API program connects to the running Tekla Structures (`new Model()`), and reads
+OpenCAD2D the way a Tekla Open API program connects to the running Tekla Structures (`new Model()`), and reads
 and edits its drawings. It is simpler than AutoCAD's COM: one assembly is referenced and its objects are used; the
 channel between the two processes is hidden.
 
 ## Decisions
 
-- **R-1 Projects.** A new `src/GeometryHelper.Cad.Remote` (netstandard2.0, referencing only `GeometryHelper`) holds the
+- **R-1 Projects.** A new `src/OpenCAD2D.Remote` (netstandard2.0, referencing only `GeometryHelper`) holds the
   client API and the message protocol, so a Tekla 2020 plugin on .NET Framework 4.8 can reference it. The server lives
-  in `GeometryHelper.Cad` (no UI: a `CadRemoteServer` given the open documents and a dispatcher), started by
-  `GeometryHelper.Cad.Wpf`'s host (`CadAppHost`). `GeometryHelper.Cad` references `GeometryHelper.Cad.Remote` for the
+  in `OpenCAD2D` (no UI: a `CadRemoteServer` given the open documents and a dispatcher), started by
+  `OpenCAD2D.Wpf`'s host (`CadAppHost`). `OpenCAD2D` references `OpenCAD2D.Remote` for the
   protocol.
-- **R-2 Channel.** One named pipe per running app, `GeometryHelper.Cad.<process id>`, open to the current Windows user
+- **R-2 Channel.** One named pipe per running app, `OpenCAD2D.<process id>`, open to the current Windows user
   only (pipe ACL). Each running app writes `%LocalAppData%\GeometryHelper\Remote\<process id>.json` (process id, window
   title, the time it was last activated) and deletes it on exit; stale files (no such process) are ignored and removed.
   Messages are length-prefixed UTF-8 JSON, written and read by the repository's own JSON code (no new package).

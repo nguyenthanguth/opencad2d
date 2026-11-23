@@ -1,10 +1,10 @@
 using System;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
-    /// A layer of a drawing of a running GeometryHelper CAD, as the Layer manager lists it: its name and how it looks. One
+    /// A layer of a drawing of a running OpenCAD2D, as the Layer manager lists it: its name and how it looks. One
     /// read from <see cref="CadRemoteDocument.Layers"/> is a copy; change it and give it to
     /// <see cref="CadRemoteDocument.ModifyLayer"/> to write the changes, or make a new one and give it to
     /// <see cref="CadRemoteDocument.AddLayer"/>.

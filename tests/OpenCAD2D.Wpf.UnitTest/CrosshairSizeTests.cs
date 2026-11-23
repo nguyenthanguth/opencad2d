@@ -8,9 +8,9 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
+using static OpenCAD2D.Wpf.UnitTest.CanvasMouseTests;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The size of the crosshair as AutoCAD 2021's CURSORSIZE sets it, offscreen on a canvas of 800 by 600: at 100 the two

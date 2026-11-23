@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Plugins;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Enums;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>The sample plugin, NUMCIRCLES and FAILNOW, loaded from its .dll as a user loads one and run on the command line.</summary>
     public sealed class SamplePluginTests : IDisposable

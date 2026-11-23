@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The options of -LAYER AutoCAD 2021's console asks as a routine's <c>command "layer" "m" ...</c> types them: Make names

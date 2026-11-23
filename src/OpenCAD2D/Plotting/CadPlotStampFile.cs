@@ -6,7 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The plot stamp parameter file, AutoCAD's .pss, which the Plot Stamp dialog's Load and Save As read and write: a PIA

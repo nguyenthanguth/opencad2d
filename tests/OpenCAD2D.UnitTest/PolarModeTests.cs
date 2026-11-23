@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// POLARMODE's bits 1 and 4 as AutoCAD 2021 reads them: the polar angles counted from the last segment drawn, and the

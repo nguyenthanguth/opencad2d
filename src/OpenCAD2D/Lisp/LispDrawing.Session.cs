@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>trans</c>, <c>osnap</c>, <c>alert</c>, <c>grtext</c> and <c>redraw</c>: what a routine asks of the session. A point is

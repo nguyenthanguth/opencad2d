@@ -6,7 +6,7 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>The drawings, answers, scripts and fake Python installs the Python tests share.</summary>
     internal static class PythonDrawings
@@ -30,7 +30,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
         /// <summary>The same edit as <see cref="AddLine"/>, written in Python: <c>add_line(doc, y)</c> (pythonnet needs the delegate and the generic argument named).</summary>
         public const string AddLineInPython =
             "from System import Action\n"
-            + "from GeometryHelper.Cad import CadEditScope\n"
+            + "from OpenCAD2D import CadEditScope\n"
             + "from GeometryHelper.Dxf import DxfLine\n"
             + "from GeometryHelper.Geometry import GeoPoint3\n"
             + "def add_line(doc, y):\n"
@@ -78,7 +78,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
         public static string Raw(string text) => "r'" + text + "'";
 
         /// <summary>The lines every script that uses the module begins with.</summary>
-        public const string UsesCad = "import geometryhelper.cad as cad";
+        public const string UsesCad = "import opencad2d.cad as cad";
 
         /// <summary>Writes a file of text, UTF-8 without a BOM, and gives its full path.</summary>
         public static string WriteFile(string folder, string name, string text)

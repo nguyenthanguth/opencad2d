@@ -6,9 +6,9 @@ using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A dimension that keeps breaks, scaled or copied, against AutoCAD 2021's console run through standard input (16

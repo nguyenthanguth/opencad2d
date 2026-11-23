@@ -6,11 +6,12 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Enums;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>Global settings: the defaults, the JSON file, a bad value, Apply to the window and the canvas, the shortcuts, the dialog.</summary>
     public sealed class GlobalSettingsTests : IDisposable

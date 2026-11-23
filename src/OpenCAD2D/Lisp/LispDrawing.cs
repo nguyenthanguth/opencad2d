@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// The functions of AutoLISP that work on the drawing and ask the user: the get functions, <c>initget</c>, the selection

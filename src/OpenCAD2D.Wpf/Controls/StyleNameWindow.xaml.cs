@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The name asked by New and Rename of the style dialogs; for a dimension style also the style it starts with (Create New Dimension Style).</summary>
     public partial class StyleNameWindow : Window

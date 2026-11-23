@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What PLOTSTAMP gives its Plot Stamp dialog: a copy of the session's stamp to edit, which the session's stamp takes

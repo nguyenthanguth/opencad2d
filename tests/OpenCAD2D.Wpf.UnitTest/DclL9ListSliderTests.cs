@@ -8,10 +8,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using GeometryHelper.Cad.Dcl;
+using OpenCAD2D.Dcl;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A multiple-select list, a single list and a slider as the full AutoCAD 2021 reports them (I1 to I3 of L9): the rows of

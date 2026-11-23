@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The search box of the title bar, as AutoCAD 2021's "Type a keyword or phrase" box takes it for the commands: the text

@@ -3,7 +3,7 @@ using System.IO;
 using System.Security;
 using System.Text;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// A file a routine opened with <c>open</c>, what <c>(type f)</c> calls FILE. A file opened to read has all its text

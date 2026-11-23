@@ -2,11 +2,11 @@ using System;
 using System.Windows;
 using System.Windows.Data;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The main window of a standalone app of the presenter: the <see cref="CadWorkspace"/> in a frame of its own, the title
-    /// bar drawn by the workspace and the window's minimise, maximise and close buttons at its right. GeometryHelper CAD shows
+    /// bar drawn by the workspace and the window's minimise, maximise and close buttons at its right. OpenCAD2D shows
     /// it as it is; a host that makes model drawings adds them to its workspace.
     /// </summary>
     public partial class CadAppWindow : Window
@@ -14,8 +14,8 @@ namespace GeometryHelper.Cad.Wpf
         /// <summary>Makes the window over a view model.</summary>
         /// <param name="model">The view model; its drawing, if any, is shown.</param>
         /// <param name="appName">
-        /// The name of the app, before the drawing's title in the title bar and on the start screen: "GeometryHelper CAD" gives
-        /// the title "GeometryHelper CAD  plan.dxf" with plan.dxf open.
+        /// The name of the app, before the drawing's title in the title bar and on the start screen: "OpenCAD2D" gives
+        /// the title "OpenCAD2D  plan.dxf" with plan.dxf open.
         /// </param>
         /// <exception cref="ArgumentNullException">Thrown when the view model or the name is null.</exception>
         public CadAppWindow(MainViewModel model, string appName)

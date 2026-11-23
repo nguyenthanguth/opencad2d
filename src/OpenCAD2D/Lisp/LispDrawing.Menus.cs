@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>menucmd</c> and <c>getcname</c>, the two functions of the menus that need the session: the first evaluates a DIESEL

@@ -7,8 +7,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD 2021's Plot Stamp dialog and its Advanced Options over a stamp: the seven fields, two user fields, a preview of

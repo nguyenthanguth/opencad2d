@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>
     /// A DCL file that cannot be loaded: a syntax error, a tile not defined, a predefined tile defined again, an include not

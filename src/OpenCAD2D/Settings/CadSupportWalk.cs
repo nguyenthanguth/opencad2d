@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// Walks a support folder (Fonts, Hatches, Linetypes, Lisps, DrawingTemplates, Plugins) and its subfolders in one order, so

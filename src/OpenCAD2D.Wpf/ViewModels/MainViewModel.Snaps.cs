@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D.Plugins;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// An item of a menu the window shows, as the view model gives it: its text, whether it is on, ticked or a separator, its

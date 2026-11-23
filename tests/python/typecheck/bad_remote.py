@@ -1,7 +1,7 @@
 """Type-checks with exactly the errors marked by an expect comment on their lines: what pythonnet refuses at run time
 when a script drives a running app (measured, P4) the stubs refuse too. The file is never run: pyright only reads it."""
 
-from GeometryHelper.Cad.Remote import CadApplication, CadObjectFilter
+from OpenCAD2D.Remote import CadApplication, CadObjectFilter
 
 with CadApplication() as app:
     doc = app.ActiveDocument

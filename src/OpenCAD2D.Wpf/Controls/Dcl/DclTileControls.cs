@@ -8,9 +8,9 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using GeometryHelper.Cad.Dcl;
+using OpenCAD2D.Dcl;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The WPF control of one DCL tile in a <see cref="DclDialogWindow"/>: made from the tile, placed at the rectangle the layout

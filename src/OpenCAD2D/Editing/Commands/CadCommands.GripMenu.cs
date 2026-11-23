@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The items of a multi-functional grip's hover menu (<see cref="CadCommandSession.StartGripAction"/>): the grip edit as a click on

@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The order of the objects a fence selects (I5 of L9): <c>ssget "_F"</c> and a Fence typed at an <c>ssget</c> prompt give them in

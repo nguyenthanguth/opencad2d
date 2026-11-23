@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The answers typed at the prompts, which the Recent Input menu of the canvas offers again, as AutoCAD 2021's with its

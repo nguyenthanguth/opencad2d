@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The grips of a revision cloud while REVCLOUDGRIPS is on, as AutoCAD 2021's <c>GetGripPoints</c> gives them.</summary>
     public static partial class CadGrips

@@ -4,7 +4,7 @@ using System.Threading;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The display of a space made ahead, as the window makes it on a worker thread for a drawing it opens: the list the

@@ -8,7 +8,7 @@ using System.Windows.Threading;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A keyword of the options menu of dynamic input, the menu the ↓ of the box at the cursor opens: "Close", "Undo".

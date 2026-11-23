@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The style forms (C10): STYLE and DIMSTYLE asking the window for the Text Style dialog and the Dimension Style Manager,

@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The commands that repair a drawing: RECOVER, which opens a damaged file as a new document of what could be read, and

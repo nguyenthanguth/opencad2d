@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The origin a hatch's pattern is laid from, as HATCHSETORIGIN sets it. A hatch keeps no origin of its own: it is in the base

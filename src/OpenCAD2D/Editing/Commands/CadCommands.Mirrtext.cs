@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>MIRROR's texts and multileaders: kept readable with MIRRTEXT 0, mirrored in their plane with 1, as AutoCAD 2021 leaves them.</summary>
     internal static partial class CadCommands

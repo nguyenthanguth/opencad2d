@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A symbol of geometric dimensioning and tolerancing as the dialogs draw it: the paths of <see cref="CadGdtGlyphs"/> in

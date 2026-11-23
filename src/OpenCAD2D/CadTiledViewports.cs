@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Export;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A tiled viewport of model space, as a record of AutoCAD's VPORT table: where it lies in the drawing area, from

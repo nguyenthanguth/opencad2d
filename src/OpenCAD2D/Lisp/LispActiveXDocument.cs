@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>The handles a selection set of the object model holds, and whether <c>Delete</c> took it out of the collection.</summary>
     internal sealed class LispAxSet
@@ -819,9 +820,7 @@ namespace GeometryHelper.Cad.Lisp
             DxfLayerTableRecord Layer(LispVlaObject o) => (DxfLayerTableRecord)RecordOf(o);
 
             LispException Refused(string name) =>
-                new LispException(
-                    "vla-put-" + name + ": changing a table record is not supported by GeometryHelper.Cad yet"
-                );
+                new LispException("vla-put-" + name + ": changing a table record is not supported by OpenCAD2D yet");
 
             Property("Color", layer, o => Layer(o).ColorIndex, LispAxType.Int, (o, v) => throw Refused("Color"));
             Property(

@@ -7,8 +7,9 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The JSON of the tool palettes. A file is an object with <c>format</c> (<c>GeometryHelper.ToolPalettes</c>),

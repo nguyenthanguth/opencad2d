@@ -3,12 +3,12 @@ using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.UnitTest;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The hand-off between the thread that evaluates AutoLISP and the thread that owns the document (spec decisions D34 and

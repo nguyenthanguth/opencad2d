@@ -6,7 +6,7 @@ using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The least width of a column of block cells, the 4/3 of a text height a row of a block cell in the first column stands

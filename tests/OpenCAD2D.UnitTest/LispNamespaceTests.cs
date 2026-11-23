@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The blackboard, <c>vl-propagate</c>, <c>vl-load-all</c>, <c>vl-doc-*</c>, the VLX functions and the refusals of
@@ -288,12 +288,12 @@ namespace GeometryHelper.Cad.UnitTest
         }
 
         [Theory]
-        [InlineData("(vl-vbaload \"x.dvb\")", "vl-vbaload: VBA is not supported by GeometryHelper.Cad")] // AutoCAD 2021 (r4): ; error: bad argument type: VLA-OBJECT nil
-        [InlineData("(vl-vbarun \"x\")", "vl-vbarun: VBA is not supported by GeometryHelper.Cad")] // AutoCAD 2021 (r4): T
-        [InlineData("(vl-arx-import 'foo)", "vl-arx-import: ObjectARX is not supported by GeometryHelper.Cad")] // AutoCAD 2021 (r4): nil
-        [InlineData("(vl-acad-defun 'foo)", "vl-acad-defun: ObjectARX is not supported by GeometryHelper.Cad")] // AutoCAD 2021 (r4): 2047
-        [InlineData("(vl-acad-undefun 'foo)", "vl-acad-undefun: ObjectARX is not supported by GeometryHelper.Cad")] // ours: D122
-        [InlineData("(vl-vbarun)", "vl-vbarun: VBA is not supported by GeometryHelper.Cad")] // ours: D122, refused whatever the arguments
+        [InlineData("(vl-vbaload \"x.dvb\")", "vl-vbaload: VBA is not supported by OpenCAD2D")] // AutoCAD 2021 (r4): ; error: bad argument type: VLA-OBJECT nil
+        [InlineData("(vl-vbarun \"x\")", "vl-vbarun: VBA is not supported by OpenCAD2D")] // AutoCAD 2021 (r4): T
+        [InlineData("(vl-arx-import 'foo)", "vl-arx-import: ObjectARX is not supported by OpenCAD2D")] // AutoCAD 2021 (r4): nil
+        [InlineData("(vl-acad-defun 'foo)", "vl-acad-defun: ObjectARX is not supported by OpenCAD2D")] // AutoCAD 2021 (r4): 2047
+        [InlineData("(vl-acad-undefun 'foo)", "vl-acad-undefun: ObjectARX is not supported by OpenCAD2D")] // ours: D122
+        [InlineData("(vl-vbarun)", "vl-vbarun: VBA is not supported by OpenCAD2D")] // ours: D122, refused whatever the arguments
         public void TheFunctionsOfAutoCadAlone_AreRefusedNamingTheFunction(string expression, string message)
         {
             Expect(new LispInterpreter(), expression, "; error: " + message);

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What a routine's <c>command</c> got of one of its arguments.</summary>
     internal enum LispFeed

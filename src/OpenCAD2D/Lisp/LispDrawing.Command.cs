@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// <c>command</c>, <c>vl-cmdf</c> and the symbol <c>PAUSE</c>: the arguments go, one after the other, to the command

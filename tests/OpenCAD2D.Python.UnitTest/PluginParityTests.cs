@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using GeometryHelper.Cad.Plugins;
+using OpenCAD2D.Plugins;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// What a .py file adds to the window, as the map of D1660 and the rules of D1661 fix it: the file's own
@@ -23,7 +23,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
 
         /// <summary>The import line of every script of this class: the names D1660 maps.</summary>
         private const string Imports =
-            "from geometryhelper.cad import (add_ribbon_tab, ribbon_tab, add_ribbon_panel, ribbon_panel, ribbon_button, "
+            "from opencad2d.cad import (add_ribbon_tab, ribbon_tab, add_ribbon_panel, ribbon_panel, ribbon_button, "
             + "split_button, icon_from_path_data, icon_from_image, icon_from_file, add_drawings_button, add_drawings_menu, "
             + "add_canvas_menu, menu_item, separator, add_properties, show_command_buttons, command)";
 

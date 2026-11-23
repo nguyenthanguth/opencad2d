@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The menus of the window made from the items a view model gives (<see cref="CadMenuItemViewModel"/>): the right-click
@@ -36,7 +36,7 @@ namespace GeometryHelper.Cad.Wpf
                 ?? new ResourceDictionary
                 {
                     Source = new Uri(
-                        "pack://application:,,,/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml",
+                        "pack://application:,,,/OpenCAD2D.Wpf;component/Themes/Dark.xaml",
                         UriKind.Absolute
                     ),
                 };

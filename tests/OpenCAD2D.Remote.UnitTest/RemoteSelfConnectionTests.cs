@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     public class RemoteSelfConnectionTests
     {
         private const string Refusal =
-            "A script inside GeometryHelper CAD cannot drive the same app through CadApplication: use geometryhelper.cad, which reaches the drawing directly.";
+            "A script inside OpenCAD2D cannot drive the same app through CadApplication: use opencad2d.cad, which reaches the drawing directly.";
 
         /// <summary>A dispatcher that owns the thread that made it, as the window's does: the thread a script of the app runs on.</summary>
         private sealed class OwnedDispatcher : ICadRemoteDispatcher, ICadRemoteOwnerThread

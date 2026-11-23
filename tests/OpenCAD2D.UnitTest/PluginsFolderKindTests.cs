@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The Plugins folder beside the program (<see cref="CadSupportKind.Plugins"/>): shipped with a README.txt as Fonts,

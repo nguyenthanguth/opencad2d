@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The gate in front of the code the window loads: one <see cref="CadLoadSecurity"/> for the whole app, built from Global

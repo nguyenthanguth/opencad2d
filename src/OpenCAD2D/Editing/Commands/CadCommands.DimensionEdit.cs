@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The commands that change dimensions already drawn: DIMEDIT, DIMTEDIT, DIMSPACE and DIMBREAK.</summary>
     /// <remarks>

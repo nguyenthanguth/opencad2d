@@ -7,7 +7,7 @@ using GeometryHelper.Geometry;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>SHX fonts read from synthetic files, the letters of a text drawn as their strokes, and the fonts found, replaced and substituted.</summary>
     public sealed class FontTests : IDisposable

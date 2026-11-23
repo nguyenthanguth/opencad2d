@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// Which .py files load at start (D1608, D1612): the top-level files of each Pythons folder, then the Python Startup
@@ -175,7 +175,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
         /// <summary>A file of one function for each command, which writes "name ran".</summary>
         private string Tools(string file, params string[] commands)
         {
-            var lines = new List<string> { "from geometryhelper.cad import command, write" };
+            var lines = new List<string> { "from opencad2d.cad import command, write" };
 
             foreach (string command in commands)
             {
@@ -267,7 +267,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string bad = Script(
                 "w1-bad.py",
-                "from geometryhelper.cad import command",
+                "from opencad2d.cad import command",
                 "@command('PYW1BAD')",
                 "def bad():",
                 "    pass",
@@ -297,7 +297,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string path = Script(
                 "w1-draws.py",
-                "import geometryhelper.cad as cad",
+                "import opencad2d.cad as cad",
                 "cad.cmd('CIRCLE', (0, 0), 5)",
                 "cad.cmd('CIRCLE', (50, 0), 5)"
             );
@@ -359,7 +359,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession session = NewSession();
             string path = Script(
                 "w1-api-bad.py",
-                "from geometryhelper.cad import command",
+                "from opencad2d.cad import command",
                 "@command('PYW1APIBAD')",
                 "def bad():",
                 "    pass",
@@ -406,7 +406,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
             CadCommandSession second = NewSession("second.dxf");
             string path = Script(
                 "w1-unload.py",
-                "from geometryhelper.cad import command",
+                "from opencad2d.cad import command",
                 "@command('PYW1UNLOAD', alias='PW1U')",
                 "def one():",
                 "    pass",

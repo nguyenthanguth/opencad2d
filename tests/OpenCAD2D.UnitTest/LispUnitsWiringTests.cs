@@ -1,8 +1,8 @@
 using System;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>rtos</c>, <c>angtos</c>, <c>distof</c> and <c>angtof</c> as functions of the interpreter: the arguments, the defaults

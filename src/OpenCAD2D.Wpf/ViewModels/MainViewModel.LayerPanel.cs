@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What Home › Layers needs of the model beyond the layer box's list: the three state glyphs of each layer in the box, a

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Remote;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Remote;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     /// <summary>
     /// Runs the work on the thread that calls it, one piece at a time: a headless app has no window thread to hand work to, and
@@ -43,7 +43,7 @@ namespace GeometryHelper.Cad.Remote.UnitTest
             new Dictionary<CadDocument, CadCommandSession>();
         private int _newCount;
 
-        public string Title { get; set; } = "GeometryHelper CAD";
+        public string Title { get; set; } = "OpenCAD2D";
 
         /// <summary>Gets the gate the server's work is run under: what a test locks to act as the window's thread.</summary>
         public object Gate { get; } = new object();

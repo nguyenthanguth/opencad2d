@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The panels of a ribbon tab, left to right, shrunk as AutoCAD's are when the window narrows: the <see cref="Steps"/>

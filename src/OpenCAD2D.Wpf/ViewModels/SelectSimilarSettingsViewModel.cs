@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>One check box of the Select Similar Settings dialog: the property's words and whether it has to match.</summary>
     public sealed class SelectSimilarOptionViewModel : ObservableObject

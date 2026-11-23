@@ -7,11 +7,11 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Close in orange-red (design v70): the theme's footer Close and title-bar cross with the design's colours, the cross of a
@@ -20,7 +20,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
     /// </summary>
     public sealed class CloseButtonTests
     {
-        private const string SampleName = "GeometryHelper.Cad.SamplePlugin";
+        private const string SampleName = "OpenCAD2D.SamplePlugin";
 
         [Fact]
         public void TheThemesCloseStyles_CarryTheDesignsColours()
@@ -194,9 +194,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
             // Registers the pack scheme, which the theme is loaded through, with no Application running.
             _ = PackUriHelper.UriSchemePack;
             return (ResourceDictionary)
-                Application.LoadComponent(
-                    new Uri("/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml", UriKind.Relative)
-                );
+                Application.LoadComponent(new Uri("/OpenCAD2D.Wpf;component/Themes/Dark.xaml", UriKind.Relative));
         }
 
         private static Color BackgroundSetBy(ControlTemplate template, string property)

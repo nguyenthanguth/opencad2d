@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The words a lineweight and a transparency have in the Layer Translator's lists and its Edit Layer dialog.</summary>
     internal static class TranslateWords

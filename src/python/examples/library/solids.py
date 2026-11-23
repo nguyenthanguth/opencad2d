@@ -7,7 +7,7 @@ and the cut all take Tolerance.Default, passed by name to TrySubtract, whose tol
 
 import sys
 
-import geometryhelper  # noqa: F401  (starts .NET and loads the assemblies)
+import opencad2d  # noqa: F401  (starts .NET and loads the assemblies)
 from GeometryHelper import Tolerance
 from GeometryHelper.Geometry import GeoAabb3, GeoPoint3, GeoSolid3
 

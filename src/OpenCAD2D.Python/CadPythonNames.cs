@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>The names of the commands the host adds and the step the question of a script is asked in, in one place so that a rename is one edit.</summary>
     internal static class CadPythonNames

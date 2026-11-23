@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Drawing templates, as AutoCAD 2021 has them: NEW asks for a template in Select Template (the typed form with FILEDIA 0),

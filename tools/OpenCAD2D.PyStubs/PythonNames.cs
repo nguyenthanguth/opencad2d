@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.PyStubs
+namespace OpenCAD2D.PyStubs
 {
     /// <summary>
     /// What the stubs need to know about Python's own words: the hard keywords a .NET name cannot use, the names a

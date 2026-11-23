@@ -2,7 +2,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The TrueType families and files a drawing names that the machine has not, as the Missing Fonts dialog lists them: those

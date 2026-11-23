@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// What <c>getenv</c>, <c>setenv</c>, <c>getcfg</c> and <c>setcfg</c> keep: AutoCAD 2021 keeps a name and its text in the

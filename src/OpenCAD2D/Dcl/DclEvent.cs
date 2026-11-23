@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>What the user did in a dialog.</summary>
     internal enum DclEventKind

@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Python;
+using OpenCAD2D.Python;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.SecurityKit;
+using static OpenCAD2D.Wpf.UnitTest.SecurityKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The gate of Python in the window (D917): the host the window makes refuses a <c>.py</c> that the shared

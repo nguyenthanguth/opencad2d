@@ -2,11 +2,11 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using GeometryHelper.Cad.Plugins;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Plugins.UnitTest
+namespace OpenCAD2D.Plugins.UnitTest
 {
     public class CommandPluginTests
     {
@@ -69,8 +69,8 @@ namespace GeometryHelper.Cad.Plugins.UnitTest
 
             Assert.Equal(CadCommandOutcome.Completed, session.LastOutcome);
             DxfLine line = Assert.Single(document.ModelSpace.Block.OfType<DxfLine>(), l => l.Handle != "L1");
-            Assert.True(line.StartPoint.DistanceTo(new Geometry.GeoPoint3(0, 100, 0)) <= 1E-9);
-            Assert.True(line.EndPoint.DistanceTo(new Geometry.GeoPoint3(30, 140, 0)) <= 1E-9);
+            Assert.True(line.StartPoint.DistanceTo(new GeometryHelper.Geometry.GeoPoint3(0, 100, 0)) <= 1E-9);
+            Assert.True(line.EndPoint.DistanceTo(new GeometryHelper.Geometry.GeoPoint3(30, 140, 0)) <= 1E-9);
             Assert.Equal("DRAWLINE", document.NextUndo.Name);
 
             Assert.True(document.Undo());

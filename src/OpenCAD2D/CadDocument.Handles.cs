@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The handles AutoCAD gives the entities of a drawing that writes none, on opening it.</summary>
     public sealed partial class CadDocument

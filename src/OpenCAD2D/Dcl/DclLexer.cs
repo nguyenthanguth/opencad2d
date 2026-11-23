@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>What a token of a DCL text is.</summary>
     internal enum DclTokenKind

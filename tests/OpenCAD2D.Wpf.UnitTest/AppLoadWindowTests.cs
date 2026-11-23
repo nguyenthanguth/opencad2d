@@ -6,11 +6,11 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Load/Unload Applications, the one window of APPLOAD and the Plugin manager button: its table of AutoLISP files and
@@ -19,7 +19,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
     /// </summary>
     public sealed class AppLoadWindowTests : IDisposable
     {
-        private const string SampleName = "GeometryHelper.Cad.SamplePlugin";
+        private const string SampleName = "OpenCAD2D.SamplePlugin";
         private readonly TestFolder _folder = new TestFolder();
         private readonly List<IDisposable> _disposables = new List<IDisposable>();
 

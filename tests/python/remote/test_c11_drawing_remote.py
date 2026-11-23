@@ -14,13 +14,13 @@ import pytest
 
 import drawing_scenarios
 from drawing_scenarios import BLANK, SCENARIOS, Scenario
-from GeometryHelper.Cad.Remote import CadRemoteException
+from OpenCAD2D.Remote import CadRemoteException
 
 
 @pytest.fixture
 def cad_app(app: Any) -> Iterator[Any]:
-    """The ``geometryhelper.cad`` App over this test's connection."""
-    from geometryhelper.cad import App
+    """The ``opencad2d.cad`` App over this test's connection."""
+    from opencad2d.cad import App
 
     with App(app) as made:
         yield made

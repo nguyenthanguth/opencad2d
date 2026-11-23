@@ -15,8 +15,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES = ROOT / "src" / "python" / "examples"
-GUIDE = ROOT / "src" / "GeometryHelper" / "docs" / "python-examples.md"
-CSHARP_TESTS = ROOT / "tests" / "GeometryHelper.Cad.Python.UnitTest" / "ExampleTests.cs"
+GUIDE = ROOT / "docs" / "python-examples.md"
+CSHARP_TESTS = ROOT / "tests" / "OpenCAD2D.Python.UnitTest" / "ExampleTests.cs"
 
 EXPECTED = {
     "library": [

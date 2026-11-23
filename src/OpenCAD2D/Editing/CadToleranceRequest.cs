@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>A material condition of the Geometric Tolerance dialog, as AutoCAD's Material Condition dialog offers it.</summary>
     public enum CadMaterialCondition

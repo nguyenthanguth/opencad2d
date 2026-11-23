@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The presenter's own decoders of the raster types the platform does not read: TGA, PCX, TIFF (plain, packed, with the

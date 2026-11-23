@@ -1,8 +1,8 @@
 using System;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>ssnamex</c>, with the rows AutoCAD 2021's accoreconsole gave (probes e1 and e2 of the C4b measurements, kept in the

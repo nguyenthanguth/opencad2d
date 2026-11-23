@@ -13,7 +13,7 @@ from typing import Any
 
 from System import TimeSpan
 
-from GeometryHelper.Cad.Remote import CadRemoteException
+from OpenCAD2D.Remote import CadRemoteException
 
 SIGNAL_AT = 0.3
 PICK_FOR = 2.0

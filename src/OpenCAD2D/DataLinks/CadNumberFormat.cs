@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The words a spreadsheet's number format makes of a number: the built-in formats of a workbook (General, 0, 0.00, #,##0,

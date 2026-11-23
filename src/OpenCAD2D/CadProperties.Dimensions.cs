@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The rows of a dimension, as AutoCAD's palette heads them: Misc, Lines &amp; Arrows, Text, Fit and Primary Units.</summary>
     public static partial class CadProperties

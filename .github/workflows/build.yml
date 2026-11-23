@@ -1,0 +1,95 @@
+name: OpenCAD2D
+
+# The whole solution is built and tested on a hosted Windows runner. The core library, GeometryHelper, is not built
+# here: it is Lib\GeometryHelper.dll, committed, so the runner needs nothing but this repository.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # The test projects target net48, which needs the .NET Framework reference assemblies and test host.
+    runs-on: windows-latest
+    # A step that runs several commands in one pwsh script would otherwise report only the exit code of its last
+    # command; $PSNativeCommandUseErrorActionPreference makes a failing command end the step.
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Format
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet tool restore
+          dotnet csharpier check .
+
+      - name: Build
+        run: dotnet build OpenCAD2D.slnx -c Release -warnaserror --no-incremental
+
+      - name: Test
+        # The timing tests compare against a desktop; a hosted runner is slower and shared, so they are left out here
+        # and run on the developer's machine.
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $filter = 'FullyQualifiedName!~Speed&FullyQualifiedName!~DisplayPatchPlaces&FullyQualifiedName!~TableCommandTests&FullyQualifiedName!~SelectObjectsOptions'
+          dotnet test tests/OpenCAD2D.UnitTest/OpenCAD2D.UnitTest.csproj -c Release --no-build --filter $filter
+          dotnet test tests/OpenCAD2D.Wpf.UnitTest/OpenCAD2D.Wpf.UnitTest.csproj -c Release --no-build --filter $filter
+          dotnet test tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj -c Release --no-build
+          dotnet test tests/OpenCAD2D.Remote.UnitTest/OpenCAD2D.Remote.UnitTest.csproj -c Release --no-build
+          dotnet test tests/OpenCAD2D.PyStubs.UnitTest/OpenCAD2D.PyStubs.UnitTest.csproj -c Release --no-build
+
+  python:
+    # The Python package opencad2d (src/python): the stubs, the wheel, and tests/python run against the wheel installed
+    # in a fresh venv, once on .NET 8 and once on .NET Framework 4.8, through tools/python/verify-python.sh, the same
+    # script a developer runs. Then the Python host of the app. Python 3.11 and 3.14 are the two ends of what is tested.
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.14']
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - uses: actions/setup-python@v7
+        id: python
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+
+      - name: Build the libraries, the stub generator and the remote test server
+        run: |
+          dotnet build src/OpenCAD2D/OpenCAD2D.csproj -c Release -warnaserror
+          dotnet build tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj -c Release -warnaserror
+          dotnet build tests/OpenCAD2D.Remote.TestServer/OpenCAD2D.Remote.TestServer.csproj -c Release -warnaserror
+
+      - name: Stubs, wheel, fresh venv and tests on both runtimes
+        env:
+          GH_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: bash tools/python/verify-python.sh
+
+      - name: Build the Python host of OpenCAD2D and its tests
+        run: dotnet build tests/OpenCAD2D.Python.UnitTest/OpenCAD2D.Python.UnitTest.csproj -c Release -warnaserror
+
+      - name: Test the Python host on both runtimes
+        env:
+          GH_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: |
+          dotnet test tests/OpenCAD2D.Python.UnitTest/OpenCAD2D.Python.UnitTest.csproj -c Release --no-build -f net8.0
+          dotnet test tests/OpenCAD2D.Python.UnitTest/OpenCAD2D.Python.UnitTest.csproj -c Release --no-build -f net48

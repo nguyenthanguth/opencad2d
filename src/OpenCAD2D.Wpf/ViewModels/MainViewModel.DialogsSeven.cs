@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Output ribbon tab, as AutoCAD 2021's basics: Plot (Plot, Batch Plot, Preview, Page Setup Manager, Plot Stamp) and Export to

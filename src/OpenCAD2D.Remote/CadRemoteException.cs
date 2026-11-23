@@ -1,9 +1,9 @@
 using System;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
-    /// What the remote channel throws when the app cannot be reached or refuses a request: no GeometryHelper CAD is running,
+    /// What the remote channel throws when the app cannot be reached or refuses a request: no OpenCAD2D is running,
     /// the connection was lost, a drawing was closed meanwhile, the owner of an object refused an edit, a block is not in
     /// the drawing. The message says why, in the words the app's own command line would.
     /// </summary>

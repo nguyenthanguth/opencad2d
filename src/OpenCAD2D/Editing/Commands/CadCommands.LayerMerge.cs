@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// LAYMRG and LAYDEL (the command line forms of AutoCAD 2021's, -LAYMRG and -LAYDEL, probed in its console; the dialogs of

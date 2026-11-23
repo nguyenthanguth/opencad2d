@@ -5,9 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The contextual Hatch Creation and Hatch Editor tabs over their one set of values, as AutoCAD 2021 draws them: Boundaries

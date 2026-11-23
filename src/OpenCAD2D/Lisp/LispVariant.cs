@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// A variant of AutoLISP, what <c>vlax-make-variant</c> makes and what ActiveX gives for a point: a VARTYPE (0 empty, 2 and

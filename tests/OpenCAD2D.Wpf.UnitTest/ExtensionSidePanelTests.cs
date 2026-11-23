@@ -8,7 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The panel an extension adds beside the DRAWINGS list (<see cref="CadWorkspaceExtension.SidePanelContent"/>): drawn

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
-namespace GeometryHelper.Cad.Remote.TestServer
+namespace OpenCAD2D.Remote.TestServer
 {
     /// <summary>
     /// Hosts a <see cref="CadRemoteServer"/> over a host with no window, so a script in another process can drive it as it
@@ -16,7 +16,7 @@ namespace GeometryHelper.Cad.Remote.TestServer
     /// </summary>
     internal static class Program
     {
-        private const string Usage = "usage: GeometryHelper.Cad.Remote.TestServer.exe --folder <dir> [--minutes <n>]";
+        private const string Usage = "usage: OpenCAD2D.Remote.TestServer.exe --folder <dir> [--minutes <n>]";
 
         private static int Main(string[] args)
         {

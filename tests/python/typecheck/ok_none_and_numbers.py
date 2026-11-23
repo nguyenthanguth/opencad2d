@@ -1,8 +1,8 @@
 """Type-checks clean: a member that takes null takes None, and an enum is made from a number."""
 
 from GeometryHelper import GeometryHelperLog
-from GeometryHelper.Cad import CadTrueTypeFonts
-from GeometryHelper.Cad.Remote import CadObjectFilter
+from OpenCAD2D import CadTrueTypeFonts
+from OpenCAD2D.Remote import CadObjectFilter
 from GeometryHelper.Dxf import DxfEndCap, DxfEraseFlags, DxfLine
 
 # CadObjectFilter: null for every layer, every layout and every kind

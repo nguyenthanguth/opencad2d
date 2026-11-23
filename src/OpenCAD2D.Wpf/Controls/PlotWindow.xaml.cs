@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Plot dialog in its expanded form, which PLOT (Ctrl+P) shows, and its Page Setup form, which PAGESETUP shows.

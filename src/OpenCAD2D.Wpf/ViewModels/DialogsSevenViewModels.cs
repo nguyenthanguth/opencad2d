@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A scale of the Annotation Object Scale list: its name and, where not every object selected is shown at it, how many are.</summary>
     public sealed class ObjectScaleRowViewModel

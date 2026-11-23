@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Plugins
+namespace OpenCAD2D.Plugins
 {
     /// <summary>
     /// Marks a method of a plugin as a command, as AutoCAD's <c>[CommandMethod]</c> does: <c>[CadCommand("NUMCIRCLES",

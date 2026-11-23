@@ -8,9 +8,9 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using GeometryHelper.UnitTest;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.TestDrawings;
+using static OpenCAD2D.UnitTest.TestDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A display list patched after an edit takes the runs the edit left alone by stretches, and finds the entities it drew

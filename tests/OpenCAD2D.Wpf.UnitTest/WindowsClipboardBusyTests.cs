@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
-using GeometryHelper.Cad.Wpf;
+using OpenCAD2D.Wpf;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The clipboard calls of the window when another app holds the clipboard: Windows answers CLIPBRD_E_CANT_OPEN

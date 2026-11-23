@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// Bullets and lists in the MTEXT editor, written as AutoCAD 2021's TextEditor writes them (probed: paragraphs "Plate",

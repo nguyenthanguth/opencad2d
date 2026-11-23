@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A writer of Windows Metafiles of its own, for WMFOUT: a placeable metafile (the Aldus header, then the records of

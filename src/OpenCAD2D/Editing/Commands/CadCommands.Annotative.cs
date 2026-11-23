@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// -OBJECTSCALE, AIOBJECTSCALEADD and AIOBJECTSCALEREMOVE: the scales an annotative object is shown at, added and taken

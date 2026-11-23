@@ -1,7 +1,7 @@
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The reader of the AutoLISP interpreter against AutoCAD 2021's <c>read</c> in accoreconsole (probes p1 and p2): every

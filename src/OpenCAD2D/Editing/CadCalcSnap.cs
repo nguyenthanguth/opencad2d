@@ -2,7 +2,7 @@ using System;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The snap functions of CAL (<c>end</c>, <c>mid</c>, <c>cen</c>, <c>qua</c>, <c>nea</c>, <c>ins</c>, <c>nod</c>, <c>int</c>,

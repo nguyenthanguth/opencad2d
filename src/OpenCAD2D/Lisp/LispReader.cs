@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// Reads AutoLISP text one form at a time, the way AutoCAD does, corners included: a symbol ends at a dot and the rest of it is dropped (<c>a.b</c> reads

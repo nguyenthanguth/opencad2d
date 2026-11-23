@@ -5,7 +5,7 @@ using System.Windows;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// PNGOUT, JPGOUT and BMPOUT in the window, offscreen on an STA thread: the file asked through the Create Raster File

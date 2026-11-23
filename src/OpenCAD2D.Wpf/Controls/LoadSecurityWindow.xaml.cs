@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The warning of SECURELOAD 1, as AutoCAD 2021's task dialog "Security - Unsigned Executable File": the file of code that

@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>One line of the AutoConstrain list of the Constraint Settings dialog: a constraint type with the box that lets AUTOCONSTRAIN apply it.</summary>
     public sealed class AutoConstrainRuleViewModel : ObservableObject

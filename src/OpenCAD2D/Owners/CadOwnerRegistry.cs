@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The owners a document knows, found by the name in an entity's <see cref="CadOwnerTag"/>, and asked before an owned

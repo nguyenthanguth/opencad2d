@@ -12,7 +12,7 @@ from typing import Any
 import clr
 import pytest
 
-from GeometryHelper.Cad.Remote import CadObjectFilter, CadRemoteException
+from OpenCAD2D.Remote import CadObjectFilter, CadRemoteException
 from GeometryHelper.Dxf import DxfCircle, DxfLine, DxfMText
 from GeometryHelper.Geometry import GeoPoint3, GeoVector3
 

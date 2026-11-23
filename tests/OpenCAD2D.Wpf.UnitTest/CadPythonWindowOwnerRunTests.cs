@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Threading;
-using GeometryHelper.Cad.Python;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Python;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.PythonWindowKit;
+using static OpenCAD2D.Wpf.UnitTest.PythonWindowKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The window's owner under a real <see cref="CadPythonHost"/> (D703, D704, D707): scripts run on the thread of the window's
@@ -87,7 +87,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
         {
             string path = Script(
                 "ask.py",
-                "import geometryhelper.cad as cad",
+                "import opencad2d.cad as cad",
                 "name = cad.get_string('Name')",
                 "print('got', name)"
             );
@@ -139,7 +139,7 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
         {
             string path = Script(
                 "esc.py",
-                "import geometryhelper.cad as cad",
+                "import opencad2d.cad as cad",
                 "print('before')",
                 "cad.get_string('Name')",
                 "print('after')"

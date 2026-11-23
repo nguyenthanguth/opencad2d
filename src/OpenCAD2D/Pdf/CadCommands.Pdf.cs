@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The commands of PDF underlays, in AutoCAD 2021's words: PDFATTACH and -PDFATTACH (a page of a PDF placed as a PDFUNDERLAY),

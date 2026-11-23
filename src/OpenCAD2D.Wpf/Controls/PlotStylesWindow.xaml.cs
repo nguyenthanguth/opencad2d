@@ -2,8 +2,9 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Plot Styles folder as STYLESMANAGER shows it, a list of the .ctb and .stb files with Edit…, New…, Delete and

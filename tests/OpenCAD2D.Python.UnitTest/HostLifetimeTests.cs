@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The host as a whole (D713, D719): started once per process, with no usable Python it says why and the rest of the

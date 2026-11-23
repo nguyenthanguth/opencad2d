@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// OVERKILL and -OVERKILL as AutoCAD 2021 asks them (probed through its console): the objects, then the settings, then the

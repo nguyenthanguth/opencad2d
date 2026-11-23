@@ -1,4 +1,4 @@
-GeometryHelper CAD - Pythons folder
+OpenCAD2D - Pythons folder
 ===================================
 
 Put .py files that define commands here: a function marked @command("NAME") becomes a command, and

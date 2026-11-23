@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Threading;
-using GeometryHelper.Cad.Remote;
+using GeometryHelper;
+using OpenCAD2D.Remote;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The side of the remote channel that lives in the app: it listens on a named pipe for the programs that drive the
-    /// app (<see cref="CadApplication"/> of GeometryHelper.Cad.Remote), announces itself in a file so that they find it, and
+    /// app (<see cref="CadApplication"/> of OpenCAD2D.Remote), announces itself in a file so that they find it, and
     /// answers each request on the thread of the drawings through the dispatcher it is given. It has no UI and is started
     /// by the app's host; where nothing starts it, nothing listens.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The pipe is <c>GeometryHelper.Cad.&lt;process id&gt;</c>, open to the current Windows user alone (see
-    /// <see cref="CadRemotePipe"/>). The file <c>%LocalAppData%\GeometryHelper\Remote\&lt;process id&gt;.json</c> holds the
+    /// The pipe is <c>OpenCAD2D.&lt;process id&gt;</c>, open to the current Windows user alone (see
+    /// <see cref="CadRemotePipe"/>). The file <c>%LocalAppData%\OpenCAD2D\Remote\&lt;process id&gt;.json</c> holds the
     /// process id, the window's title and the time the app was last activated; it is deleted when the server stops, and a
     /// file left by a process that died is ignored and removed by the next client that finds it.
     /// </para>
@@ -48,7 +49,7 @@ namespace GeometryHelper.Cad
 
         /// <summary>
         /// Makes a server that announces itself in a folder of its own, and under an instance name when a process runs more
-        /// than one server (<c>GeometryHelper.Cad.&lt;process id&gt;.&lt;instance&gt;</c>, <c>&lt;process id&gt;.&lt;instance&gt;.json</c>): how the tests keep to
+        /// than one server (<c>OpenCAD2D.&lt;process id&gt;.&lt;instance&gt;</c>, <c>&lt;process id&gt;.&lt;instance&gt;.json</c>): how the tests keep to
         /// themselves while the real app is open.
         /// </summary>
         internal CadRemoteServer(ICadRemoteHost host, ICadRemoteDispatcher dispatcher, string folder, string instance)

@@ -6,7 +6,7 @@ using System.Windows.Media;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The canvas's drawing of the parameters and actions of the block open in the Block Editor, as AutoCAD 2021 draws them: a

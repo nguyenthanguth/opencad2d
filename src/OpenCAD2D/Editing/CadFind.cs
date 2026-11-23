@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>Where FIND looks, as Find where of AutoCAD's dialog says.</summary>
     public enum CadFindScope

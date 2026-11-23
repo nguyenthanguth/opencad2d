@@ -4,7 +4,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The edits of the grips of a 2D POLYLINE of straight and arc segments (<see cref="DxfPolyline2d"/> of type

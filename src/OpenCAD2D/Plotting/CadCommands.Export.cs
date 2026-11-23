@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// EXPORT and -EXPORT, as AutoCAD 2021's. EXPORT asks the file by the window's Export Data dialog, of the types AutoCAD's

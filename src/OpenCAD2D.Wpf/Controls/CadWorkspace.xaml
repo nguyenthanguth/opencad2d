@@ -1,8 +1,8 @@
 <UserControl
-    x:Class="GeometryHelper.Cad.Wpf.CadWorkspace"
+    x:Class="OpenCAD2D.Wpf.CadWorkspace"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
     FontFamily="{DynamicResource GhFont}"
     FontSize="12"
@@ -15,9 +15,9 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Icons.xaml" />
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Recent.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Icons.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Recent.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <local:BoolToVisibilityConverter x:Key="Shown" />
@@ -9781,7 +9781,7 @@ widths are those of the content: no panel has a floor of its own.
                             </Canvas>
                             <!--
                     The start screen (design S1StartDxf): the app, Open, New, and Recent Documents as a list or as large pictures.
-                    The button of a new document an extension offers shows only where one does; without, as GeometryHelper CAD, the
+                    The button of a new document an extension offers shows only where one does; without, as OpenCAD2D, the
                     third button is NEW with Ctrl+N. It is 760 wide, or as wide as the canvas where that is less, as with the
                     panel of an extension at the left.
                     -->

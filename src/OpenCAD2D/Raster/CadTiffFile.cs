@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// TIFF (.tif, .tiff), the first image of the file, in either byte order: stored plain, packed (PackBits), LZW or Deflate,

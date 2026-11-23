@@ -1,9 +1,9 @@
 using System;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// PolarSnap, AutoCAD's SNAPTYPE 1: with SNAP and POLAR on, the cursor held on a polar angle from the base point is put a

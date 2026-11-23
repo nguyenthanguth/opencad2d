@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Drawing Units dialog, which UNITS shows: Length, Angle, Insertion scale, Sample Output and Lighting (greyed);

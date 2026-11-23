@@ -3,9 +3,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// <c>entget</c>, <c>entmod</c>, <c>entmake</c>, <c>entdel</c>, <c>entnext</c>, <c>entlast</c>, <c>entupd</c> and

@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <PlatformTarget>x64</PlatformTarget>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <RootNamespace>OpenCAD2D.App</RootNamespace>
+        <AssemblyName>OpenCAD2D.App</AssemblyName>
+        <!-- What Task Manager and the file's properties show. The exe keeps OpenCAD2D.App: OpenCAD2D.dll is the engine's. -->
+        <AssemblyTitle>OpenCAD2D</AssemblyTitle>
+        <StartupObject>OpenCAD2D.App.Program</StartupObject>
+        <Description>OpenCAD2D: the standalone app that opens, edits and plots DXF and DWG drawings, laid out as AutoCAD 2D.</Description>
+        <IsPackable>false</IsPackable>
+        <NoWarn>$(NoWarn);MSB3277</NoWarn>
+        <ApplicationIcon>Icons\app.ico</ApplicationIcon>
+    </PropertyGroup>
+
+    <!-- The icons Icons\make-icons.ps1 writes: the window's, and a drawing file's, which the register switch names beside the exe. -->
+    <ItemGroup>
+        <EmbeddedResource Include="Icons\app.ico" LogicalName="OpenCAD2D.App.app.ico" />
+        <None Include="Icons\drawing-file.ico" Link="drawing-file.ico" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\OpenCAD2D.Wpf\OpenCAD2D.Wpf.csproj" />
+        <ProjectReference Include="..\OpenCAD2D\OpenCAD2D.csproj" />
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
+        <!-- Built first, never referenced: its .dll is copied below into Plugins\DrawingInfo, where the app loads it at start. -->
+        <ProjectReference
+            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.csproj"
+            ReferenceOutputAssembly="false"
+            OutputItemType="DrawingInfoPlugin"
+        />
+    </ItemGroup>
+
+    <!--
+    The sample plugin, Plugins\DrawingInfo, beside the exe: its .dll and nothing else. Not OpenCAD2D.dll: the
+    app gives a plugin its own. The item is a None item with a link, so that publish copies it as the build does.
+  -->
+    <Target Name="LinkDrawingInfoPlugin" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveProjectReferences">
+        <ItemGroup>
+            <None
+                Include="@(DrawingInfoPlugin)"
+                Link="Plugins\DrawingInfo\%(Filename)%(Extension)"
+                CopyToOutputDirectory="PreserveNewest"
+            />
+        </ItemGroup>
+    </Target>
+</Project>

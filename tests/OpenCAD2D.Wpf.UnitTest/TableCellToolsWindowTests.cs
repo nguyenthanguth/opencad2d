@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The Table Cell tab's Cut, Copy and Paste, Match Cell, Cell Locking, Cell Borders, Data Format, Insert (Block, Field,

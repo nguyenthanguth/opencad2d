@@ -7,7 +7,7 @@ from typing import Any
 from GeometryHelper.Dxf import DxfMText, DxfRotatedDimension
 from GeometryHelper.Geometry import GeoPoint3
 
-from geometryhelper.cad import new_file
+from opencad2d.cad import new_file
 
 
 def _a_dimension_of_100(far: float) -> Any:

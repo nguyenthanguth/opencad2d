@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// One attribute definition of a block as the Block Attribute Manager lists and edits it: its tag, prompt and default,

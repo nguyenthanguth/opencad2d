@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A named object of a drawing as the Purge dialog lists it: its kind, its name, and for one in use the reasons it cannot

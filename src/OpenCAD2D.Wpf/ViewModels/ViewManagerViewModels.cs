@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A node of the View Manager's tree: Current, a heading (Model Views, Layout Views, Preset Views) or a named view.</summary>
     public sealed class ViewNodeViewModel

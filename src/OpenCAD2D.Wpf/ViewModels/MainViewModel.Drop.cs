@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Files dropped on the window, as AutoCAD 2021 takes them: a drawing is inserted as a block (opened where dropped on the

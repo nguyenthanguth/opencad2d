@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What part of a space the canvas shows and at what zoom: the point of the drawing at the centre of the canvas and the

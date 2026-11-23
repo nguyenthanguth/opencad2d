@@ -1,11 +1,12 @@
 using System;
 using System.Globalization;
 using System.IO;
+using GeometryHelper;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The first point (group 10) of a TEXT whose alignment <c>entmod</c>, <c>entmake</c> and the object functions change, as

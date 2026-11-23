@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>What a prompt asks for.</summary>
     public enum CadPromptKind

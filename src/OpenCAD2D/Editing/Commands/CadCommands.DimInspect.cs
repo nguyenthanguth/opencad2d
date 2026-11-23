@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// DIMINSPECT and -DIMINSPECT: inspection dimensions, the label and rate of inspection AutoCAD shows beside a dimension's

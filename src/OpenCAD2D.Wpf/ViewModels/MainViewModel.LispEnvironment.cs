@@ -1,7 +1,7 @@
 using System;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What AutoLISP's <c>setenv</c> and <c>setcfg</c> keep, as AutoCAD keeps it in the registry: one <see cref="LispEnvironment"/>

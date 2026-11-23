@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GeometryHelper.Cad.Python
+namespace OpenCAD2D.Python
 {
     /// <summary>
     /// The Python files that load when the app starts, as the Lisps folder and the Startup Suite do for AutoLISP, but once for

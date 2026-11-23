@@ -5,7 +5,7 @@ using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>DIMJOGLINE: a jog in the line of a linear dimension, as a measurement not drawn to scale is marked.</summary>
     /// <remarks>

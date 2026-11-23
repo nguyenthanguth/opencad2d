@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 using GeometryHelper.UnitTest;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The vectors AutoLISP's <c>grdraw</c> and <c>grvecs</c> put on the screen, drawn by the canvas over its picture of the

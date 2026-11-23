@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The AutoLISP of a document: the interpreter, the lines typed at the command line, the <c>c:</c> commands and <c>load</c>.</summary>
     public sealed partial class CadCommandSession

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>One page of a PDF: its dictionary with the attributes it inherits, and the box it shows.</summary>
     internal sealed class PdfPage

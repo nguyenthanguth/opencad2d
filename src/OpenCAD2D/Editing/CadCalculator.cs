@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// A value of the geometry calculator: a whole number, a real number or a vector (a point) of three coordinates, as

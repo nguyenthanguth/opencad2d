@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>TABLEEXPORT, a table written to a CSV file, as AutoCAD 2021's Export of the table menu runs it.</summary>
     internal static partial class CadCommands

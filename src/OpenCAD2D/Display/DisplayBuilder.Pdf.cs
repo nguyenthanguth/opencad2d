@@ -5,7 +5,7 @@ using System.IO;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>The PDF underlays of a drawing, drawn as AutoCAD 2021 shows them: the page's lines, fills, words and pictures, then the frame.</summary>
     internal sealed partial class DisplayBuilder

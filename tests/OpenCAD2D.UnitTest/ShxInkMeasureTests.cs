@@ -5,9 +5,9 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The ink of SHX letters measured as AutoCAD 2021 measures it to lay out an MTEXT and a dimension's words: an arc reaches

@@ -5,8 +5,9 @@ using System.Linq;
 using System.Printing;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A printer of Windows, printed to through WPF's print queues: the sheets it lists come from its capabilities, each with

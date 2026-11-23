@@ -6,9 +6,9 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.RibbonWave4Harness;
+using static OpenCAD2D.Wpf.UnitTest.RibbonWave4Harness;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// View as AutoCAD 2021's (D1342, D1343), found in the window drawn offscreen: Viewport Tools (the UCS Icon toggle), Named Views

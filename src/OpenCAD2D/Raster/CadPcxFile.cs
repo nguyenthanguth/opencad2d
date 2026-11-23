@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// ZSoft PCX (.pcx), run-length coded: 1 bit a pixel in one plane (bitonal, 0 black and 1 white), 1 to 4 bits in one plane

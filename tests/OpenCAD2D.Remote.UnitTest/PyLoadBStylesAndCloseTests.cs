@@ -5,7 +5,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Remote.UnitTest
+namespace OpenCAD2D.Remote.UnitTest
 {
     /// <summary>Closing a drawing from outside, and reading the text styles, dimension styles and blocks of a drawing.</summary>
     public class PyLoadBStylesAndCloseTests

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What the MTEXT editor's Import Text reads from a file: a text file (.txt) as paragraphs of plain letters, or a rich text

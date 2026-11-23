@@ -1,7 +1,7 @@
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>A tab clicked is an undo step: U and REDO show the space before and after it, and the tabs follow.</summary>
     public class LayoutTabUndoTests

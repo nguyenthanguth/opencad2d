@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>The Plot Styles folder dialog of STYLESMANAGER, with the Plot Style Table Editor and Add Plot Style Table it opens.</summary>
     public partial class CadWorkspace

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>VPMAX and VPMIN, a viewport of a layout maximized into a temporary model view and back, as AutoCAD 2021's.</summary>
     internal static partial class CadCommands

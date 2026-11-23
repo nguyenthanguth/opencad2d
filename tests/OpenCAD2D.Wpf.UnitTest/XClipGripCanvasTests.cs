@@ -8,7 +8,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The grips of a clipped block reference on the canvas, as AutoCAD 2021 gives them: the arrow at the middle of the first

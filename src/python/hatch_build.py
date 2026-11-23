@@ -1,4 +1,4 @@
-"""Build hooks of the geometryhelper wheel: the version, the platform tag, a check that the inputs exist."""
+"""Build hooks of the opencad2d wheel: the version, the platform tag, a check that the inputs exist."""
 
 import re
 from pathlib import Path
@@ -11,20 +11,21 @@ _PROPS = Path("..") / ".." / "Directory.Build.props"
 
 # What the build scripts leave in the project folder; the wheel is not built without them.
 _INPUTS = (
-    ("geometryhelper/lib/GeometryHelper.dll", "tools/python/build-wheel.sh"),
+    ("opencad2d/lib/GeometryHelper.dll", "tools/python/build-wheel.sh"),
     ("GeometryHelper-stubs/__init__.pyi", "tools/python/make-stubs.sh"),
+    ("OpenCAD2D-stubs/__init__.pyi", "tools/python/make-stubs.sh"),
     ("LICENSE", "tools/python/build-wheel.sh"),
 )
 
 
 class VersionHook(MetadataHookInterface):
-    """Takes the version from GeometryHelperVersion, so the NuGet packages and the wheel have one."""
+    """Takes the version from OpenCAD2DVersion, so the app and the wheel have one."""
 
     def update(self, metadata: dict[str, Any]) -> None:
         text = (Path(self.root) / _PROPS).read_text(encoding="utf-8")
-        found = re.search(r"<GeometryHelperVersion>([^<]+)</GeometryHelperVersion>", text)
+        found = re.search(r"<OpenCAD2DVersion>([^<]+)</OpenCAD2DVersion>", text)
         if found is None:
-            raise RuntimeError("No <GeometryHelperVersion> in " + str(Path(self.root) / _PROPS))
+            raise RuntimeError("No <OpenCAD2DVersion> in " + str(Path(self.root) / _PROPS))
         metadata["version"] = found.group(1).strip()
 
 

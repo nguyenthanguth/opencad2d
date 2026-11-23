@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// What <see cref="MainViewModel.DraftingSettingsRequested"/> carries: the tab of Drafting Settings to show first, so that

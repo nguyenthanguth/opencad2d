@@ -3,10 +3,10 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
-using static GeometryHelper.Cad.UnitTest.LispEntityTests;
+using static OpenCAD2D.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.LispEntityTests;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The eighteen <c>vlax-curve-*</c> functions on entity names, against AutoCAD 2021's accoreconsole: probes a3, a4 and a5 of

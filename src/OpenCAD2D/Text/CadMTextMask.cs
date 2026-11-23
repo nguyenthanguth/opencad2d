@@ -1,7 +1,7 @@
 using System;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The background mask of an MTEXT, as AutoCAD 2021's Background Mask dialog sets it: whether the words stand on a

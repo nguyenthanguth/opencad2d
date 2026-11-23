@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Lisp
+namespace OpenCAD2D.Lisp
 {
     /// <summary>
     /// A safearray of AutoLISP, what <c>vlax-make-safearray</c> makes and what ActiveX gives for a point or a list of objects:

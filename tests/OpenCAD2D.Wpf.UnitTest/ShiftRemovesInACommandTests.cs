@@ -2,7 +2,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>Shift held at "Select objects:", as AutoCAD's: a click, a box or a lasso takes out what it picks.</summary>
     public class ShiftRemovesInACommandTests

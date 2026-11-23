@@ -1,10 +1,11 @@
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>CECOLOR, the colour of new objects ($CECOLOR), asked in AutoCAD's words and taken by the objects drawn after it.</summary>
     public class EditingCurrentColorTests

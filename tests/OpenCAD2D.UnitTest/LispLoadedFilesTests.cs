@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The AutoLISP files a document has loaded, which Load/Unload Applications lists (the interpreter's <c>LoadedFiles</c>, the

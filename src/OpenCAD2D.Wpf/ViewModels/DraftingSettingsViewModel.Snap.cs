@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Snap and Grid tab of Drafting Settings past Snap On and its spacing, as AutoCAD 2021's tab: Equal X and Y spacing,

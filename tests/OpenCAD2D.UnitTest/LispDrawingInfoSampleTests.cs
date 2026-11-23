@@ -1,16 +1,16 @@
 using System;
 using System.IO;
 using System.Linq;
-using GeometryHelper.Cad.Lisp;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Lisp;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
-    /// The sample routine that ships in the Lisps folder, GH-DrawingInfo.lsp, as the build leaves it beside GeometryHelper.Cad.dll:
+    /// The sample routine that ships in the Lisps folder, GH-DrawingInfo.lsp, as the build leaves it beside OpenCAD2D.dll:
     /// it defines GHINFO when a drawing opens and writes nothing, and GHINFO writes the drawing's name, units, current layer and
     /// text style, the objects of model space by type, the layers and blocks, and the extents. It changes nothing.
     /// </summary>

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// LIMITS: the grid limits of model space, the rectangle the grid shows and LIMCHECK keeps new points inside

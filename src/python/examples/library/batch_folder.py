@@ -9,7 +9,7 @@ import csv
 import sys
 from pathlib import Path
 
-import geometryhelper  # noqa: F401  (starts .NET and loads the assemblies)
+import opencad2d  # noqa: F401  (starts .NET and loads the assemblies)
 from GeometryHelper.Dwg import DwgReader
 from GeometryHelper.Dxf import DxfDatabase
 

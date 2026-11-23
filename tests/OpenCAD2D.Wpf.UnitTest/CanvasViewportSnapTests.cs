@@ -4,10 +4,10 @@ using System.Windows;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.CanvasMouseTests;
-using static GeometryHelper.Cad.Wpf.UnitTest.CanvasViewportDoubleClickTests;
+using static OpenCAD2D.Wpf.UnitTest.CanvasMouseTests;
+using static OpenCAD2D.Wpf.UnitTest.CanvasViewportDoubleClickTests;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// Object snaps in a layout, offscreen on an STA thread: the room's viewport is 200 by 150 about (150, 100) on the sheet,

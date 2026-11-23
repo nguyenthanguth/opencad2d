@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Windows;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Shows the style dialogs over a window: the Text Style dialog (STYLE), the Dimension Style Manager (DIMSTYLE), the Table

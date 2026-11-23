@@ -2,8 +2,9 @@ using System;
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A picture file read by the presenter's own decoders (TGA, PCX, TIFF, a DIB or an RLE bitmap: <see cref="CadRasterReader"/>)

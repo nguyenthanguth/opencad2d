@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Threading;
 using Xunit;
-using static GeometryHelper.Cad.Wpf.UnitTest.PythonWindowKit;
+using static OpenCAD2D.Wpf.UnitTest.PythonWindowKit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The window's owner of Python runs (D704): <c>Post</c> queues work on the window's dispatcher below what the user did, and

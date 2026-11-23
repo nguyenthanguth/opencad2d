@@ -1,8 +1,8 @@
 <UserControl
-    x:Class="GeometryHelper.Cad.Wpf.PdfRibbon"
+    x:Class="OpenCAD2D.Wpf.PdfRibbon"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:GeometryHelper.Cad.Wpf"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
 >
     <!--
     The contextual PDF Underlay tab, as AutoCAD 2021 draws it for PDF underlays and in the look of the Image tab: Adjust (Fade and

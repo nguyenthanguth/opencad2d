@@ -4,10 +4,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The block commands, in AutoCAD's words: BLOCK and -BLOCK, INSERT and -INSERT, WBLOCK and -WBLOCK, ATTDEF and -ATTDEF,

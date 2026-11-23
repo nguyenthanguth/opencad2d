@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Text;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The format of a field, the text of its <c>\f "..."</c>, as AutoCAD 2021 reads it (checked on its fields in the console):

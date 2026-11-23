@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Geometric Tolerance dialog, which TOLERANCE, LEADER's Tolerance and QLEADER's Tolerance show: two rows of a

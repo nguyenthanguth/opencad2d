@@ -8,7 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The progress meter on the status bar, as AutoCAD's: a meter started by a command or the host shown with its label,

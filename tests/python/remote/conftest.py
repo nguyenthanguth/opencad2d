@@ -1,12 +1,12 @@
-"""Fixtures of the remote suite: a headless GeometryHelper CAD in a process of its own, and clients that connect to it.
+"""Fixtures of the remote suite: a headless OpenCAD2D in a process of its own, and clients that connect to it.
 
-The server is ``tests/GeometryHelper.Cad.Remote.TestServer``: a console program that hosts the app's pipe server over a
+The server is ``tests/OpenCAD2D.Remote.TestServer``: a console program that hosts the app's pipe server over a
 host with no window. It announces itself in a folder of the test's own (``CadApplication()`` reads the folder of the
 real app, which a test never touches), so a test runs while the maintainer's app is open, and the client reaches the
 folder through the internal ``CadApplication(string folder)`` constructor by reflection, as the C# suite does through
 InternalsVisibleTo. The server never builds a drawing by itself: a test makes the drawings it needs.
 
-The runtime and the three assemblies are loaded by ``import geometryhelper`` in the session guard of the conftest above
+The runtime and the three assemblies are loaded by ``import opencad2d`` in the session guard of the conftest above
 this folder, which every test of ``tests/python`` runs under; this file imports nothing of the library before it.
 """
 
@@ -22,7 +22,7 @@ from typing import Any
 
 import pytest
 
-SERVER_NAME = "GeometryHelper.Cad.Remote.TestServer.exe"
+SERVER_NAME = "OpenCAD2D.Remote.TestServer.exe"
 READY_TIMEOUT = 30.0
 ANSWER_TIMEOUT = 10.0
 QUIT_TIMEOUT = 10.0
@@ -36,7 +36,7 @@ def server_exe() -> Path:
         path = Path(named)
     else:
         root = Path(__file__).resolve().parents[3]
-        path = root / "tests" / "GeometryHelper.Cad.Remote.TestServer" / "bin" / "Release" / "net8.0" / SERVER_NAME
+        path = root / "tests" / "OpenCAD2D.Remote.TestServer" / "bin" / "Release" / "net8.0" / SERVER_NAME
     if not path.is_file():
         pytest.fail(f"The remote test server is not built: {path}. Build the solution in Release first.")
     return path
@@ -143,7 +143,7 @@ def connect() -> Iterator[Callable[[str], Any]]:
     from System import Array, Object, String, Type
     from System.Reflection import BindingFlags, TargetInvocationException
 
-    from GeometryHelper.Cad.Remote import CadApplication
+    from OpenCAD2D.Remote import CadApplication
 
     constructor = clr.GetClrType(CadApplication).GetConstructor(
         BindingFlags.Instance | BindingFlags.NonPublic, None, Array[Type]([clr.GetClrType(String)]), None

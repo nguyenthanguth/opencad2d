@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The tool palettes of the window: the palettes in the order of their tabs, the one shown, and the tools cut or copied that
@@ -21,7 +21,7 @@ namespace GeometryHelper.Cad
         /// <summary>The name of the palette a new one is given where it is not named.</summary>
         public const string NewPaletteName = "New Palette";
 
-        /// <summary>Gets the file the palettes are kept in: %AppData%\GeometryHelper\Drawing\ToolPalettes.json, beside the settings.</summary>
+        /// <summary>Gets the file the palettes are kept in: %AppData%\OpenCAD2D\ToolPalettes.json, beside the settings.</summary>
         public static string DefaultPath =>
             Path.Combine(Path.GetDirectoryName(GlobalSettings.DefaultPath), "ToolPalettes.json");
 

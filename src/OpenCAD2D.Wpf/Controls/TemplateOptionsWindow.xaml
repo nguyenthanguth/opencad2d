@@ -1,5 +1,5 @@
 <Window
-    x:Class="GeometryHelper.Cad.Wpf.TemplateOptionsWindow"
+    x:Class="OpenCAD2D.Wpf.TemplateOptionsWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Template Options"
@@ -14,9 +14,9 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/Dark.xaml" />
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/StyleDialogs.xaml" />
-                <ResourceDictionary Source="/GeometryHelper.Cad.Wpf;component/Themes/BlockDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/StyleDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>

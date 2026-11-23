@@ -1,8 +1,8 @@
-"""Type-checks with exactly the errors marked by an expect comment on their lines: what a script of GeometryHelper CAD gets
+"""Type-checks with exactly the errors marked by an expect comment on their lines: what a script of OpenCAD2D gets
 wrong at a prompt, a command or a decorator (P3 D709)."""
 
-from geometryhelper import cad
-from geometryhelper.cad import command
+from opencad2d import cad
+from opencad2d.cad import command
 
 # a message is text
 cad.get_point(5)  # expect: reportArgumentType

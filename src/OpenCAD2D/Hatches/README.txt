@@ -1,4 +1,4 @@
-GeometryHelper CAD - Hatches folder
+OpenCAD2D - Hatches folder
 ===================================
 
 Put hatch pattern files (.pat) in this folder. The patterns in them are listed by the Hatch
@@ -12,7 +12,7 @@ Search order for a pattern file:
 
   1. The folders set in Global settings > Folder preference (Support file search folders),
      in the order listed.
-  2. This folder and its subfolders, next to GeometryHelper.Cad.dll.
+  2. This folder and its subfolders, next to OpenCAD2D.dll.
   3. The built-in patterns.
 
 Subfolders are read too, so you can keep fonts by company or project: the files directly in

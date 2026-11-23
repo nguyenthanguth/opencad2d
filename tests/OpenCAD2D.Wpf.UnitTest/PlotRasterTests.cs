@@ -6,7 +6,7 @@ using GeometryHelper.Geometry;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// PLOT to an image (designs PlotRaster and PlotRasterCustom): GeometryHelper PNG and JPG in the Plot dialog, sizes in

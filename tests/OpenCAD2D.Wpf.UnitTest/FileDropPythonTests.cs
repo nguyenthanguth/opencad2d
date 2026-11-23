@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// A .py dropped on the window (D1622), with <see cref="FakePythonFiles"/> in place of the engine: it loads as APPLOAD's

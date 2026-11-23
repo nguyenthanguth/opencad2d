@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
-using GeometryHelper.Cad.Wpf;
 using GeometryHelper.Dxf;
+using OpenCAD2D.Wpf;
 using SkiaSharp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// XLINE and RAY as AutoCAD shows them: drawn without end across every view they cross, an XLINE both ways from its base

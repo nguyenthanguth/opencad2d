@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// ADCENTER and ADCCLOSE, AutoCAD 2021's DesignCenter commands: the window's DesignCenter palette is shown, or closed. The

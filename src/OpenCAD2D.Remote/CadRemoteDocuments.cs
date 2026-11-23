@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-namespace GeometryHelper.Cad.Remote
+namespace OpenCAD2D.Remote
 {
     /// <summary>
     /// The drawings a running app has open, in the order of their ids (a drawing the app has not listed before gets the next id; drawings listed together get theirs by name, so two runs agree). The list is asked of the app each time it is

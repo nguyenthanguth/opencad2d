@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows;
 using Microsoft.Win32;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The file dialog of AutoLISP's <c>getfiled</c>: an open dialog, or a save dialog where the request is for a new file, with

@@ -5,9 +5,9 @@ using System.Text;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
-using static GeometryHelper.Cad.UnitTest.EditingDrawings;
+using static OpenCAD2D.UnitTest.EditingDrawings;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// AutoLISP typed at the command line, as AutoCAD 2021's accoreconsole wrote it (probes p1 to p4): a form or a

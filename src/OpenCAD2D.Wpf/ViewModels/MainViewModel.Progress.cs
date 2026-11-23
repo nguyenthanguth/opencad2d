@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The progress meter of the status bar, as AutoCAD's: OPEN and SAVE show theirs, and a command (through

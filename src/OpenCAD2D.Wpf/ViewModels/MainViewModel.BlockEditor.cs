@@ -5,7 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using GeometryHelper.Dxf;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Block Editor of the window (BEDIT): the Edit Block Definition dialog, the green Block Editor tab while a block is

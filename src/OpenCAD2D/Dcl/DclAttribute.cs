@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad.Dcl
+namespace OpenCAD2D.Dcl
 {
     /// <summary>What a DCL attribute's value was written as: a string in quotes, an integer, a real or a bare name.</summary>
     internal enum DclValueKind

@@ -3,7 +3,7 @@ using System.Linq;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     public class MainViewModelTests
     {

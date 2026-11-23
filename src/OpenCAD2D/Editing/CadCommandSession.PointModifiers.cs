@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GeometryHelper.Geometry;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// The point modifiers AutoCAD takes at any prompt for a point, typed or chosen from the Shift+right-click menu: FROM, a

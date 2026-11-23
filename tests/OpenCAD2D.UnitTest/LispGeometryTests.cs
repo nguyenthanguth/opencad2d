@@ -1,7 +1,7 @@
-using GeometryHelper.Cad.Lisp;
+using OpenCAD2D.Lisp;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// The functions of AutoLISP that need no drawing, <c>angle</c>, <c>distance</c>, <c>polar</c>, <c>inters</c> and

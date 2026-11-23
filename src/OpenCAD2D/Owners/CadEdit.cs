@@ -1,6 +1,6 @@
 using System;
 
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// One edit of one entity, as the presenter hands it to the entity's owner (<see cref="ICadEntityOwner.TryApply"/>)

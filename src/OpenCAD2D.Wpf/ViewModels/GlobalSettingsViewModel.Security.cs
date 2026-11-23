@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// A folder of the Security page's list of trusted folders: the program's own, which is always trusted and cannot be

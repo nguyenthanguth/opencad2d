@@ -6,7 +6,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.UnitTest
+namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A drawing saved as a DXF of another version of AutoCAD, as AutoCAD 2021's Save Drawing As does with the type chosen: the

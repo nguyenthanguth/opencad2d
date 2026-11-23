@@ -3,12 +3,12 @@
 What the presenter keeps between runs and how the window behaves: global settings in a JSON file, the copies autosave
 leaves beside a drawing, how a drawing is closed, the keys and the mouse, and the two standalone apps with their options. The
 settings are in the core and run in a test; autosave, closing and the window belong to the controls
-(`GeometryHelper.Cad.Wpf`), which the API reference does not list, so they are described here and not linked.
+(`OpenCAD2D.Wpf`), which the API reference does not list, so they are described here and not linked.
 
 ## Global settings
 
-[`GlobalSettings`](xref:GeometryHelper.Cad.GlobalSettings) is what applies to the whole app and every drawing on the
-machine, kept as JSON in `%AppData%\GeometryHelper\Drawing\settings.json` (`GlobalSettings.DefaultPath`). Every setting has
+[`GlobalSettings`](xref:OpenCAD2D.GlobalSettings) is what applies to the whole app and every drawing on the
+machine, kept as JSON in `%AppData%\OpenCAD2D\settings.json` (`GlobalSettings.DefaultPath`). Every setting has
 its default in code, so deleting the file gives the defaults back.
 
 ```csharp
@@ -45,7 +45,7 @@ width factor of drawing text. A file that holds them keeps them, and OK writes t
 | Save and export | the save folder, autosave (how often, and its format, DXF or DWG); Template settings: the template folder and the default template for QNEW (see [Drawing templates](#drawing-templates)); Other programs: whether other programs may connect and drive the app (see [Driving the app from another program](remote.md#the-setting)) | empty, which is the user's Documents, 10 minutes, DXF; template folder empty, which is the `DrawingTemplates` folder next to the dll, no default template for QNEW, which is the built-in metric one; other programs allowed to connect |
 | Drawing text (file only) | the font a style's missing font is drawn in where the replacement is not found either, the heights and the width factor of drawing text: TEXT and MTEXT start from the text height and write the width factor, and DIMLINEAR, DIMALIGNED, DIMRADIUS, DIMDIAMETER and DIMANGULAR write their text at the text height | drawing font Arial, text 2.5, titles 5, width factor 0.8 |
 
-Folder preference lists the folders you add, each editable, and under them the default folder next to `GeometryHelper.Cad.dll`
+Folder preference lists the folders you add, each editable, and under them the default folder next to `OpenCAD2D.dll`
 for each kind, read-only, marked "(default)" with its full path ("(default) not found" where the folder is missing) and an Open
 folder button; they are never saved into the settings file. A line under each list says the order. The default folders are
 `Fonts`, `Hatches`, `Linetypes`, `Lisps`, `Plugins` and `DrawingTemplates` beside the dll (the dll's folder, not the exe's, so that an app which embeds it, such as
@@ -90,7 +90,7 @@ The defaults are AutoCAD's where it has one. Numbers show as the units say: `For
 with a comma for the thousands `12,345.68`. The thousands cannot be parted by the decimal separator: `ThousandsSeparator =
 "Point"` with `DecimalSeparator = "Point"` throws. `SetShortcuts(aliases, keys)` replaces the aliases and keys, and
 `ShortcutConflicts(names)` says an alias that is the name of another command ("The alias DU is the name of the command DU");
-`ToShortcuts()` gives the [`CadShortcuts`](xref:GeometryHelper.Cad.CadShortcuts) a registry takes.
+`ToShortcuts()` gives the [`CadShortcuts`](xref:OpenCAD2D.CadShortcuts) a registry takes.
 
 ### What the text settings reach
 
@@ -243,7 +243,7 @@ using (CadProgressMeter meter = context.Progress.Start("Checking blocks"))   // 
 ## DWG files
 
 The presenter opens a DWG of AutoCAD 2000 to 2018 as it opens a DXF, read by the library's own
-[DWG reader](../dxf/dwg.md), and saves one as a DWG of AutoCAD 2018, the version AutoCAD 2021 saves in.
+[DWG reader](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md), and saves one as a DWG of AutoCAD 2018, the version AutoCAD 2021 saves in.
 
 - Ctrl+O shows Select File, its types Drawing (*.dwg) first, then DXF (*.dxf), as AutoCAD 2021's; a DWG or DXF dropped on the DRAWINGS list opens (dropped on the drawing area it is inserted as a block, as AutoCAD 2021 inserts it: `-INSERT` of the file, then the insertion point; with no drawing open it opens);
   and other files go as on the window (a `.lsp`, `.fas` or `.vlx` loads as a typed `(LOAD "...")`, a `.scr` runs
@@ -337,7 +337,7 @@ AutoCAD's `.dwt` is a DWG with that extension; a `.dwg` or a `.dxf` is as good a
   in, where Save As › Drawing Template saves, and where a template named with no folder (typed at NEW with FILEDIA 0, or
   the default template for QNEW) is looked for. To make a template, save a drawing as `.dwt` (SAVEAS, Files of type:
   Drawing Template, or the application menu's Save As › Drawing Template) and it is there to use. The folder
-  `%AppData%\GeometryHelper\Drawing\Template`, where templates were kept before, is taken in its place only while it holds a
+  `%AppData%\OpenCAD2D\Template`, where templates were kept before, is taken in its place only while it holds a
   template and `DrawingTemplates` holds none; the first template saved into `DrawingTemplates` ends that. A program folder
   you cannot write to (Program Files) cannot be saved into: name a folder of your own in Template folder. The built-in
   templates need no folder.
@@ -355,7 +355,7 @@ AutoCAD's `.dwt` is a DWG with that extension; a `.dwg` or a `.dxf` is as good a
   and its layouts are Model and A3, a sheet of 420 by 297 millimetres on its side. The file is written by the library, not by
   hand: `CadTemplate.CreateSample()` makes the drawing and `SaveAsTemplate` writes it, and a test keeps the shipped file equal
   to it in every layer, style, layout and variable (handles and times are not compared). To write it again, set the
-  environment variable `GEOMETRYHELPER_WRITE_SAMPLE_TEMPLATE` to the full path of the file and run the test
+  environment variable `OPENCAD2D_WRITE_SAMPLE_TEMPLATE` to the full path of the file and run the test
   `TheSampleTemplateIsWrittenWhereTheVariableSays` of `SampleTemplateTests`. AutoCAD 2021 opens it with AUDIT finding no
   errors; where it has no `ghsimplex.shx` on its path it says `Substituting [simplex.shx] for [ghsimplex.shx].` and goes
   on, and with the font beside the drawing it says nothing.
@@ -411,7 +411,7 @@ tab that shows only while a plugin has added a panel to it (see [Command plugins
 | Ctrl+O | opens a DWG or DXF (see [DWG files](#dwg-files)) |
 | Ctrl+W | switches selection cycling on and off, as AutoCAD 2021 |
 | Ctrl+S, Ctrl+Shift+S | saves, saves as |
-| Ctrl+N | runs the new document an extension offers (`MainViewModel.NewDocumentOffer`); where none does, as in GeometryHelper CAD, makes a new drawing (NEW) |
+| Ctrl+N | runs the new document an extension offers (`MainViewModel.NewDocumentOffer`); where none does, as in OpenCAD2D, makes a new drawing (NEW) |
 | Ctrl+Shift+N | starts a new drawing from a template: Select Template opened in the `DrawingTemplates` folder (see [Drawing templates](#drawing-templates)), with or without a drawing open |
 | Ctrl+Z, Ctrl+Y | undo, redo |
 | Delete | erases the selection |
@@ -672,8 +672,8 @@ A row dragged onto the canvas does the same where it is dropped: a block is plac
 drawing file inserted there as a block, and layers, styles, linetypes and layouts copied in. The content is read from the
 files on disk, so a drawing open with unsaved changes is dragged as it was saved; a drawing not saved yet is browsed from its
 open state but cannot be dragged. The same is done from code with
-[`CadDesignCenterDrawing`](xref:GeometryHelper.Cad.CadDesignCenterDrawing) (`Open`, `Of`, `Items`) and
-[`CadDesignCenter.Add`](xref:GeometryHelper.Cad.CadDesignCenter.Add*).
+[`CadDesignCenterDrawing`](xref:OpenCAD2D.CadDesignCenterDrawing) (`Open`, `Of`, `Items`) and
+[`CadDesignCenter.Add`](xref:OpenCAD2D.CadDesignCenter.Add*).
 
 The right-click menu of a drawing file, or of the **Blocks** row of a drawing, adds **Create Tool Palette of Blocks**, and that
 of blocks adds **Create Tool Palette**: a tool palette named for the drawing, with a block tool for each block (every block
@@ -738,7 +738,7 @@ to ANSI38, a solid fill, a linear gradient and ten materials), **Architectural H
 AR-HBONE, AR-PARQ1, AR-RROOF, AR-RSHKE and AR-SAND, at their size in millimetres) and **ISO Hatches** (ISO02W100 to
 ISO15W100). No file, picture or icon of AutoCAD's is used, and its `.atc` files are not read.
 
-**The file.** The palettes are kept in `ToolPalettes.json` beside the settings (`%AppData%\GeometryHelper\Drawing\`, the folder
+**The file.** The palettes are kept in `ToolPalettes.json` beside the settings (`%AppData%\OpenCAD2D\`, the folder
 of `MainViewModel.SettingsPath`), written after every change: UTF-8 JSON, two spaces of indent, LF. A file that is missing or does
 not read gives the starter palettes, said once in the log; a value that is not valid falls back to its default with a Warn
 naming it, and a tool of a kind this version does not know is left out. **Export Palette…** writes the same format (a `.ghtp`
@@ -755,11 +755,11 @@ file, one palette or all) and **Import Palette…** reads it, adding the palette
 | hatch | `hatchType` (`pattern`, `userDefined`, `solid` or `gradient`), `pattern`, `angle` (degrees), `scale`, `spacing`, `gradient` (`GR_LINEAR` and the others), `associative` |
 | overrides of a command, block or hatch | `layer`, `color` (`ByLayer`, `ByBlock`, `1` to `255`), `linetype`, `lineWeight` (hundredths of a millimetre; -1 ByLayer, -2 ByBlock, -3 default); a member left out is the drawing's current one |
 
-From code, [`CadToolPalettes`](xref:GeometryHelper.Cad.CadToolPalettes) (`CreateStarter`, `Load`, `Save`, `Add`,
+From code, [`CadToolPalettes`](xref:OpenCAD2D.CadToolPalettes) (`CreateStarter`, `Load`, `Save`, `Add`,
 `Rename`, `Remove`, `Move`, `Copy`, `Cut`, `Paste`, `Import`, `Export`, `ToJson`, `TryParse`),
-[`CadToolPalette`](xref:GeometryHelper.Cad.CadToolPalette), [`CadTool`](xref:GeometryHelper.Cad.CadTool)
+[`CadToolPalette`](xref:OpenCAD2D.CadToolPalette), [`CadTool`](xref:OpenCAD2D.CadTool)
 (`ForCommand`, `ForBlock`, `ForHatch`, `ForText`, `ForSeparator`, `FromObject`) and
-[`CadCommandSession.StartTool`](xref:GeometryHelper.Cad.CadCommandSession.StartTool*) do the same without the window.
+[`CadCommandSession.StartTool`](xref:OpenCAD2D.CadCommandSession.StartTool*) do the same without the window.
 
 ### The Parametric tab
 
@@ -784,7 +784,7 @@ shown) are shown through functions the workspace sets, as the other dialogs are;
 Python is a way to write commands: `.py` files load from the Pythons folder at start, from APPLOAD, PYLOAD, the Python Startup
 Suite and by dropping them on the window, and PYRUN runs one once. There is no console: the PYTHON palette and its commands
 PYTHON and PYTHONCLOSE were removed, and a script that asks the user asks on the command line, as a command does. A host that
-embeds the presenter in a program of its own gets no Python unless it sets `CadAppHost.EnablePython`, which GeometryHelper CAD
+embeds the presenter in a program of its own gets no Python unless it sets `CadAppHost.EnablePython`, which OpenCAD2D
 itself does. Where no Python can be found the command line says what to install or set, and nothing else changes. The Python
 used is set in Global settings, Folder preference, **Python**. [Python commands and tools](python.md) has the rest: finding
 Python, `@command`, the prompts, the `Drawing` API, the undo step, Esc and the errors.
@@ -794,7 +794,7 @@ Python, `@command`, the prompts, the `Drawing` API, the undo step, Esc and the e
 With no drawing open the canvas shows the start screen: the name of the app, Open DXF… (Ctrl+O), New, and Recent
 Documents with the same files and pins as the application menu, under PINNED and RECENT headings, each row with its
 preview, folder and when it was opened (`today 09:14`, `yesterday 16:40`, `2026-10-30`); the two buttons at its top right
-show the files as a list or as large pictures. GeometryHelper CAD, which has no extension, offers `New ·
+show the files as a list or as large pictures. OpenCAD2D, which has no extension, offers `New ·
 Ctrl+N` (NEW), then `New from template · Ctrl+Shift+N` (Select Template in the `DrawingTemplates` folder), and says "Ctrl+O opens a DXF, Ctrl+N starts a new drawing." on the command line. An extension may offer a new
 document of its own, a `CadNewDocumentOffer` (its menu name, button text, tooltip, start-screen line, welcome line and what
 running it does) returned by `CadWorkspaceExtension.NewDocumentOffer`: the start screen then adds its button and calls NEW
@@ -839,7 +839,7 @@ member of `CadWorkspaceExtension` that adds nothing until it is overridden.
 
 A command plugin loaded at run time reaches the same places without these seams, which take WPF types: it describes its
 ribbon tabs, Properties rows, DRAWINGS buttons and items, canvas items and object snaps with the types of
-`GeometryHelper.Cad.Plugins`, and the window draws them, as [command plugins](plugins.md#what-a-plugin-adds-to-the-window)
+`OpenCAD2D.Plugins`, and the window draws them, as [command plugins](plugins.md#what-a-plugin-adds-to-the-window)
 describes. A plugin's Properties provider is asked after the extensions, its canvas items come after theirs, and its
 DRAWINGS buttons stand first in the header.
 
@@ -884,31 +884,31 @@ The standalone app is net8.0-windows:
 
 | App | What it is | Use it to |
 |---|---|---|
-| GeometryHelper CAD, `GeometryHelper.Cad.App.exe` | the presenter alone: `GeometryHelper.Cad` and its controls, no model drawing | open, edit and plot DXF drawings in place of AutoCAD; the program to associate with `.dxf` files |
+| OpenCAD2D, `OpenCAD2D.App.exe` | the presenter alone: `OpenCAD2D` and its controls, no model drawing | open, edit and plot DXF drawings in place of AutoCAD; the program to associate with `.dxf` files |
 
 ```
-GeometryHelper.Cad.App.exe plan.dxf
+OpenCAD2D.App.exe plan.dxf
 ```
 
 opens the window on a drawing, as double-clicking a file associated with the app does. The app reads the global settings from
-the user's file and loads the command plugins of the `Plugins` folder beside the app and of the startup list: GeometryHelper CAD keeps the startup list in
-`%AppData%\GeometryHelper\Dxf`; the app gets its plugins from its own folder. The title bar and the start screen carry the app's name.
+the user's file and loads the command plugins of the `Plugins` folder beside the app and of the startup list: OpenCAD2D keeps the startup list in
+`%AppData%\OpenCAD2D`; the app gets its plugins from its own folder. The title bar and the start screen carry the app's name.
 
-The app starts through `CadAppHost` of `GeometryHelper.Cad.Wpf`, and its window is `CadAppWindow`. A host that makes model
+The app starts through `CadAppHost` of `OpenCAD2D.Wpf`, and its window is `CadAppWindow`. A host that makes model
 drawings derives from `CadAppHost` to add its parts: the host's protected members take its options off the command line, put
 the model drawing into the view model, make a drawing before the file is opened, draw its dialogs and select what its
 options name. A host of its own does the same.
 
 ### The icon and the file association
 
-GeometryHelper CAD has an icon of its own, a white set square and an orange point on a blue tile, at 16, 24, 32, 48 and 256
+OpenCAD2D has an icon of its own, a white set square and an orange point on a blue tile, at 16, 24, 32, 48 and 256
 pixels: the exe carries it, and the window shows it on the taskbar and in Alt+Tab (`CadAppHost.WindowIcon`). A drawing file
 associated with the app shows a page with the same tile on it. Both are written from their vector drawing by
-`src/GeometryHelper.Cad.App/Icons/make-icons.ps1` into `app.ico` and `drawing-file.ico`; the second is copied beside the exe.
+`src/OpenCAD2D.App/Icons/make-icons.ps1` into `app.ico` and `drawing-file.ico`; the second is copied beside the exe.
 
 ```
-GeometryHelper.Cad.App.exe --register
-GeometryHelper.Cad.App.exe --unregister
+OpenCAD2D.App.exe --register
+OpenCAD2D.App.exe --unregister
 ```
 
 `--register` associates .dxf and .dwg files with the app for the user alone, under `HKEY_CURRENT_USER\Software\Classes`, so
@@ -916,14 +916,14 @@ no administrator is asked for:
 
 | Key | Value |
 |---|---|
-| `GeometryHelper.Drawing` | `Drawing (GeometryHelper CAD)`, the type Explorer shows |
+| `GeometryHelper.Drawing` | `Drawing (OpenCAD2D)`, the type Explorer shows |
 | `GeometryHelper.Drawing\DefaultIcon` | `drawing-file.ico` beside the exe (the exe's own icon where the file is missing) |
-| `GeometryHelper.Drawing\shell\open\command` | `"…\GeometryHelper.Cad.App.exe" "%1"` |
+| `GeometryHelper.Drawing\shell\open\command` | `"…\OpenCAD2D.App.exe" "%1"` |
 | `.dxf\OpenWithProgids`, `.dwg\OpenWithProgids` | `GeometryHelper.Drawing`, so the app is in the Open with list |
 | `.dxf`, `.dwg` | `GeometryHelper.Drawing`, only where no program has the extension |
 
 An extension another program has (AutoCAD's `.dwg`, say) is left to it, and the app is one choice of Open with; Windows keeps
-the choice "Always use this app" itself. It writes one line, `.dxf and .dwg files open with GeometryHelper CAD: …`, and
+the choice "Always use this app" itself. It writes one line, `.dxf and .dwg files open with OpenCAD2D: …`, and
 exits with 0, or with 1 and the reason where the registry refuses. `--unregister` takes out the ProgID and its Open with
 entries, and the default of an extension only where it is the app's; what other programs wrote stays. Run it again after
 moving the app, since the command names the exe where it was. A file opened from Explorer starts a new window of the app,
@@ -933,7 +933,7 @@ the app registered last is the one that opens the files.
 ### Crashes and the crash log
 
 An exception nobody caught does not close the app without a word. Every exception that reaches the top is written to
-`%AppData%\GeometryHelper\Drawing\crash.log` (appended, UTF-8): the time, the app's name and version, the runtime and the
+`%AppData%\OpenCAD2D\crash.log` (appended, UTF-8): the time, the app's name and version, the runtime and the
 system, which handler caught it, the command run last (`PLOT`, say), and the exception in full, its type, message, stack and
 each inner exception. The file is moved to `crash.old.log` once it passes 256 KB, so the two hold 512 KB at most. The
 same text goes to `GeometryHelperLog` as a Warn. Writing the log never throws; where the file cannot be written (a read-only
@@ -948,7 +948,7 @@ folder) the message box says so.
 | Out of memory, an access violation or another fault of native code, on the window's thread | The entry is written, the box says the app cannot go on, and it closes: after these the process can no longer be trusted to hold the drawings |
 
 A stack overflow cannot be caught by any handler: .NET ends the process at once and nothing is written, so a crash with no
-entry in the log and no message is one of those. `GeometryHelper.Cad.App` and any other host built on `CadAppHost` install the
+entry in the log and no message is one of those. `OpenCAD2D.App` and any other host built on `CadAppHost` install the
 handlers, as part of `CadAppHost.Run`.
 
 ### Screenshots
@@ -956,7 +956,7 @@ handlers, as part of `CadAppHost.Run`.
 For a picture of the window in a test or a document:
 
 ```
-GeometryHelper.Cad.App.exe --screenshot out.png plan.dxf --size 1600 960
+OpenCAD2D.App.exe --screenshot out.png plan.dxf --size 1600 960
 ```
 
 draws the window with the drawing open into a PNG, with no window shown, and exits: 0 when written, 2 for arguments or a file
@@ -988,7 +988,7 @@ Security page); `color`, `truecolor` and `truecolor-rgb` (Select Color on index 
 `pastespec`; `app-menu` and `app-menu:export` (the application menu on Recent Documents, or on the list of New, Open,
 Save As, Export, Print or Close); the command line's menus `cmdline-menu`, `input-settings-menu` and `recent-commands-menu`;
 and `autocomplete:LA` (the AutoComplete list for LA). A popup of the running window cannot be drawn; these draw its
-content alone. A name neither app knows exits with 2: `--dialog update: no such dialog.` from GeometryHelper CAD.
+content alone. A name neither app knows exits with 2: `--dialog update: no such dialog.` from OpenCAD2D.
 
 The dialogs of rounds 5 to 9 are drawn over the drawing open, each in a sample state of its own, the lines of `--run` typed first:
 `mlstyle` (Multiline Style, WALL-240 added with elements 120, 0 and -120 where the drawing has only STANDARD, and chosen),
@@ -1010,7 +1010,7 @@ the space shown has no image (--run "-IMAGE;...").`, and exits with 2.
 
 A host that makes model drawings adds its own switches by the same hooks.
 
-Fonts are looked for in Global settings > Folder preference > Font search folders in order, then in the `Fonts` folder next to `GeometryHelper.Cad.dll` and its subfolders (see [the categories](#the-categories)), a bare name taking `.shx` and a full path used as it is; the list is empty by default, the folder of the drawing is not looked in, and AutoCAD's own Fonts folders are never looked in unless you add them there. A TrueType file is also looked for in the Windows Fonts folder, and a TrueType family Windows does not have is drawn from a file of that family in those folders. A style naming `romans.shx` is drawn as the single strokes of romans, read from the file: shapes, unifont and big fonts, every pen code; a TEXT of romans.shx `ABC123` 10 high right-aligned on x 100 is inked from 44.762 to 100, as AutoCAD puts it. A style naming Arial is drawn by the canvas. A letter a TrueType font has no glyph for is drawn from a font that has it, as AutoCAD draws it through the font linking of Windows, on the screen, on a plot, in a PDF and in the outlines of TXTEXP: the Vietnamese letters of U+1EA0 to U+1EF9 in Gulim or Malgun Gothic (an MTEXT written on a Korean machine names Gulim for them, `\fGulim|b0|i0|c129|p50;ỗ`) were the font's empty box and are Arial's own letters; the fonts tried are Arial, Segoe UI, Tahoma and Times New Roman in that order, in the face's bold and italic, then the font Windows gives the letter, and a letter none has stays the font's box. A font named in the substitution table, or in the font mapping file (an `.fmp` file of `oldfont;newfont` lines, as FONTMAP), is drawn in the font given for it. A TrueType family or file the machine has not (a Korean drawing's 돋움체, DotumChe or Gulim on a machine without them) is drawn in a TrueType font, the drawing font (Arial by default), as AutoCAD draws it through the font mapping of Windows; its Korean, Chinese or Japanese letters come out of the font Windows links for them (Malgun Gothic, SimSun, MS Gothic) as the letters of any Arial text do, where the single-stroke font would have drawn each as a question mark. The style keeps the drawing's own font name, and the command line says `Font DotumChe not found: using the drawing font.` once. A family is matched by any of its names, English or local (`Malgun Gothic` and `맑은 고딕`, `MS Gothic` and `ＭＳ ゴシック`, `SimSun` and `宋体` are one font). The Text Style dialog's Font name box always shows the font the style stores, whether or not the machine has it: a family it lacks is listed as stored and marked `(not installed)` (`DotumChe`), an SHX file or big font no folder has `(not found)`, and a family it has under another of its names (`맑은 고딕`) selects the installed entry (`Malgun Gothic`); showing a style writes nothing, so Apply after a look at every style leaves each style's font, big font, charset and file as they were, and only a change made in the dialog marks a style as changed. A TrueType family that has names in other languages in its font file shows them after its English name, in muted words: `TT  Malgun Gothic  맑은 고딕`, `TT  MS Gothic  ＭＳ ゴシック`, `TT  DotumChe  돋움체` where DotumChe is installed, and `TT  Arial` alone; a name too long for the box is trimmed with an ellipsis and the tooltip holds them all. The list stays in the order of the English names, and typing in the box finds a font by the start of any of its names (`dot` or `돋` finds DotumChe, `맑` finds Malgun Gothic). Picking a family stores its English name, as before, and a style that stores a local name keeps it stored. The same names follow the font in the style list of the dialog and in the MTEXT editor's font box; the Missing Fonts dialog lists a family the machine lacks as the drawing stores it, with nothing after it. An SHX font not found is drawn in the replacement font (as FONTALT): by default GeometryHelper Simplex (`ghsimplex`), the presenter's own single-stroke font after the Hershey Roman Simplex letters, its capitals as high as the text. Write `simplex.shx,gbcbig.shx` to give a big font for big fonts not found too. On opening, the command line lists the missing SHX files once, each with what it is drawn in: `Missing SHX files: romans.shx drawn in GeometryHelper Simplex.` A drawing opened with SHX files not found shows the Missing SHX files dialog: the files, the styles that use them and what they are drawn in, and a replacement to pick for each or the replacement font kept. Where TrueType fonts the machine has not are named too, by a text style or by an MTEXT's font code (`{\fDotumChe|b0|i0|c129|p50;...}`; MTEXTs of model space, layouts and blocks are read, those inside dimensions, leaders and attributes are not), the dialog is titled Missing Fonts and a second, read-only list follows with each family or `.ttf`/`.ttc`/`.otf` name once, whatever its case, in the order of the names, and what it is drawn in (`DotumChe`: `Arial, letters it lacks from another font`; Arial is the drawing font of Global settings). A TrueType font has no replacement to pick. A drawing whose only missing fonts are TrueType opens the dialog with that list alone, titled Missing Fonts; with SHX files alone the title stays Missing SHX files. A family the machine has under another of its names is not listed. Do not show again turns the dialog off; Global settings › Text and fonts › Font not found has the switch Show the missing fonts dialog on opening a drawing to turn it on again (saved as `showMissingShxDialog`). The Chinese, Japanese and Korean code pages of the big fonts are registered by the app at start. The font lists are read ahead once the window has drawn: the TrueType families of the machine (the name table of each file of the Fonts folders of Windows and of the user, 2 447 files on a machine with 1 324 families) and the SHX files of the font folders (1 389 in AutoCAD 2021's Fonts folder), each on a thread of its own at below normal priority, so that the first STYLE, MTEXT or dimension text opens on lists already read; one opened before they are done waits for the same reading and does not repeat it. The head of an SHX file is read once for the process and again only where the file's size or time written changes, a font folder changed in Global settings is read as it is applied, and the lists are the same, in the same order, as when each was read at the first use. The Font name box of the Text Style dialog, the font box of the MTEXT editor and the other drop-downs of the app's own style make the rows they show and not one for every item: a drop-down of the 1 325 fonts opens in 0.1 second where it took 2.
+Fonts are looked for in Global settings > Folder preference > Font search folders in order, then in the `Fonts` folder next to `OpenCAD2D.dll` and its subfolders (see [the categories](#the-categories)), a bare name taking `.shx` and a full path used as it is; the list is empty by default, the folder of the drawing is not looked in, and AutoCAD's own Fonts folders are never looked in unless you add them there. A TrueType file is also looked for in the Windows Fonts folder, and a TrueType family Windows does not have is drawn from a file of that family in those folders. A style naming `romans.shx` is drawn as the single strokes of romans, read from the file: shapes, unifont and big fonts, every pen code; a TEXT of romans.shx `ABC123` 10 high right-aligned on x 100 is inked from 44.762 to 100, as AutoCAD puts it. A style naming Arial is drawn by the canvas. A letter a TrueType font has no glyph for is drawn from a font that has it, as AutoCAD draws it through the font linking of Windows, on the screen, on a plot, in a PDF and in the outlines of TXTEXP: the Vietnamese letters of U+1EA0 to U+1EF9 in Gulim or Malgun Gothic (an MTEXT written on a Korean machine names Gulim for them, `\fGulim|b0|i0|c129|p50;ỗ`) were the font's empty box and are Arial's own letters; the fonts tried are Arial, Segoe UI, Tahoma and Times New Roman in that order, in the face's bold and italic, then the font Windows gives the letter, and a letter none has stays the font's box. A font named in the substitution table, or in the font mapping file (an `.fmp` file of `oldfont;newfont` lines, as FONTMAP), is drawn in the font given for it. A TrueType family or file the machine has not (a Korean drawing's 돋움체, DotumChe or Gulim on a machine without them) is drawn in a TrueType font, the drawing font (Arial by default), as AutoCAD draws it through the font mapping of Windows; its Korean, Chinese or Japanese letters come out of the font Windows links for them (Malgun Gothic, SimSun, MS Gothic) as the letters of any Arial text do, where the single-stroke font would have drawn each as a question mark. The style keeps the drawing's own font name, and the command line says `Font DotumChe not found: using the drawing font.` once. A family is matched by any of its names, English or local (`Malgun Gothic` and `맑은 고딕`, `MS Gothic` and `ＭＳ ゴシック`, `SimSun` and `宋体` are one font). The Text Style dialog's Font name box always shows the font the style stores, whether or not the machine has it: a family it lacks is listed as stored and marked `(not installed)` (`DotumChe`), an SHX file or big font no folder has `(not found)`, and a family it has under another of its names (`맑은 고딕`) selects the installed entry (`Malgun Gothic`); showing a style writes nothing, so Apply after a look at every style leaves each style's font, big font, charset and file as they were, and only a change made in the dialog marks a style as changed. A TrueType family that has names in other languages in its font file shows them after its English name, in muted words: `TT  Malgun Gothic  맑은 고딕`, `TT  MS Gothic  ＭＳ ゴシック`, `TT  DotumChe  돋움체` where DotumChe is installed, and `TT  Arial` alone; a name too long for the box is trimmed with an ellipsis and the tooltip holds them all. The list stays in the order of the English names, and typing in the box finds a font by the start of any of its names (`dot` or `돋` finds DotumChe, `맑` finds Malgun Gothic). Picking a family stores its English name, as before, and a style that stores a local name keeps it stored. The same names follow the font in the style list of the dialog and in the MTEXT editor's font box; the Missing Fonts dialog lists a family the machine lacks as the drawing stores it, with nothing after it. An SHX font not found is drawn in the replacement font (as FONTALT): by default GeometryHelper Simplex (`ghsimplex`), the presenter's own single-stroke font after the Hershey Roman Simplex letters, its capitals as high as the text. Write `simplex.shx,gbcbig.shx` to give a big font for big fonts not found too. On opening, the command line lists the missing SHX files once, each with what it is drawn in: `Missing SHX files: romans.shx drawn in GeometryHelper Simplex.` A drawing opened with SHX files not found shows the Missing SHX files dialog: the files, the styles that use them and what they are drawn in, and a replacement to pick for each or the replacement font kept. Where TrueType fonts the machine has not are named too, by a text style or by an MTEXT's font code (`{\fDotumChe|b0|i0|c129|p50;...}`; MTEXTs of model space, layouts and blocks are read, those inside dimensions, leaders and attributes are not), the dialog is titled Missing Fonts and a second, read-only list follows with each family or `.ttf`/`.ttc`/`.otf` name once, whatever its case, in the order of the names, and what it is drawn in (`DotumChe`: `Arial, letters it lacks from another font`; Arial is the drawing font of Global settings). A TrueType font has no replacement to pick. A drawing whose only missing fonts are TrueType opens the dialog with that list alone, titled Missing Fonts; with SHX files alone the title stays Missing SHX files. A family the machine has under another of its names is not listed. Do not show again turns the dialog off; Global settings › Text and fonts › Font not found has the switch Show the missing fonts dialog on opening a drawing to turn it on again (saved as `showMissingShxDialog`). The Chinese, Japanese and Korean code pages of the big fonts are registered by the app at start. The font lists are read ahead once the window has drawn: the TrueType families of the machine (the name table of each file of the Fonts folders of Windows and of the user, 2 447 files on a machine with 1 324 families) and the SHX files of the font folders (1 389 in AutoCAD 2021's Fonts folder), each on a thread of its own at below normal priority, so that the first STYLE, MTEXT or dimension text opens on lists already read; one opened before they are done waits for the same reading and does not repeat it. The head of an SHX file is read once for the process and again only where the file's size or time written changes, a font folder changed in Global settings is read as it is applied, and the lists are the same, in the same order, as when each was read at the first use. The Font name box of the Text Style dialog, the font box of the MTEXT editor and the other drop-downs of the app's own style make the rows they show and not one for every item: a drop-down of the 1 325 fonts opens in 0.1 second where it took 2.
 
 ## The ribbon
 

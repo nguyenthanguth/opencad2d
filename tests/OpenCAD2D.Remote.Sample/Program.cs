@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace GeometryHelper.Cad.Remote.Sample
+namespace OpenCAD2D.Remote.Sample
 {
     /// <summary>
-    /// A console program that drives a running GeometryHelper CAD: it lists the apps it finds, connects to the one the user
+    /// A console program that drives a running OpenCAD2D: it lists the apps it finds, connects to the one the user
     /// worked in last and runs <see cref="RemoteSample.Run"/>. Start the app first; the program waits for you to click a
     /// point in the drawing.
     /// </summary>
@@ -19,7 +19,7 @@ namespace GeometryHelper.Cad.Remote.Sample
             if (running.Count == 0)
             {
                 Console.Error.WriteLine(
-                    "No GeometryHelper CAD is running. Start the app, and make sure that Global settings allow other programs to connect."
+                    "No OpenCAD2D is running. Start the app, and make sure that Global settings allow other programs to connect."
                 );
                 return 2;
             }

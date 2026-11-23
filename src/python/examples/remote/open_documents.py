@@ -1,4 +1,4 @@
-"""Lists the drawings a running GeometryHelper CAD has open, with what is in their model space.
+"""Lists the drawings a running OpenCAD2D has open, with what is in their model space.
 
 Run outside the app, with "Allow other programs to connect" on in its Global settings: python open_documents.py
 One line for each drawing, in the app's order: its name (then " *" for the one shown), the number of objects in model
@@ -7,8 +7,8 @@ space, and the count of each class of object.
 
 from collections import Counter
 
-from geometryhelper.cad import App
-from GeometryHelper.Cad.Remote import CadApplication
+from opencad2d.cad import App
+from OpenCAD2D.Remote import CadApplication
 
 
 def main(app: CadApplication) -> None:

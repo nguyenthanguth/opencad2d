@@ -1,4 +1,4 @@
-namespace GeometryHelper.Cad
+namespace OpenCAD2D
 {
     /// <summary>
     /// What <c>getfiled</c> hands the window with the GETFILED request: the dialog's title, the starting name, the extensions

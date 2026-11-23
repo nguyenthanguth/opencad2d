@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using GeometryHelper.Cad.Plugins;
-using GeometryHelper.Cad.Wpf.Plugins;
+using OpenCAD2D.Plugins;
+using OpenCAD2D.Wpf.Plugins;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The application class of a plugin the window tests write themselves, so that one test can make a button that throws, a
@@ -42,13 +42,13 @@ namespace GeometryHelper.Cad.Wpf.UnitTest
 
     /// <summary>
     /// What the tests of what plugins add to the window share: a manager over the loader of the runtime in a folder of its own,
-    /// the sample that adds to the window (GeometryHelper.Cad.SampleUiPlugin, loaded from its .dll as a user's plugin is) and
+    /// the sample that adds to the window (OpenCAD2D.SampleUiPlugin, loaded from its .dll as a user's plugin is) and
     /// the hook plugin made of <see cref="HookPluginApplication"/>.
     /// </summary>
     internal sealed class PluginWindowKit : IDisposable
     {
         /// <summary>The name of the sample plugin: its file name without the extension.</summary>
-        public const string SampleName = "GeometryHelper.Cad.SampleUiPlugin";
+        public const string SampleName = "OpenCAD2D.SampleUiPlugin";
 
         /// <summary>The name of the hook plugin.</summary>
         public const string HookName = "HookPlugin";

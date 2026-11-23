@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
+using GeometryHelper;
 
-namespace GeometryHelper.Cad.Wpf
+namespace OpenCAD2D.Wpf
 {
     /// <summary>A plotter of the Printer/plotter list: the built-in PDF and image writers, None (shown, not chosen), or a printer of Windows.</summary>
     public sealed class PlotDeviceRow

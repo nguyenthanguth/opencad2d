@@ -1,7 +1,7 @@
 using Xunit;
-using static GeometryHelper.Cad.Python.UnitTest.PythonDrawings;
+using static OpenCAD2D.Python.UnitTest.PythonDrawings;
 
-namespace GeometryHelper.Cad.Python.UnitTest
+namespace OpenCAD2D.Python.UnitTest
 {
     /// <summary>
     /// The palette's console (D714): each drawing has its own globals, an entry is complete, incomplete or wrong as
@@ -127,7 +127,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
         {
             CadCommandSession session = NewSession();
 
-            Enter(session, "import geometryhelper.cad as cad");
+            Enter(session, "import opencad2d.cad as cad");
             Enter(session, "cad.cmd('CIRCLE', (0, 0), 5)");
 
             CadDocument document = session.Document;
@@ -139,7 +139,7 @@ namespace GeometryHelper.Cad.Python.UnitTest
         public void AnEntryThatAsks_GetsItsAnswerFromTheUser()
         {
             CadCommandSession session = NewSession();
-            Enter(session, "import geometryhelper.cad as cad");
+            Enter(session, "import opencad2d.cad as cad");
 
             Enter(session, "cad.get_point('Where').X", Typed("12,3"));
 

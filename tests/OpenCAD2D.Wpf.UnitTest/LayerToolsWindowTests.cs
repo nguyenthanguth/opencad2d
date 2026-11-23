@@ -12,7 +12,7 @@ using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
 
-namespace GeometryHelper.Cad.Wpf.UnitTest
+namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// The LayerWalk dialog, the Layer Translator with its Settings and Edit Layer dialogs, and the DesignCenter palette, made
