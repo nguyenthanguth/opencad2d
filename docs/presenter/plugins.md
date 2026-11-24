@@ -311,6 +311,8 @@ it with no .NET SDK, as `dotnet restore` does, and compiles and runs the plugin 
 - **Offline.** A source that cannot be reached, or a download that fails, leaves the plugin not loaded:
   `Stairs was not loaded: nuget.org could not be reached (<why>). Connect and run PLUGINRELOAD Stairs.` A package cut short
   does not count: a package is in the cache once its `.sha512` file is written, after everything else.
+  A connection to the source is given up after 5 s, so the line comes within about 10 s even where a firewall drops the
+  packets and nothing answers.
 - **Where.** The packages are extracted into `%LocalAppData%\OpenCAD2D\NuGet\packages` in the layout of NuGet's global-packages
   folder (`<id>\<version>\`), shared by every plugin, and their signatures are checked as `dotnet restore` checks them. The
   source is nuget.org only: no `nuget.config` is read. The list a plugin resolved to (ids, versions, the SHA-512 of each

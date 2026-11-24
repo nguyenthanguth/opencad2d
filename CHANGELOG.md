@@ -133,7 +133,7 @@
   `netstandard2.0`); the question before the first download and when the list changes (the window asks with a dialog,
   **Packages for Stairs**, that lists the packages, the plugin's own in bold and then what they need, each marked
   `download` or `in the cache`, with the buttons `Don’t load` and `Download and load`; closing it is a no), a no or an
-  unreachable nuget.org leaving the plugin not loaded with the line to
+  unreachable nuget.org (a connection is given up after 5 s: a source whose address drops packets is reported in 5 s, where Windows alone waits 42.8 s over the two tries) leaving the plugin not loaded with the line to
   reconnect and PLUGINRELOAD (the line of the command-line form of the question,
   `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:`, is `CadPackageQuestion.Prompt`; no command asks it yet,
   so a typed PLUGINLOAD asks with the dialog too); packages kept in `%LocalAppData%\OpenCAD2D\NuGet\packages`, the resolved list in

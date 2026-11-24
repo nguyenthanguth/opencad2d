@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Client;
@@ -33,6 +34,13 @@ namespace OpenCAD2D.Wpf.Plugins
     {
         /// <summary>The source of the app: nuget.org's index.</summary>
         internal const string NuGetOrg = "https://api.nuget.org/v3/index.json";
+
+        /// <summary>
+        /// How long a connection to the source may take before the attempt is given up: 5 s. Windows waits 21.4 s for a
+        /// host that never answers (a firewall that drops packets, an address nothing routes), twice over with the two tries,
+        /// which is 42.8 s measured with the window waiting; a connection that works is made in well under a second.
+        /// </summary>
+        internal static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(5);
 
         private const int MaxPasses = 64;
 
@@ -280,12 +288,27 @@ namespace OpenCAD2D.Wpf.Plugins
             return exception.Message.Trim().Split('\n')[0].Trim();
         }
 
-        private SourceRepository Repository()
+        /// <summary>
+        /// The source as NuGet's own <c>Repository.Factory.GetCoreV3</c> makes it, except that its HTTP handler is the one of
+        /// <see cref="ConnectTimeoutHandlerProvider"/>.
+        /// </summary>
+        internal SourceRepository Repository()
         {
             lock (_gate)
             {
-                return _repository ?? (_repository = NuGet.Protocol.Core.Types.Repository.Factory.GetCoreV3(_source));
+                return _repository ?? (_repository = CreateRepository());
             }
+        }
+
+        private SourceRepository CreateRepository()
+        {
+            var providers = NuGet
+                .Protocol.Core.Types.Repository.Provider.GetCoreV3()
+                .Where(provider => !(provider.Value is HttpHandlerResourceV3Provider))
+                .ToList();
+            providers.Add(new Lazy<INuGetResourceProvider>(() => new ConnectTimeoutHandlerProvider()));
+
+            return NuGet.Protocol.Core.Types.Repository.CreateSource(providers, _source);
         }
 
         private async Task DownloadAsync(IReadOnlyList<CadPackageEntry> packages)
@@ -787,6 +810,60 @@ namespace OpenCAD2D.Wpf.Plugins
                 Range.IsMinInclusive && !Range.HasUpperBound && Range.MinVersion != null && !Range.IsFloating
                     ? Range.MinVersion.ToNormalizedString() + " or higher"
                     : Range.ToNormalizedString();
+        }
+    }
+
+    /// <summary>
+    /// The HTTP handler of the restorer's source in place of NuGet's own, whose connection has no time limit but the 21.4 s
+    /// of Windows. NuGet's handler is built as it always is (the proxy of the system, the decompression, the credentials
+    /// and the warnings of the server), then its <see cref="HttpClientHandler"/> at the bottom of the chain is exchanged for
+    /// a <see cref="SocketsHttpHandler"/> with the same settings and a <see cref="CadPackageRestorer.ConnectTimeout"/>.
+    /// </summary>
+    internal sealed class ConnectTimeoutHandlerProvider : ResourceProvider
+    {
+        private readonly HttpHandlerResourceV3Provider _nuget = new HttpHandlerResourceV3Provider();
+
+        internal ConnectTimeoutHandlerProvider()
+            : base(typeof(HttpHandlerResource), nameof(ConnectTimeoutHandlerProvider)) { }
+
+        /// <inheritdoc/>
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(
+            SourceRepository source,
+            CancellationToken token
+        )
+        {
+            Tuple<bool, INuGetResource> made = await _nuget.TryCreate(source, token).ConfigureAwait(false);
+
+            if (made.Item1 && made.Item2 is HttpHandlerResourceV3 resource)
+            {
+                HttpClientHandler client = resource.ClientHandler;
+
+                for (HttpMessageHandler handler = resource.MessageHandler; handler is DelegatingHandler outer; )
+                {
+                    if (ReferenceEquals(outer.InnerHandler, client))
+                    {
+                        outer.InnerHandler = new SocketsHttpHandler
+                        {
+                            ConnectTimeout = CadPackageRestorer.ConnectTimeout,
+                            AutomaticDecompression = client.AutomaticDecompression,
+                            UseProxy = client.UseProxy,
+                            Proxy = client.Proxy,
+                            DefaultProxyCredentials = client.DefaultProxyCredentials,
+                            Credentials = client.Credentials,
+                            PreAuthenticate = client.PreAuthenticate,
+                            AllowAutoRedirect = client.AllowAutoRedirect,
+                            MaxAutomaticRedirections = client.MaxAutomaticRedirections,
+                            UseCookies = client.UseCookies,
+                            CookieContainer = client.CookieContainer,
+                        };
+                        break;
+                    }
+
+                    handler = outer.InnerHandler;
+                }
+            }
+
+            return made;
         }
     }
 

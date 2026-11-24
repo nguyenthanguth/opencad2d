@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using NuGet.Protocol.Core.Types;
 using OpenCAD2D.Wpf.Plugins;
 using Xunit;
 
@@ -731,16 +734,50 @@ namespace OpenCAD2D.Plugins.UnitTest
         [Fact]
         public void ASourceThatCannotBeReached_LeavesThePluginNotLoaded_WithTheLineToReconnect()
         {
-            Unreachable();
+            Unreachable("http://127.0.0.1:9/index.json");
         }
 
-        private void Unreachable()
+        [Fact]
+        public void TheHandlerOfAnHttpSource_ConnectsWithinFiveSeconds_AndKeepsTheDecompressionOfNuGet()
+        {
+            var restorer = new CadPackageRestorer("http://192.0.2.1/v3/index.json", Packages);
+            var resource = restorer.Repository().GetResource<HttpHandlerResource>();
+
+            Assert.Equal(TimeSpan.FromSeconds(5), CadPackageRestorer.ConnectTimeout);
+
+            HttpMessageHandler handler = resource.MessageHandler;
+
+            while (handler is DelegatingHandler outer)
+            {
+                handler = outer.InnerHandler;
+            }
+
+            var sockets = Assert.IsType<SocketsHttpHandler>(handler);
+            Assert.Equal(CadPackageRestorer.ConnectTimeout, sockets.ConnectTimeout);
+            Assert.Equal(resource.ClientHandler.AutomaticDecompression, sockets.AutomaticDecompression);
+            Assert.Equal(DecompressionMethods.GZip | DecompressionMethods.Deflate, sockets.AutomaticDecompression);
+        }
+
+        /// <summary>
+        /// 192.0.2.1 is TEST-NET-1 (RFC 5737): no router carries it, so it never reaches the internet, and where nothing
+        /// answers the connection attempt is dropped rather than refused: the case that took 42.8 s (two tries of the 21 s
+        /// Windows connect wait) before the restorer gave its handler a connect timeout. A network that refuses it at once
+        /// passes this too.
+        /// </summary>
+        [Fact]
+        public void ASourceThatDropsPackets_IsGivenUpWithinTwelveSeconds()
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            Unreachable("http://192.0.2.1/v3/index.json");
+            watch.Stop();
+
+            Assert.True(watch.Elapsed < TimeSpan.FromSeconds(12), "took " + watch.Elapsed.TotalSeconds + " s");
+        }
+
+        private void Unreachable(string source)
         {
             string project = Project("Stairs", new[] { Ref("Foo", "1.0.0") });
-            var loader = new CadPluginAssemblyLoader(
-                Cache,
-                new CadPackageRestorer("http://127.0.0.1:9/index.json", Packages)
-            );
+            var loader = new CadPluginAssemblyLoader(Cache, new CadPackageRestorer(source, Packages));
             loader.ConfirmDownload = (name, packages) => true;
 
             using (
@@ -756,10 +793,7 @@ namespace OpenCAD2D.Plugins.UnitTest
                 CadPluginResult result = manager.Load(Path.GetDirectoryName(project));
 
                 Assert.False(result.Succeeded);
-                Assert.StartsWith(
-                    "Stairs was not loaded: http://127.0.0.1:9/index.json could not be reached (",
-                    result.Message
-                );
+                Assert.StartsWith("Stairs was not loaded: " + source + " could not be reached (", result.Message);
                 Assert.EndsWith("). Connect and run PLUGINRELOAD Stairs.", result.Message);
                 Assert.False(Directory.Exists(Packages));
             }
