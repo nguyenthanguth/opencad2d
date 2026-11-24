@@ -307,15 +307,22 @@ Layers: 1, blocks: 0
 Extents: (-10.00,-40.00) to (110.00,30.00)
 ```
 
-The folder holds the plugin's .dll and its `plugin.json` and nothing else, since the app gives a plugin its own
-`OpenCAD2D.Core.dll`. The build of `OpenCAD2D.App` builds the plugin first and copies those two files there. To
-remove the sample, delete the folder `Plugins\DrawingInfo`; to start a plugin of your own, copy its project.
+The folder holds the plugin's .dll and nothing else: it has no `plugin.json`, so the folder gives the plugin its name,
+DrawingInfo, and the assembly its version, and the app gives a plugin its own `OpenCAD2D.Core.dll`. The build of
+`OpenCAD2D.App` builds the plugin first and copies the .dll there. To remove the sample, delete the folder
+`Plugins\DrawingInfo`; to start a plugin of your own, copy its project.
+
+**The sample as C# source.** The plugin is one file, `DrawingInfoCommands.cs` in `examples/OpenCAD2D.Plugins.DrawingInfo`
+of the repository. Put it in `Plugins\DrawingInfo` in place of the .dll and the app compiles it at its next start (about
+0.9 s, once: [the cache](#a-plugin-as-c-source) keeps the build) as the plugin `DrawingInfo`, with the same command
+and the same output as the .dll. A .cs left beside the .dll makes the folder a source plugin, and its .dll is then only a
+library that a `//#r` line could name, so the folder holds one or the other.
 
 ## What the window adds
 
 The window has no ribbon tab of its own for plugins and no button per command: a plugin's commands are typed at the command
 line, or started by name. A plugin is loaded from the Applications panel of the Manage tab: Load Plugin runs NETLOAD, the
-Open dialog for a `.dll`, and Load Manager opens [Load/Unload Applications](lisp.md#appload) (APPLOAD: a table of the
+Open dialog for a `.dll` or a `.cs`, and Load Manager opens [Load/Unload Applications](lisp.md#appload) (APPLOAD: a table of the
 plugins and the AutoLISP files, with On, Commands, File and At start, Load…, Reload, Unload and Remove), with a dialog before a load
 outside the trusted folders. The plugin's load
 lines go to the command history, and a plugin that fails to load is also told by the red [load-result line](lisp.md#the-load-result-line) of that window. A plugin's `CadSetting` attributes remain in the plugin API, but the window has no page

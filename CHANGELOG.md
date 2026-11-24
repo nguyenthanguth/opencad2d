@@ -9,7 +9,8 @@
   about 0.9 s and a later one about 20 ms for a plugin of 220 lines. A source that does not compile is refused with a line
   per error, `Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context`, the first 20.
   `CadPluginLoader.CanCompile` and `Compile`, `CadPluginBuild`, `CadLoadedPlugin.IsSource` and
-  `CadPluginAssemblyLoader(cacheFolder)` are new.
+  `CadPluginAssemblyLoader(cacheFolder)` are new. The screenshot mode (`--screenshot ... --plugin x.cs`) keeps its
+  builds in its own temporary folder, never `%LocalAppData%\OpenCAD2D\PluginCache`.
 - **NEW.** Load/Unload Applications takes C# source: Load… (now `Load… (.lsp, .dll, .cs)`), NETLOAD's Open dialog and a
   drop on the table load a `.cs`; its row has the Kind `C# source` in light purple and a chip of its own, `C# source 1`
   (`Plugins` counts the .dll plugins only). A source that does not compile shows **Stairs.cs** `did not compile: 2 errors.`

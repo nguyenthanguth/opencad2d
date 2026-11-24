@@ -60,6 +60,13 @@
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />
+        <!-- The plugin guide: a test reads its C# example and loads it. -->
+        <None
+            Include="..\..\docs\presenter\plugins.md"
+            Link="Guide\plugins.md"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
     </ItemGroup>
 
     <ItemGroup>

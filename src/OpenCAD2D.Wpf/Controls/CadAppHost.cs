@@ -557,8 +557,10 @@ namespace OpenCAD2D.Wpf
                     "ScreenshotPlugins",
                     Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture)
                 );
+
+                // The builds of plugins given as C# source stay in this run's folder too, never the user's PluginCache.
                 var plugins = new CadPluginManager(
-                    new CadPluginAssemblyLoader(),
+                    new CadPluginAssemblyLoader(Path.Combine(pluginRoot, "cache")),
                     Path.Combine(pluginRoot, "plugins"),
                     Path.Combine(pluginRoot, "plugins.json"),
                     Path.Combine(pluginRoot, "copies")

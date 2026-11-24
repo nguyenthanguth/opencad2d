@@ -570,6 +570,8 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
       carrying Roslyn (its size before and after recorded).
       -> verify: the guide's example compiles and runs in a test; the setup built and the sample `.cs` loaded from the
          installed app's Plugins folder.
+      Part A done 2026-11-24: the guide's example read from the guide and run in a test, the sample-as-source
+      paragraph, the screenshot mode's builds kept in its own temporary folder. Part B (setup size, installed run) next.
 
 #### The website and Share (planned 2026-11-23)
 

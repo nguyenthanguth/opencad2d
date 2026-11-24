@@ -74,6 +74,82 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void TheScreenshotOfASourcePlugin_KeepsItsBuildInItsOwnFolder_NeverTheUsersPluginCache()
+        {
+            // A name no other run has used, so that a folder of it in the user's cache can only be this test's.
+            string name = "StairsShot" + Guid.NewGuid().ToString("N");
+            string userCache = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "OpenCAD2D",
+                "PluginCache",
+                name
+            );
+            string source =
+                "using System.Collections.Generic;\n"
+                + "using OpenCAD2D;\n"
+                + "using OpenCAD2D.Plugins;\n"
+                + "\n"
+                + "namespace Stairs\n"
+                + "{\n"
+                + "    public sealed class StairsCommands\n"
+                + "    {\n"
+                + "        [CadCommand(\"STAIRS\")]\n"
+                + "        public IEnumerable<CadPrompt> Draw(CadCommandContext c)\n"
+                + "        {\n"
+                + "            c.Write(\"Steps: \" + (int)System.Math.Ceiling(3000.0 / 175.0));\n"
+                + "            yield break;\n"
+                + "        }\n"
+                + "    }\n"
+                + "}\n";
+
+            try
+            {
+                using (var folder = new TestFolder())
+                {
+                    string room = folder.Write("room.dxf", TestFiles.Room(out _, out _));
+                    string png = Path.Combine(folder.FullPath, "stairs.png");
+                    string plugin = folder.WriteText(name + ".cs", source);
+
+                    (int code, string output) = RunApp(
+                        "--screenshot",
+                        png,
+                        room,
+                        "--plugin",
+                        plugin,
+                        "--run",
+                        "STAIRS"
+                    );
+                    Assert.True(code == 0, output);
+                    Assert.True(File.Exists(png));
+                    Assert.False(Directory.Exists(userCache), userCache + " was written by a screenshot.");
+
+                    // A source that does not compile exits with 2 and the error on the output.
+                    string broken = folder.WriteText(
+                        name + "b.cs",
+                        source.Replace("            c.Write(", "            x = 1;\n            c.Write(")
+                    );
+                    (int failed, string why) = RunApp("--screenshot", png, "--plugin", broken);
+                    Assert.Equal(2, failed);
+                    Assert.Contains(
+                        name + "b.cs(12,13): error CS0103: The name 'x' does not exist in the current context",
+                        why
+                    );
+                    Assert.False(Directory.Exists(userCache + "b"), userCache + "b was written by a screenshot.");
+                }
+            }
+            finally
+            {
+                foreach (string left in new[] { userCache, userCache + "b" })
+                {
+                    if (Directory.Exists(left))
+                    {
+                        Directory.Delete(left, true);
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public void OnlyTheWindowCountsAsAStart_SoAScreenshotOrARegistrationLeavesTheUsersFoldersAlone()
         {
             Assert.True(CadAppHost.ShowsWindow(null));

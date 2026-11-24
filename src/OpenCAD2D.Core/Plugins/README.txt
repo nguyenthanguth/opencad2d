@@ -29,6 +29,9 @@ the "Load at every start" list of the Plugin manager.
 
 The folder DrawingInfo is a sample that comes with the app: its command GHDWGINFO writes the
 name, objects, layers, blocks and extents of the drawing. Delete the folder if you do not want it.
+Its source is the one file DrawingInfoCommands.cs in examples\OpenCAD2D.Plugins.DrawingInfo of
+https://github.com/nguyenthanguth/opencad2d; put it in this folder's DrawingInfo in place of the
+.dll and the app compiles it at the next start.
 
 A plugin is loaded from a copy, so the file here is never locked: change it, then PLUGINRELOAD.
 Loading a plugin runs its code with your rights: put here only what you trust.
