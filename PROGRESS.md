@@ -643,6 +643,10 @@ Plugins\Stairs\                Pythons\StairsPy\
       GH-DrawingInfo sample moved.
       -> verify: the sample runs from its folder with the same command and output; Esc and undo of a run; a tool that
          raises, hangs or exits leaves the app working; the first command's time measured.
+      Part TF4a done 2026-11-24: the run scope in Core and the .NET client (a waiting prompt, `ask`/`write`/`end`/`fail`,
+      a run's commit in its own undo step, Esc takes it back; the tools pipe `OpenCAD2D.<pid>.tools` with a token);
+      Remote 140, Core 13896, Wpf 2511, pytest 697 x2. Decided: `cmd()` inside a run nests the command as AutoLISP's
+      `(command ...)` does, with no "Resuming" line (TF4b)
 - [ ] TF5. A venv per tool and pip (TF-D6 to D9): the venv made, `requirements.txt` and the wheel installed after a
       yes, errors that say what to do.
       -> verify: tests with a local package index (no network); two tools with two versions of one package both run.

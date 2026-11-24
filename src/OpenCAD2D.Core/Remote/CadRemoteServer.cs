@@ -53,19 +53,38 @@ namespace OpenCAD2D
         /// themselves while the real app is open.
         /// </summary>
         internal CadRemoteServer(ICadRemoteHost host, ICadRemoteDispatcher dispatcher, string folder, string instance)
+            : this(host, dispatcher, folder ?? throw new ArgumentNullException(nameof(folder)), instance, false) { }
+
+        /// <summary>
+        /// Makes a server either of the app's own channel (announced in <paramref name="folder"/>) or, with
+        /// <paramref name="forTools"/>, of the channel of the tools, which has no folder: it is announced nowhere and takes a
+        /// client only with a token.
+        /// </summary>
+        private CadRemoteServer(
+            ICadRemoteHost host,
+            ICadRemoteDispatcher dispatcher,
+            string folder,
+            string instance,
+            bool forTools
+        )
         {
             _host = host ?? throw new ArgumentNullException(nameof(host));
             _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
-            _folder = folder ?? throw new ArgumentNullException(nameof(folder));
+            _folder = folder;
             _instance = instance;
+            _forTools = forTools;
             int process = System.Diagnostics.Process.GetCurrentProcess().Id;
             PipeName = RemoteInstance.PipeName(process, instance);
-            _announced = new RemoteInstance
+
+            if (!forTools)
             {
-                ProcessId = process,
-                Pipe = PipeName,
-                FilePath = Path.Combine(_folder, RemoteInstance.FileName(process, instance)),
-            };
+                _announced = new RemoteInstance
+                {
+                    ProcessId = process,
+                    Pipe = PipeName,
+                    FilePath = Path.Combine(_folder, RemoteInstance.FileName(process, instance)),
+                };
+            }
         }
 
         /// <summary>Gets the name of the pipe the server listens on.</summary>
@@ -138,6 +157,12 @@ namespace OpenCAD2D
 
         private void Announce()
         {
+            // The channel of the tools is announced nowhere: a tool is given its pipe's name.
+            if (_announced == null)
+            {
+                return;
+            }
+
             _announced.Title = _host.Title;
             _announced.LastActivated = DateTime.UtcNow;
             _announced.Write();
@@ -190,7 +215,7 @@ namespace OpenCAD2D
                 catch (IOException) { }
             }
 
-            _announced.Delete();
+            _announced?.Delete();
             GeometryHelperLog.Info("CadRemoteServer: stopped " + PipeName + ".");
         }
 
@@ -277,6 +302,8 @@ namespace OpenCAD2D
         {
             try
             {
+                string token = null;
+
                 while (!_stopping)
                 {
                     JsonObject request = RemoteFrames.Read(pipe);
@@ -286,7 +313,28 @@ namespace OpenCAD2D
                         break;
                     }
 
-                    JsonObject answer = Answer(request);
+                    // The channel of the tools takes a client whose first message is a hello with a token it knows, and goes on
+                    // taking it while the token is good: anything else is refused and the connection closed.
+                    if (_forTools)
+                    {
+                        string offered = token ?? request.GetString("token");
+
+                        if ((token == null && request.GetString("op") != RemoteOps.Hello) || !HasToken(offered))
+                        {
+                            RemoteFrames.Write(
+                                pipe,
+                                Failure(
+                                    request.GetLong("id"),
+                                    "This is the channel OpenCAD2D gives the tools it starts: it takes a client only with the token of a tool."
+                                )
+                            );
+                            break;
+                        }
+
+                        token = offered;
+                    }
+
+                    JsonObject answer = Answer(request, token);
 
                     try
                     {

@@ -58,6 +58,73 @@ namespace OpenCAD2D.Remote
             Documents = new CadRemoteDocuments(this);
         }
 
+        /// <summary>
+        /// Connects to the private channel an app gives the tools it starts, by the name of its pipe and with the token it gave
+        /// that tool: the channel is open whether or not "Allow other programs to connect" is on, takes no other client, and is
+        /// never listed in <see cref="GetRunning()"/>. A tool joins the run of its command with <see cref="JoinRun"/>.
+        /// </summary>
+        /// <param name="pipe">The name of the pipe, as <c>OpenCAD2D.4120.tools</c>.</param>
+        /// <param name="token">The token the app gave the tool.</param>
+        /// <exception cref="ArgumentException">Thrown when the pipe or the token is empty.</exception>
+        /// <exception cref="CadRemoteException">Thrown when the app is not there, or does not take the token.</exception>
+        public CadApplication(string pipe, string token)
+        {
+            if (string.IsNullOrEmpty(pipe))
+            {
+                throw new ArgumentException("The pipe needs a name.", nameof(pipe));
+            }
+
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ArgumentException(
+                    "The channel of the tools needs the token the app gave the tool.",
+                    nameof(token)
+                );
+            }
+
+            int processId = ProcessOf(pipe);
+            Running = new CadRunningApp(
+                new RemoteInstance
+                {
+                    ProcessId = processId,
+                    Pipe = pipe,
+                    Title = string.Empty,
+                },
+                Array.Empty<string>(),
+                string.Empty
+            );
+            _connection = new RemoteConnection(pipe, processId, token);
+            _connection.Request(new JsonObject().Set("op", RemoteOps.Hello));
+            Documents = new CadRemoteDocuments(this);
+        }
+
+        /// <summary>The process id in the name of a pipe, <c>OpenCAD2D.&lt;process id&gt;.tools</c>; 0 where the name has none.</summary>
+        private static int ProcessOf(string pipe)
+        {
+            string[] parts = pipe.Split('.');
+            return parts.Length > 1 && int.TryParse(parts[1], out int processId) ? processId : 0;
+        }
+
+        /// <summary>
+        /// Joins the run of a command the app started for this tool: every request made on this connection from now on is
+        /// part of that run, so that the changes <see cref="CadRemoteDocument.CommitChanges"/> makes are in the one undo step
+        /// of the command, and Esc in the app takes them back. The run is left by <see cref="CadRemoteRun.End"/> or
+        /// <see cref="CadRemoteRun.Fail"/>.
+        /// </summary>
+        /// <param name="run">The number of the run, as the app told the tool when it started the command.</param>
+        /// <returns>The run.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the number is not above nought.</exception>
+        public CadRemoteRun JoinRun(int run)
+        {
+            if (run <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(run), "A run is numbered from 1.");
+            }
+
+            _connection.RunId = run;
+            return new CadRemoteRun(this, run);
+        }
+
         /// <summary>Connects to the app that announced itself last in a folder: the apps of a test, or of a second Windows profile.</summary>
         internal CadApplication(string folder)
             : this(Pick(folder)) { }

@@ -46,7 +46,7 @@ namespace OpenCAD2D
         private readonly Dictionary<int, Known> _known = new Dictionary<int, Known>();
         private int _lastId;
 
-        private JsonObject Answer(JsonObject request)
+        private JsonObject Answer(JsonObject request, string token)
         {
             long id = request.GetLong("id");
             string op = request.GetString("op");
@@ -55,33 +55,46 @@ namespace OpenCAD2D
             {
                 JsonObject answer;
 
-                // One request at a time for the whole app: a second client waits here for the first, unless the first waits
-                // for the user to pick, which can take as long as the user likes: it is told the app is busy instead.
-                while (!Monitor.TryEnter(_requests, PickLook))
+                // A request of a run holds up no other client and is held up by none: a question waits for the user, as long as
+                // they like, with no lock taken, and the rest are one dispatch each.
+                if (op == RemoteOps.Ask)
                 {
-                    if (_picking)
+                    answer = RunAsk(request, token);
+                }
+                else if (IsRunOp(op) || request.Get("run") != null)
+                {
+                    answer = RunRequest(op, request, token);
+                }
+                else
+                {
+                    // One request at a time for the whole app: a second client waits here for the first, unless the first waits
+                    // for the user to pick, which can take as long as the user likes: it is told the app is busy instead.
+                    while (!Monitor.TryEnter(_requests, PickLook))
                     {
-                        throw new Refusal(
-                            "OpenCAD2D is busy: it is waiting for the user to pick in a drawing, for a program that asked it to. Try again when the pick is done."
-                        );
+                        if (_picking)
+                        {
+                            throw new Refusal(
+                                "OpenCAD2D is busy: it is waiting for the user to pick in a drawing, for a program that asked it to. Try again when the pick is done."
+                            );
+                        }
+
+                        if (_stopping)
+                        {
+                            throw new Refusal("OpenCAD2D is shutting down.");
+                        }
                     }
 
-                    if (_stopping)
+                    try
                     {
-                        throw new Refusal("OpenCAD2D is shutting down.");
+                        answer =
+                            op == RemoteOps.Command ? RunCommand(request)
+                            : op == RemoteOps.Pick ? RunPick(request)
+                            : Dispatch(() => Execute(op, request));
                     }
-                }
-
-                try
-                {
-                    answer =
-                        op == RemoteOps.Command ? RunCommand(request)
-                        : op == RemoteOps.Pick ? RunPick(request)
-                        : Dispatch(() => Execute(op, request));
-                }
-                finally
-                {
-                    Monitor.Exit(_requests);
+                    finally
+                    {
+                        Monitor.Exit(_requests);
+                    }
                 }
 
                 return answer.Set("id", id).Set("ok", true);
@@ -129,9 +142,9 @@ namespace OpenCAD2D
 
             if (failure != null)
             {
-                if (failure is Refusal)
+                if (failure is Refusal refused)
                 {
-                    throw new Refusal(failure.Message);
+                    throw new Refusal(refused.Message, refused.Cancelled);
                 }
 
                 throw new InvalidOperationException(failure.Message, failure);

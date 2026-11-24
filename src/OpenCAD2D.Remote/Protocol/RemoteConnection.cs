@@ -35,16 +35,25 @@ namespace OpenCAD2D.Remote
         private readonly object _gate = new object();
         private readonly string _pipe;
         private readonly int _processId;
+        private readonly string _token;
         private NamedPipeClientStream _stream;
         private long _nextId;
 
         /// <summary>The time a connection waits for the app to take it, in milliseconds.</summary>
         public int ConnectTimeout { get; set; } = 5000;
 
+        /// <summary>The run every request is made inside, as the tools channel names it; 0 for none.</summary>
+        public long RunId { get; set; }
+
         public RemoteConnection(RemoteInstance instance)
+            : this(instance.Pipe, instance.ProcessId, null) { }
+
+        /// <summary>Makes the connection to a pipe by its name; the token is the one the channel of the tools asks in its hello, null for an app's own pipe.</summary>
+        public RemoteConnection(string pipe, int processId, string token)
         {
-            _pipe = instance.Pipe;
-            _processId = instance.ProcessId;
+            _pipe = pipe;
+            _processId = processId;
+            _token = token;
         }
 
         /// <summary>Sends a request and reads its answer, the app's refusal thrown as a <see cref="CadRemoteException"/>.</summary>
@@ -61,6 +70,11 @@ namespace OpenCAD2D.Remote
             {
                 EnsureConnected();
                 request.Set("id", ++_nextId);
+
+                if (RunId != 0 && request.Get("run") == null)
+                {
+                    request.Set("run", RunId);
+                }
 
                 try
                 {
@@ -122,10 +136,17 @@ namespace OpenCAD2D.Remote
 
             try
             {
-                RemoteFrames.Write(
-                    _stream,
-                    new JsonObject().Set("id", 0L).Set("op", RemoteOps.Hello).Set("protocol", (long)RemoteOps.Version)
-                );
+                var ask = new JsonObject()
+                    .Set("id", 0L)
+                    .Set("op", RemoteOps.Hello)
+                    .Set("protocol", (long)RemoteOps.Version);
+
+                if (_token != null)
+                {
+                    ask.Set("token", _token);
+                }
+
+                RemoteFrames.Write(_stream, ask);
                 hello = RemoteFrames.Read(_stream) ?? throw new IOException("The app closed the channel.");
             }
             catch (IOException ex)

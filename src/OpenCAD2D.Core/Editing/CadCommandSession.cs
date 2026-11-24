@@ -545,6 +545,26 @@ namespace OpenCAD2D
         /// <summary>Gets whether the command running is a grip edit (<see cref="StartGripEdit"/>), whose hot grips the canvas keeps showing.</summary>
         public bool IsGripEditing => Current != null && ReferenceEquals(Current, _gripCommand);
 
+        /// <summary>
+        /// Goes on with the body of the command running, as if its prompt had been answered with nothing and no word written:
+        /// how a host that holds a command for work of its own (a run of a tool) ends the command's wait at its waiting prompt
+        /// (<see cref="CadPrompt.ForWaiting"/>) to give it the next step, or ends it. Does nothing where the command is not the
+        /// one running, or another command runs inside it.
+        /// </summary>
+        /// <param name="command">The command the host holds.</param>
+        /// <returns>False where nothing was resumed.</returns>
+        internal bool Resume(CadCommand command)
+        {
+            if (!ReferenceEquals(Current, command) || _body == null || _suspended.Count > 0)
+            {
+                return false;
+            }
+
+            _context.Input = CadInput.Nothing;
+            Advance();
+            return true;
+        }
+
         /// <summary>Runs a command's body from its first prompt.</summary>
         private void Run(CadCommand command, IReadOnlyList<string> preSelected)
         {
@@ -599,7 +619,7 @@ namespace OpenCAD2D
         /// <returns>Whether the prompt took it.</returns>
         public bool Feed(GeoPoint2 point, bool shift, bool control)
         {
-            if (Prompt == null)
+            if (Prompt == null || Prompt.IsWaiting)
             {
                 return false;
             }
@@ -740,6 +760,12 @@ namespace OpenCAD2D
         /// <returns>Whether it was taken.</returns>
         public bool Feed(string text)
         {
+            // A command at work for a program takes nothing typed: only Esc ends it.
+            if (Prompt != null && Prompt.IsWaiting)
+            {
+                return false;
+            }
+
             // grread takes the text as the keys of a line typed, whatever it looks like.
             if (IsGrRead)
             {
@@ -1042,7 +1068,7 @@ namespace OpenCAD2D
                 throw new ArgumentNullException(nameof(handles));
             }
 
-            if (Prompt == null)
+            if (Prompt == null || Prompt.IsWaiting)
             {
                 return false;
             }
@@ -1151,6 +1177,11 @@ namespace OpenCAD2D
                 return;
             }
 
+            if (Prompt.IsWaiting)
+            {
+                return;
+            }
+
             // grread: Enter is the key 13.
             if (IsGrRead)
             {
@@ -1203,7 +1234,7 @@ namespace OpenCAD2D
             }
 
             ForgetGrRead();
-            Write(Prompt != null ? Prompt.Echo("*Cancel*") : "*Cancel*");
+            Write(Prompt != null && !Prompt.IsWaiting ? Prompt.Echo("*Cancel*") : "*Cancel*");
             Finish(CadCommandOutcome.Cancelled);
         }
 

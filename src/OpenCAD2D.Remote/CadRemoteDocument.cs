@@ -479,7 +479,7 @@ namespace OpenCAD2D.Remote
             Ask(RemoteOps.Select, request => request.Set("handles", list));
         }
 
-        private IReadOnlyList<DxfEntity> Objects(JsonObject answer)
+        internal IReadOnlyList<DxfEntity> Objects(JsonObject answer)
         {
             string fragment = answer.GetString("fragment");
             JsonArray handles = answer.GetArray("handles");

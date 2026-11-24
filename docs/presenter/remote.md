@@ -162,6 +162,50 @@ file as `"remote": { "allowRemoteConnections": true }`. It is applied when the s
 
 The line under the switch says which: `Other programs can connect: OpenCAD2D.12840` or `Other programs cannot connect.`
 
+## The channel of the tools, and runs
+
+A program the app itself starts (a tool that runs in a process of its own) does not find the app through the instance folder.
+The app gives it the name of a second pipe, `OpenCAD2D.<process id>.tools`, and a token. That pipe is never announced, stays open
+when "Allow other programs to connect" is off, and takes a client only with a token: the first message is `hello` with the token
+(32 random bytes written as 64 hex letters, a new one for each tool process), and a client without one, with a wrong or revoked
+one, is refused and its connection closed.
+
+```csharp
+using (var app = new CadApplication(pipe, token))              // the pipe and token the app gave the tool
+{
+    CadRemoteRun run = app.JoinRun(7);                         // the run of the command the user just typed
+    CadRemoteAnswer first = run.Ask(CadAskKind.Point, "Specify the first step");   // the user types 12,5: Point (12, 5, 0)
+    CadRemoteAnswer steps = run.Ask(CadAskKind.Integer, "How many steps");         // the user types 18: Number 18
+    CadRemoteDocument drawing = app.Documents.First(d => d.IsActive);
+    drawing.Insert(new DxfLine(first.Point, new GeoPoint3(12, 5 + 18 * 175, 0)));
+    drawing.CommitChanges();                                   // inside the command's undo step
+    run.End();                                                 // the step stays, named after the command
+}
+```
+
+The command is the run. When the user types `STAIRSPY` the drawing's command line waits at `STAIRSPY is working... (Esc to stop)`
+and takes nothing else, so no other command starts in that drawing. Everything the tool does on the connection that joined the run
+belongs to the command:
+
+- `Ask` takes a `CadAskKind` (point, distance, angle, integer, real, string, keyword, entity, selection), a message, an optional base
+  point, keywords and default, and gives a `CadRemoteAnswer` of the kind the user answered with: a point, a number (an angle in
+  radians), a keyword or text, or objects with their handles. Enter takes the default where it is a keyword; otherwise the answer is
+  `None` and the tool applies its own default. The question waits for the user without holding any lock of the server: a second
+  program is served meanwhile, and a second question of the same run is refused until the first is answered.
+- `CommitChanges` and the reads of the drawing work as outside a run; the commits are applied in the command's one undo step, and a
+  commit into a drawing other than the one the command was typed in is refused.
+- `Write(line)` writes on the command line. `End()` keeps the step. `Fail(line)` writes the line and takes the step back.
+- **Esc** at the waiting prompt (or at a question) ends the run and takes back every change it committed: a drawing of 2 lines
+  that had a third committed by a run is a drawing of 2 lines again, with no undo step left. A question open is answered as
+  cancelled (`IsCancelled` true), and every later request of the run is refused the same way.
+- A request of a run that has ended is refused, `The run 7 of STAIRSPY has ended.`, and one of another tool's token
+  `belongs to another tool`. `pick` and `command` are refused inside a run: the run asks with `Ask`.
+
+The app's host makes the channel with `CadRemoteServer.ForTools`, gives each tool process `IssueToken()` and takes it back with
+`RevokeToken`, and registers `CreateRunCommand(name, usesSelection, token, started)` as the tool's command; `started` receives the
+`CadRemoteToolRun` (its `Id` and `DocumentId` are what the tool is told), and `Ended` tells how it ended (`Completed`, `Failed`,
+`Cancelled`); `Cancel()` ends it as Esc does when the process is gone.
+
 ## Security
 
 The pipe is `OpenCAD2D.<process id>`, open to the Windows user who runs the app and to nobody else, and to this computer
