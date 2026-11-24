@@ -41,7 +41,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
                 Assert.Equal("OpenCAD2D  room.dxf", title);
                 Assert.Equal("OpenCAD2D", workspaceName);
-                Assert.Equal("GeometryHelper Drawing", defaultName);
+                Assert.Equal("OpenCAD2D", defaultName);
             }
         }
 
@@ -60,7 +60,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 Assert.Equal(1200, frame.PixelWidth);
                 Assert.Equal(800, frame.PixelHeight);
 
-                // A dialog of GeometryHelper Drawing's is not one of this app's.
+                // A dialog of another app is not one of this app's.
                 (int refused, string why) = RunApp(
                     "--screenshot",
                     Path.Combine(folder.FullPath, "update.png"),

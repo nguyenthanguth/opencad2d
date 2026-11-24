@@ -595,7 +595,7 @@ namespace OpenCAD2D.Plugins.Net8Runner
                 if (
                     context.IsCollectible
                     && context.Name != null
-                    && context.Name.StartsWith("GeometryHelper plugin ", StringComparison.Ordinal)
+                    && context.Name.StartsWith("OpenCAD2D plugin ", StringComparison.Ordinal)
                 )
                 {
                     yield return new WeakReference(context);

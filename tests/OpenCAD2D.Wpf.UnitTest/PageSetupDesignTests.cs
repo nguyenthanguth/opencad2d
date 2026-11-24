@@ -512,7 +512,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             Assert.All(urls, url =>
                 Assert.StartsWith(
-                    "https://nguyenthanguth.github.io/GeometryHelper/guides/presenter/plot.html",
+                    "https://nguyenthanguth.github.io/opencad2d/guides/presenter/plot.html",
                     url,
                     StringComparison.Ordinal
                 )
