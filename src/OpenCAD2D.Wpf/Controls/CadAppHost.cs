@@ -193,18 +193,30 @@ namespace OpenCAD2D.Wpf
                         forwarded.Add(path);
                     })
                 ));
-            string forward = channel == null ? CadLaunchChannel.FileToForward(args) : null;
+            IReadOnlyList<string> forward =
+                channel == null ? CadLaunchChannel.FilesToForward(args) : Array.Empty<string>();
 
             if (
-                forward != null
+                forward.Count > 0
                 && CadLaunchChannel.TryForward(
                     channelName,
-                    forward,
+                    forward[0],
                     CadLaunchChannel.ConnectTimeout,
                     CadLaunchChannel.AnswerTimeout
                 )
             )
             {
+                // Every file of the command line, in order; the running app opens them one after another.
+                for (int i = 1; i < forward.Count; i++)
+                {
+                    CadLaunchChannel.TryForward(
+                        channelName,
+                        forward[i],
+                        CadLaunchChannel.ConnectTimeout,
+                        CadLaunchChannel.AnswerTimeout
+                    );
+                }
+
                 return 0;
             }
 
@@ -308,7 +320,7 @@ namespace OpenCAD2D.Wpf
                 model.UsePython(Dispatcher.CurrentDispatcher);
             }
 
-            string file = args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal));
+            string[] files = args.Where(a => !a.StartsWith("--", StringComparison.Ordinal)).ToArray();
 
             // The window answers while a drawing is read and drawn; the drawing given here is shown once the window runs.
             model.OpensInBackground = true;
@@ -316,7 +328,8 @@ namespace OpenCAD2D.Wpf
             // The progress meter is seen to move while SAVE writes a drawing on the window's thread.
             model.RepaintsProgress = true;
 
-            if (file != null)
+            // Every file of the command line opens, one after another, the last one shown.
+            foreach (string file in files)
             {
                 model.Open(file);
             }

@@ -701,7 +701,7 @@ namespace OpenCAD2D.Wpf
         /// <see cref="OpensInBackground"/> is set, a file not open yet is opened as <see cref="OpenAsync"/> opens it.
         /// </summary>
         /// <param name="path">The path of the file.</param>
-        /// <returns>True when the file is shown, or, opened in the background, when its opening has started.</returns>
+        /// <returns>True when the file is shown, or, opened in the background, when its opening has started or waits its turn.</returns>
         public bool Open(string path) => Open(path, OpensInBackground, out _);
 
         /// <summary>
@@ -730,22 +730,17 @@ namespace OpenCAD2D.Wpf
                 return false;
             }
 
-            if (_files.TryGetValue(full, out KnownFile known) && known.Document != null)
-            {
-                Show(known);
-                NoteRecentFile(full);
-                return true;
-            }
+            KnownFile open = FindOpen(full, out KnownFile known);
 
-            // A document shown under a key of its own and saved to the file, as an extension's drawing just made is, is that file open already.
-            KnownFile saved = _files
-                .Values.Where(f => f.Document != null && SamePath(f.Document.FileName, full))
-                .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
-                .FirstOrDefault();
-
-            if (saved != null)
+            if (open != null)
             {
-                Show(saved);
+                // Dropped with others opening: shown in its turn, so that the last of the drop is the one shown at the end.
+                if (inBackground && _opening != null)
+                {
+                    return StartOpening(full, out opening);
+                }
+
+                Show(open);
                 NoteRecentFile(full);
                 return true;
             }
@@ -772,6 +767,23 @@ namespace OpenCAD2D.Wpf
             }
 
             return ShowOpened(full, known, document, null);
+        }
+
+        /// <summary>
+        /// The entry of a file that is open already: opened from it, or, as an extension's drawing just made is, shown under a
+        /// key of its own and saved to it. Null for none; <paramref name="known"/> is the entry listed under the file, if any.
+        /// </summary>
+        private KnownFile FindOpen(string full, out KnownFile known)
+        {
+            if (_files.TryGetValue(full, out known) && known.Document != null)
+            {
+                return known;
+            }
+
+            return _files
+                .Values.Where(f => f.Document != null && SamePath(f.Document.FileName, full))
+                .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
         }
 
         /// <summary>
