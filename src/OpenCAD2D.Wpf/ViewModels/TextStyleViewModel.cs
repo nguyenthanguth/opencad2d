@@ -127,7 +127,7 @@ namespace OpenCAD2D.Wpf
 
     /// <summary>
     /// AutoCAD's Text Style dialog (STYLE, ST): the styles of the drawing (all, or those in use), a preview of the one
-    /// selected, Set Current, New, Delete and Rename, its font (the presenter's own GeometryHelper Simplex, the SHX files of the
+    /// selected, Set Current, New, Delete and Rename, its font (the presenter's own OpenCAD2D Simplex, the SHX files of the
     /// font folders and the TrueType families of the machine, a font style for TrueType, a big font for SHX), its height, and
     /// the effects upside down, backwards, vertical, width factor and oblique angle. Apply writes the style, one undo step, every text written in it drawn again;
     /// a change not applied is asked about before another style is shown or the dialog closes, as AutoCAD asks.
@@ -141,7 +141,7 @@ namespace OpenCAD2D.Wpf
         public const string StylesInUse = "Styles in use";
 
         /// <summary>
-        /// The name the Font Name list gives the presenter's own font, first in the list: GeometryHelper Simplex (built-in). A
+        /// The name the Font Name list gives the presenter's own font, first in the list: OpenCAD2D Simplex (built-in). A
         /// style given it names the file ghsimplex.shx (<see cref="CadFonts.BuiltInName"/>).
         /// </summary>
         public const string BuiltInFont = CadFonts.BuiltInTitle + " (built-in)";

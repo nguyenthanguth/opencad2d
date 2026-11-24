@@ -11,7 +11,7 @@ using SkiaSharp;
 namespace OpenCAD2D.Wpf
 {
     /// <summary>
-    /// The presenter's plotter, GeometryHelper PDF: writes a plot as one page of a PDF through SkiaSharp's
+    /// The presenter's plotter, OpenCAD2D PDF: writes a plot as one page of a PDF through SkiaSharp's
     /// <c>SKDocument.CreatePdf</c>, in vectors, from the display list the canvas draws. Lines keep their lineweights, hatches
     /// and solids are filled, and the text of a TrueType font is written as text with its font embedded, so that a reader
     /// finds and copies it; the text of an SHX font is its strokes, as the canvas draws it, and is not found unless the

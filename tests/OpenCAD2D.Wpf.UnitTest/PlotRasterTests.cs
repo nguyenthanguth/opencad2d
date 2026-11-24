@@ -9,7 +9,7 @@ using Xunit;
 namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// PLOT to an image (designs PlotRaster and PlotRasterCustom): GeometryHelper PNG and JPG in the Plot dialog, sizes in
+    /// PLOT to an image (designs PlotRaster and PlotRasterCustom): OpenCAD2D PNG and JPG in the Plot dialog, sizes in
     /// pixels and Custom…, the image written at its size on white with colour 7 black, and FILEDIA 0 asking the file.
     /// </summary>
     public class PlotRasterTests
@@ -59,7 +59,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal(CadPlotStyleTable.None, dialog.StyleTable);
             Assert.Equal("pixels", dialog.OffsetUnit);
             Assert.Equal("96", dialog.DpiText);
-            Assert.Equal("GeometryHelper PNG · raster, built in", dialog.PlotterText);
+            Assert.Equal("OpenCAD2D PNG · raster, built in", dialog.PlotterText);
             Assert.Equal("plan-level2-Model.png", dialog.SuggestedFileName);
 
             // JPG keeps the size; the PDF one goes back to its sheet.

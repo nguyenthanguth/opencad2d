@@ -118,7 +118,7 @@ namespace OpenCAD2D
         public string Name { get; }
 
         /// <summary>
-        /// Gets whether this is the size of an image for the raster devices, GeometryHelper PNG and JPG: its width and height
+        /// Gets whether this is the size of an image for the raster devices, OpenCAD2D PNG and JPG: its width and height
         /// are then pixels rather than millimetres, and it has no margins, the whole image being printable.
         /// </summary>
         public bool IsPixels { get; }

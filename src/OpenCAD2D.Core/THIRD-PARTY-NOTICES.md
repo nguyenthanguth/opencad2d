@@ -4,7 +4,7 @@ OpenCAD2D holds font data and a word list that come from other projects. Their n
 
 ## Hershey fonts
 
-The letters of the presenter's own single-stroke font, GeometryHelper Simplex (`ghsimplex`), are the Roman Simplex set of
+The letters of the presenter's own single-stroke font, OpenCAD2D Simplex (`ghsimplex`), are the Roman Simplex set of
 the Hershey fonts, taken from `rowmans.jhf` of https://github.com/kamalmostafa/hershey-fonts and turned into the bytes of
 an SHX unifont in `src/OpenCAD2D.Core/Fonts/HersheySimplex.cs`; the plus-minus and diameter signs were drawn
 for GeometryHelper in the same form. When the package of this project is made, this notice goes with it.

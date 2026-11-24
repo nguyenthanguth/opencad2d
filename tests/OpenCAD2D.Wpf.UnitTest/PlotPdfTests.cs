@@ -13,7 +13,7 @@ using Xunit;
 namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// GeometryHelper PDF (C15): a plot written as one PDF page of the sheet's exact size, its text found through the font's
+    /// OpenCAD2D PDF (C15): a plot written as one PDF page of the sheet's exact size, its text found through the font's
     /// ToUnicode map, its lines at their lineweights, its colours through the plot style table, its solids filled, and a
     /// cross-reference table that still points at every object after the page is given its exact size.
     /// </summary>

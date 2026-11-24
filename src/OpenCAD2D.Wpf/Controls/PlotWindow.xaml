@@ -117,7 +117,7 @@
 
             <Style x:Key="DeviceRow" TargetType="ComboBoxItem" BasedOn="{StaticResource GreyableRow}">
                 <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
-                <Setter Property="ToolTip" Value="Plots nowhere: choose GeometryHelper PDF or a printer." />
+                <Setter Property="ToolTip" Value="Plots nowhere: choose OpenCAD2D PDF or a printer." />
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding IsEnabled}" Value="True">
                         <Setter Property="ToolTip" Value="{x:Null}" />

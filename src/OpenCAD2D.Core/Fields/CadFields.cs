@@ -1084,7 +1084,7 @@ namespace OpenCAD2D
                     case "PLOTDEVICENAME":
                         value = string.IsNullOrEmpty(layout.PlotConfigurationName)
                             ? "None"
-                            : layout.PlotConfigurationName;
+                            : CadPlotSettings.CurrentDevice(layout.PlotConfigurationName);
                         break;
                     case "PLOTSTYLETABLE":
                         value = layout.CurrentStyleSheet;

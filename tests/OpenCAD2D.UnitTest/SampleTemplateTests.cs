@@ -10,7 +10,7 @@ using Xunit;
 namespace OpenCAD2D.UnitTest
 {
     /// <summary>
-    /// The sample template that ships in the DrawingTemplates folder, GeometryHelper-mm.dwt: it is there, Select Template lists
+    /// The sample template that ships in the DrawingTemplates folder, OpenCAD2D-mm.dwt: it is there, Select Template lists
     /// it with its description, it holds the layers, text styles, dimension styles, multileader style, layouts and variables
     /// <see cref="CadTemplate.CreateSample"/> makes in code, and it is a DWG that reads back the same. The file is written
     /// from the code: set the environment variable OPENCAD2D_WRITE_SAMPLE_TEMPLATE to the full path of the file to write
@@ -173,7 +173,7 @@ namespace OpenCAD2D.UnitTest
 
             Assert.True(File.Exists(Shipped), Shipped + " is not there.");
             Assert.Contains(Shipped, CadTemplate.FindIn(folder));
-            Assert.Equal(Shipped, CadTemplate.Find("GeometryHelper-mm", folder));
+            Assert.Equal(Shipped, CadTemplate.Find("OpenCAD2D-mm", folder));
         }
 
         [Fact]

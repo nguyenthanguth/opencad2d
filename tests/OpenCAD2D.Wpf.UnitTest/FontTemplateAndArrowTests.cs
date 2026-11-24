@@ -27,7 +27,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             TextStyleViewModel dialog = model.CreateTextStyle();
 
             FontItemViewModel first = dialog.FontNames[0];
-            Assert.Equal("GeometryHelper Simplex (built-in)", first.Name);
+            Assert.Equal("OpenCAD2D Simplex (built-in)", first.Name);
             Assert.Equal(TextStyleViewModel.BuiltInFont, first.Name);
             Assert.False(first.IsTrueType);
             Assert.Single(dialog.FontNames, f => f.Name == TextStyleViewModel.BuiltInFont);

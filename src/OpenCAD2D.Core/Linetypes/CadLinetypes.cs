@@ -78,7 +78,7 @@ namespace OpenCAD2D
                 throw new ArgumentNullException(nameof(path));
             }
 
-            bool own = string.Equals(path, CadLinetypeFile.BuiltInName, StringComparison.OrdinalIgnoreCase);
+            bool own = CadLinetypeFile.IsBuiltInName(path);
             var wanted = new List<CadLinetypeDefinition>();
             var present = new List<string>();
             var refused = new List<string>();

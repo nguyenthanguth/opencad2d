@@ -9,7 +9,7 @@ other styles, blocks, layouts with their page setups, and units. The template it
 changed. Ctrl+N (and QNEW) starts a blank drawing, or the default template named in Global
 settings (Save and export > Default template for QNEW).
 
-GeometryHelper-mm.dwt is a sample template, metric and in millimetres, made by the program's own
+OpenCAD2D-mm.dwt is a sample template, metric and in millimetres, made by the program's own
 writer. It holds the layers Axis, Outline, Thin, Hidden, Dimension, Text, Hatch, Rebar, Title
 block, Viewport and Defpoints (colours, linetypes and lineweights set; Viewport and Defpoints are
 not plotted), the text styles Standard, Notes and Titles in ghsimplex.shx and Arial in Arial, the

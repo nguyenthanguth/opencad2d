@@ -100,8 +100,8 @@ namespace OpenCAD2D.Wpf.UnitTest
             manager.Selected = manager.Items.Single(i => i.Name == "A2 plan");
 
             PageSetupInfo info = manager.SelectedInfo;
-            Assert.Equal("GeometryHelper PDF", info.DeviceName);
-            Assert.Equal("GeometryHelper PDF · vector, built in", info.Plotter);
+            Assert.Equal("OpenCAD2D PDF", info.DeviceName);
+            Assert.Equal("OpenCAD2D PDF · vector, built in", info.Plotter);
             Assert.Equal("594.00 x 420.00 mm (Landscape)", info.PlotSize);
             Assert.Equal("File", info.Where);
             Assert.Equal("Writes a PDF, one page per plot; text stays searchable.", info.Description);
@@ -122,9 +122,9 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.True(image.SaveAsPageSetup(document, "Picture").Succeeded);
             manager = Manager(document);
             manager.Selected = manager.Items.Single(i => i.Name == "Picture");
-            Assert.Equal("GeometryHelper PNG", manager.SelectedInfo.DeviceName);
+            Assert.Equal("OpenCAD2D PNG", manager.SelectedInfo.DeviceName);
             Assert.Equal("1920 x 1080 pixels (Landscape)", manager.SelectedInfo.PlotSize);
-            Assert.Equal("GeometryHelper PNG · raster, built in", manager.SelectedInfo.Plotter);
+            Assert.Equal("OpenCAD2D PNG · raster, built in", manager.SelectedInfo.Plotter);
         }
 
         [Fact]
@@ -157,7 +157,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal("HP Gone · not on this computer", manager.SelectedInfo.Plotter);
             Assert.Equal("—", manager.SelectedInfo.Where);
             Assert.Equal(
-                "This computer has no such printer: the page setup plots with GeometryHelper PDF.",
+                "This computer has no such printer: the page setup plots with OpenCAD2D PDF.",
                 manager.SelectedInfo.Description
             );
         }
@@ -375,7 +375,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
                 shown.Selected = shown.Items.Single(i => i.Name == "A2 plan");
                 Assert.Equal("594.00 x 420.00 mm (Landscape)", shown.SelectedInfo.PlotSize);
-                Assert.Equal("GeometryHelper PDF", shown.SelectedInfo.DeviceName);
+                Assert.Equal("OpenCAD2D PDF", shown.SelectedInfo.DeviceName);
             }
         }
 

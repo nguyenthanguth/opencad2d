@@ -32,8 +32,8 @@ namespace OpenCAD2D
         /// </summary>
         public const string BuiltInName = "ghsimplex";
 
-        /// <summary>The title of the presenter's own font, as the line saying a font not found names it: GeometryHelper Simplex.</summary>
-        public const string BuiltInTitle = "GeometryHelper Simplex";
+        /// <summary>The title of the presenter's own font, as the line saying a font not found names it: OpenCAD2D Simplex.</summary>
+        public const string BuiltInTitle = "OpenCAD2D Simplex";
 
         private const int MostFonts = 48;
 
@@ -113,7 +113,7 @@ namespace OpenCAD2D
         public static IReadOnlyList<string> DefaultFolders { get; } = Array.Empty<string>();
 
         /// <summary>
-        /// Gets the presenter's own single-stroke font, GeometryHelper Simplex (<see cref="BuiltInName"/>), drawn as an SHX font
+        /// Gets the presenter's own single-stroke font, OpenCAD2D Simplex (<see cref="BuiltInName"/>), drawn as an SHX font
         /// is: the Roman Simplex letters of the Hershey fonts of the U.S. National Bureau of Standards, 1967, ASCII 32 to 126
         /// with the degree, plus-minus and diameter signs, 98 letters. Its capitals reach <see cref="ShxFont.Above"/> 21 units
         /// above the baseline and its descenders 7 below, as romans.shx's: "ABC123" 10 high is 10 high and about 42 wide.
@@ -864,7 +864,7 @@ namespace OpenCAD2D
 
     /// <summary>
     /// An SHX font or big font a text style names that is not found, as AutoCAD's list of missing SHX files gives it: romans.shx
-    /// drawn in GeometryHelper Simplex, gbcbig.shx a big font whose letters are drawn as question marks.
+    /// drawn in OpenCAD2D Simplex, gbcbig.shx a big font whose letters are drawn as question marks.
     /// </summary>
     public sealed class CadMissingFont
     {
@@ -884,7 +884,7 @@ namespace OpenCAD2D
         public bool IsBigFont { get; }
 
         /// <summary>
-        /// Gets the font it is drawn in, as the replacement names it (GeometryHelper Simplex, simplex.shx, gbcbig.shx); empty
+        /// Gets the font it is drawn in, as the replacement names it (OpenCAD2D Simplex, simplex.shx, gbcbig.shx); empty
         /// where none is found, a font then drawn in the drawing font and a big font's letters as question marks.
         /// </summary>
         public string DrawnIn { get; }
@@ -908,7 +908,7 @@ namespace OpenCAD2D
         /// <summary>Whether the style names it as an SHX file rather than a TrueType file or typeface.</summary>
         internal bool IsShx { get; }
 
-        /// <summary>Gets the font as the list of missing SHX files gives it: "romans.shx drawn in GeometryHelper Simplex".</summary>
+        /// <summary>Gets the font as the list of missing SHX files gives it: "romans.shx drawn in OpenCAD2D Simplex".</summary>
         /// <returns>The text.</returns>
         public override string ToString() =>
             Name

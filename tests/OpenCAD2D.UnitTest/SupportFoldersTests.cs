@@ -283,10 +283,7 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void TheShippedLinFile_EqualsTheBuiltInLinetypes_NameDescriptionAndPattern()
         {
-            string path = Path.Combine(
-                CadSupportFolders.Default.FolderOf(CadSupportKind.Linetypes),
-                "GeometryHelper.lin"
-            );
+            string path = Path.Combine(CadSupportFolders.Default.FolderOf(CadSupportKind.Linetypes), "OpenCAD2D.lin");
 
             var shipped = CadLinetypeFile.Read(path);
 
@@ -304,10 +301,7 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void TheShippedPatFile_EqualsTheBuiltInPatterns_NameDescriptionAndEveryLine()
         {
-            string path = Path.Combine(
-                CadSupportFolders.Default.FolderOf(CadSupportKind.Hatches),
-                "GeometryHelper.pat"
-            );
+            string path = Path.Combine(CadSupportFolders.Default.FolderOf(CadSupportKind.Hatches), "OpenCAD2D.pat");
 
             var shipped = CadPatternFile.Read(path);
 

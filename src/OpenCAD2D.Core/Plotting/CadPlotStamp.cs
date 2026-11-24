@@ -42,9 +42,9 @@ namespace OpenCAD2D
     /// (<see cref="CadPlotSettings.PlotStamp"/>); the PDF writer puts it on the page.
     /// </summary>
     /// <remarks>
-    /// With AutoCAD's own start-up values, a plot of Plan.dxf, model space, to GeometryHelper PDF at 1:20 on 9 June 2026 at
+    /// With AutoCAD's own start-up values, a plot of Plan.dxf, model space, to OpenCAD2D PDF at 1:20 on 9 June 2026 at
     /// 14:05:09 is stamped with three lines at the lower left of the printable area, 0.1 inch (2.54 mm) in from both its edges,
-    /// in letters 0.2 inch (5.08 mm) high: the path of the drawing, 2026-06-09 14:05:09, and GeometryHelper PDF.
+    /// in letters 0.2 inch (5.08 mm) high: the path of the drawing, 2026-06-09 14:05:09, and OpenCAD2D PDF.
     /// </remarks>
     public sealed partial class CadPlotStamp
     {
@@ -280,7 +280,7 @@ namespace OpenCAD2D
         /// Where a block of the stamp's size stands on a sheet, as <see cref="Footprint(CadPlotPage, double, double)"/>, the
         /// corner taken of the image as plotted, as AutoCAD's help puts it: a plot upside down turns the sheet half round, so
         /// that a stamp at the lower left stands at the upper right of the sheet; and the sheet's units given, a sheet of
-        /// pixels at 96 to the inch (GeometryHelper PNG and JPG) taking 96 / 25.4 to the millimetre.
+        /// pixels at 96 to the inch (OpenCAD2D PNG and JPG) taking 96 / 25.4 to the millimetre.
         /// </summary>
         /// <param name="page">The plot laid on its sheet.</param>
         /// <param name="width">The width of the block of text, in millimetres.</param>

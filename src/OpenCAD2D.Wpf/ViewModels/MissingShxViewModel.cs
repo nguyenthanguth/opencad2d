@@ -97,12 +97,12 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the names of the text styles that use it, in the order of the drawing's style table: "Dims, TITLE".</summary>
         public string Styles { get; }
 
-        /// <summary>Gets what it is drawn in now, as the replacement names it (GeometryHelper Simplex, simplex.shx); empty for none.</summary>
+        /// <summary>Gets what it is drawn in now, as the replacement names it (OpenCAD2D Simplex, simplex.shx); empty for none.</summary>
         public string DrawnInNow { get; }
 
         /// <summary>
         /// Gets the Drawn in column while the missing files are ignored: the font as a file is named (simplex.shx, ghsimplex for
-        /// GeometryHelper Simplex), or the drawing font, or question marks for a big font.
+        /// OpenCAD2D Simplex), or the drawing font, or question marks for a big font.
         /// </summary>
         public string DrawnInText =>
             DrawnInNow.Length == 0 ? (IsBigFont ? "question marks" : "the drawing font")
@@ -184,7 +184,7 @@ namespace OpenCAD2D.Wpf
             return option;
         }
 
-        /// <summary>The item of the font that draws the missing one now: the presenter's own for GeometryHelper Simplex, else the item of its name, made where the list has none.</summary>
+        /// <summary>The item of the font that draws the missing one now: the presenter's own for OpenCAD2D Simplex, else the item of its name, made where the list has none.</summary>
         private MissingShxOption Pick(CadMissingFont font)
         {
             string drawn = font.DrawnIn ?? string.Empty;
@@ -345,7 +345,7 @@ namespace OpenCAD2D.Wpf
             + " not in the font search folders (Global settings › Fonts). Until you choose otherwise, text in those styles is drawn in the replacement shown.";
 
         /// <summary>
-        /// Gets the words of the second choice: "Text stays in the FONTALT replacement, GeometryHelper Simplex, and gbcbig.shx
+        /// Gets the words of the second choice: "Text stays in the FONTALT replacement, OpenCAD2D Simplex, and gbcbig.shx
         /// for big fonts.", from the replacement of the document's fonts.
         /// </summary>
         public string IgnoreDetail

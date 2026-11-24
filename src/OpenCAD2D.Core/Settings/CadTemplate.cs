@@ -111,16 +111,22 @@ namespace OpenCAD2D
             return database;
         }
 
-        /// <summary>The file name of the sample template that ships in the DrawingTemplates folder, written from <see cref="CreateSample"/>.</summary>
-        public const string SampleFileName = "GeometryHelper-mm.dwt";
+        /// <summary>
+        /// The file name of the sample template that ships in the DrawingTemplates folder, written from <see cref="CreateSample"/>.
+        /// Its old name, GeometryHelper-mm.dwt, still finds it (<see cref="Find"/>).
+        /// </summary>
+        public const string SampleFileName = "OpenCAD2D-mm.dwt";
+
+        /// <summary>The file name the sample template had before the program was called OpenCAD2D.</summary>
+        private const string OldSampleFileName = "GeometryHelper-mm.dwt";
 
         /// <summary>The description the sample template carries in its template section, the text Select Template shows under its name.</summary>
         public const string SampleDescription =
-            "GeometryHelper metric sample: millimetres, layers for a Tekla Structures detail, text styles in ghsimplex and Arial, "
+            "OpenCAD2D metric sample: millimetres, layers for a Tekla Structures detail, text styles in ghsimplex and Arial, "
             + "the dimension style GH (text 2.5) and an A3 layout.";
 
         /// <summary>
-        /// Makes the drawing of the sample template <c>GeometryHelper-mm.dwt</c>, for a detail drawn at 1:1 in millimetres and
+        /// Makes the drawing of the sample template <c>OpenCAD2D-mm.dwt</c>, for a detail drawn at 1:1 in millimetres and
         /// printed on an A3 sheet: R2013, MEASUREMENT 1, INSUNITS 4 (millimetres), distances to two decimal places, limits of
         /// 42 000 by 29 700 (an A3 sheet at 1:100), LTSCALE and PSLTSCALE 1 (the dashes of the presenter's own linetypes are
         /// millimetres: CENTER has a dash of 31.75), and nothing drawn.
@@ -130,7 +136,7 @@ namespace OpenCAD2D
         /// The layers (colours are AutoCAD's index, lineweights millimetres): 0; Axis red, CENTER, 0.18; Outline white,
         /// Continuous, 0.50; Thin 8, 0.18; Hidden 6, HIDDEN, 0.25; Dimension 3, 0.18; Text 2, 0.25; Hatch 9, 0.13; Rebar 4,
         /// 0.35; Title block white, 0.35; Viewport 8, not plotted; and Defpoints, white and not plotted. The linetypes are those
-        /// of <see cref="CadLinetypeFile.BuiltIn"/> (GeometryHelper.lin), nothing of Autodesk's.
+        /// of <see cref="CadLinetypeFile.BuiltIn"/> (OpenCAD2D.lin), nothing of Autodesk's.
         /// </para>
         /// <para>
         /// The text styles all draw in the presenter's own font or in Arial: Standard, Notes and Titles in ghsimplex.shx, height
@@ -425,12 +431,39 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Finds the file of a template named as typed: as typed, else in the template folder, else, for a name with no folder, the
-        /// first of that name in the folder's subfolders; a name with no extension is given .dwt, as AutoCAD does.
+        /// first of that name in the folder's subfolders; a name with no extension is given .dwt, as AutoCAD does. The sample
+        /// template by its old name, GeometryHelper-mm.dwt, as Global settings may have saved it for QNEW, is found by its name
+        /// now, OpenCAD2D-mm.dwt, in the same place, where no file of the old name is there.
         /// </summary>
         /// <param name="typed">The name or path.</param>
         /// <param name="folder">The template folder.</param>
         /// <returns>The full path of the file; null where there is none.</returns>
         public static string Find(string typed, string folder)
+        {
+            string found = FindAsNamed(typed, folder);
+            string name = (typed ?? string.Empty).Trim().Trim('"');
+
+            if (found != null || name.Length == 0)
+            {
+                return found;
+            }
+
+            string leaf = Path.GetFileName(Path.HasExtension(name) ? name : name + ".dwt");
+
+            if (!string.Equals(leaf, OldSampleFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            string folderOf = Path.GetDirectoryName(name);
+            return FindAsNamed(
+                string.IsNullOrEmpty(folderOf) ? SampleFileName : Path.Combine(folderOf, SampleFileName),
+                folder
+            );
+        }
+
+        /// <summary>The file of a template named as typed, as <see cref="Find"/> looks for it, by that name alone.</summary>
+        private static string FindAsNamed(string typed, string folder)
         {
             string name = (typed ?? string.Empty).Trim().Trim('"');
 

@@ -6,7 +6,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
     /// NEW through Select Template with the settings of a fresh install: the dialog opens in the DrawingTemplates folder beside
-    /// the program and lists the sample template GeometryHelper-mm.dwt that ships there with its description, and opening it
+    /// the program and lists the sample template OpenCAD2D-mm.dwt that ships there with its description, and opening it
     /// starts an untitled Drawing1.dwg with the layers, styles and variables of the template and nothing drawn.
     /// </summary>
     public sealed class SampleTemplateNewTests
@@ -32,9 +32,9 @@ namespace OpenCAD2D.Wpf.UnitTest
             model.NewFromTemplateCommand.Execute(null);
 
             Assert.Equal(CadSupportFolders.Default.FolderOf(CadSupportKind.DrawingTemplates), shown.Folder);
-            Assert.Contains("GeometryHelper-mm.dwt", shown.Templates.Select(t => t.Name));
+            Assert.Contains("OpenCAD2D-mm.dwt", shown.Templates.Select(t => t.Name));
             Assert.False(shown.IsEmpty);
-            SelectTemplateRow sample = shown.Templates.First(t => t.Name == "GeometryHelper-mm.dwt");
+            SelectTemplateRow sample = shown.Templates.First(t => t.Name == "OpenCAD2D-mm.dwt");
             shown.SelectedTemplate = sample;
             Assert.Equal(CadTemplate.SampleDescription, shown.SelectedDescription);
         }
@@ -45,7 +45,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             MainViewModel model = Model();
             model.ShowSelectTemplate = dialog =>
             {
-                dialog.SelectedTemplate = dialog.Templates.First(t => t.Name == "GeometryHelper-mm.dwt");
+                dialog.SelectedTemplate = dialog.Templates.First(t => t.Name == "OpenCAD2D-mm.dwt");
                 dialog.Open();
                 return true;
             };
@@ -83,7 +83,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal(DxfUnits.Millimeters, database.Insunits);
             Assert.Equal(new[] { "Model", "A3" }, database.Layouts.Select(l => l.LayoutName));
             Assert.Empty(database.ModelSpace);
-            Assert.Contains("Started from the template GeometryHelper-mm.dwt.", model.History);
+            Assert.Contains("Started from the template OpenCAD2D-mm.dwt.", model.History);
         }
     }
 }

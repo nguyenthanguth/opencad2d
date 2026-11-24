@@ -114,9 +114,9 @@ namespace OpenCAD2D.Wpf.UnitTest
                 new[]
                 {
                     "None",
-                    "GeometryHelper PDF",
-                    "GeometryHelper PNG",
-                    "GeometryHelper JPG",
+                    "OpenCAD2D PDF",
+                    "OpenCAD2D PNG",
+                    "OpenCAD2D JPG",
                     "Microsoft Print to PDF",
                     @"\\print\HP LaserJet M507",
                 },

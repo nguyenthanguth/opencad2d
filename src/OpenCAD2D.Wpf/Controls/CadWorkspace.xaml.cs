@@ -975,7 +975,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Browse for Plot File: where a plot is written, a PDF, the folder and name offered; null where it is cancelled.</summary>
         private string AskPlotFile(string folder, string name)
         {
-            // Of the type of the name offered: a PDF, or for GeometryHelper PNG and JPG an image.
+            // Of the type of the name offered: a PDF, or for OpenCAD2D PNG and JPG an image.
             string extension = Path.GetExtension(name).ToLowerInvariant();
             string filter =
                 extension == ".png" ? "PNG files (*.png)|*.png"

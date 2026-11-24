@@ -8,9 +8,21 @@
   `OpenCAD2D plugin <name>`; the Plot and Lisp "Help" links open the guides at `nguyenthanguth.github.io/opencad2d/guides/`,
   not the old site; and the NuGet description of `OpenCAD2D.Wpf` says OpenCAD2D. The private clipboard formats are now
   `OpenCAD2D.Entities`, `OpenCAD2D.DesignCenter`, `OpenCAD2D.ToolPaletteTool` and `OpenCAD2D.Objects`, so objects copied in
-  an older GeometryHelper build do not paste into this one, and the other way round. Kept: the plotters
-  `GeometryHelper PDF`, `PNG` and `JPG`, the font title `GeometryHelper Simplex`, the built-in `GeometryHelper.pat` and
-  `GeometryHelper.lin` and the sample `GeometryHelper-mm.dwt`, which are saved in drawings and settings.
+  an older GeometryHelper build do not paste into this one, and the other way round. The built-in plotters, font, pattern
+  and linetype files and sample template are renamed too (next entry).
+- **CHANGED.** The last built-in names of the old product are OpenCAD2D's, and the old ones are still read. The plotters
+  are `OpenCAD2D PDF`, `OpenCAD2D PNG` and `OpenCAD2D JPG` (the values of `CadPlotSettings.PdfDevice`, `PngDevice` and
+  `JpgDevice`), and the PDF's Creator and Producer say `OpenCAD2D PDF`. A layout or page setup that names `GeometryHelper
+  PDF`, `PNG` or `JPG` plots to the new device, a raster one on its size in pixels, and `UseDevice`, `DeviceName` and
+  `-PLOT` take the old names; saving a drawing writes the new names into every layout and page setup that held an old one,
+  and a printer's name as it was. The built-in font is titled `OpenCAD2D Simplex` (`CadFonts.BuiltInTitle`, the header of
+  `ghsimplex.shx`, now 4 835 bytes, the Font Name list and the missing-font line); its file name `ghsimplex`, which drawings
+  and settings store, is unchanged. The built-in sets are `OpenCAD2D.pat` and `OpenCAD2D.lin` (`CadPatternFile.BuiltInName`,
+  `CadLinetypeFile.BuiltInName`, and the copies in `Hatches` and `Linetypes`); `GeometryHelper.pat` and `GeometryHelper.lin`,
+  typed at `-LINETYPE` or given as a hatch's pattern file, still mean the built-in sets. The sample template is
+  `OpenCAD2D-mm.dwt` (`CadTemplate.SampleFileName`), described as an "OpenCAD2D metric sample"; a Default template for QNEW
+  saved as `GeometryHelper-mm.dwt` finds it, where no file of the old name is there. No public member is renamed; a plugin
+  compiled against the old constants passes the old strings, which are read as the new ones.
 - **CHANGED.** The application menu button at the top left of the window shows the OpenCAD2D mark (the white tile with the
   O and the C, as the icon frames below 24 px) in place of the letter G. Under the pointer, pressed, or while the menu is
   open, it has a 2 px ring of light blue around it, where it used to turn lighter blue.

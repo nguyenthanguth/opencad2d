@@ -660,7 +660,7 @@ namespace OpenCAD2D
         /// <summary>
         /// Gets or sets the font text is drawn in where its style's font is not found, as AutoCAD's FONTALT: an SHX file, a
         /// TrueType file or a typeface, and after a comma the big font a style's big font not found is drawn in
-        /// (simplex.shx,gbcbig.shx); by default the presenter's own single-stroke font, GeometryHelper Simplex
+        /// (simplex.shx,gbcbig.shx); by default the presenter's own single-stroke font, OpenCAD2D Simplex
         /// (<see cref="CadFonts.BuiltInName"/>). Empty, or a font not found either, draws it in <see cref="DrawingFont"/>.
         /// </summary>
         public string ReplacementFont

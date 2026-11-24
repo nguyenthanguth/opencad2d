@@ -375,7 +375,7 @@ namespace OpenCAD2D
             }
 
             string name = (PatternName ?? string.Empty).Trim();
-            bool own = string.Equals(PatternFile, CadPatternFile.BuiltInName, StringComparison.OrdinalIgnoreCase);
+            bool own = CadPatternFile.IsBuiltInName(PatternFile);
             CadHatchPattern pattern = null;
 
             // A pattern of a file the user picked is read from it, as a custom pattern.

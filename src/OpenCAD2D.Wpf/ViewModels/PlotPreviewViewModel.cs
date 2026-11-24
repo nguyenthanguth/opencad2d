@@ -58,7 +58,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the plot laid on its sheet.</summary>
         public CadPlotPage Page { get; }
 
-        /// <summary>Gets what the toolbar says of the plot: "GeometryHelper PDF · ISO A3 landscape · 1:20 · Monochrome".</summary>
+        /// <summary>Gets what the toolbar says of the plot: "OpenCAD2D PDF · ISO A3 landscape · 1:20 · Monochrome".</summary>
         public string Summary
         {
             get

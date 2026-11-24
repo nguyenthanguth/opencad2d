@@ -29,7 +29,7 @@ CadEditResult result = settings.ApplyTo(document, document.ModelSpace);
 
 | Setting | Groups of AcDbPlotSettings |
 |---|---|
-| the plotter, `GeometryHelper PDF` | 2 |
+| the plotter, `OpenCAD2D PDF` | 2 |
 | the sheet, `ISO_A3_(420.00_x_297.00_MM)`, its size and margins in millimetres | 4, 44, 45, 40 to 43, 72 of 1 |
 | the turn: landscape or portrait as AutoCAD reckons it from the sheet as named, plus 180 upside down | 73 |
 | the offset from the printable area's corner | 46, 47 |
@@ -52,7 +52,7 @@ The page setups of the drawing's ACAD_PLOTSETTINGS are listed by
 
 ## The sheet
 
-[`CadPaper.Standard`](xref:OpenCAD2D.CadPaper) lists the sheets of GeometryHelper PDF: ISO A0 to A4 and
+[`CadPaper.Standard`](xref:OpenCAD2D.CadPaper) lists the sheets of OpenCAD2D PDF: ISO A0 to A4 and
 ANSI A to E, each on its side, with margins of 5 all round. [`CadPlotPage.Compute`](xref:OpenCAD2D.CadPlotPage)
 lays a plot on its sheet:
 
@@ -205,7 +205,7 @@ at once lost the map of their text in 3 to 6 of 64.
 | -PLOT | AutoCAD's plot on the command line |
 
 The dialog follows AutoCAD's: the page setup's name, with Add… to keep the dialog's settings under a name; the plotter,
-GeometryHelper PDF, PNG or JPG or a printer of Windows (None is listed greyed); the paper size and its small picture, and
+OpenCAD2D PDF, PNG or JPG or a printer of Windows (None is listed greyed); the paper size and its small picture, and
 for a printer the number of copies; what to plot, and for a window the
 Window&lt; button, which hides the dialog while "Specify first corner:" and "Specify opposite corner:" are answered on the
 drawing and shows it again with the window set, and for a view the View list of the drawing's named views (View, between Limits
@@ -222,7 +222,7 @@ Original shows the whole sheet; ESC or ENTER leaves it.
 ```text
 Detailed plot configuration? [Yes/No] <No>: Y
 Enter a layout name or [?] <Model>:
-Enter an output device name or [?] <GeometryHelper PDF>:
+Enter an output device name or [?] <OpenCAD2D PDF>:
 Enter paper size or [?] <ISO A3 (420.00 x 297.00 MM)>:
 Enter paper units [Inches/Millimeters] <Millimeters>:
 Enter drawing orientation [Portrait/Landscape] <Landscape>:
@@ -254,7 +254,7 @@ network (`\\print\HP LaserJet M507`) marked Windows · network, one on a USB por
 list is then the printer's own, each sheet as the driver names it (`A4`, `A3`, `Letter`) at its size upright, with the
 margins of the imageable area the driver gives for it. The sheet the plot was on stays where the printer has one of its size
 in either turn: a plot on ISO A3 (420 by 297) moves to the printer's A3 (297 by 420), still on its side, and a printer with
-no such sheet starts on the first it lists. A printer that lists no sheet at all offers the sheets of GeometryHelper PDF.
+no such sheet starts on the first it lists. A printer that lists no sheet at all offers the sheets of OpenCAD2D PDF.
 Where says what the printer prints to: the port of a local printer (`USB001`), the share of one on the network
 (`\\office-srv\Office printer`), or just Printer where the queue does not say. Plot to file, plain, is offered for a printer,
 unticked, as AutoCAD leaves it; ticked, OK writes "Plot to file is not supported for this printer" in the footer and prints
@@ -264,7 +264,7 @@ OK on a printer draws the plot as the PDF writer does, through the same page [`C
 lays out, with the same scale, offset, centring, turn, plot style table and lineweights, then hands it to the printer; no
 file is asked. "Plot sent to Office printer." is written on the command line, or "The plot was not printed:" and the
 printer's reason where it does not take the job. Save changes to layout writes the printer's name as the layout's plotter (group 2),
-so that the next PLOT opens on that printer where the computer has it, and chooses GeometryHelper PDF where it has not.
+so that the next PLOT opens on that printer where the computer has it, and chooses OpenCAD2D PDF where it has not.
 PREVIEW and the preview's Plot print too when the page setup names an installed printer. -PLOT still names the three built-in
 devices only.
 
@@ -304,7 +304,7 @@ PAGESETUP opens the Page Setup Manager, drawn as the Design artifact's board Pag
 Model" with a layout icon; the Page setups group holds "Current page setup: A2 plan" and the list, whose first row is the
 layout's own setup, `*Model*` (`*Layout1 (A2 plan)*` in a layout whose page setup is A2 plan), chosen when the manager opens,
 and under it the drawing's page setups by name. "Selected page setup details" is a group of its own: Device name, Plotter
-(`GeometryHelper PDF · vector, built in`), Plot size with its orientation (`594.00 x 420.00 mm (Landscape)`, `1920 x 1080 pixels
+(`OpenCAD2D PDF · vector, built in`), Plot size with its orientation (`594.00 x 420.00 mm (Landscape)`, `1920 x 1080 pixels
 (Landscape)`), Where (`File`, or the port or share of a printer; `—` for a printer this computer lacks) and Description. A box
 "Display when creating a new layout" at the foot keeps the system variable SHOWPAGESETUPFORNEWLAYOUTS (0, or 1 once ticked); the
 presenter makes no layouts of its own, so it only keeps the choice. Close is orange-red and Help opens this page.
@@ -331,12 +331,17 @@ and OK is greyed. Import… at the left of its footer asks a drawing as the mana
 which their names are taken.
 
 A page setup that names a printer of Windows (group 2) is chosen in the Plot dialog when the computer has the printer; AutoCAD's
-`DWG To PDF.pc3` and a printer this computer lacks are read as GeometryHelper PDF.
+`DWG To PDF.pc3` and a printer this computer lacks are read as OpenCAD2D PDF.
+
+The built-in plotters were called GeometryHelper PDF, GeometryHelper PNG and GeometryHelper JPG before the program was named
+OpenCAD2D. A layout or page setup that names one of those (group 1, either case) is read as OpenCAD2D PDF, PNG or JPG, a raster
+one on its size in pixels, and `-PLOT` and `CadPlotSettings.UseDevice` take the old names too. Saving the drawing writes the new
+names into every layout and page setup that held an old one; a printer's name is written as it was.
 
 ## Plotting to an image
 
-PLOT and -PLOT offer two raster devices beside GeometryHelper PDF: GeometryHelper PNG, which writes a PNG, lossless, and
-GeometryHelper JPG, which writes a JPEG at a quality of 90. Their Paper size list holds sizes in pixels rather than
+PLOT and -PLOT offer two raster devices beside OpenCAD2D PDF: OpenCAD2D PNG, which writes a PNG, lossless, and
+OpenCAD2D JPG, which writes a JPEG at a quality of 90. Their Paper size list holds sizes in pixels rather than
 sheets: 1280 x 720 (HD), 1600 x 1200 (UXGA), 1920 x 1080 (Full HD), 2560 x 1440 (QHD) and 3840 x 2160 (4K UHD), then the
 sizes of your own, then Custom…, which asks a width and a height of 16 to 8 000 pixels each in Custom Image Size and adds
 the size to the list as `2480 x 1754 Pixels (Custom)`. The ten newest sizes of your own are kept in the settings file
@@ -348,12 +353,12 @@ the offset and the scale read in pixels (Fit to paper off, the scale is pixels p
 as its lineweight at 96 dots an inch, 0.5 mm being 1.9 pixels. The DPI box is grey, the size being set in pixels. The
 plot is always to a file: OK asks for it through Browse for Plot File, offered as `plan-level2-Model.png`, or with FILEDIA
 0 on the command line, `Enter file name <C:\Plans\plan-level2-Model.png>:`. Model space fitted to 1920 x 1080 is a PNG of
-exactly 1920 by 1080 pixels. Going back to GeometryHelper PDF gives back the sheet chosen before.
+exactly 1920 by 1080 pixels. Going back to OpenCAD2D PDF gives back the sheet chosen before.
 
 -PLOT takes the device by its name, and then the size as listed or as `2480 x 1754`; its units are pixels alone:
 
 ```text
-Enter an output device name or [?] <GeometryHelper PDF>: GeometryHelper PNG
+Enter an output device name or [?] <OpenCAD2D PDF>: OpenCAD2D PNG
 Enter paper size or [?] <1920 x 1080 Pixels (Full HD)>: 2480 x 1754
 Enter paper units [Pixels] <Pixels>:
 ...
@@ -637,14 +642,14 @@ font (`Segoe UI`), the height (`0.2000`) and `Place plot stamp on single line? [
 units [Inches/Millimeters/Pixels] <Inches>:`; the offset and the height are in those units, a pixel being 1/96 inch.
 
 While the stamp is on, PLOT, -PLOT, EXPORTPDF and -EXPORT give the PDF they write a copy of it
-([`CadPlotSettings.PlotStamp`](xref:OpenCAD2D.CadPlotSettings)), and GeometryHelper PDF draws it as text, so
+([`CadPlotSettings.PlotStamp`](xref:OpenCAD2D.CadPlotSettings)), and OpenCAD2D PDF draws it as text, so
 that a reader finds it. The fields come in AutoCAD's order: the drawing (with its folder), the layout, the date and time
 (`2026-06-09 14:05:09`), the login name, the plotter, the sheet, the scale (`1:20`), then the two user fields that are not
 empty; each is a line, or all in one line set apart by two spaces with Single line. With AutoCAD's start-up values a plot of
 Plan.dxf on A3 is stamped with three lines of letters 0.2 inch (5.08 mm) high, their lower left corner 2.54 mm in from both
 edges of the printable area. A vertical stamp reads up the sheet; upside down turns it half round. The corner is that of
 the image as plotted, as AutoCAD's help says: a plot upside down turns the stamp half round with it, so that a stamp at the
-lower left stands at the upper right of the sheet, reading upside down. GeometryHelper PNG and JPG draw the stamp too,
+lower left stands at the upper right of the sheet, reading upside down. OpenCAD2D PNG and JPG draw the stamp too,
 at 96 pixels to the inch: 0.2 inch letters are 19.2 pixels high, 0.1 inch in from the corner of a 1920 by 1080 image is
 9.6 pixels. The log file is appended with a line a plot (a line a page for a PDF of all layouts), beside the plot where its
 path has no folder; a log that cannot be written is logged and the plot is not failed.
