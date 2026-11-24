@@ -68,6 +68,9 @@ namespace OpenCAD2D.Wpf
             }
 
             _plugins = plugins;
+
+            // A load a command makes, PLUGINLOAD or PLUGINRELOAD, leaves its packages' state as the window's own loads do.
+            plugins.AfterCommandLoad = NotePackages;
             plugins.PluginsChanged += (s, e) =>
             {
                 RememberApplications();
@@ -205,9 +208,14 @@ namespace OpenCAD2D.Wpf
 
         private void DetachPlugins(CadCommandRegistry registry) => _plugins?.Detach(registry);
 
-        /// <summary>PLUGINLOAD with a window: its Open dialog for a .dll, the load done when a file is chosen.</summary>
+        /// <summary>PLUGINLOAD with a window: its Open dialog for a .dll, the load done when a file is chosen; with FILEDIA 0 the path is asked on the command line.</summary>
         private IEnumerable<CadPrompt> PluginLoadByDialog(CadCommandContext c)
         {
+            if (!c.Session.FileDialogs)
+            {
+                return _plugins.LoadByPath(c);
+            }
+
             RequestPluginLoad();
             return Array.Empty<CadPrompt>();
         }

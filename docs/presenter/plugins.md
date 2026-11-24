@@ -308,9 +308,14 @@ it with no .NET SDK, as `dotnet restore` does, and compiles and runs the plugin 
   `download` (blue) or `in the cache`, the sentence that loading runs the plugin's code and its packages' code with your
   rights and that the packages are kept in `%LocalAppData%\OpenCAD2D\NuGet`, and at the foot `From nuget.org` with the
   buttons **Don't load** and **Download and load**. Esc and the close button are Don't load. The restore itself runs on the
-  window's thread, as the compile does, so the window waits for it as it waits for a compile. The command-line form of the
-  question, `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:` (`CadPackageQuestion.Prompt` and `Answer`), is
-  not asked by any command yet: a typed `PLUGINLOAD` with `FILEDIA` 0 asks with the window too. A no leaves the plugin not loaded
+  window's thread, as the compile does, so the window waits for it as it waits for a compile. With `FILEDIA` 0 (as AutoCAD's
+  commands fall back to the command line) a typed `PLUGINLOAD`, which then asks its path on the command line, and `PLUGINRELOAD`
+  ask on the command line instead of with the window: the load stops before anything is downloaded, the packages still to
+  download are written, one to a line (`Stairs needs these packages from nuget.org:`, then `  Newtonsoft.Json 13.0.3`, and
+  `  Foo 1.0.0 (needed by another)` for one the `.csproj` does not name), and `Download these packages? [Yes/No] <No>:` is
+  asked. Yes downloads them and loads the plugin; No or Enter leave it not loaded, with the same badge **needs packages**
+  in Load/Unload Applications as the window's Don't load; Esc cancels the command and leaves the plugin as it was. A load with
+  `FILEDIA` 1 asks the window, as before. A no leaves the plugin not loaded
   (`Stairs was not loaded: its packages were not downloaded.`), and so does a host that has no way to ask. No question is put
   where every package is in the cache already.
 - **Offline.** A source that cannot be reached, or a download that fails, leaves the plugin not loaded:

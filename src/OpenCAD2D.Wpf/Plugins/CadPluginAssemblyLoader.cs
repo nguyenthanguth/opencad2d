@@ -77,8 +77,8 @@ namespace OpenCAD2D.Wpf.Plugins
         /// <summary>
         /// Gets or sets what is asked before the NuGet packages of a plugin are downloaded: given the plugin's name and its
         /// packages (the direct ones first, then the rest, each in ordinal order, those already in the cache marked), it says
-        /// whether to download them from nuget.org. The window asks with a dialog, the command line with
-        /// <see cref="CadPackageQuestion.Prompt"/>. Null, as it is until set, downloads none and refuses a plugin whose
+        /// whether to download them from nuget.org. The window asks with a dialog; a command with FILEDIA 0 asks on the command line
+        /// before the compile and does not call it. Null, as it is until set, downloads none and refuses a plugin whose
         /// packages are not all in the cache with <c>Stairs was not loaded: its packages were not downloaded.</c>; it is not
         /// asked where every package is in the cache already.
         /// </summary>
@@ -101,12 +101,44 @@ namespace OpenCAD2D.Wpf.Plugins
         /// <summary>Gets true: on .NET 8 plugins given as C# source are compiled.</summary>
         public override bool CanCompile => true;
 
+        /// <summary>
+        /// The lines the command line writes before it asks whether to download: <c>Stairs needs these packages from
+        /// nuget.org:</c>, then a line <c>  Newtonsoft.Json 13.0.3</c> for each package not in the cache, with
+        /// <c> (needed by another)</c> after one the .csproj does not name.
+        /// </summary>
+        private static List<string> PackageLines(string tool, IReadOnlyList<CadPackage> packages)
+        {
+            var lines = new List<string> { tool + " needs these packages from nuget.org:" };
+
+            foreach (CadPackage package in packages)
+            {
+                if (!package.IsCached)
+                {
+                    lines.Add("  " + package + (package.IsDirect ? string.Empty : " (needed by another)"));
+                }
+            }
+
+            return lines;
+        }
+
         /// <inheritdoc/>
         public override CadPluginBuild Compile(string name, string projectPath)
         {
             CadPluginBuild build;
             CadPackageSet packages;
             CompilingProject = projectPath;
+            Func<string, IReadOnlyList<CadPackage>, bool> asked = _compiler.ConfirmDownload;
+
+            // The command line asks outside the compile: a yes was given already, or the load stops for it to be asked.
+            if (Download == CadDownloadMode.Yes)
+            {
+                _compiler.ConfirmDownload = (tool, list) => true;
+            }
+            else if (Download == CadDownloadMode.Defer)
+            {
+                _compiler.ConfirmDownload = (tool, list) =>
+                    throw new CadPluginDownloadPending(PackageLines(tool, list));
+            }
 
             try
             {
@@ -115,6 +147,7 @@ namespace OpenCAD2D.Wpf.Plugins
             finally
             {
                 CompilingProject = null;
+                _compiler.ConfirmDownload = asked;
             }
 
             lock (_packages)

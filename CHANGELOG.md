@@ -57,9 +57,11 @@
   the packages (the plugin's own first, each marked `download` or `in the cache`) in a window, **Packages for Stairs**, with
   the buttons `Don’t load` and `Download and load` (closing it is a no); a no, or an unreachable nuget.org, leaves the plugin
   not loaded with the line to reconnect and PLUGINRELOAD. A connection is given up after 5 s, so a source whose address
-  drops packets is reported in 5 s (two runs), where Windows alone waits 42.8 s over its two tries. The line of the command-line form of
-  the question, `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:`, is `CadPackageQuestion.Prompt`; no
-  command asks it yet, so a typed PLUGINLOAD asks with the window too. Packages are kept in
+  drops packets is reported in 5 s (two runs), where Windows alone waits 42.8 s over its two tries. With FILEDIA 0 the question
+  is asked on the command line: a typed PLUGINLOAD (which asks its path there) or PLUGINRELOAD stops before anything is
+  downloaded, writes `Stairs needs these packages from nuget.org:` and a line `  Newtonsoft.Json 13.0.3` for each package
+  not in the cache, and asks `Download these packages? [Yes/No] <No>:`; Yes downloads and loads, No or Enter leaves the
+  plugin not loaded with the badge **needs packages**, and FILEDIA 1 asks the window as before. Packages are kept in
   `%LocalAppData%\OpenCAD2D\NuGet\packages` and the resolved list in `PluginCache`, so a start asks nothing of the network;
   two plugins with `Foo 1.0.0` and `Foo 2.0.0` both run, each in a load context of its own. A library the app carries itself
   (the .NET runtime, WPF, Roslyn, NuGet's own, `Newtonsoft.Json` among them) is shared: the source is compiled against the

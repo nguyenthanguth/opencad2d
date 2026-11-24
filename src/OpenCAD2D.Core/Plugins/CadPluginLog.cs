@@ -98,6 +98,15 @@ namespace OpenCAD2D.Plugins
         /// <summary>Gets what was left out, a line each: a method that cannot be a command, a command or alias already taken.</summary>
         public IReadOnlyList<string> Warnings { get; }
 
+        /// <summary>
+        /// Gets the lines a load that stopped before downloading packages (<see cref="CadDownloadMode.Defer"/>) writes before it
+        /// asks; null for any other result.
+        /// </summary>
+        internal IReadOnlyList<string> Download { get; set; }
+
+        /// <summary>Gets what carries on a load that stopped before downloading packages once the question is answered: true loads it, false leaves it not loaded and says so in the log; null where <see cref="Download"/> is null.</summary>
+        internal Func<bool, CadPluginResult> Answer { get; set; }
+
         /// <inheritdoc/>
         public override string ToString() => Warnings.Count == 0 ? Message : Message + " " + string.Join(" ", Warnings);
     }

@@ -48,5 +48,44 @@ namespace OpenCAD2D.Plugins
         {
             throw new NotSupportedException("C# source plugins need the .NET 8 app.");
         }
+
+        /// <summary>
+        /// Gets or sets how <see cref="Compile"/> goes on where the plugin's packages are not on this computer: the manager sets
+        /// it for the one load in hand and puts it back to <see cref="CadDownloadMode.Ask"/>. A loader that never downloads
+        /// packages has nothing to do with it.
+        /// </summary>
+        internal CadDownloadMode Download { get; set; }
+    }
+
+    /// <summary>What a compile does where the packages of a plugin are not on this computer yet.</summary>
+    internal enum CadDownloadMode
+    {
+        /// <summary>The loader's own question (a dialog), and no download where there is none.</summary>
+        Ask,
+
+        /// <summary>Stops with a <see cref="CadPluginDownloadPending"/> that lists the packages, so that the command line can ask; nothing is downloaded.</summary>
+        Defer,
+
+        /// <summary>Downloads them: the question was answered Yes.</summary>
+        Yes,
+    }
+
+    /// <summary>
+    /// Thrown by <see cref="CadPluginLoader.Compile"/> in <see cref="CadDownloadMode.Defer"/> where packages are to be
+    /// downloaded: the lines the command line writes before it asks, <c>Stairs needs these packages from nuget.org:</c> and a
+    /// line a package.
+    /// </summary>
+    internal sealed class CadPluginDownloadPending : Exception
+    {
+        /// <summary>Makes the exception.</summary>
+        /// <param name="lines">The lines to write before the question.</param>
+        internal CadPluginDownloadPending(IReadOnlyList<string> lines)
+            : base("The packages are to be downloaded.")
+        {
+            Lines = lines;
+        }
+
+        /// <summary>Gets the lines to write before the question.</summary>
+        internal IReadOnlyList<string> Lines { get; }
     }
 }
