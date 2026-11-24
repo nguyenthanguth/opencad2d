@@ -317,6 +317,8 @@ namespace OpenCAD2D.Wpf
             // Python's commands go to every drawing opened from here on; the engine starts at the first run.
             if (EnablePython)
             {
+                // The question of pip is a dialog over the window; the tool's environment waits for it on a thread of its own.
+                model.AskPythonPackages = question => PackageQuestionWindow.Ask(window, question);
                 model.UsePython(Dispatcher.CurrentDispatcher);
             }
 

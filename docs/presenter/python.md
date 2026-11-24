@@ -445,8 +445,12 @@ tool's `requirements.txt`, so a tool that pins `numpy==1.26.4` and another that 
 The venv is made at the tool's first command, off the window's thread, while the drawing waits at `STAIRSPY is working...`.
 
 - **Nothing is installed without a yes.** The app asks `pip install --dry-run --report` what would be installed and writes the
-  list (the packages the file names first, then the ones they need, each with its version), then asks on the command line
-  `Install with pip [Yes/No] <No>:` before it downloads anything. The venv is changed only after the Yes, and asked again when
+  list (the packages the file names first, then the ones they need, each with its version), then asks in a dialog, `Packages
+  for Python tool Stairs` (Package, Version, Asked as: `shapely>=2.0`, or `for shapely`), or on the command line with FILEDIA 0
+  (`Install with pip [Yes/No] <No>:`), before it downloads anything. While pip installs, the tool's row in Load/Unload
+  Applications shows **installing…**; after a No it shows **needs packages** and the next command asks again; a failed install
+  shows **install failed** and a red line with pip's first `ERROR:` line (a change that failed and left the tool on its old
+  venv gives the red line and no badge). The venv is changed only after the Yes, and asked again when
   `requirements.txt` or the Python changes. Esc or No ends the run with `Stairs was not installed: its packages were not
   approved. To install them yourself, run: ...`. A tool with no packages asks nothing.
 - **A lower bound is a version.** `numpy>=1.26` is installed as `numpy==1.26`: quick, and the same on every computer. Where pip

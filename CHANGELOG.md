@@ -210,6 +210,14 @@
   `AppLoadViewModel.LoadFolder`, `AskFolder`, `LoadFolderCommand`, `AppLoadRow.Badge` and `AppLoadBadge`,
   `CadPluginAssemblyLoader.CompilingProject` and `CadPackageQuestion.Question` are new; the question's window,
   `PackageQuestionWindow`, takes its texts from `PackageQuestionViewModel`, so that the pip question of a Python tool can use it.
+- **NEW.** The question before pip installs a Python tool's packages is a dialog (Tools as folders, TF6b): `Packages for Python
+  tool Survey`, a table of Package, Version and Asked as (`shapely>=2.0`, or `for shapely` for a package another needs), the
+  tool's own packages first in bold, and the buttons `Don’t install` and `Install`; with FILEDIA 0 it stays the line `Install with
+  pip [Yes/No] <No>:`. In Load/Unload Applications a Python tool's row shows the blue badge **installing…** while pip works (the
+  window stays free), **needs packages** after a No (the tool stays loaded and its next command asks again) and **install failed**
+  with the red line `Grid was not installed: ERROR: ...` (pip's first error, every line on the command line); a change of
+  `requirements.txt` that failed but left the tool on its old venv gives the red line and no badge. `MainViewModel.AskPythonPackages` and
+  `AppLoadBadge.Installing` are new.
 - **FIXED.** `OpenCAD2D.exe --screenshot ... --plugin x.dll` (and a source plugin's folder) rewrote the user's `%AppData%\OpenCAD2D\settings.json`
   with default settings plus the application it remembered. A screenshot now keeps its settings, tool palettes, plot
   styles and LISP registry in a folder of its own, `%TEMP%\OpenCAD2D\ScreenshotSettings\<process id>`, and never reads
