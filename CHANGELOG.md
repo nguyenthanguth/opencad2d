@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **CHANGED.** The Settings tab of the ribbon has a button for every page of Global settings. It had Options,
+  Appearance, Canvas, Shortcuts and Save and export; it now has Options, Appearance, Canvas, Units, Text and fonts,
+  Folders, Security, Shortcuts and Save and export, in the order of the dialog's list, each opening the dialog on its
+  page (Units and rounding, Text and fonts, Folder preference, Security were reachable only from the dialog's own list
+  or `--dialog settings:`). The tooltip of each names the page in full.
+
 - **FIXED.** Load/Unload Applications (APPLOAD) dropped an unloaded file of the `Lisps` or `Pythons` folder beside the
   app from the table once the window was closed: a table of 20 rows came back with 14, with the unticked Lisp and Python
   rows gone. Only an unloaded file from elsewhere was kept in the known list. The files of those folders are now kept
