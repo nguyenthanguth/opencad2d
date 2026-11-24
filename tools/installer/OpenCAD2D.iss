@@ -58,7 +58,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "associate"; Description: "Associate .dxf and .dwg files with {#AppName}"; GroupDescription: "File types:"
 
 [Files]
-; Everything dotnet publish wrote: the exe, the .NET runtime, the libraries, the support folders, Plugins\DrawingInfo and Plugins\Stairs.
+; Everything dotnet publish wrote: the exe, the .NET runtime, the libraries, the support folders, Plugins\DrawingInfo, Plugins\HelloWorld and Plugins\Stairs.
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]

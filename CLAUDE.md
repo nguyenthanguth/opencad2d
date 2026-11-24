@@ -71,7 +71,7 @@ program). It came out of the GeometryHelper repository in November 2026, with it
 | `src/python` | the Python package `opencad2d` (wheel), its examples |
 | `tests/` | the xUnit suites (net48; Python on net48 and net8.0), `tests/python` (pytest), `tests/Shared` |
 | `tools/OpenCAD2D.PyStubs`, `tools/python` | the Python stub generator and the wheel, stub and pytest scripts |
-| `examples/` | the sample plugin `OpenCAD2D.Plugins.DrawingInfo` |
+| `examples/` | the sample plugins as source folders (`DrawingInfo`, `HelloWorld`, `Stairs`), shipped in `Plugins` |
 | `docs/` | the guides (`docs/presenter`, `docs/python.md`) |
 | `Lib/` | the core library, `GeometryHelper.dll` and its XML documentation, with `VERSION.txt` |
 | `PROGRESS.md` | the work list; read it first |

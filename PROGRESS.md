@@ -667,6 +667,8 @@ Plugins\Stairs\                Pythons\StairsPy\
       HelloWorld folders).
       -> verify: each sample loads from the app's folders with its command and output; the first start compiles the
          three C# samples once (time measured), the next takes them from the cache.
+      C# half done 2026-11-24: Plugins\DrawingInfo\ as source (the .dll dropped), Plugins\HelloWorld\ new; the first start
+      compiles the three in 1.09 to 1.34 s, a start from the cache 61 to 82 ms. The Python half waits on TF4b and TF7
 - [ ] TF8. Docs, the CHANGELOG (BREAKING), the setup (its size with the NuGet client and without the embedding, before
       and after).
       -> verify: the guides' examples run in tests; the setup built and both samples load from the installed app.

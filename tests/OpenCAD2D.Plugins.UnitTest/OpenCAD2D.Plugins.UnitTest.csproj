@@ -39,24 +39,31 @@
             Include="..\OpenCAD2D.SampleUiPlugin\OpenCAD2D.SampleUiPlugin.csproj"
             ReferenceOutputAssembly="false"
         />
-        <!-- Built first, never referenced: the sample that ships in Plugins\DrawingInfo is loaded from DrawingInfo\ beside the tests. -->
-        <ProjectReference
-            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.csproj"
-            ReferenceOutputAssembly="false"
-        />
     </ItemGroup>
 
     <ItemGroup>
+        <!-- The samples the app ships as Plugins\DrawingInfo and Plugins\HelloWorld: tests load them as the app does, from source. -->
         <None
-            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Plugins.DrawingInfo.dll"
-            Link="DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.dll"
+            Include="..\..\examples\DrawingInfo\DrawingInfoCommands.cs"
+            Link="DrawingInfo\DrawingInfoCommands.cs.txt"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />
-        <!-- The same sample as source, loaded as a C# source plugin on .NET 8. -->
         <None
-            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\DrawingInfoCommands.cs"
-            Link="DrawingInfoSource\DrawingInfoCommands.cs.txt"
+            Include="..\..\examples\DrawingInfo\DrawingInfo.csproj"
+            Link="DrawingInfo\DrawingInfo.csproj.txt"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\examples\HelloWorld\HelloWorldCommands.cs"
+            Link="HelloWorld\HelloWorldCommands.cs.txt"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\examples\HelloWorld\HelloWorld.csproj"
+            Link="HelloWorld\HelloWorld.csproj.txt"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />

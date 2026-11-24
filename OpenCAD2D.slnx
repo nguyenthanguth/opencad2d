@@ -22,7 +22,4 @@
     <Folder Name="/tools/">
         <Project Path="tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj" />
     </Folder>
-    <Folder Name="/examples/">
-        <Project Path="examples/OpenCAD2D.Plugins.DrawingInfo/OpenCAD2D.Plugins.DrawingInfo.csproj" />
-    </Folder>
 </Solution>

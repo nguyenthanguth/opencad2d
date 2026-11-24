@@ -29,17 +29,17 @@ This folder lies under the program folder, so it is a trusted folder: its plugin
 question. A plugin anywhere else is loaded with PLUGINLOAD (NETLOAD) for one session, or put on
 the "Load at every start" list of the Plugin manager.
 
-The folder Stairs is a sample C# source plugin that comes with the app, the example of the plugin
-guide: Stairs.csproj and StairsCommands.cs, and its command STAIRS writes "Steps: 18". The app
-compiles it at the first start after an install or an upgrade (about 0.9 s) and keeps the build,
-so later starts do not compile it again. Delete the folder if you do not want it.
+Three folders here are sample C# source plugins that come with the app, each a .csproj and one .cs file:
 
-The folder DrawingInfo is a sample that comes with the app: its command GHDWGINFO writes the
-name, objects, layers, blocks and extents of the drawing. Delete the folder if you do not want it.
-Its source is the one file DrawingInfoCommands.cs in examples\OpenCAD2D.Plugins.DrawingInfo of
-https://github.com/nguyenthanguth/opencad2d; put it in this folder's DrawingInfo in place of the
-.dll, with a DrawingInfo.csproj as small as the one of Stairs, and the app compiles it at the
-next start.
+  HelloWorld    its command HELLOWORLD writes "Hello, World!": the smallest plugin there can be.
+  DrawingInfo   its command GHDWGINFO writes the name, objects, layers, blocks and extents of the drawing.
+  Stairs        the example of the plugin guide; its command STAIRS writes "Steps: 18".
+
+The app compiles them at the first start after an install or an upgrade (about 1.1 s for the three)
+and keeps the builds, so later starts do not compile them again (about 0.07 s for the three, from the
+cache). Delete the folder of one if you do not want it, or copy one under another name to start a
+plugin of your own. The sources are also in examples\ of https://github.com/nguyenthanguth/opencad2d,
+where each opens in Visual Studio as a project.
 
 A plugin is loaded from a copy, so the file here is never locked: change it, then PLUGINRELOAD.
 Loading a plugin runs its code with your rights: put here only what you trust.

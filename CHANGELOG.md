@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **CHANGED.** The sample plugins ship as source (Tools as folders, TF9, the C# half). `Plugins\DrawingInfo` is now the
+  folder with `DrawingInfo.csproj` and `DrawingInfoCommands.cs`, as `Plugins\Stairs` is, and the built
+  `OpenCAD2D.Plugins.DrawingInfo.dll` is no longer in the app's `Plugins` folder; the project `examples/OpenCAD2D.Plugins.DrawingInfo`
+  (a netstandard2.0 library, in `OpenCAD2D.slnx`) is the folder `examples/DrawingInfo`, a plugin folder that Visual Studio
+  opens, and is no longer built with the solution. The command keeps its name, `GHDWGINFO`, and writes the same lines. The first
+  start after an install or an upgrade compiles the three samples once: 1.09 s to 1.34 s together on .NET 8 (four runs), and
+  61 ms to 82 ms at every start after it, from the cache.
+- **NEW.** The sample plugin `Plugins\HelloWorld`, with `HelloWorld.csproj` and `HelloWorldCommands.cs` (`examples/HelloWorld`):
+  the command `HELLOWORLD` writes `Hello, World!` on the command line. It is the smallest plugin there can be, and the
+  plugin guide documents it with the other samples.
 - **NEW.** The run of a tool's command, the base of tools that run in a process of their own (Tools as folders, TF4a). A
   program the app starts reaches the app on a second pipe, `OpenCAD2D.<process id>.tools`, which is never announced in the
   instance folder, stays open whatever "Allow other programs to connect" says, and takes a client only with the token of

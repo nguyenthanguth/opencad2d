@@ -28,10 +28,32 @@
     </ItemGroup>
 
     <!--
-    The sample source plugin, the folder Plugins\Stairs beside the exe: the example of the plugin guide, which a test of the
-    Plugins suite holds byte for byte to the guide. A plugin of its own, never inside Plugins\DrawingInfo.
+    The sample source plugins, the folders Plugins\DrawingInfo, Plugins\HelloWorld and Plugins\Stairs beside the exe: a
+    .csproj and the source each, which the app compiles at its first start and keeps the build of. Stairs is the example of
+    the plugin guide, which a test of the Plugins suite holds byte for byte to the guide. Each a plugin of its own, never
+    inside another.
   -->
     <ItemGroup>
+        <None
+            Include="..\..\examples\DrawingInfo\DrawingInfo.csproj"
+            Link="Plugins\DrawingInfo\DrawingInfo.csproj"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
+            Include="..\..\examples\DrawingInfo\DrawingInfoCommands.cs"
+            Link="Plugins\DrawingInfo\DrawingInfoCommands.cs"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
+            Include="..\..\examples\HelloWorld\HelloWorld.csproj"
+            Link="Plugins\HelloWorld\HelloWorld.csproj"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
+            Include="..\..\examples\HelloWorld\HelloWorldCommands.cs"
+            Link="Plugins\HelloWorld\HelloWorldCommands.cs"
+            CopyToOutputDirectory="PreserveNewest"
+        />
         <None
             Include="..\..\examples\Stairs\Stairs.csproj"
             Link="Plugins\Stairs\Stairs.csproj"
@@ -48,25 +70,5 @@
         <ProjectReference Include="..\OpenCAD2D.Wpf\OpenCAD2D.Wpf.csproj" />
         <ProjectReference Include="..\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
-        <!-- Built first, never referenced: its .dll is copied below into Plugins\DrawingInfo, where the app loads it at start. -->
-        <ProjectReference
-            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.csproj"
-            ReferenceOutputAssembly="false"
-            OutputItemType="DrawingInfoPlugin"
-        />
     </ItemGroup>
-
-    <!--
-    The sample plugin, Plugins\DrawingInfo, beside the exe: its .dll and nothing else. Not OpenCAD2D.Core.dll: the
-    app gives a plugin its own. The item is a None item with a link, so that publish copies it as the build does.
-  -->
-    <Target Name="LinkDrawingInfoPlugin" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveProjectReferences">
-        <ItemGroup>
-            <None
-                Include="@(DrawingInfoPlugin)"
-                Link="Plugins\DrawingInfo\%(Filename)%(Extension)"
-                CopyToOutputDirectory="PreserveNewest"
-            />
-        </ItemGroup>
-    </Target>
 </Project>

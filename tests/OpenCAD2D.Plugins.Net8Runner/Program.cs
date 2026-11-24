@@ -233,6 +233,7 @@ namespace OpenCAD2D.Plugins.Net8Runner
             string folder = Path.Combine(plugins, "DrawingInfo");
             Directory.CreateDirectory(folder);
 
+            // The sample is source: the .csproj and the .cs that the build of the app copies into Plugins\DrawingInfo.
             foreach (string file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "DrawingInfo")))
             {
                 File.Copy(file, Path.Combine(folder, Path.GetFileName(file)));
@@ -243,7 +244,7 @@ namespace OpenCAD2D.Plugins.Net8Runner
 
             using (
                 var manager = new CadPluginManager(
-                    new CadPluginAssemblyLoader(),
+                    new CadPluginAssemblyLoader(Path.Combine(root, "cache-info")),
                     plugins,
                     Path.Combine(root, "installed-info.json"),
                     Path.Combine(root, "copies-info")
@@ -257,6 +258,7 @@ namespace OpenCAD2D.Plugins.Net8Runner
                     started.Count == 1
                         && started[0].Succeeded
                         && started[0].Plugin.Name == "DrawingInfo"
+                        && started[0].Plugin.IsSource
                         && started[0].Plugin.IsTrusted
                 );
                 contexts.AddRange(Contexts());

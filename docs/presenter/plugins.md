@@ -397,15 +397,29 @@ into `%AppData%\OpenCAD2D.Core\Plugins` is not loaded now: move its folder to `P
 
 ## The sample plugin
 
-Two sample plugins ship in the `Plugins` folder: `Plugins\DrawingInfo`, a .dll, and `Plugins\Stairs`, the C# source of
-[the guide's example](#a-plugin-as-c-source), the command `STAIRS`, which writes `Steps: 18`.
+Three sample plugins ship in the `Plugins` folder, each the C# source of a plugin, a folder with a `.csproj` and one `.cs` file
+(see [a plugin as C# source](#a-plugin-as-c-source)): `Plugins\HelloWorld`, the smallest plugin there can be;
+`Plugins\DrawingInfo`, which reads the drawing; and `Plugins\Stairs`, [the guide's example](#a-plugin-as-c-source). They are
+the folders `examples/HelloWorld`, `examples/DrawingInfo` and `examples/Stairs` of the repository, which the build of
+`OpenCAD2D.App` copies beside the exe, and each opens in Visual Studio as a project of its own: its `.csproj` asks for the
+`OpenCAD2D.Core` package, which builds it there, and the app builds it by itself. Each is one plugin, named after its folder,
+with one command, and each can be removed by deleting its folder; to start a plugin of your own, copy one under another
+name.
 
-`Plugins\DrawingInfo` holds the command `GHDWGINFO`, which reads the drawing and writes what it holds on
-the command line, and changes nothing. It is the smallest plugin that does something useful, one class with one command that
-takes no prompt, and its source is the project `examples/OpenCAD2D.Plugins.DrawingInfo` of the repository, a netstandard2.0
-library that references `OpenCAD2D` without copying it. The app loads it at every start with no question, and its
-command is typed at the command line, as every command is. A drawing of three circles and a line in model space, with one
-layer and no block, gives
+**HelloWorld.** The command `HELLOWORLD` writes one line on the command line and changes nothing:
+
+```
+Command: HELLOWORLD
+Hello, World!
+```
+
+Its `HelloWorldCommands.cs` is a class with one method marked `[CadCommand("HELLOWORLD")]` that calls
+`c.Write("Hello, World!")` and returns no prompt.
+
+**DrawingInfo.** The command `GHDWGINFO` reads the drawing and writes what it holds on the command line, and changes nothing.
+It is the smallest plugin that does something useful, one class with one command that takes no prompt, in the one file
+`DrawingInfoCommands.cs`. The app loads it at every start with no question, and its command is typed at the command line,
+as every command is. A drawing of three circles and a line in model space, with one layer and no block, gives
 
 ```
 Command: GHDWGINFO
@@ -417,25 +431,19 @@ Layers: 1, blocks: 0
 Extents: (-10.00,-40.00) to (110.00,30.00)
 ```
 
-The folder holds the plugin's .dll and nothing else: it has no `plugin.json`, so the folder gives the plugin its name,
-DrawingInfo, and the assembly its version, and the app gives a plugin its own `OpenCAD2D.Core.dll`. The build of
-`OpenCAD2D.App` builds the plugin first and copies the .dll there. To remove the sample, delete the folder
-`Plugins\DrawingInfo`; to start a plugin of your own, copy its project.
+The folder holds `DrawingInfo.csproj` and `DrawingInfoCommands.cs`: it has no `plugin.json`, so the folder gives the plugin
+its name, DrawingInfo, and the `.csproj` its version, 1.0.0. It once shipped as a built .dll,
+`OpenCAD2D.Plugins.DrawingInfo.dll`; the command is the same, and a .dll left in the folder is not read once a `.csproj` is
+there.
 
-**The sample as C# source.** The plugin is one file, `DrawingInfoCommands.cs` in `examples/OpenCAD2D.Plugins.DrawingInfo`
-of the repository. Put it in `Plugins\DrawingInfo` in place of the .dll, with a `DrawingInfo.csproj` of the smallest shape
-(the one of [the guide's example](#a-plugin-as-c-source); the project of the repository's sample is a netstandard2.0 library
-with a `ProjectReference`, which a plugin folder cannot take), and the app compiles it at its next start (about 0.9 s, once:
-[the cache](#a-plugin-as-c-source) keeps the build) as the plugin `DrawingInfo`, with the same command and the same output
-as the .dll. A `.csproj` in the folder makes it a source plugin whatever .dll lies beside it, so the folder holds one or
-the other.
+**Stairs.** The folder `Plugins\Stairs` holds `Stairs.csproj` and `StairsCommands.cs`, the files of the guide's example, whose
+command `STAIRS` writes `Steps: 18`.
 
-**The sample in source, Stairs.** The folder `Plugins\Stairs` holds `Stairs.csproj` and `StairsCommands.cs`, the files of
-the guide's example. It is compiled at the first start after an install or an upgrade (about 0.9 s, the compiler's own
-start), and the cache keeps the build, so later starts compile nothing: the cache key holds the app's version, which an
-upgrade changes. To remove the sample, delete the folder `Plugins\Stairs`; to start a source plugin of your own, copy it
-under another name. The folder is also what Visual Studio opens: its `.csproj` asks for the `OpenCAD2D.Core` package, which
-builds it there, and the app builds it by itself.
+**What the first start costs.** The app compiles the three samples at the first start after an install or an upgrade, and
+keeps the builds in [the cache](#a-plugin-as-c-source), so later starts compile nothing: the cache key holds the app's version,
+which an upgrade changes. Measured on the .NET 8 app, with the cache in a folder of its own, the three samples together take
+1.09 s to 1.34 s at the first start (1.09 s, 1.12 s, 1.13 s, 1.34 s in four runs, most of it the compiler's own start) and 61 ms to 82 ms at every start after it (61, 65, 66, 82 ms), where
+the three plugins are loaded from the cache.
 
 ## What the window adds
 
