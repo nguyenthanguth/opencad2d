@@ -14,6 +14,9 @@ namespace OpenCAD2D.Wpf
 
         /// <summary><c>install failed</c> (red): the packages could not be restored, and the red line names the first error.</summary>
         InstallFailed,
+
+        /// <summary><c>installing…</c> (blue): pip is installing a Python tool's packages, off the window's thread; the row clears or turns to <see cref="InstallFailed"/> when it ends.</summary>
+        Installing,
     }
 
     /// <summary>

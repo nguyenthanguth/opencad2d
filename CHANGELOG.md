@@ -83,7 +83,12 @@
   the first error, with `Every line is on the command line` on the right. `AppLoadViewModel.LoadFolder`, `AskFolder`,
   `LoadFolderCommand`, `AppLoadRow.Badge` and `AppLoadBadge`, `CadPluginAssemblyLoader.CompilingProject` and
   `CadPackageQuestion.Question` are new; the question's window, `PackageQuestionWindow`, takes its texts from
-  `PackageQuestionViewModel`, so that the pip question of a Python tool can use it.
+  `PackageQuestionViewModel`, so that the pip question of a Python tool can use it. A Python tool's row shows the blue badge
+  **installing…** while pip installs its packages (the window stays free), **needs packages** after a No (the tool stays loaded
+  and its next command asks again) and **install failed** with the red line `Grid was not installed: ERROR: ...` (pip's first
+  error, every line on the command line); a change of `requirements.txt` that failed but left the tool on its old venv gives the
+  red line and no badge. A tool's folder dropped on the table loads (a `.csproj` or a `requirements.txt` in it); other folders
+  are still passed over. `MainViewModel.AskPythonPackages` and `AppLoadBadge.Installing` are new.
 
 - **NEW.** Python tools in the app (Tools as folders). The Pythons folder, the Startup Suite, APPLOAD, PYLOAD and a drop
   load a folder with a `requirements.txt`; its commands and ribbon buttons come from its `plugin.json` (`"commands"` take
@@ -108,9 +113,11 @@
 - **NEW.** A venv for each Python tool, and pip to fill it (Tools as folders). A tool's packages are installed into
   `%LocalAppData%\OpenCAD2D\python\envs\<name>-<8 hex>`, made from the Python of Global settings or the newest 3.11 to 3.15
   of the registry (the finder needs only `python.exe`), so two tools may pin two versions of one package and both run (numpy
-  1.26.4 and 2.3.5 side by side). The app lists what pip's dry run would install and asks before anything is downloaded, on
-  the command line, `Install with pip [Yes/No] <No>:` (a window comes later; with no way to ask, nothing is installed and the
-  tool is refused with the line to run by hand). `numpy>=1.26` is installed as `numpy==1.26`, as written where pip has no
+  1.26.4 and 2.3.5 side by side). The app lists what pip's dry run would install and asks before anything is downloaded, in
+  a dialog, `Packages for Python tool Survey` (a table of Package, Version and Asked as: the `requirements.txt` line, or `for
+  shapely` for a package another needs; the tool's own packages first, in bold; `Don’t install` and `Install`), or on the
+  command line, `Install with pip [Yes/No] <No>:`, with FILEDIA 0 (with no way to ask, nothing is installed and the tool is
+  refused with the line to run by hand). `numpy>=1.26` is installed as `numpy==1.26`, as written where pip has no
   wheel of `1.26` for the Python in use (the pinned dry run takes wheels only, so a version that has just a source archive
   fails in 1.2 s instead of being built in minutes), with no warning; an option line in `requirements.txt` is refused. A
   missing version, a clash or no network gives pip's lines and the command to run by hand (where the venv is not made yet,

@@ -385,6 +385,16 @@
                                             />
                                             <Setter TargetName="BadgeLabel" Property="Foreground" Value="#F2CC60" />
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding Badge}" Value="Installing">
+                                            <Setter TargetName="Badge" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="Badge" Property="Background" Value="#14304F" />
+                                            <Setter
+                                                TargetName="Badge"
+                                                Property="BorderBrush"
+                                                Value="{StaticResource GhAccent}"
+                                            />
+                                            <Setter TargetName="BadgeLabel" Property="Foreground" Value="#9CCBFF" />
+                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding Badge}" Value="InstallFailed">
                                             <Setter TargetName="Badge" Property="Visibility" Value="Visible" />
                                             <Setter TargetName="Badge" Property="Background" Value="#3A1D1D" />

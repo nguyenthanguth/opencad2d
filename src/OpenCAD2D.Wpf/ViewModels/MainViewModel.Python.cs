@@ -58,6 +58,7 @@ namespace OpenCAD2D.Wpf
         private bool _pythonStartupDone;
         private IPythonFiles _pythonFiles;
         private Dispatcher _pythonDispatcher;
+        private Func<PackageQuestionViewModel, bool> _askPythonPackages;
 
         /// <summary>Gets or sets the Python tools of the process, as Load/Unload Applications reaches them; set over the tools by <see cref="UsePython(Dispatcher)"/>, null where the app does not use Python.</summary>
         internal IPythonFiles PythonFiles
@@ -100,6 +101,33 @@ namespace OpenCAD2D.Wpf
         /// <c>requirements.txt</c> of each tool); null where none was. Null where no window shows one, when PYLOAD says so.
         /// </summary>
         public Func<string, string, IReadOnlyList<string>> AskPythonFiles { get; set; }
+
+        /// <summary>
+        /// Gets or sets how the question before pip installs a Python tool's packages is shown: given the question, it shows
+        /// <see cref="PackageQuestionWindow"/> over the window and gives the answer, true for Yes. It is called on the window's
+        /// thread, while the thread that makes the tool's environment waits. Null, or with FILEDIA 0, the question is asked on the
+        /// command line of the run that waits for the environment.
+        /// </summary>
+        public Func<PackageQuestionViewModel, bool> AskPythonPackages
+        {
+            get => _askPythonPackages;
+            set
+            {
+                _askPythonPackages = value;
+
+                if (_pythonTools != null)
+                {
+                    _pythonTools.AskQuestion = value;
+                }
+            }
+        }
+
+        /// <summary>Occurs, on the window's thread, when what a Python tool's environment is doing changed: its packages are being installed, the question was answered No, an install failed or ended.</summary>
+        internal event EventHandler<PythonToolStateEventArgs> PythonToolStateChanged;
+
+        /// <summary>Gets what a Python tool's environment is doing or left undone, for its row in Load/Unload Applications; ready for a tool not loaded.</summary>
+        /// <param name="path">The tool's folder or its <c>requirements.txt</c>.</param>
+        internal PythonToolState PythonStateOf(string path) => _pythonTools?.StateOf(path) ?? PythonToolState.Ready;
 
         /// <summary>Gets whether the app uses Python (<see cref="CadAppHost.EnablePython"/> is true and <see cref="UsePython(Dispatcher)"/> was called).</summary>
         internal bool UsesPython => _pythonTools != null;
@@ -151,6 +179,8 @@ namespace OpenCAD2D.Wpf
                 path => _loadSecurity.MayLoad(path) ? null : "File load canceled: " + path,
                 work => dispatcher.BeginInvoke(DispatcherPriority.Background, work)
             );
+            _pythonTools.AskQuestion = _askPythonPackages;
+            _pythonTools.StateChanged += (sender, e) => PythonToolStateChanged?.Invoke(this, e);
             PythonFiles = _pythonTools;
             Raise(nameof(UsesPython));
 

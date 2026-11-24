@@ -143,9 +143,15 @@ namespace OpenCAD2D.Wpf
         /// <param name="toolFolder">The tool's folder, with its <c>requirements.txt</c>.</param>
         /// <param name="python">The Python the venv is made from.</param>
         /// <param name="beforeSwap">Called when a venv that exists is about to be replaced, to stop the tool's process, which holds its files; null for none.</param>
+        /// <param name="installing">Called, on this thread, when <see cref="Confirm"/> has said yes and pip is about to install the packages, so that the window can show the tool as installing; null for none.</param>
         /// <returns>The venv; or the lines to show where it could not be made, and then, where a venv was there, that venv left as it was and ready, with <see cref="PythonEnvironment.Failure"/> holding the lines.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the folder or the Python is null.</exception>
-        public PythonEnvironment Prepare(string toolFolder, PythonInstallation python, Action beforeSwap = null)
+        public PythonEnvironment Prepare(
+            string toolFolder,
+            PythonInstallation python,
+            Action beforeSwap = null,
+            Action installing = null
+        )
         {
             if (toolFolder == null)
             {
@@ -197,7 +203,7 @@ namespace OpenCAD2D.Wpf
 
                 try
                 {
-                    return KeepOld(Build(tool, folder, target, key, requirements, python, beforeSwap));
+                    return KeepOld(Build(tool, folder, target, key, requirements, python, beforeSwap, installing));
                 }
                 catch (Exception exception)
                     when (exception is IOException
@@ -230,7 +236,8 @@ namespace OpenCAD2D.Wpf
             string key,
             IReadOnlyList<PythonRequirement> requirements,
             PythonInstallation python,
-            Action beforeSwap
+            Action beforeSwap,
+            Action installing
         )
         {
             // Pip is asked for only where it will be used: to make the base, or to list and install the tool's packages.
@@ -311,6 +318,7 @@ namespace OpenCAD2D.Wpf
                     return PythonEnvironment.Failed(target, NotInstalled(tool, folder, python, target, false));
                 }
 
+                installing?.Invoke();
                 PythonRun installed = PythonRun.Start(
                     python.Executable,
                     new[]
@@ -408,7 +416,7 @@ namespace OpenCAD2D.Wpf
                 if (run.ExitCode == 0)
                 {
                     error = null;
-                    return ReadReport(report);
+                    return ReadReport(report, requirements);
                 }
 
                 if (pinned.Count == 0 || attempt == 2)
@@ -433,31 +441,107 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        private static IReadOnlyList<PythonPackage> ReadReport(string path)
+        /// <summary>
+        /// Reads the list pip's dry run made: each package with the version chosen, the ones the tool names first, then the rest, each
+        /// in ordinal order. The third column of the question is the line of <c>requirements.txt</c> that names the package, or
+        /// <c>for</c> and the first package of the list that needs it (<c>for shapely</c>), read from the packages' own metadata.
+        /// </summary>
+        private static IReadOnlyList<PythonPackage> ReadReport(
+            string path,
+            IReadOnlyList<PythonRequirement> requirements
+        )
         {
-            var packages = new List<PythonPackage>();
+            var found = new List<KeyValuePair<JsonObject, bool>>();
             var report = (JsonObject)RemoteJson.Parse(File.ReadAllText(path, Encoding.UTF8));
             File.Delete(path);
 
             foreach (object item in report.GetArray("install"))
             {
                 var install = (JsonObject)item;
-                JsonObject metadata = install.GetObject("metadata");
-                packages.Add(
-                    new PythonPackage(
-                        metadata.GetString("name"),
-                        metadata.GetString("version"),
-                        install.GetBool("requested")
-                    )
+                found.Add(
+                    new KeyValuePair<JsonObject, bool>(install.GetObject("metadata"), install.GetBool("requested"))
                 );
             }
 
-            return packages
-                .OrderBy(p => p.IsRequested ? 0 : 1)
-                .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(p => p.Name, StringComparer.Ordinal)
-                .ThenBy(p => p.Version, StringComparer.Ordinal)
-                .ToList();
+            found.Sort(
+                (a, b) =>
+                {
+                    int order = a.Value == b.Value ? 0 : (a.Value ? -1 : 1);
+                    order =
+                        order != 0
+                            ? order
+                            : string.Compare(
+                                a.Key.GetString("name"),
+                                b.Key.GetString("name"),
+                                StringComparison.OrdinalIgnoreCase
+                            );
+                    order =
+                        order != 0 ? order : string.CompareOrdinal(a.Key.GetString("name"), b.Key.GetString("name"));
+                    return order != 0
+                        ? order
+                        : string.CompareOrdinal(a.Key.GetString("version"), b.Key.GetString("version"));
+                }
+            );
+            var packages = new List<PythonPackage>();
+
+            foreach (KeyValuePair<JsonObject, bool> package in found)
+            {
+                string name = package.Key.GetString("name");
+                string asked = null;
+
+                if (package.Value)
+                {
+                    PythonRequirement line = requirements.FirstOrDefault(r => SameName(NameOf(r.Written), name));
+                    asked = line?.Written;
+                }
+                else
+                {
+                    // The first package of the list, the tool's own first, whose metadata names this one.
+                    KeyValuePair<JsonObject, bool> needs = found.FirstOrDefault(other =>
+                        !ReferenceEquals(other.Key, package.Key)
+                        && other.Key.GetArray("requires_dist").OfType<string>().Any(r => SameName(NameOf(r), name))
+                    );
+                    asked = needs.Key == null ? "needed by another" : "for " + needs.Key.GetString("name");
+                }
+
+                packages.Add(new PythonPackage(name, package.Key.GetString("version"), package.Value, asked));
+            }
+
+            return packages;
+        }
+
+        /// <summary>The package a requirement names: the letters, digits, dots, dashes and underscores it starts with; empty where it starts with none.</summary>
+        private static string NameOf(string requirement)
+        {
+            if (requirement == null)
+            {
+                return string.Empty;
+            }
+
+            int end = 0;
+
+            while (
+                end < requirement.Length
+                && (
+                    char.IsLetterOrDigit(requirement[end])
+                    || requirement[end] == '.'
+                    || requirement[end] == '-'
+                    || requirement[end] == '_'
+                )
+            )
+            {
+                end++;
+            }
+
+            return requirement.Substring(0, end);
+        }
+
+        /// <summary>Whether two names are one package: pip treats <c>Demo_Pkg</c>, <c>demo-pkg</c> and <c>demo.pkg</c> alike.</summary>
+        private static bool SameName(string a, string b)
+        {
+            string Normal(string name) =>
+                System.Text.RegularExpressions.Regex.Replace(name.ToLowerInvariant(), "[-_.]+", "-");
+            return a.Length > 0 && string.Equals(Normal(a), Normal(b), StringComparison.Ordinal);
         }
 
         /// <summary>Makes the base of a Python version, once: pythonnet, clr_loader, cffi and pycparser from the wheels the app ships, with no index. Null where it is there or was made; the line to show where it could not be.</summary>

@@ -11,9 +11,10 @@ namespace OpenCAD2D.Wpf
     /// <summary>
     /// The Python tools of the window: PYLOAD and the start load a tool's folder, which shows its commands and ribbon buttons from
     /// its <c>plugin.json</c> and starts no Python; the tool's own process starts at the first command typed, after its venv is
-    /// ready (<see cref="PythonEnvironments"/>, made off the window's thread, with the question of pip on the command line); PYRUN
-    /// runs a lone <c>.py</c> file once in a process of the default venv. Everything here runs on the window's thread but the
-    /// environment, which is made on a thread of its own.
+    /// ready (<see cref="PythonEnvironments"/>, made off the window's thread, with the question of pip in a dialog of the window,
+    /// or on the command line where the window shows none); PYRUN runs a lone <c>.py</c> file once in a process of the default
+    /// venv. Everything here runs on the window's thread but the environment, which is made on a thread of its own. What the
+    /// environment of each tool is doing, or left undone, is its <see cref="PythonToolState"/>, which the window's rows show.
     /// </summary>
     internal sealed class PythonToolFiles : IPythonFiles, IDisposable
     {
@@ -29,11 +30,13 @@ namespace OpenCAD2D.Wpf
         private readonly object _prepareGate = new object();
         private CadToolHost _host;
         private CadRemoteToolRun _asking;
+        private string _askingFolder;
+        private bool _declined;
         private volatile bool _disposed;
 
         /// <summary>Makes the tools of a window; nothing is started, made or written until a tool is loaded and used.</summary>
         /// <param name="makeHost">Makes the host of the tools' processes, once, when the first tool loads or the first script runs.</param>
-        /// <param name="environments">The venvs of the tools. Its <see cref="PythonEnvironments.Confirm"/> is set to the question on the command line unless it has one already.</param>
+        /// <param name="environments">The venvs of the tools. Its <see cref="PythonEnvironments.Confirm"/> is set to the question of pip (the dialog of <see cref="AskQuestion"/>, else the command line) unless it has one already; either is wrapped to know whether it was answered No.</param>
         /// <param name="pythonPath">The Python of Global settings, read each time an environment is made; empty for the Python found on the machine.</param>
         /// <param name="loadCheck">What a file read at the user's request is checked with: the path in, null out to allow it, else the text that refuses it.</param>
         /// <param name="post">Runs an action on the window's thread after the work in hand, which PYRUN's run begins by once its own command has ended.</param>
@@ -52,11 +55,24 @@ namespace OpenCAD2D.Wpf
             _loadCheck = loadCheck ?? throw new ArgumentNullException(nameof(loadCheck));
             _post = post ?? throw new ArgumentNullException(nameof(post));
 
-            if (environments.Confirm == null)
+            Func<string, IReadOnlyList<PythonPackage>, bool> ask = environments.Confirm ?? Ask;
+            environments.Confirm = (tool, packages) =>
             {
-                environments.Confirm = AskOnCommandLine;
-            }
+                bool approved = ask(tool, packages);
+                _declined = !approved;
+                return approved;
+            };
         }
+
+        /// <summary>
+        /// Gets or sets how the question of pip is put in a dialog: given the question (<see cref="PythonPackageQuestion"/>), it shows
+        /// it over the window and gives the answer, true for Yes. It is called on the window's thread, which the environment's thread
+        /// waits for. Null, or where the run that waits has FILEDIA 0, the question is asked on the command line.
+        /// </summary>
+        internal Func<PackageQuestionViewModel, bool> AskQuestion { get; set; }
+
+        /// <summary>Occurs, on the window's thread, when a tool's state changed: its packages are being installed, the question was answered No, an install failed, or the tool is ready.</summary>
+        internal event EventHandler<PythonToolStateEventArgs> StateChanged;
 
         /// <summary>A tool that is loaded: what it declared, the tool of the host that runs it, and what it added to the window.</summary>
         private sealed class LoadedTool
@@ -64,6 +80,7 @@ namespace OpenCAD2D.Wpf
             internal string Folder;
             internal string Name;
             internal CadFolderTool Tool;
+            internal PythonToolState State = PythonToolState.Ready;
             internal readonly List<KeyValuePair<string, string>> Aliases = new List<KeyValuePair<string, string>>();
             internal CadPluginHost Host;
         }
@@ -253,12 +270,13 @@ namespace OpenCAD2D.Wpf
             }
 
             CadFolderTool tool;
+            var loaded = new LoadedTool { Folder = folder, Name = name };
 
             try
             {
                 tool = Host.Add(
                     folder,
-                    (run, beforeSwap) => Prepare(folder, run, beforeSwap),
+                    (run, beforeSwap) => Prepare(loaded, run, beforeSwap),
                     declared,
                     PythonsFolders(session)
                 );
@@ -273,13 +291,8 @@ namespace OpenCAD2D.Wpf
                 return false;
             }
 
-            var loaded = new LoadedTool
-            {
-                Folder = folder,
-                Name = name,
-                Tool = tool,
-                Host = HostOf(name, folder, manifest),
-            };
+            loaded.Tool = tool;
+            loaded.Host = HostOf(name, folder, manifest);
 
             foreach (CadPluginCommandEntry entry in declared.Where(e => e.Alias != null))
             {
@@ -484,6 +497,21 @@ namespace OpenCAD2D.Wpf
             return tool == null ? new string[0] : tool.Tool.Commands.Select(c => c.Name).ToArray();
         }
 
+        /// <summary>Gets what a loaded tool's environment is doing or left undone, which the tool's row shows; <see cref="PythonToolState.Ready"/> for a tool not loaded.</summary>
+        /// <param name="path">The folder, or its <c>requirements.txt</c>.</param>
+        /// <returns>The state.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the path is null.</exception>
+        internal PythonToolState StateOf(string path)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            string folder = PythonToolFolder.Resolve(path) ?? path;
+            return _loaded.FirstOrDefault(t => Same(t.Folder, folder))?.State ?? PythonToolState.Ready;
+        }
+
         /// <summary>Unloads a tool: its commands and aliases leave every drawing, its process is told to leave (ended after 5 seconds where it does not), and what it added to the window goes.</summary>
         /// <param name="path">The folder, or its <c>requirements.txt</c>.</param>
         /// <returns>False where the tool was not loaded.</returns>
@@ -527,21 +555,78 @@ namespace OpenCAD2D.Wpf
 
         // ---- The environment of a tool and the question of pip --------------------------------------------------------
 
-        /// <summary>Makes a tool's venv ready, on the thread it is called on (not the window's). One at a time: the question of pip is that of the run that waits for it.</summary>
-        private PythonEnvironment Prepare(string folder, CadRemoteToolRun run, Action beforeSwap)
+        /// <summary>
+        /// Makes a tool's venv ready, on the thread it is called on (not the window's). One at a time: the question of pip is that of
+        /// the run that waits for it. The tool's state follows: <see cref="AppLoadBadge.Installing"/> from the yes until pip is done,
+        /// then <see cref="AppLoadBadge.NeedsPackages"/> where the question was answered No, <see cref="AppLoadBadge.InstallFailed"/>
+        /// with the lines where the venv could not be made, the lines alone where a change failed and the tool runs on the venv it had.
+        /// </summary>
+        private PythonEnvironment Prepare(LoadedTool tool, CadRemoteToolRun run, Action beforeSwap)
         {
             lock (_prepareGate)
             {
                 _asking = run;
+                _askingFolder = tool.Folder;
+                _declined = false;
 
                 try
                 {
-                    return _environments.Prepare(folder, PythonInstallation.Find(_pythonPath()), beforeSwap);
+                    PythonEnvironment environment = _environments.Prepare(
+                        tool.Folder,
+                        PythonInstallation.Find(_pythonPath()),
+                        beforeSwap,
+                        () => SetState(tool, PythonToolState.Installing())
+                    );
+                    SetState(
+                        tool,
+                        !environment.IsReady
+                                ? (
+                                    _declined
+                                        ? PythonToolState.NeedsPackages()
+                                        : PythonToolState.InstallFailed(environment.Error)
+                                )
+                            : environment.Failure != null ? PythonToolState.Kept(environment.Failure)
+                            : PythonToolState.Ready
+                    );
+                    return environment;
+                }
+                catch (Exception ex) when (!(ex is OutOfMemoryException))
+                {
+                    SetState(
+                        tool,
+                        PythonToolState.InstallFailed(
+                            tool.Name + " was not started: its environment could not be made (" + ex.Message + ")."
+                        )
+                    );
+                    throw;
                 }
                 finally
                 {
                     _asking = null;
+                    _askingFolder = null;
                 }
+            }
+        }
+
+        /// <summary>Sets a tool's state on the window's thread, where the rows are drawn, and says so; waits for it, so that the state is shown before the environment is handed on. Nothing is set where the window is gone.</summary>
+        private void SetState(LoadedTool tool, PythonToolState state)
+        {
+            if (_disposed || _host == null)
+            {
+                return;
+            }
+
+            try
+            {
+                _host.Dispatcher.Invoke(() =>
+                {
+                    tool.State = state;
+                    StateChanged?.Invoke(this, new PythonToolStateEventArgs(tool.Name, tool.Folder, state));
+                });
+            }
+            catch (Exception ex) when (!(ex is OutOfMemoryException))
+            {
+                GeometryHelperLog.Warn("PythonToolFiles: the state of " + tool.Name + " could not be shown.", ex);
             }
         }
 
@@ -550,6 +635,7 @@ namespace OpenCAD2D.Wpf
             lock (_prepareGate)
             {
                 _asking = run;
+                _askingFolder = null;
 
                 try
                 {
@@ -564,6 +650,43 @@ namespace OpenCAD2D.Wpf
                     _asking = null;
                 }
             }
+        }
+
+        /// <summary>
+        /// Asks whether pip may install the packages: with the question of the window, over it and on its thread, where
+        /// <see cref="AskQuestion"/> is set and the run that waits has file dialogs on (FILEDIA 1); else on the command line.
+        /// Called on the thread that makes the environment, which waits for the answer.
+        /// </summary>
+        /// <param name="tool">The name of the tool.</param>
+        /// <param name="packages">What pip would install.</param>
+        /// <returns>True for Yes.</returns>
+        private bool Ask(string tool, IReadOnlyList<PythonPackage> packages)
+        {
+            Func<PackageQuestionViewModel, bool> dialog = AskQuestion;
+            CadRemoteToolRun run = _asking;
+            string folder = _askingFolder;
+
+            if (dialog == null || run == null || folder == null)
+            {
+                return AskOnCommandLine(tool, packages);
+            }
+
+            bool dialogs = false;
+            _host.Dispatcher.Invoke(() => dialogs = run.Session.FileDialogs);
+
+            if (!dialogs)
+            {
+                return AskOnCommandLine(tool, packages);
+            }
+
+            PackageQuestionViewModel question = PythonPackageQuestion.Question(
+                tool,
+                Path.Combine(folder, "requirements.txt"),
+                packages
+            );
+            bool answer = false;
+            _host.Dispatcher.Invoke(() => answer = dialog(question));
+            return answer;
         }
 
         /// <summary>

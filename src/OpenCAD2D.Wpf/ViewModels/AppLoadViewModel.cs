@@ -136,22 +136,33 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Gets the badge shown after the name: <see cref="AppLoadBadge.NeedsPackages"/> for a plugin whose packages were not
         /// downloaded because the question was answered No (ticking the row asks again), <see cref="AppLoadBadge.InstallFailed"/>
-        /// where they could not be restored; <see cref="AppLoadBadge.None"/> otherwise and for a plugin loaded.
+        /// where they could not be restored; for a Python tool the same two, with <see cref="AppLoadBadge.Installing"/> while pip
+        /// installs its packages; <see cref="AppLoadBadge.None"/> otherwise and for a plugin loaded.
         /// </summary>
         public AppLoadBadge Badge { get; internal set; }
 
         /// <summary>Gets whether a badge is shown after the name.</summary>
         public bool HasBadge => Badge != AppLoadBadge.None;
 
-        /// <summary>Gets the badge's words: <c>needs packages</c> or <c>install failed</c>; empty with none.</summary>
+        /// <summary>Gets the badge's words: <c>needs packages</c>, <c>installing…</c> or <c>install failed</c>; empty with none.</summary>
         public string BadgeText =>
             Badge == AppLoadBadge.NeedsPackages ? "needs packages"
+            : Badge == AppLoadBadge.Installing ? "installing…"
             : Badge == AppLoadBadge.InstallFailed ? "install failed"
             : string.Empty;
 
-        /// <summary>Gets the badge's tooltip, which says what to do about it; empty with none.</summary>
+        /// <summary>
+        /// Gets the badge's tooltip, which says what to do about it; empty with none. A Python tool is loaded already, so its
+        /// <c>needs packages</c> says that its next command asks again.
+        /// </summary>
         public string BadgeToolTip =>
-            Badge == AppLoadBadge.NeedsPackages ? "Its packages are not downloaded yet: tick it to be asked"
+            Badge == AppLoadBadge.NeedsPackages
+                ? (
+                    IsPython
+                        ? "Its packages are not installed yet: its next command asks again"
+                        : "Its packages are not downloaded yet: tick it to be asked"
+                )
+            : Badge == AppLoadBadge.Installing ? "pip is installing its packages; the window stays free"
             : Badge == AppLoadBadge.InstallFailed ? "The install failed; the line below says why"
             : string.Empty;
 
@@ -249,6 +260,7 @@ namespace OpenCAD2D.Wpf
                 model.Plugins.PluginsChanged += OnPluginsChanged;
             }
 
+            model.PythonToolStateChanged += OnPythonToolStateChanged;
             Refresh();
         }
 
@@ -425,10 +437,22 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>Loads files dropped on the table, from Explorer, in the order of the drop as <see cref="Load(IEnumerable{string})"/> does, though the folder kept is not changed; a folder is passed over.</summary>
+        /// <summary>
+        /// Loads files dropped on the table, from Explorer, in the order of the drop as <see cref="Load(IEnumerable{string})"/> does,
+        /// though the folder kept is not changed. A tool's folder loads as <see cref="LoadFolder(string)"/> loads it (a folder with a
+        /// .csproj is a C# plugin, a folder with a requirements.txt a Python tool); any other folder is passed over.
+        /// </summary>
         /// <param name="paths">The full paths dropped.</param>
         public void LoadDropped(IEnumerable<string> paths) =>
-            LoadMany((paths ?? Enumerable.Empty<string>()).Where(p => !string.IsNullOrWhiteSpace(p) && File.Exists(p)));
+            LoadMany(
+                (paths ?? Enumerable.Empty<string>()).Where(p =>
+                    !string.IsNullOrWhiteSpace(p) && (File.Exists(p) || IsToolFolder(p))
+                )
+            );
+
+        /// <summary>Whether a path is the folder of a tool: a folder with a .csproj directly in it, or with a requirements.txt.</summary>
+        private static bool IsToolFolder(string path) =>
+            Directory.Exists(path) && (IsSource(path) || PythonToolFolder.Resolve(path) != null);
 
         /// <summary>Reload: loads the rows chosen again, an AutoLISP file as Load does and a plugin as PLUGINRELOAD does.</summary>
         public void Reload()
@@ -539,6 +563,8 @@ namespace OpenCAD2D.Wpf
         /// <summary>Lets go of the plugin manager.</summary>
         public void Dispose()
         {
+            _model.PythonToolStateChanged -= OnPythonToolStateChanged;
+
             if (_model.Plugins != null)
             {
                 _model.Plugins.PluginsChanged -= OnPluginsChanged;
@@ -949,6 +975,9 @@ namespace OpenCAD2D.Wpf
                         fixedOn,
                         null
                     )
+                    {
+                        Badge = pythonOn.Contains(file) ? _model.PythonStateOf(file).Badge : AppLoadBadge.None,
+                    }
                 );
             }
 
@@ -1085,5 +1114,33 @@ namespace OpenCAD2D.Wpf
         }
 
         private void OnPluginsChanged(object sender, EventArgs e) => Refresh();
+
+        /// <summary>
+        /// What a Python tool's environment is doing changed: the rows are made again, so that the badge appears and clears, and a
+        /// failed install, or a change that failed and left the tool on its old environment, is told by the red line: the tool's
+        /// name, <c> was not installed: </c> and pip's first line, every line in its tooltip.
+        /// </summary>
+        private void OnPythonToolStateChanged(object sender, PythonToolStateEventArgs e)
+        {
+            Refresh();
+
+            if (e.State.Lines == null)
+            {
+                return;
+            }
+
+            string first = e.State.FirstLine;
+            string own = e.Name + NotInstalled.TrimEnd();
+            _loadErrorName = e.Name;
+            _loadErrorText = first.StartsWith(own, StringComparison.Ordinal)
+                ? first.Substring(e.Name.Length)
+                : NotInstalled + first;
+            _loadErrorTip = e.State.Lines.Replace("\r", string.Empty);
+            Raise(nameof(HasLoadError));
+            Raise(nameof(LoadErrorName));
+            Raise(nameof(LoadErrorText));
+            Raise(nameof(LoadError));
+            Raise(nameof(LoadErrorHint));
+        }
     }
 }

@@ -663,13 +663,18 @@ Plugins\Stairs\                Pythons\StairsPy\
       once per Python from the shipped wheels, 1.3 MB), the dry-run list asked before installing, a lower bound pinned with
       a fallback, the old venv kept when an install fails; venv 75-98 ms, base 1.7 s once, one package 2.1-2.2 s; Wpf 2575.
       Wired into the app in TF7; live PyPI checked by hand in TF6
-- [ ] TF6. The app (design first in the Design artifact): the question before installing, "Load folder…" in
+- [x] TF6. The app (design first in the Design artifact): the question before installing, "Load folder…" in
       Load/Unload Applications, a row's state (needs installing, conflict, installing).
       -> verify: Wpf tests of the question and the rows; the screenshots match the design.
       TF6a done 2026-11-24: the package question window (PackageQuestionWindow, the NuGet texts; the pip variant is the same
       window), wired to ConfirmDownload in the app; Load folder…, the *.csproj file type, the "needs packages" and "install
       failed" badges for C# plugins; Wpf 2549. Left for TF6b: the pip question, the Python rows, "installing…" (an install
       off the UI thread). Parked: the command-line form of the question (FILEDIA 0) needs a two-phase ConfirmDownload in Core
+      TF6b done 2026-11-25: the pip question in the same window (Package, Version, Asked as; FILEDIA 0 keeps the command
+      line form), Python rows with "needs packages", "installing…" and "install failed" (pip off the window's thread), a
+      tool folder dropped on the table loads; screenshot mode runs a Python tool folder (venvs in the run's folder, pip
+      answered No). Wpf 2623, Plugins 100 + 92. Parked: a No leaves the row ticked (its next command asks again); no live
+      pip progress; the NuGet FILEDIA 0 form
 - [x] TF7. The in-app Python retired (TF-D15): the pythonnet embedding and the in-app `opencad2d.cad` removed, PYRUN and
       the PYTHON console on a Python process, the tests and stubs that pinned the in-app Python moved or removed, the
       parked P/PW items it settles closed.
