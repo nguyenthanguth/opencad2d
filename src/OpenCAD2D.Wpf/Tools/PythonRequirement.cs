@@ -9,8 +9,8 @@ namespace OpenCAD2D.Wpf
     /// The lines of a tool's <c>requirements.txt</c>: the packages it names and nothing else. A tool names packages only, so an
     /// option line (<c>-r other.txt</c>, <c>--index-url ...</c>, <c>-e .</c>) is refused. A line that asks for a version or
     /// higher and nothing more, <c>numpy&gt;=1.26</c>, is installed as that version, <c>numpy==1.26</c>: it is quick, and the
-    /// same on every computer. Where pip finds no <c>1.26</c> to install for the Python in use, the line is taken as written and
-    /// pip picks (see <see cref="PythonEnvironments"/>).
+    /// same on every computer. Where pip finds no wheel of <c>1.26</c> for the Python in use (a source archive does not count: pip would build it), the
+    /// line is taken as written and pip picks (see <see cref="PythonEnvironments"/>).
     /// </summary>
     internal sealed class PythonRequirement
     {
@@ -20,15 +20,19 @@ namespace OpenCAD2D.Wpf
             RegexOptions.CultureInvariant
         );
 
-        private PythonRequirement(string written, string pinned)
+        private PythonRequirement(string written, string pinned, string name)
         {
             Written = written;
             Pinned = pinned;
+            Name = name;
             Text = pinned ?? written;
         }
 
         /// <summary>Gets the line as the file has it, with its comment and the space around it taken off.</summary>
         public string Written { get; }
+
+        /// <summary>Gets the package's name where the line was a lower bound and nothing more; null for any other line.</summary>
+        public string Name { get; }
 
         /// <summary>Gets the line as <c>name==version</c> where it was a lower bound and nothing more; null for any other line.</summary>
         public string Pinned { get; }
@@ -87,7 +91,9 @@ namespace OpenCAD2D.Wpf
                         + bound.Groups["version"].Value
                         + (bound.Groups["marker"].Success ? " " + bound.Groups["marker"].Value : string.Empty)
                     : null;
-                requirements.Add(new PythonRequirement(line, pinned));
+                requirements.Add(
+                    new PythonRequirement(line, pinned, bound.Success ? bound.Groups["name"].Value : null)
+                );
             }
 
             return requirements;

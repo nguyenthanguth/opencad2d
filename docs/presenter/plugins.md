@@ -322,7 +322,8 @@ it with no .NET SDK, as `dotnet restore` does, and compiles and runs the plugin 
   cache folder in place, after its own folder, so a plugin with `Foo 1.0.0` and another with `Foo 2.0.0` both run, each with
   its own. This holds for a library the app does not carry itself. A name the app has (the .NET runtime and its libraries,
   WPF, SkiaSharp, Roslyn's and NuGet's own, `Newtonsoft.Json` among them) is **shared**: the app's copy is compiled against and
-  runs, and a package that asks a higher assembly version gets a line: `Stairs asks System.Text.Json 9.0.0; the app runs 8.0.0.`
+  runs (also where the app's copy lies in the app's folder and in no .NET folder: a plugin that asks `Newtonsoft.Json` 13.0.3
+  compiles `JsonConvert.SerializeObject(5)` against the app's own `Newtonsoft.Json.dll`), and a package that asks a higher assembly version gets a line: `Stairs asks System.Text.Json 9.0.0; the app runs 8.0.0.`
 - **Native files.** A package's `runtimes\win-x64\native\*.dll` (or `runtimes\win\native`) is loaded by its full path in the
   cache folder when the plugin's code asks for it by name. .NET cannot unload a native library, so it stays loaded until the
   app exits, also after the plugin is unloaded. Two plugins with two different native files of one name (`foo.dll`) load

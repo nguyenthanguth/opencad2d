@@ -80,9 +80,20 @@ namespace OpenCAD2D.Wpf.Plugins
                 all.Add(MetadataReference.CreateFromFile(library));
             }
 
+            // An assembly the framework references have under the same name is not added twice (CS1703).
+            var known = new HashSet<string>(
+                Framework.Value.Select(r =>
+                    Path.GetFileNameWithoutExtension(((PortableExecutableReference)r).FilePath)
+                ),
+                StringComparer.OrdinalIgnoreCase
+            );
+
             foreach (string reference in packageReferences)
             {
-                all.Add(MetadataReference.CreateFromFile(reference));
+                if (known.Add(Path.GetFileNameWithoutExtension(reference)))
+                {
+                    all.Add(MetadataReference.CreateFromFile(reference));
+                }
             }
 
             var options = new CSharpCompilationOptions(

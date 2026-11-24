@@ -7,10 +7,11 @@
   3.15 of the registry (the finder of OpenCAD2D.Python, moved to the window's project without its DLL checks, since a tool needs
   only `python.exe`), so two tools may pin two versions of one package and both run. The app lists what pip's dry run would
   install and asks before anything is downloaded (a hook the window sets; with none, nothing is installed and the tool is
-  refused with the line to run by hand). `numpy>=1.26` is installed as `numpy==1.26`, as written where pip has no `1.26` for
-  the Python in use, with no warning; an option line in `requirements.txt` is refused. A missing version or a clash gives pip's
+  refused with the line to run by hand). `numpy>=1.26` is installed as `numpy==1.26`, as written where pip has no wheel of `1.26`
+  for the Python in use (the pinned dry run takes wheels only, so a version that has just a source archive fails in 1.2 s
+  instead of being built in minutes), with no warning; an option line in `requirements.txt` is refused. A missing version or a clash gives pip's
   lines and changes nothing; a change of `requirements.txt` builds a new venv beside the old and swaps it in, and a failed
-  install keeps the old one. `opencad2d` is not installed in each venv: a `.pth` file puts the app's copy and a shared base
+  change keeps the old venv, which the tool goes on running on, with the failure lines given beside it. `opencad2d` is not installed in each venv: a `.pth` file puts the app's copy and a shared base
   (pythonnet, clr_loader, cffi, pycparser, installed once for a Python version from the wheels the app ships in
   `python\wheels`, 1.3 MB) after the venv's own packages. A venv with its `.pth` takes 75 to 98 ms and 0.54 MB, the base
   1.7 s once and 2.7 MB. The window does not start tools yet.
@@ -137,7 +138,7 @@
   `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:`, is `CadPackageQuestion.Prompt`; no command asks it yet,
   so a typed PLUGINLOAD asks with the dialog too); packages kept in `%LocalAppData%\OpenCAD2D\NuGet\packages`, the resolved list in
   `PluginCache` so that a start asks nothing of the network; two plugins with `Foo 1.0.0` and `Foo 2.0.0` both run (a
-  library the app carries itself is shared, with a line when a package asks a higher version); a native file loaded by its
+  library the app carries itself is shared: the source is compiled against the app's copy, as it runs on it, also for a library that is in the app's folder and in no .NET folder, `Newtonsoft.Json` among them, with a line when a package asks a higher version); a native file loaded by its
   full path, two of one name side by side; a package's library first used after a garbage collection still loads (the
   loader holds each plugin's load context, which the runtime holds only weakly). `<Using Remove>` is read. The app carries NuGet.Protocol 7.9.0: 3 645 480 bytes
   in 9 files more in its folder. What is not read is a line of the load log, and the plugin loads: an element with a `Condition`

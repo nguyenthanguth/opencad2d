@@ -486,6 +486,36 @@ namespace OpenCAD2D.Plugins.UnitTest
             }
         }
 
+        [Fact]
+        public void APackageTheAppCarriesButTheFrameworkDoesNot_IsCompiledAndRunAgainstTheAppsCopy()
+        {
+            // Newtonsoft.Json is in the app's folder (NuGet's client needs it) and in no .NET folder: the package's
+            // own copy here has no JsonConvert, so the source compiles only against the app's.
+            string fake =
+                "namespace Newtonsoft.Json { public static class Marker { public static string Version => \"package\"; } }\n";
+            _feed.Add(
+                "Newtonsoft.Json",
+                "13.0.3",
+                new[]
+                {
+                    ("lib/net6.0/Newtonsoft.Json.dll", SourcePluginFeed.Library("Newtonsoft.Json", "13.0.0", fake)),
+                }
+            );
+            string project = Project(
+                "Stairs",
+                new[] { Ref("Newtonsoft.Json", "13.0.3") },
+                expression: "Newtonsoft.Json.JsonConvert.SerializeObject(5)"
+            );
+
+            using (CadPluginManager manager = Manager())
+            {
+                CadPluginResult result = manager.Load(Path.GetDirectoryName(project));
+
+                Assert.True(result.Succeeded, result.ToString());
+                Assert.Equal(new[] { "5" }, Run(manager, "STAIRS"));
+            }
+        }
+
         // ---- S15: the host's own, and what is only for the build
 
         [Fact]

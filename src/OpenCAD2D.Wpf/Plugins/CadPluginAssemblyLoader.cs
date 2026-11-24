@@ -215,7 +215,10 @@ namespace OpenCAD2D.Wpf.Plugins
         /// The version of the app's own copy of an assembly the plugin is given instead of its own (the framework, the app's
         /// libraries); null where the name is not shared.
         /// </summary>
-        internal static Version SharedVersion(AssemblyName name)
+        internal static Version SharedVersion(AssemblyName name) => SharedAssembly(name)?.GetName().Version;
+
+        /// <summary>The app's own copy of an assembly the plugin is given instead of its own, which the source is compiled against; null where the name is not shared.</summary>
+        internal static Assembly SharedAssembly(AssemblyName name)
         {
             if (!PluginContext.IsShared(name))
             {
@@ -226,11 +229,11 @@ namespace OpenCAD2D.Wpf.Plugins
             {
                 if (string.Equals(assembly.GetName().Name, name.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return assembly.GetName().Version;
+                    return assembly;
                 }
             }
 
-            return AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(name.Name)).GetName().Version;
+            return AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(name.Name));
         }
 
         /// <summary>The collectible load context of one plugin.</summary>

@@ -461,14 +461,19 @@ tool's `requirements.txt`, so a tool that pins `numpy==1.26.4` and another that 
   the venv is changed only after the yes, and asked again when `requirements.txt` or the Python changes. A tool with no
   packages asks nothing. Where nothing can ask, the tool is not installed.
 - **A lower bound is a version.** `numpy>=1.26` is installed as `numpy==1.26`: quick, and the same on every computer. Where pip
-  has no `1.26` for the Python in use (no wheel for it), or `1.26` clashes with another line, the line is taken as written and
-  pip picks. Neither says anything. Any other form (`~=`, `<`, `*`, `>=1.26,<2`) goes to pip as written. `requirements.txt`
+  has no wheel of `1.26` for the Python in use (it has only a source archive, or no such version), or `1.26` clashes with
+  another line, the line is taken as written and pip picks. Neither says anything. The pinned try takes wheels only
+  (`--only-binary` for the pinned names), so a version that would have to be built from source is not taken: `numpy>=2.0` on
+  Python 3.14 has no `2.0.0` wheel, the pinned try fails in 1.2 s, and the line as written takes the `cp314` wheel (about 3 s
+  for the list); pinned without that, pip built numpy 2.0.0 for 150 s and the import failed. Any other form (`~=`, `<`, `*`, `>=1.26,<2`) goes to pip as written. `requirements.txt`
   names packages only: a line that starts with `-` (`-r`, `-e`, `--index-url`) is refused, `requirements.txt line 3: options are not taken`.
 - **Errors say what to do.** A version that does not exist, two lines that clash, or no network give pip's own `ERROR:` lines,
   then `Stairs was not installed. If this computer is offline, connect and try again, or run: "<python>" -m pip --python
   "<venv>\Scripts\python.exe" install -r "<folder>\requirements.txt"`. The venv that was there is left as it was.
 - **A change is built beside and swapped in.** When `requirements.txt` changes, the new venv is built next to the old one and
-  replaces it once it works, with the tool's process stopped first; a failed install keeps the old venv working.
+  replaces it once it works, with the tool's process stopped first; a failed install keeps the old venv working: the tool
+  goes on running on it, ready as it was, and the failure lines (pip's own, a no to the question, an option line in the new
+  file, a venv in use) come beside it for the app to write. A tool that has no venv yet is not started when its install fails.
 - **`opencad2d` is not installed in each venv.** A `.pth` file in the venv puts the app's own copy of the package and a base
   on the path, after the venv's own packages, so a tool may pin its own versions. The base, `python\base\cp314` for Python 3.14,
   holds pythonnet, clr_loader, cffi and pycparser, installed once for each Python version from the wheels the app ships in
