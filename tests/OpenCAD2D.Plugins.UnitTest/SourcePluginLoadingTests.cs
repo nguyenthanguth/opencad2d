@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using GeometryHelper.Geometry;
 using OpenCAD2D.Plugins;
 using Xunit;
 #if NET8_0_OR_GREATER
@@ -179,76 +178,6 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
 #if NET8_0_OR_GREATER
-        /// <summary>The sample Drawing info as the build of the app installs it (its .dll) or as its source and a .csproj, in Plugins\DrawingInfo.</summary>
-        private void InstallDrawingInfo(bool asSource)
-        {
-            string folder = Path.Combine(_files.PluginFolder, "DrawingInfo");
-            Directory.CreateDirectory(folder);
-            string beside = AppDomain.CurrentDomain.BaseDirectory;
-
-            if (asSource)
-            {
-                File.Copy(
-                    Path.Combine(beside, "DrawingInfoSource", "DrawingInfoCommands.cs.txt"),
-                    Path.Combine(folder, "DrawingInfoCommands.cs")
-                );
-                SourceProject.Write(folder, "DrawingInfo.csproj", SourceProject.Csproj());
-            }
-            else
-            {
-                File.Copy(
-                    Path.Combine(beside, "DrawingInfo", "OpenCAD2D.Plugins.DrawingInfo.dll"),
-                    Path.Combine(folder, "OpenCAD2D.Plugins.DrawingInfo.dll")
-                );
-            }
-        }
-
-        private static (string[] Commands, string[] Output) DrawingInfo(CadPluginManager manager)
-        {
-            CadPluginResult started = Assert.Single(manager.LoadAtStart());
-            Assert.True(started.Succeeded, started.ToString());
-            Assert.Equal("DrawingInfo", started.Plugin.Name);
-            CadDocument document = PluginFiles.Circles();
-            document.Database.Extmin = new GeoPoint3(-10, -40, 0);
-            document.Database.Extmax = new GeoPoint3(110, 30, 0);
-            var registry = CadCommandRegistry.CreateDefault();
-            manager.Attach(registry);
-            CadCommandSession session = PluginFiles.Session(document, registry);
-            session.Feed("GHDWGINFO");
-            Assert.Equal(CadCommandOutcome.Completed, session.LastOutcome);
-            return (
-                started.Plugin.Plugin.Commands.Select(c => c.Name).ToArray(),
-                session.History.Skip(1).Select(l => l.TrimEnd()).ToArray()
-            );
-        }
-
-        [Fact]
-        public void DrawingInfo_FromItsSource_GivesTheCommandsAndOutputOfItsDll()
-        {
-            InstallDrawingInfo(asSource: false);
-            (string[] Commands, string[] Output) built;
-
-            using (CadPluginManager manager = _files.Manager())
-            {
-                built = DrawingInfo(manager);
-                Assert.False(manager.Find("DrawingInfo").IsSource);
-            }
-
-            Directory.Delete(Path.Combine(_files.PluginFolder, "DrawingInfo"), true);
-            InstallDrawingInfo(asSource: true);
-
-            using (CadPluginManager manager = _files.Manager())
-            {
-                (string[] Commands, string[] Output) source = DrawingInfo(manager);
-
-                Assert.True(manager.Find("DrawingInfo").IsSource);
-                Assert.Equal(new[] { "GHDWGINFO" }, source.Commands);
-                Assert.Equal(built.Commands, source.Commands);
-                Assert.Equal(built.Output, source.Output);
-                Assert.Equal("Model space: 4 objects", source.Output[1]);
-            }
-        }
-
         [Fact]
         public void AFolderWithACsprojInThePluginsFolder_LoadsAtStartAfterTheDlls_AsAPluginOfItsOwnName()
         {

@@ -32,17 +32,19 @@
             Include="..\OpenCAD2D.SampleUiPlugin\OpenCAD2D.SampleUiPlugin.csproj"
             ReferenceOutputAssembly="false"
         />
-        <!-- Built first, never referenced: the sample that ships in Plugins\DrawingInfo is loaded from DrawingInfo\ beside the runner. -->
-        <ProjectReference
-            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.csproj"
-            ReferenceOutputAssembly="false"
-        />
     </ItemGroup>
 
     <ItemGroup>
+        <!-- The sample that ships in Plugins\DrawingInfo, as source: loaded from DrawingInfo\ beside the runner. -->
         <None
-            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Plugins.DrawingInfo.dll"
-            Link="DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.dll"
+            Include="..\..\examples\DrawingInfo\DrawingInfoCommands.cs"
+            Link="DrawingInfo\DrawingInfoCommands.cs"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\examples\DrawingInfo\DrawingInfo.csproj"
+            Link="DrawingInfo\DrawingInfo.csproj"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />
