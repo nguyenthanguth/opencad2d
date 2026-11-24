@@ -435,6 +435,28 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
         [Fact]
+        public void APackageFirstUsedAfterACollection_IsStillLoadedIntoItsPlugin()
+        {
+            // A package's library is loaded when the command first runs, which may be long after the plugin was loaded; a
+            // collection in between must not take the plugin's load context, which nothing but the loader holds.
+            _feed.AddLibrary("Foo", "1.0.0", "one");
+            string project = Project("PluginOne", new[] { Ref("Foo", "1.0.0") }, "ONE", "\"Foo \" + Foo.Foo.Version");
+
+            using (CadPluginManager manager = Manager())
+            {
+                Assert.True(manager.Load(Path.GetDirectoryName(project)).Succeeded);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
+
+                Assert.Equal(new[] { "Foo one" }, Run(manager, "ONE"));
+            }
+        }
+
+        [Fact]
         public void APackageAskingAHigherVersionOfWhatTheAppCarries_RunsOnTheAppsCopy_WithALine()
         {
             string json =

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **FIXED.** A .NET 8 plugin could fail with "AssemblyLoadContext is unloading or was already unloaded" when one of its
+  commands first used a library of its folder after a garbage collection: the app held the plugin's collectible load
+  context only weakly, so a collection began unloading it while the plugin still ran. The app now keeps every plugin's
+  context until the plugin is unloaded. This was in 1.0.0 for a `.dll` plugin with a dependency it loads late.
 - **CHANGED.** The sample plugins ship as source (Tools as folders, TF9, the C# half). `Plugins\DrawingInfo` is now the
   folder with `DrawingInfo.csproj` and `DrawingInfoCommands.cs`, as `Plugins\Stairs` is, and the built
   `OpenCAD2D.Plugins.DrawingInfo.dll` is no longer in the app's `Plugins` folder; the project `examples/OpenCAD2D.Plugins.DrawingInfo`
@@ -104,7 +108,8 @@
   reconnect and PLUGINRELOAD; packages kept in `%LocalAppData%\OpenCAD2D\NuGet\packages`, the resolved list in
   `PluginCache` so that a start asks nothing of the network; two plugins with `Foo 1.0.0` and `Foo 2.0.0` both run (a
   library the app carries itself is shared, with a line when a package asks a higher version); a native file loaded by its
-  full path, two of one name side by side. `<Using Remove>` is read. The app carries NuGet.Protocol 7.9.0: 3 645 480 bytes
+  full path, two of one name side by side; a package's library first used after a garbage collection still loads (the
+  loader holds each plugin's load context, which the runtime holds only weakly). `<Using Remove>` is read. The app carries NuGet.Protocol 7.9.0: 3 645 480 bytes
   in 9 files more in its folder. What is not read is a line of the load log, and the plugin loads: an element with a `Condition`
   (`Stairs.csproj: <PropertyGroup Condition="..."> was not read (conditions are not evaluated).`), a
   `Directory.Build.props` in the folder, a `$(...)` in a value, a target framework that is not .NET 8. What cannot be
