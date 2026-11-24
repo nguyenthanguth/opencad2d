@@ -60,6 +60,13 @@
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />
+        <!-- The sample the app ships as Plugins\Stairs.cs: a test holds the guide's example to it. -->
+        <None
+            Include="..\..\examples\Stairs.cs"
+            Link="Stairs\Stairs.cs.txt"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
         <!-- The plugin guide: a test reads its C# example and loads it. -->
         <None
             Include="..\..\docs\presenter\plugins.md"

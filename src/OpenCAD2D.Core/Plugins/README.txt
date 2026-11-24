@@ -27,6 +27,11 @@ This folder lies under the program folder, so it is a trusted folder: its plugin
 question. A plugin anywhere else is loaded with PLUGINLOAD (NETLOAD) for one session, or put on
 the "Load at every start" list of the Plugin manager.
 
+The file Stairs.cs is a sample C# source plugin that comes with the app, the example of the plugin
+guide: its command STAIRS writes "Steps: 18". The app compiles it at the first start after an
+install or an upgrade (about 0.9 s) and keeps the build, so later starts do not compile it again.
+Delete the file if you do not want it.
+
 The folder DrawingInfo is a sample that comes with the app: its command GHDWGINFO writes the
 name, objects, layers, blocks and extents of the drawing. Delete the folder if you do not want it.
 Its source is the one file DrawingInfoCommands.cs in examples\OpenCAD2D.Plugins.DrawingInfo of

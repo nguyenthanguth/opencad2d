@@ -196,7 +196,7 @@ namespace Stairs
         [CadCommand("STAIRS")]
         public IEnumerable<CadPrompt> Draw(CadCommandContext c)
         {
-            c.Write("Steps: " + (int)System.Math.Ceiling(3000.0 / 175.0));  // Steps: 18
+            c.Write("Steps: " + (int)System.Math.Ceiling(3000.0 / 175.0)); // Steps: 18
             yield break;
         }
     }
@@ -204,6 +204,7 @@ namespace Stairs
 ```
 
 Saved as `Plugins\Stairs.cs`, it loads at the next start with `Loaded Stairs: STAIRS.`, and `STAIRS` writes `Steps: 18`.
+The app ships it there, as the file `examples/Stairs.cs` of the repository (see [the sample plugin](#the-sample-plugin)).
 A plugin that states no version (no `[assembly: AssemblyVersion]` and no `plugin.json`) is loaded without one.
 
 **What the source can use.** The .NET 8 runtime the app runs on, WPF, `GeometryHelper`, `OpenCAD2D.Core` and
@@ -290,7 +291,10 @@ into `%AppData%\OpenCAD2D.Core\Plugins` is not loaded now: move its folder to `P
 
 ## The sample plugin
 
-A sample plugin ships in `Plugins\DrawingInfo`: the command `GHDWGINFO`, which reads the drawing and writes what it holds on
+Two sample plugins ship in the `Plugins` folder: `Plugins\DrawingInfo`, a .dll, and `Plugins\Stairs.cs`, the C# source of
+[the guide's example](#a-plugin-as-c-source), the command `STAIRS`, which writes `Steps: 18`.
+
+`Plugins\DrawingInfo` holds the command `GHDWGINFO`, which reads the drawing and writes what it holds on
 the command line, and changes nothing. It is the smallest plugin that does something useful, one class with one command that
 takes no prompt, and its source is the project `examples/OpenCAD2D.Plugins.DrawingInfo` of the repository, a netstandard2.0
 library that references `OpenCAD2D` without copying it. The app loads it at every start with no question, and its
@@ -317,6 +321,11 @@ of the repository. Put it in `Plugins\DrawingInfo` in place of the .dll and the 
 0.9 s, once: [the cache](#a-plugin-as-c-source) keeps the build) as the plugin `DrawingInfo`, with the same command
 and the same output as the .dll. A .cs left beside the .dll makes the folder a source plugin, and its .dll is then only a
 library that a `//#r` line could name, so the folder holds one or the other.
+
+**The sample in source, Stairs.cs.** It is compiled at the first start after an install or an upgrade (about 0.9 s, the
+compiler's own start), and the cache keeps the build, so later starts compile nothing: the cache key holds the app's
+version, which an upgrade changes. To remove the sample, delete `Plugins\Stairs.cs`; to start a source plugin of your own,
+copy it under another name.
 
 ## What the window adds
 

@@ -39,6 +39,16 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
         [Fact]
+        public void TheGuidesExample_IsTheSampleTheAppShipsAsPluginsStairsCs_ByteForByte()
+        {
+            // examples/Stairs.cs, which the build of OpenCAD2D.App copies to Plugins\Stairs.cs.
+            string sample = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Stairs", "Stairs.cs.txt");
+            Assert.True(File.Exists(sample), sample);
+
+            Assert.Equal(new UTF8Encoding(false).GetBytes(GuidesExample()), File.ReadAllBytes(sample));
+        }
+
+        [Fact]
         public void TheGuidesExample_SavedAsPluginsStairsCs_LoadsAtStartAndWritesSteps18()
         {
             string path = Path.Combine(_files.PluginFolder, "Stairs.cs");

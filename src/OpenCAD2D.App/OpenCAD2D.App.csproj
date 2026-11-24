@@ -27,6 +27,14 @@
         <None Include="Icons\drawing-file.ico" Link="drawing-file.ico" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
+    <!--
+    The sample source plugin, Plugins\Stairs.cs beside the exe: the example of the plugin guide, which a test of the
+    Plugins suite holds byte for byte to the guide. A plugin of its own, never inside Plugins\DrawingInfo.
+  -->
+    <ItemGroup>
+        <None Include="..\..\examples\Stairs.cs" Link="Plugins\Stairs.cs" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\OpenCAD2D.Wpf\OpenCAD2D.Wpf.csproj" />
         <ProjectReference Include="..\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
