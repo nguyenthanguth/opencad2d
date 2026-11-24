@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -30,5 +31,21 @@ namespace OpenCAD2D.Plugins
         /// <summary>Unloads the assemblies <see cref="Load"/> gave, where <see cref="CanUnload"/> says it can; does nothing where it cannot.</summary>
         /// <param name="assemblies">The assemblies.</param>
         public abstract void Unload(IReadOnlyList<Assembly> assemblies);
+
+        /// <summary>Gets whether <see cref="Compile"/> builds plugins given as C# source: true in the app on .NET 8, false here and on .NET Framework.</summary>
+        public virtual bool CanCompile => false;
+
+        /// <summary>
+        /// Compiles a plugin given as C# source into an assembly and its PDB, or takes them from the cache where the sources
+        /// are unchanged since they were last compiled. This loader cannot (<see cref="CanCompile"/> is false).
+        /// </summary>
+        /// <param name="name">The plugin's name, which names the assembly.</param>
+        /// <param name="sources">The full paths of the .cs files, all in one folder.</param>
+        /// <returns>The assembly built, or the errors that kept it from being built.</returns>
+        /// <exception cref="NotSupportedException">Always: this loader compiles nothing.</exception>
+        public virtual CadPluginBuild Compile(string name, IReadOnlyList<string> sources)
+        {
+            throw new NotSupportedException("C# source plugins need the .NET 8 app.");
+        }
     }
 }

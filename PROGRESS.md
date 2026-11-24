@@ -529,22 +529,33 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
 | CS-D6 | Compiler errors: the plugin is not loaded, and the command line shows a line `Plugin <name> was not loaded: <n> errors`, then each error as `Stairs.cs(12,9): error CS0103: The name 'x' does not exist`, the first 20 at most; warnings are not shown. | decided by the maintainer 2026-11-23 (the recommendation) |
 | CS-D7 | Not now: a file watcher that reloads a `.cs` when it is saved (PLUGINRELOAD does it by hand), and `.vb` sources. | decided by the maintainer 2026-11-23 (the recommendation) |
 
-- [ ] CS1. Research and the spec (the next item; CS-D1 to CS-D7 are decided, so the spec writes them down as they
+- [x] CS1. Research and the spec (CS-D1 to CS-D7 are decided, so the spec writes them down as they
       are unless the research shows one fails, which goes back to the maintainer): CS-Script, dotnet-script and Roslyn
       scripting read and compared (compile time of a 200-line plugin cold and warm, memory, how each references the
       host's assemblies and caches); the spec with numbered decisions in `.claude/scratch/cs/spec.md`.
       -> verify: the comparison table and the spec written; any decision the research changes asked of the maintainer.
-- [ ] CS2. The compiler: a `CadPluginCompiler` in `OpenCAD2D.Wpf` that turns one or more `.cs` files into an assembly
+      Done 2026-11-24: no decision changed. Measured on a 220-line plugin (.NET 8.0.28, Roslyn 4.14.0): cold 0.85-0.94 s,
+      warm 15-34 ms; the runtime's assemblies memory-mapped (`AssemblyMetadata.CreateFromFile`) leave 51 MB of private
+      bytes against 198 MB read into memory; Roslyn scripting fails on namespaces (CS7021) and never unloads; ref packs
+      are on SDK machines only. Spec S1-S16 written
+- [x] CS2. The compiler: a `CadPluginCompiler` in `OpenCAD2D.Wpf` that turns one or more `.cs` files into an assembly
       and its PDB in memory, with the references of CS-D3, `//#r` lines, and the cache of CS-D4.
       -> verify: tests that compile a one-file and a two-file plugin, a plugin with a `//#r` reference, and one with an
          error (its file, line, column and code as CS-D6 writes them); a second compile of unchanged sources is a cache
          hit (no compile, measured); the cache key changes when one source byte or the app's version changes.
-- [ ] CS3. Loading: `CadPluginManager` takes `.cs` files and folders of them in every way it takes `.dll` files today
+      Done 2026-11-24: `CadPluginCompiler` + `CadPluginRoslyn` (net8.0-windows only), `CadPluginBuild` and
+      `CadPluginLoader.CanCompile`/`Compile` in Core; 11 tests on net8 (the plugin tests now target net48 and
+      net8.0-windows), shown red with the cache switched off; a cache hit takes under 1 ms and never loads
+      Microsoft.CodeAnalysis (checked in a recording load context)
+- [x] CS3. Loading: `CadPluginManager` takes `.cs` files and folders of them in every way it takes `.dll` files today
       (CS-D5), through the same load context; unload and PLUGINRELOAD compile again; SECURELOAD and the trusted folders.
       -> verify: tests that load the sample plugin `OpenCAD2D.Plugins.DrawingInfo` from its `.cs` sources and from its
          built `.dll` and get the same commands, ribbon tab and output; unload frees the context (a weak reference to
          the assembly is dead after a collection); a `.cs` in an untrusted folder asks as a `.dll` does; SECURELOAD 2
          refuses.
+      Done 2026-11-24: 7 loading tests on net8 (red without the manager's change) and the refusal on net48; DrawingInfo
+      from source and from .dll give the same command and the same six lines (it has no ribbon tab to compare). Left for
+      the maintainer: SECURELOAD governs no .dll plugin today (L6/L9), so a .cs does not obey it either
 - [ ] CS4. The app: the Load/Unload Applications window and the file pickers (design first in the Design artifact for
       any new control or column), the error lines of CS-D6, drag and drop.
       -> verify: Wpf tests of the window's rows and of a dropped `.cs`; the screenshots of the window match the design.

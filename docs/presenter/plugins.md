@@ -168,6 +168,74 @@ A .dll or a folder at a place of your own, such as a build output, loads for the
 beside a .dll is read there, and the name is the assembly's where there is none), and at every start from
 the startup list below.
 
+## A plugin as C# source
+
+A command plugin can be given as its C# source, with no project and no build: the app compiles the `.cs` files when it
+loads them, and the plugin then goes the way a .dll goes. This is the app on .NET 8 only; hosted in Tekla on .NET
+Framework, a `.cs` is refused with `C# source plugins need the .NET 8 app; ...\Stairs.cs was not loaded.`
+
+- **A .cs file** is one plugin, named as the file without its extension: `Stairs.cs` is the plugin `Stairs`, and its
+  assembly is named `Stairs`.
+- **A folder** that holds .cs files directly is one plugin, the files compiled together and named after the folder (or its
+  `plugin.json`). Its subfolders are not read. The .dll files in it are the libraries its `//#r` lines may name.
+
+They load as a .dll does: from the `Plugins` folder at every start (each .cs directly in it after the .dll files, by name,
+then the folders with a .cs, a .dll or a `plugin.json`), with `PLUGINLOAD`, from the startup list, and again with
+`PLUGINRELOAD`, which compiles the edited source. The trusted folders and the question about a folder that is not trusted
+are the same, and the question comes before anything is compiled.
+
+```csharp
+using System.Collections.Generic;
+using OpenCAD2D;
+using OpenCAD2D.Plugins;
+
+namespace Stairs
+{
+    public sealed class StairsCommands
+    {
+        [CadCommand("STAIRS")]
+        public IEnumerable<CadPrompt> Draw(CadCommandContext c)
+        {
+            c.Write("Steps: " + (int)System.Math.Ceiling(3000.0 / 175.0));  // Steps: 18
+            yield break;
+        }
+    }
+}
+```
+
+Saved as `Plugins\Stairs.cs`, it loads at the next start with `Loaded Stairs: STAIRS.`, and `STAIRS` writes `Steps: 18`.
+A plugin that states no version (no `[assembly: AssemblyVersion]` and no `plugin.json`) is loaded without one.
+
+**What the source can use.** The .NET 8 runtime the app runs on, WPF, `GeometryHelper`, `OpenCAD2D.Core` and
+`OpenCAD2D.Wpf`, as a .dll plugin can. C# is the latest the compiler knows (C# 13), with nullable off and no implicit usings,
+so each file writes its own `using` lines. Another library is named by a line at the top of a file, before its first
+line that is not empty, a `//` comment or a `using`:
+
+```csharp
+//#r "StairsMath.dll"
+using StairsMath;
+```
+
+The path is the .dll's within the source's folder; one that is missing is an error of that line
+(`Stairs.cs(1,1): error CS0006: Metadata file 'StairsMath.dll' could not be found`), and one outside the folder too
+(`error OC0001: //#r takes a .dll beside the source: '../StairsMath.dll'`). There are no NuGet packages.
+
+**The cache.** The build is kept in `%LocalAppData%\OpenCAD2D\PluginCache\<plugin>`, named by the SHA-256 of the sources,
+the `//#r` libraries, the app's version and the runtime's version. A start with unchanged sources takes it from there and
+does not load the compiler at all; a change of one byte compiles again, and the build it replaces is deleted. The first
+compile of a session takes about 0.9 s (the compiler's own start: a plugin of two files, 220 lines, measured on .NET 8.0.28),
+a compile after that about 20 ms. The PDB holds the sources, so a stack trace names the file and the line.
+
+**Errors.** A source that does not compile is not loaded, and the command line says why, a line per error, the first 20
+by file, line and column; warnings are not shown:
+
+```
+Plugin Stairs was not loaded: 1 error
+Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context
+```
+
+There is no file watcher: after saving a change, `PLUGINRELOAD` takes it.
+
 ## Loading and unloading
 
 [`CadPluginManager`](xref:OpenCAD2D.Plugins.CadPluginManager) keeps the plugins of a presenter. Its commands
@@ -175,7 +243,7 @@ are the ones AutoCAD users know:
 
 | Command | Alias | Does |
 |---|---|---|
-| `PLUGINLOAD` | `NETLOAD` | loads a .dll or the folder of a plugin, for this session |
+| `PLUGINLOAD` | `NETLOAD` | loads a .dll, a .cs or the folder of a plugin, for this session |
 | `PLUGINUNLOAD` | | unloads a plugin by name: its commands go from every drawing |
 | `PLUGINRELOAD` | | loads it again from its file: change the code, build, reload, without restarting |
 

@@ -80,7 +80,7 @@ namespace OpenCAD2D.Wpf
 
             foreach (CadPluginResult result in results)
             {
-                Say(result.ToString());
+                SayResult(result);
             }
 
             RebuildPluginUi();
@@ -146,8 +146,17 @@ namespace OpenCAD2D.Wpf
                 return null;
             }
 
-            Say(result.ToString());
+            SayResult(result);
             return result;
+        }
+
+        /// <summary>Writes what came of a load, a line per line of it: a source plugin that did not compile has a line per error.</summary>
+        private void SayResult(CadPluginResult result)
+        {
+            foreach (string line in result.ToString().Split('\n'))
+            {
+                Say(line);
+            }
         }
     }
 

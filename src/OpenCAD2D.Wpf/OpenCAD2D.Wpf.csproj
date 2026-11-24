@@ -20,10 +20,16 @@
     <ItemGroup>
         <InternalsVisibleTo Include="OpenCAD2D.UnitTest" />
         <InternalsVisibleTo Include="OpenCAD2D.Wpf.UnitTest" />
+        <InternalsVisibleTo Include="OpenCAD2D.Plugins.UnitTest" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="SkiaSharp" Version="4.155.0" />
+    </ItemGroup>
+
+    <!-- The compiler of plugins given as C# source, on .NET 8 only: hosted in Tekla on .NET Framework a .cs plugin is refused. -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     </ItemGroup>
 
     <!-- The printers of Windows the Plot dialog lists and prints to; .NET 8's WPF brings System.Printing and ReachFramework itself. -->

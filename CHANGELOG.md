@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **NEW.** A command plugin can be given as C# source: a `.cs` file, or a folder of them, loads as a `.dll` does (the
+  `Plugins` folder, PLUGINLOAD/NETLOAD, the startup list, PLUGINRELOAD), compiled by Roslyn when it loads, on .NET 8 only.
+  Other libraries are named with `//#r "Name.dll"` lines. The build is cached in `%LocalAppData%\OpenCAD2D\PluginCache` by
+  the SHA-256 of the sources, so a start with unchanged sources compiles nothing; the first compile of a session takes
+  about 0.9 s and a later one about 20 ms for a plugin of 220 lines. A source that does not compile is refused with a line
+  per error, `Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context`, the first 20.
+  `CadPluginLoader.CanCompile` and `Compile`, `CadPluginBuild`, `CadLoadedPlugin.IsSource` and
+  `CadPluginAssemblyLoader(cacheFolder)` are new.
+- **CHANGED.** PLUGINLOAD asks `Enter the path of a plugin (.dll, .cs or its folder)`, and a path that is no plugin is refused
+  with `... a plugin is a .dll, a .cs, or the folder of one.`
+- **CHANGED.** A plugin whose assembly states no version (0.0.0.0) is shown with none: `Loaded Stairs: STAIRS.` in place of
+  `Loaded Stairs 0.0.0.0: STAIRS.`
 - **CHANGED.** The app is built English only: the translations .NET ships of WPF and WinForms (13 folders, `cs`
   to `zh-Hant`, 16 MB) are no longer beside the exe, and the setup's install folder holds 286 files in place of 507.
 - **CHANGED.** The icon of a drawing file (.dwg, .dxf) is the app's tile with its corner folded over like a page, in place

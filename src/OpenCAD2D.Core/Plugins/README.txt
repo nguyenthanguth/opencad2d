@@ -2,22 +2,25 @@ OpenCAD2D - Plugins folder
 ===================================
 
 Put command plugins here, and they are loaded when the app starts, as AutoCAD loads what its
-Startup Suite names. A plugin is a .NET .dll with commands marked [CadCommand]; see the plugin
-guide for how to write one.
+Startup Suite names. A plugin is a .NET .dll with commands marked [CadCommand], or the C# source
+of one (.cs files, which the app compiles when it loads them); see the plugin guide.
 
 What loads at start, in this order:
 
-  1. Every .dll directly in this folder, in the order of their names, ignoring case.
-  2. Every folder below this one that holds .dll files directly, at any depth, in the order of
+  1. Every .dll directly in this folder, in the order of their names, ignoring case, then every
+     .cs directly in it, each a plugin of its own, in the same order.
+  2. Every folder below this one that holds .dll or .cs files directly, at any depth, in the order of
      their names, as one plugin: a plugin made of several .dll files (its own and the libraries
      it needs) lives in a folder of its own, and the folders below it are not read. A folder
      with no .dll in it is walked into, so Company\ToolA\ToolA.dll is the plugin ToolA.
      If the folder has a plugin.json, that gives the plugin its name, version and API; if not,
      the plugin is named after the folder and all the .dll files directly in it are loaded.
+     A folder with .cs files is one plugin compiled from them; its .dll files are the libraries
+     its //#r lines name.
 
 A .dll that is not a plugin, or that cannot be loaded, is one line of the plugin load log (the
 Plugin manager shows it) and the next one loads. A plugin loaded already is not loaded twice.
-Files other than .dll, and .dll files below a folder that is a plugin, are not loaded. A
+Files other than .dll and .cs, and files below a folder that is a plugin, are not loaded. A
 subfolder that is a junction or a symbolic link, or is hidden or a system folder, is not read.
 
 This folder lies under the program folder, so it is a trusted folder: its plugins load with no

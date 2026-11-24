@@ -132,6 +132,9 @@ namespace OpenCAD2D.Plugins
         /// <summary>Gets whether its path lies in a trusted folder.</summary>
         public bool IsTrusted { get; }
 
+        /// <summary>Gets whether it is given as C# source (a .cs, or a folder with .cs files directly in it), compiled when it loads.</summary>
+        public bool IsSource { get; internal set; }
+
         /// <summary>Gets whether it is on the startup list, loaded at every start.</summary>
         public bool LoadAtStartup { get; internal set; }
 

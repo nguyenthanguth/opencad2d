@@ -1,12 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
+        <!-- net8.0-windows as well: the compiler of C# source plugins is on .NET 8 only, and it is the runtime the app ships on. -->
+        <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
+        <UseWPF Condition="'$(TargetFramework)' == 'net8.0-windows'">true</UseWPF>
         <LangVersion>latest</LangVersion>
         <Deterministic>true</Deterministic>
         <IsPackable>false</IsPackable>
         <PlatformTarget>x64</PlatformTarget>
         <NoWarn>$(NoWarn);MSB3277</NoWarn>
     </PropertyGroup>
+
+    <!--
+    On .NET 8 the tests of what only .NET 8 has, plugins given as C# source; the others are written for the loader of
+    .NET Framework (they emit plugins with AssemblyBuilder.Save and expect the first build to stay loaded).
+  -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+        <Compile Remove="**/*.cs" />
+        <Compile Include="PluginFiles.cs;SourcePlugin*.cs" />
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
@@ -39,6 +50,13 @@
         <None
             Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\bin\$(Configuration)\netstandard2.0\OpenCAD2D.Plugins.DrawingInfo.dll"
             Link="DrawingInfo\OpenCAD2D.Plugins.DrawingInfo.dll"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <!-- The same sample as source, loaded as a C# source plugin on .NET 8. -->
+        <None
+            Include="..\..\examples\OpenCAD2D.Plugins.DrawingInfo\DrawingInfoCommands.cs"
+            Link="DrawingInfoSource\DrawingInfoCommands.cs.txt"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />

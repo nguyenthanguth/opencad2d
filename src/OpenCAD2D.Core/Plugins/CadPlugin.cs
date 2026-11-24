@@ -845,7 +845,9 @@ namespace OpenCAD2D.Plugins
                 return plus > 0 ? text.Substring(0, plus) : text;
             }
 
-            return assembly.GetName().Version?.ToString() ?? string.Empty;
+            // 0.0.0.0 is what an assembly that states no version has, as a plugin given as source with no [AssemblyVersion].
+            Version version = assembly.GetName().Version;
+            return version == null || version == new Version(0, 0, 0, 0) ? string.Empty : version.ToString();
         }
 
         /// <summary>Runs one command of the plugin: one undo step, a failure taken back with the plugin's name.</summary>

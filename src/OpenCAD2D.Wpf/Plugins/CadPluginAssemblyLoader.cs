@@ -34,8 +34,32 @@ namespace OpenCAD2D.Wpf.Plugins
         };
 
 #if NET8_0_OR_GREATER
+        private readonly CadPluginCompiler _compiler;
+#endif
+
+        /// <summary>Initializes the loader of the app: on .NET 8 plugins given as C# source are cached in <c>%LocalAppData%\OpenCAD2D\PluginCache</c>.</summary>
+        public CadPluginAssemblyLoader()
+            : this(null) { }
+
+        /// <summary>Initializes a loader that caches the builds of plugins given as C# source in a folder of its own (on .NET 8; .NET Framework compiles none).</summary>
+        /// <param name="cacheFolder">The cache folder; null for the app's, <c>%LocalAppData%\OpenCAD2D\PluginCache</c>.</param>
+        public CadPluginAssemblyLoader(string cacheFolder)
+        {
+#if NET8_0_OR_GREATER
+            _compiler = new CadPluginCompiler(cacheFolder ?? CadPluginCompiler.DefaultCacheFolder);
+#endif
+        }
+
+#if NET8_0_OR_GREATER
         /// <summary>Gets true: a plugin's load context is freed when it is unloaded.</summary>
         public override bool CanUnload => true;
+
+        /// <summary>Gets true: on .NET 8 plugins given as C# source are compiled.</summary>
+        public override bool CanCompile => true;
+
+        /// <inheritdoc/>
+        public override CadPluginBuild Compile(string name, IReadOnlyList<string> sources) =>
+            _compiler.Compile(name, sources);
 
         /// <inheritdoc/>
         public override IReadOnlyList<Assembly> Load(string name, IReadOnlyList<string> files, string probeFolder)

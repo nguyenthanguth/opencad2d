@@ -61,13 +61,21 @@ namespace OpenCAD2D.Plugins.UnitTest
 
         public string ShadowFolder => Path.Combine(Root, "copies");
 
+        /// <summary>The cache of the builds of plugins given as C# source: never the user's.</summary>
+        public string CacheFolder => Path.Combine(Root, "cache");
+
         /// <summary>The sample plugin as the build left it beside the tests.</summary>
         public static string BuiltSample =>
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SamplePlugin", SampleName + ".dll");
 
         public CadPluginManager Manager(bool confirm = false)
         {
-            var manager = new CadPluginManager(new CadPluginAssemblyLoader(), PluginFolder, SettingsPath, ShadowFolder);
+            var manager = new CadPluginManager(
+                new CadPluginAssemblyLoader(CacheFolder),
+                PluginFolder,
+                SettingsPath,
+                ShadowFolder
+            );
 
             if (confirm)
             {

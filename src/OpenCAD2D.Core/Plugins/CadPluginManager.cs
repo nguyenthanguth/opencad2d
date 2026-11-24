@@ -572,15 +572,16 @@ namespace OpenCAD2D.Plugins
             string extension = Path.GetExtension(full);
             bool isFolder = Directory.Exists(full);
             bool isDll = !isFolder && string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase);
+            bool isCs = !isFolder && string.Equals(extension, ".cs", StringComparison.OrdinalIgnoreCase);
 
-            if (!(isFolder || (isDll && File.Exists(full))))
+            if (!(isFolder || ((isDll || isCs) && File.Exists(full))))
             {
                 return Refuse(
                     action,
                     file,
                     full,
                     false,
-                    "There is no plugin " + full + ": a plugin is a .dll, or the folder of one."
+                    "There is no plugin " + full + ": a plugin is a .dll, a .cs, or the folder of one."
                 );
             }
 
@@ -647,6 +648,23 @@ namespace OpenCAD2D.Plugins
                 }
             }
 
+            // A folder with a .cs directly in it is a plugin given as source; its .dll files are what its //#r lines name.
+            List<string> sources =
+                isCs ? new List<string> { full }
+                : isFolder ? SourcesOf(full)
+                : new List<string>();
+
+            if (sources.Count > 0 && !_loader.CanCompile)
+            {
+                return Refuse(
+                    action,
+                    name,
+                    full,
+                    trusted,
+                    "C# source plugins need the .NET 8 app; " + full + " was not loaded."
+                );
+            }
+
             if (!trusted && !Confirmed(full))
             {
                 return Refuse(action, name, full, false, NotTrusted(full));
@@ -662,8 +680,11 @@ namespace OpenCAD2D.Plugins
 
             try
             {
-                List<string> files = Copy(full, isFolder, copies);
-                assemblies = _loader.Load(name, files, isDll ? Path.GetDirectoryName(full) : null);
+                List<string> files =
+                    sources.Count > 0
+                        ? Build(name, sources, isFolder ? full : null, copies)
+                        : Copy(full, isFolder, copies);
+                assemblies = _loader.Load(name, files, isFolder ? null : Path.GetDirectoryName(full));
 
                 // The folder files beside the plugin are read from: where it was loaded from.
                 plugin = CadPlugin.MakeFrom(name, assemblies, manifest?.Version, folderOf);
@@ -713,6 +734,7 @@ namespace OpenCAD2D.Plugins
             bool installed = IsInThePluginFolder(full);
             var entry = new CadLoadedPlugin(name, full, manifest, installed, trusted)
             {
+                IsSource = sources.Count > 0,
                 Plugin = plugin,
                 Assemblies = assemblies,
                 ShadowFolder = copies,
@@ -747,6 +769,58 @@ namespace OpenCAD2D.Plugins
             Changed();
             return new CadPluginResult(true, message, entry, warnings);
         }
+
+        /// <summary>
+        /// Compiles a plugin given as source (or takes its build from the cache) and puts the assembly and its PDB, named after
+        /// the plugin, into its folder of copies, with the files of its folder where it is one; the assembly to load. Errors
+        /// refuse it with a line <c>Plugin Stairs was not loaded: 1 error</c> and a line per error.
+        /// </summary>
+        private List<string> Build(string name, List<string> sources, string folder, string copies)
+        {
+            CadPluginBuild build = _loader.Compile(name, sources);
+
+            if (!build.Succeeded)
+            {
+                throw new CadPluginException(
+                    name,
+                    "Plugin "
+                        + name
+                        + " was not loaded: "
+                        + build.ErrorCount.ToString(CultureInfo.InvariantCulture)
+                        + (build.ErrorCount == 1 ? " error" : " errors")
+                        + "\n"
+                        + string.Join("\n", build.Errors)
+                );
+            }
+
+            Directory.CreateDirectory(copies);
+
+            if (folder != null)
+            {
+                CopyFolder(folder, copies);
+            }
+
+            string dll = Path.Combine(copies, Safe(name) + ".dll");
+
+            if (File.Exists(dll))
+            {
+                throw new CadPluginException(
+                    name,
+                    "The folder of "
+                        + name
+                        + " holds "
+                        + Path.GetFileName(dll)
+                        + "; a source plugin's own build takes that name."
+                );
+            }
+
+            File.Copy(build.AssemblyPath, dll);
+            File.Copy(build.PdbPath, Path.ChangeExtension(dll, ".pdb"), true);
+            return new List<string> { dll };
+        }
+
+        /// <summary>The .cs files directly in a folder, in ordinal order; <c>*.cs</c> alone would take "x.csx" too.</summary>
+        private static List<string> SourcesOf(string folder) => Sorted(FilesOf(folder, ".cs"));
 
         /// <summary>Copies a plugin's files into its folder of copies; the .dll files to load, in ordinal order.</summary>
         private static List<string> Copy(string path, bool isFolder, string copies)
@@ -867,6 +941,7 @@ namespace OpenCAD2D.Plugins
             try
             {
                 found.AddRange(Sorted(DllsOf(PluginFolder)));
+                found.AddRange(SourcesOf(PluginFolder));
                 AddPluginFolders(PluginFolder, found);
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
@@ -902,7 +977,9 @@ namespace OpenCAD2D.Plugins
         {
             try
             {
-                return File.Exists(Path.Combine(folder, CadPluginManifest.FileName)) || DllsOf(folder).Count > 0;
+                return File.Exists(Path.Combine(folder, CadPluginManifest.FileName))
+                    || DllsOf(folder).Count > 0
+                    || SourcesOf(folder).Count > 0;
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {
@@ -914,19 +991,22 @@ namespace OpenCAD2D.Plugins
         }
 
         /// <summary>The files directly in a folder whose extension is .dll: <c>*.dll</c> alone would take "x.dllx" too.</summary>
-        private static List<string> DllsOf(string folder)
+        private static List<string> DllsOf(string folder) => FilesOf(folder, ".dll");
+
+        /// <summary>The files directly in a folder whose extension is the one given, either case.</summary>
+        private static List<string> FilesOf(string folder, string extension)
         {
-            var dlls = new List<string>();
+            var files = new List<string>();
 
             foreach (string file in Directory.GetFiles(folder))
             {
-                if (string.Equals(Path.GetExtension(file), ".dll", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(Path.GetExtension(file), extension, StringComparison.OrdinalIgnoreCase))
                 {
-                    dlls.Add(file);
+                    files.Add(file);
                 }
             }
 
-            return dlls;
+            return files;
         }
 
         private static List<string> Sorted(List<string> paths)
@@ -1052,14 +1132,18 @@ namespace OpenCAD2D.Plugins
 
         private IEnumerable<CadPrompt> LoadByPath(CadCommandContext c)
         {
-            yield return CadPrompt.ForString("Enter the path of a plugin (.dll or its folder)");
+            yield return CadPrompt.ForString("Enter the path of a plugin (.dll, .cs or its folder)");
 
             if (c.Input.Kind != CadInputKind.Text || string.IsNullOrWhiteSpace(c.Input.Text))
             {
                 yield break;
             }
 
-            c.Write(Load(c.Input.Text).ToString());
+            // A source plugin that did not compile is refused with a line per error.
+            foreach (string line in Load(c.Input.Text).ToString().Split('\n'))
+            {
+                c.Write(line);
+            }
         }
 
         private IEnumerable<CadPrompt> ByName(CadCommandContext c, string verb, Func<string, CadPluginResult> act)
