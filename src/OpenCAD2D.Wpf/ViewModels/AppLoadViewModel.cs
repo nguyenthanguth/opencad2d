@@ -133,6 +133,28 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets whether the box of At start can be changed.</summary>
         public bool CanChangeAtStart => !IsAtStartFixed;
 
+        /// <summary>
+        /// Gets the badge shown after the name: <see cref="AppLoadBadge.NeedsPackages"/> for a plugin whose packages were not
+        /// downloaded because the question was answered No (ticking the row asks again), <see cref="AppLoadBadge.InstallFailed"/>
+        /// where they could not be restored; <see cref="AppLoadBadge.None"/> otherwise and for a plugin loaded.
+        /// </summary>
+        public AppLoadBadge Badge { get; internal set; }
+
+        /// <summary>Gets whether a badge is shown after the name.</summary>
+        public bool HasBadge => Badge != AppLoadBadge.None;
+
+        /// <summary>Gets the badge's words: <c>needs packages</c> or <c>install failed</c>; empty with none.</summary>
+        public string BadgeText =>
+            Badge == AppLoadBadge.NeedsPackages ? "needs packages"
+            : Badge == AppLoadBadge.InstallFailed ? "install failed"
+            : string.Empty;
+
+        /// <summary>Gets the badge's tooltip, which says what to do about it; empty with none.</summary>
+        public string BadgeToolTip =>
+            Badge == AppLoadBadge.NeedsPackages ? "Its packages are not downloaded yet: tick it to be asked"
+            : Badge == AppLoadBadge.InstallFailed ? "The install failed; the line below says why"
+            : string.Empty;
+
         /// <summary>Gets the tooltip of the On box, which says what a click does to this row: unload it where it is on, load it where it is off.</summary>
         public string OnToolTip => _isOn ? "Loaded: untick to unload it" : "Not loaded: tick to load it again";
 
@@ -150,9 +172,12 @@ namespace OpenCAD2D.Wpf
     /// <para>
     /// Load/Unload Applications, shown by APPLOAD and by the Plugin manager button: the AutoLISP files loaded into the
     /// document shown, those of the Startup Suite, and the plugins known in this session, in one table (On, Name, Kind,
-    /// Commands, File, At start) sorted by name and then by file, with chips that filter it by kind. Load takes .lsp, .py, .dll and .cs
-    /// files (an AutoLISP file as <see cref="CadCommandSession.LoadLisp"/> does, a .dll through the plugin manager as NETLOAD
-    /// does), Reload loads the rows chosen again and Unload unloads them: a plugin as the plugin manager does, an AutoLISP file
+    /// Commands, File, At start) sorted by name and then by file, with chips that filter it by kind. Load takes .lsp, .py, .dll and
+    /// .csproj files (an AutoLISP file as <see cref="CadCommandSession.LoadLisp"/> does, a .dll or a plugin's .csproj through the
+    /// plugin manager as NETLOAD does) and Load folder takes a plugin's folder: a folder with a .csproj is a C# plugin, whose NuGet
+    /// packages the app asks to download before they are (a plugin answered No stays in the table, unticked, with the badge
+    /// <c>needs packages</c>, and ticking it asks again; one whose restore failed has <c>install failed</c> and a red line).
+    /// Reload loads the rows chosen again and Unload unloads them: a plugin as the plugin manager does, an AutoLISP file
     /// by losing the <c>c:</c> commands it defined, which become unknown commands, its row staying in the table unticked;
     /// AutoLISP can unload no more than that. A Python file (a row of Kind <c>Python</c>) is loaded as PYLOAD does and belongs to the process, not to
     /// the drawing shown; unloading it takes the commands it defined out of every drawing, its Startup Suite is <see cref="GlobalSettings.PythonStartupSuite"/>.
@@ -174,9 +199,9 @@ namespace OpenCAD2D.Wpf
     /// </summary>
     public sealed class AppLoadViewModel : ObservableObject, IDisposable
     {
-        /// <summary>The filter of the file dialog Load… shows: applications (.lsp, .py, .dll and .cs), AutoLISP, Python, plugins, C# source, and all files.</summary>
+        /// <summary>The filter of the file dialog Load… shows: applications (.lsp, .py, .dll and .csproj), AutoLISP, Python, plugins, C# plugins (the .csproj of a plugin's folder), and all files.</summary>
         public const string OpenFilter =
-            "Applications (*.lsp;*.py;*.dll;*.cs)|*.lsp;*.py;*.dll;*.cs|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# source (*.cs)|*.cs|All files (*.*)|*.*";
+            "Applications (*.lsp;*.py;*.dll;*.csproj)|*.lsp;*.py;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*";
 
         /// <summary>The filter of the file dialog LISPLOAD shows: AutoLISP files.</summary>
         public const string LispFilter = "Lisp files (*.lsp)|*.lsp";
@@ -189,6 +214,7 @@ namespace OpenCAD2D.Wpf
         private const string PluginKind = "Plugin";
         private const string SourceKind = "C# source";
         private const string DidNotCompile = " did not compile: ";
+        private const string NotInstalled = " was not installed: ";
 
         private readonly MainViewModel _model;
         private IReadOnlyList<AppLoadRow> _all = Array.Empty<AppLoadRow>();
@@ -212,6 +238,7 @@ namespace OpenCAD2D.Wpf
         {
             _model = model;
             LoadCommand = new DelegateCommand(_ => Load());
+            LoadFolderCommand = new DelegateCommand(_ => LoadFolder());
             ReloadCommand = new DelegateCommand(_ => Reload(), _ => _chosen.Count > 0);
             UnloadCommand = new DelegateCommand(_ => Unload(), _ => _chosen.Count > 0);
             RemoveCommand = new DelegateCommand(_ => Remove(), _ => _chosen.Any(r => !r.IsAtStartFixed));
@@ -230,6 +257,12 @@ namespace OpenCAD2D.Wpf
         /// opened on the folder of the last Load, and gives the paths chosen; null where none was. Not set, Load… does nothing.
         /// </summary>
         public Func<string, IReadOnlyList<string>> AskFiles { get; set; }
+
+        /// <summary>
+        /// Gets or sets how Load folder… asks for a folder: it shows a folder dialog opened on the folder of the last Load, and
+        /// gives the folder chosen; null where none was. Not set, Load folder… does nothing.
+        /// </summary>
+        public Func<string, string> AskFolder { get; set; }
 
         /// <summary>Gets the rows shown, as the chip chosen filters them, sorted by name and then by file.</summary>
         public IReadOnlyList<AppLoadRow> Rows => _rows;
@@ -292,12 +325,22 @@ namespace OpenCAD2D.Wpf
         /// </summary>
         public string LoadError => _loadErrorTip ?? LoadErrorName + LoadErrorText;
 
-        /// <summary>Gets what the line says at its right: <c>Every error is on the command line</c> for a C# source that did not compile, else <c>Shown until the next load</c>.</summary>
+        /// <summary>
+        /// Gets what the line says at its right: <c>Every error is on the command line</c> for a C# source that did not compile,
+        /// <c>Every line is on the command line</c> for a plugin whose packages could not be installed, else
+        /// <c>Shown until the next load</c>.
+        /// </summary>
         public string LoadErrorHint =>
-            _loadErrorTip != null ? "Every error is on the command line" : "Shown until the next load";
+            _loadErrorTip == null ? "Shown until the next load"
+            : (_loadErrorText ?? string.Empty).StartsWith(NotInstalled, StringComparison.Ordinal)
+                ? "Every line is on the command line"
+            : "Every error is on the command line";
 
         /// <summary>Gets the command of Load….</summary>
         public ICommand LoadCommand { get; }
+
+        /// <summary>Gets the command of Load folder….</summary>
+        public ICommand LoadFolderCommand { get; }
 
         /// <summary>Gets the command of Reload, which needs a row chosen.</summary>
         public ICommand ReloadCommand { get; }
@@ -343,6 +386,26 @@ namespace OpenCAD2D.Wpf
                 Load(paths);
             }
         }
+
+        /// <summary>Load folder…: asks for a folder with <see cref="AskFolder"/> and loads it as <see cref="LoadFolder(string)"/> does.</summary>
+        public void LoadFolder()
+        {
+            string folder = AskFolder?.Invoke(_model.Settings.AppLoadFolder);
+
+            if (!string.IsNullOrEmpty(folder))
+            {
+                LoadFolder(folder);
+            }
+        }
+
+        /// <summary>
+        /// Loads a plugin's folder as PLUGINLOAD does: a folder with a .csproj is a C# plugin, compiled and, where it names NuGet
+        /// packages that are not on the computer, loaded after the question whether to download them; a folder of .dll files is a
+        /// plugin as it is. A folder with a requirements.txt is a Python tool, which is refused with <c>Python tools load in a
+        /// later build.</c> The folder's parent is kept for the next Load.
+        /// </summary>
+        /// <param name="folder">The folder.</param>
+        public void LoadFolder(string folder) => Load(new[] { folder });
 
         /// <summary>
         /// Loads files in the order given, each as the command line would: an AutoLISP file into the document shown (what it
@@ -461,6 +524,7 @@ namespace OpenCAD2D.Wpf
 
             foreach (AppLoadRow row in gone.Where(r => r.IsPlugin))
             {
+                _model.ForgetPackageState(row.File);
                 CadLoadedPlugin managed = ManagedPlugin(row);
 
                 if (managed != null)
@@ -678,8 +742,18 @@ namespace OpenCAD2D.Wpf
             }
             else if (result.Kind == AppLoadStatusKind.Failed)
             {
+                ToolPackageState packages = IsLisp(path) || IsPython(path) ? null : _model.PackageStateOf(path);
+
+                // The question answered No is the user's own word: the row says so with its badge, and no red line is shown.
+                if (packages?.Kind == AppLoadBadge.NeedsPackages)
+                {
+                    return;
+                }
+
                 string text =
-                    IsLisp(path) || IsPython(path) ? " failed to load: " + result.Detail : PluginFailure(result.Detail);
+                    IsLisp(path) || IsPython(path) ? " failed to load: " + result.Detail
+                    : packages != null ? NotInstalled + packages.Text
+                    : PluginFailure(result.Detail);
                 KeepCompileErrors(result.Name, text, result.Detail);
 
                 if (IsLisp(path))
@@ -705,7 +779,14 @@ namespace OpenCAD2D.Wpf
         {
             if (result != null && !result.Succeeded)
             {
-                string text = PluginFailure(result.ToString());
+                ToolPackageState packages = _model.PackageStateOf(path);
+
+                if (packages?.Kind == AppLoadBadge.NeedsPackages)
+                {
+                    return;
+                }
+
+                string text = packages != null ? NotInstalled + packages.Text : PluginFailure(result.ToString());
                 KeepCompileErrors(Path.GetFileName(path), text, result.ToString());
                 _failures.Add(new KeyValuePair<string, string>(Path.GetFileName(path), text));
             }
@@ -750,7 +831,10 @@ namespace OpenCAD2D.Wpf
         /// <summary>Keeps the whole message of a source plugin that did not compile, for the line's tooltip.</summary>
         private void KeepCompileErrors(string name, string text, string message)
         {
-            if (text.StartsWith(DidNotCompile, StringComparison.Ordinal))
+            if (
+                text.StartsWith(DidNotCompile, StringComparison.Ordinal)
+                || text.StartsWith(NotInstalled, StringComparison.Ordinal)
+            )
             {
                 _compileErrors[name] = message;
             }
@@ -887,6 +971,9 @@ namespace OpenCAD2D.Wpf
                             plugin.IsInstalled,
                             plugin.Name
                         )
+                        {
+                            Badge = plugin.IsLoaded ? AppLoadBadge.None : BadgeOf(plugin.Path),
+                        }
                     );
                 }
             }
@@ -899,7 +986,12 @@ namespace OpenCAD2D.Wpf
                 if (seen.Add(Normal(pair.Key)))
                 {
                     string kind = IsSource(pair.Key) ? SourceKind : PluginKind;
-                    rows.Add(new AppLoadRow(this, kind, name, pair.Value, pair.Key, false, false, false, name));
+                    rows.Add(
+                        new AppLoadRow(this, kind, name, pair.Value, pair.Key, false, false, false, name)
+                        {
+                            Badge = BadgeOf(pair.Key),
+                        }
+                    );
                 }
             }
 
@@ -912,6 +1004,9 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(SourceChipText));
             ApplyFilter();
         }
+
+        /// <summary>The badge of a plugin that is not loaded: what its last load said of its packages, none where it said nothing.</summary>
+        private AppLoadBadge BadgeOf(string path) => _model.PackageStateOf(path)?.Kind ?? AppLoadBadge.None;
 
         /// <summary>The plugin of the manager the row stands for, found by its file; null where the manager does not hold it, as for a plugin known only from an earlier run.</summary>
         private CadLoadedPlugin ManagedPlugin(AppLoadRow row) =>

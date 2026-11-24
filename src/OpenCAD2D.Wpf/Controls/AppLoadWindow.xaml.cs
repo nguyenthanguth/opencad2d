@@ -9,7 +9,7 @@ namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Load/Unload Applications, from APPLOAD and from the Plugin manager button, as the design draws it: 900 by 700, Load…,
-    /// Reload, Unload and Remove on top, the chips that filter by kind, and one table of the AutoLISP files, Python files and plugins with On, Name,
+    /// Load folder…, Reload, Unload and Remove on top, the chips that filter by kind, and one table of the AutoLISP files, Python files and plugins with On, Name,
     /// Kind, Commands, File and At start. Its logic is <see cref="AppLoadViewModel"/>, disposed when the dialog closes; the
     /// Open dialog Load… asks for is shown here. Delete unloads the rows chosen, and files dragged from Explorer onto the
     /// table are loaded.
@@ -26,6 +26,7 @@ namespace OpenCAD2D.Wpf
             DataContext = model;
             model.PropertyChanged += OnModelChanged;
             model.AskFiles = folder => AskFiles(this, folder);
+            model.AskFolder = folder => AskFolder(this, folder);
             Closed += (s, e) =>
             {
                 Model.PropertyChanged -= OnModelChanged;
@@ -46,7 +47,7 @@ namespace OpenCAD2D.Wpf
         public static bool Show(Window owner, AppLoadViewModel model) =>
             new AppLoadWindow(model) { Owner = owner }.ShowDialog() == true;
 
-        /// <summary>Shows the Open dialog for a plugin (a .dll, or a .cs of C# source) and loads the one chosen, as NETLOAD's window does.</summary>
+        /// <summary>Shows the Open dialog for a plugin (a .dll, or the .csproj of a C# plugin's folder) and loads the one chosen, as NETLOAD's window does.</summary>
         /// <param name="owner">The window the dialog belongs to.</param>
         /// <param name="load">What is done with the path chosen.</param>
         public static void PickPlugin(Window owner, Action<string> load)
@@ -54,7 +55,7 @@ namespace OpenCAD2D.Wpf
             var dialog = new OpenFileDialog
             {
                 Title = "Load a plugin",
-                Filter = "Plugins (*.dll)|*.dll|C# source (*.cs)|*.cs|All files (*.*)|*.*",
+                Filter = "Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*",
             };
 
             if (dialog.ShowDialog(owner) == true)
@@ -63,7 +64,7 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>Load…: an Open dialog for .lsp, .py, .dll and .cs files, several allowed, opened on the folder of the last Load.</summary>
+        /// <summary>Load…: an Open dialog for .lsp, .py, .dll and .csproj files, several allowed, opened on the folder of the last Load.</summary>
         private static System.Collections.Generic.IReadOnlyList<string> AskFiles(Window owner, string folder) =>
             AskFiles(owner, "Load Applications", AppLoadViewModel.OpenFilter, folder);
 
@@ -88,6 +89,43 @@ namespace OpenCAD2D.Wpf
             string filter,
             string folder
         ) => AskFiles(owner, "Load Python files", filter, folder);
+
+        /// <summary>
+        /// Load folder…: a folder dialog for a plugin's folder, opened on the folder of the last Load (the app's .NET 8 build; for
+        /// .NET Framework's WPF, which has no folder dialog, a Save dialog chooses it, as the Security page's Add folder… does).
+        /// </summary>
+        /// <param name="owner">The window the dialog belongs to.</param>
+        /// <param name="folder">The folder to start in; empty for the dialog's own.</param>
+        /// <returns>The folder chosen; null when the user cancelled.</returns>
+        private static string AskFolder(Window owner, string folder)
+        {
+            bool start = !string.IsNullOrEmpty(folder) && System.IO.Directory.Exists(folder);
+#if NET8_0_OR_GREATER
+            var dialog = new OpenFolderDialog { Title = "Load a tool's folder" };
+
+            if (start)
+            {
+                dialog.InitialDirectory = folder;
+            }
+
+            return dialog.ShowDialog(owner) == true ? dialog.FolderName : null;
+#else
+            var dialog = new SaveFileDialog
+            {
+                Title = "Load a tool's folder",
+                FileName = "Load this folder",
+                Filter = "Folders|*.folder",
+                OverwritePrompt = false,
+            };
+
+            if (start)
+            {
+                dialog.InitialDirectory = folder;
+            }
+
+            return dialog.ShowDialog(owner) == true ? System.IO.Path.GetDirectoryName(dialog.FileName) : null;
+#endif
+        }
 
         private static System.Collections.Generic.IReadOnlyList<string> AskFiles(
             Window owner,

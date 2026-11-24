@@ -303,12 +303,12 @@ namespace OpenCAD2D.Wpf
             window.ContentRendered += drawn;
 
             // The command plugins: those of the Plugins folder beside the app and of the startup list loaded now, each result a line of the command line.
-            var plugins = new CadPluginManager(
-                new CadPluginAssemblyLoader(),
-                AppPluginsFolder(),
-                Path.Combine(PluginFolder, "plugins.json")
-            );
+            var loader = new CadPluginAssemblyLoader();
+            var plugins = new CadPluginManager(loader, AppPluginsFolder(), Path.Combine(PluginFolder, "plugins.json"));
             plugins.ConfirmUntrusted = path => CadQuestionWindow.ConfirmUntrustedPlugin(window, path);
+#if NET8_0_OR_GREATER
+            loader.ConfirmDownload = (tool, packages) => ConfirmPackages(window, loader, tool, packages);
+#endif
 
             // A host's plugins of its own are found by the same manager, before the plugins of the start are loaded.
             AttachPlugins(plugins);
@@ -401,6 +401,26 @@ namespace OpenCAD2D.Wpf
             window.Activated += (s, e) => remote.NoteActivated();
             return remote;
         }
+
+#if NET8_0_OR_GREATER
+        /// <summary>
+        /// Asks whether to download the NuGet packages of a plugin, with the question of the PackageQuestion board over the
+        /// window, on the window's thread; the compile waits for the answer, as it waits for the question about a plugin
+        /// outside the trusted folders. The window closed is No.
+        /// </summary>
+        private static bool ConfirmPackages(
+            Window window,
+            CadPluginAssemblyLoader loader,
+            string tool,
+            IReadOnlyList<CadPackage> packages
+        )
+        {
+            PackageQuestionViewModel question = CadPackageQuestion.Question(tool, loader.CompilingProject, packages);
+            return window.Dispatcher.CheckAccess()
+                ? PackageQuestionWindow.Ask(window, question)
+                : window.Dispatcher.Invoke(() => PackageQuestionWindow.Ask(window, question));
+        }
+#endif
 
         /// <summary>
         /// The folder the app loads its command plugins from at every start: <c>Plugins</c> beside OpenCAD2D.Core.dll

@@ -665,6 +665,10 @@ Plugins\Stairs\                Pythons\StairsPy\
 - [ ] TF6. The app (design first in the Design artifact): the question before installing, "Load folder…" in
       Load/Unload Applications, a row's state (needs installing, conflict, installing).
       -> verify: Wpf tests of the question and the rows; the screenshots match the design.
+      TF6a done 2026-11-24: the package question window (PackageQuestionWindow, the NuGet texts; the pip variant is the same
+      window), wired to ConfirmDownload in the app; Load folder…, the *.csproj file type, the "needs packages" and "install
+      failed" badges for C# plugins; Wpf 2549. Left for TF6b: the pip question, the Python rows, "installing…" (an install
+      off the UI thread). Parked: the command-line form of the question (FILEDIA 0) needs a two-phase ConfirmDownload in Core
 - [ ] TF7. The in-app Python retired (TF-D15): the pythonnet embedding and the in-app `opencad2d.cad` removed, PYRUN and
       the PYTHON console on a Python process, the tests and stubs that pinned the in-app Python moved or removed, the
       parked P/PW items it settles closed.

@@ -33,6 +33,12 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+            <Style x:Key="Outlined" TargetType="Button" BasedOn="{StaticResource GhDialogButton}">
+                <Setter Property="BorderBrush" Value="{StaticResource GhAccent}" />
+                <Setter Property="Foreground" Value="#6CB6FF" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Margin" Value="0,0,6,0" />
+            </Style>
             <Style x:Key="Head" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{StaticResource GhTextMuted}" />
                 <Setter Property="FontSize" Value="11" />
@@ -99,9 +105,16 @@
                     <Button
                         x:Name="LoadButton"
                         Style="{StaticResource Primary}"
-                        Content="Load… (.lsp, .dll, .cs)"
+                        Content="Load… (.lsp, .dll)"
                         Command="{Binding LoadCommand}"
-                        ToolTip="Open .lsp, .py, .dll or .cs files; the file types offered include C# source (*.cs)"
+                        ToolTip="Open .lsp, .py and .dll files, or the .csproj of a C# plugin (its folder loads)"
+                    />
+                    <Button
+                        x:Name="LoadFolderButton"
+                        Style="{StaticResource Outlined}"
+                        Content="Load folder…"
+                        Command="{Binding LoadFolderCommand}"
+                        ToolTip="Choose a tool's folder: a C# plugin, with its .csproj"
                     />
                     <Rectangle Width="1" Fill="{StaticResource GhBorder}" Margin="4,0,10,0" />
                     <Button
@@ -146,7 +159,7 @@
                     <TextBlock
                         Foreground="{StaticResource GhTextMuted}"
                         VerticalAlignment="Center"
-                        Text="Each plugin run is one undo step. Loading a .dll or a .cs runs its code with your rights."
+                        Text="Each tool run is one undo step. A tool runs its code, and its packages’ code, with your rights."
                     />
                 </DockPanel>
             </Border>
@@ -283,13 +296,38 @@
                                             VerticalAlignment="Center"
                                             ToolTip="{Binding OnToolTip}"
                                         />
-                                        <TextBlock
+                                        <StackPanel
                                             Grid.Column="1"
-                                            Style="{StaticResource Cell}"
-                                            Text="{Binding Name}"
-                                            FontWeight="SemiBold"
-                                            ToolTip="{Binding Name}"
-                                        />
+                                            Orientation="Horizontal"
+                                            Margin="8,6"
+                                            VerticalAlignment="Center"
+                                        >
+                                            <TextBlock
+                                                x:Name="RowName"
+                                                Text="{Binding Name}"
+                                                FontWeight="SemiBold"
+                                                TextTrimming="CharacterEllipsis"
+                                                ToolTip="{Binding Name}"
+                                            />
+                                            <Border
+                                                x:Name="Badge"
+                                                Visibility="Collapsed"
+                                                Margin="6,0,0,0"
+                                                Padding="6,0"
+                                                CornerRadius="9"
+                                                BorderThickness="1"
+                                                VerticalAlignment="Center"
+                                                ToolTip="{Binding BadgeToolTip}"
+                                            >
+                                                <TextBlock
+                                                    x:Name="BadgeLabel"
+                                                    Text="{Binding BadgeText}"
+                                                    FontSize="10"
+                                                    FontWeight="Medium"
+                                                    Padding="0,1"
+                                                />
+                                            </Border>
+                                        </StackPanel>
                                         <TextBlock
                                             x:Name="Kind"
                                             Grid.Column="2"
@@ -336,6 +374,26 @@
                                                 Property="Foreground"
                                                 Value="{StaticResource KindPlugin}"
                                             />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Badge}" Value="NeedsPackages">
+                                            <Setter TargetName="Badge" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="Badge" Property="Background" Value="#3A2F12" />
+                                            <Setter
+                                                TargetName="Badge"
+                                                Property="BorderBrush"
+                                                Value="{StaticResource GhWarn}"
+                                            />
+                                            <Setter TargetName="BadgeLabel" Property="Foreground" Value="#F2CC60" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Badge}" Value="InstallFailed">
+                                            <Setter TargetName="Badge" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="Badge" Property="Background" Value="#3A1D1D" />
+                                            <Setter
+                                                TargetName="Badge"
+                                                Property="BorderBrush"
+                                                Value="{StaticResource GhError}"
+                                            />
+                                            <Setter TargetName="BadgeLabel" Property="Foreground" Value="#FFB4AE" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="C# source">
                                             <Setter
