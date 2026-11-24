@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="OpenCAD2D">
+  <!-- The mark below 24 pixels (make-icons.ps1): the letters AD left out, the O and the C stay. -->
+  <rect x="18" y="18" width="220" height="220" rx="42" fill="#FFFFFF" stroke="#D5DBE3" stroke-width="4"/>
+  <circle cx="128" cy="128" r="84" fill="none" stroke="#1F6FD6" stroke-width="24"/>
+  <path d="M165.2 94.5A50 50 0 1 0 165.2 161.5" fill="none" stroke="#1F6FD6" stroke-width="20"/>
+</svg>
