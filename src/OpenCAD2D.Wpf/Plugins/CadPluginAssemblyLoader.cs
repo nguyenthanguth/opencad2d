@@ -123,7 +123,7 @@ namespace OpenCAD2D.Wpf.Plugins
             private readonly string _probeFolder;
 
             internal PluginContext(string name, string folder, string probeFolder)
-                : base("GeometryHelper plugin " + name, true)
+                : base("OpenCAD2D plugin " + name, true)
             {
                 _folder = folder;
                 _probeFolder = probeFolder;

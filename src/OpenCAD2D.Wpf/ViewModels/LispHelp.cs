@@ -6,7 +6,7 @@ namespace OpenCAD2D.Wpf
     /// </summary>
     internal static class LispHelp
     {
-        private const string Page = "https://nguyenthanguth.github.io/GeometryHelper/guides/presenter/lisp.html";
+        private const string Page = "https://nguyenthanguth.github.io/opencad2d/guides/presenter/lisp.html";
 
         /// <summary>The guide's page at the heading "Trusted folders and SECURELOAD": which files may load, and the warning that asks about the others.</summary>
         internal static string TrustedFolders => Page + "#trusted-folders-and-secureload";

@@ -6,7 +6,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <RootNamespace>OpenCAD2D.Wpf</RootNamespace>
         <AssemblyName>OpenCAD2D.Wpf</AssemblyName>
-        <Description>The controls of the GeometryHelper 2D presenter: the canvas drawn with SkiaSharp, the file list, Properties, the layer box, the command line and the status bar.</Description>
+        <Description>The controls of the OpenCAD2D presenter: the canvas drawn with SkiaSharp, the file list, Properties, the layer box, the command line and the status bar.</Description>
         <IsPackable>false</IsPackable>
         <NoWarn>$(NoWarn);MSB3277</NoWarn>
     </PropertyGroup>

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **CHANGED.** The old name is gone where a user can see it. The window's title-bar name, when a host gives none, is
+  `OpenCAD2D` (it was `GeometryHelper Drawing`); Paste Special names the source of copied objects `OpenCAD2D entities`; the
+  PSOUT file's `%%Creator:` line says `OpenCAD2D PSOUT`; the plugin load contexts in a debugger or a crash dump are
+  `OpenCAD2D plugin <name>`; the Plot and Lisp "Help" links open the guides at `nguyenthanguth.github.io/opencad2d/guides/`,
+  not the old site; and the NuGet description of `OpenCAD2D.Wpf` says OpenCAD2D. The private clipboard formats are now
+  `OpenCAD2D.Entities`, `OpenCAD2D.DesignCenter`, `OpenCAD2D.ToolPaletteTool` and `OpenCAD2D.Objects`, so objects copied in
+  an older GeometryHelper build do not paste into this one, and the other way round. Kept: the plotters
+  `GeometryHelper PDF`, `PNG` and `JPG`, the font title `GeometryHelper Simplex`, the built-in `GeometryHelper.pat` and
+  `GeometryHelper.lin` and the sample `GeometryHelper-mm.dwt`, which are saved in drawings and settings.
 - **CHANGED.** The application menu button at the top left of the window shows the OpenCAD2D mark (the white tile with the
   O and the C, as the icon frames below 24 px) in place of the letter G. Under the pointer, pressed, or while the menu is
   open, it has a 2 px ring of light blue around it, where it used to turn lighter blue.

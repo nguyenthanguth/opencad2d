@@ -64,6 +64,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             model.StartCommand("PASTESPEC");
             model.Execute("0,300");
+            Assert.Equal("OpenCAD2D entities", shown.Source);
 
             Assert.Equal("1 object copied from plan.dxf · Model", shown.SourceDetail);
             Assert.False(shown.Formats.Single(f => f.Name == "Image (PNG)").IsEnabled);

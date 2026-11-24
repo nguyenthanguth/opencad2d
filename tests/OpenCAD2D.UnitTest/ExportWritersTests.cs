@@ -396,6 +396,7 @@ namespace OpenCAD2D.UnitTest
             // 180 by 60 drawing units at 1 millimetre to 10 is 18 by 6 millimetres: 51.02 by 17.01 points.
             List<string> lines = PostScript(file + ".eps");
             Assert.Equal("%!PS-Adobe-3.0 EPSF-3.0", lines[0]);
+            Assert.Contains("%%Creator: OpenCAD2D PSOUT", lines);
             Assert.Contains("%%BoundingBox: 0 0 52 18", lines);
             Assert.Contains("%%HiResBoundingBox: 0 0 51.024 17.008", lines);
             Assert.Equal("%%EOF", lines[lines.Count - 2]);

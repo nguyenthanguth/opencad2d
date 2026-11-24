@@ -16,7 +16,7 @@ namespace OpenCAD2D.Wpf
     public static class ToolPaletteDrag
     {
         /// <summary>The name of the data format a drag of a tool carries.</summary>
-        public const string Format = "GeometryHelper.ToolPaletteTool";
+        public const string Format = "OpenCAD2D.ToolPaletteTool";
 
         /// <summary>Writes the places as one text.</summary>
         /// <param name="palette">The place of the palette among the palettes, from 0.</param>
@@ -57,7 +57,7 @@ namespace OpenCAD2D.Wpf
     public static class ObjectDrag
     {
         /// <summary>The name of the data format a drag of objects carries.</summary>
-        public const string Format = "GeometryHelper.Objects";
+        public const string Format = "OpenCAD2D.Objects";
 
         /// <summary>Writes the handles as one text.</summary>
         /// <param name="handles">The handles.</param>

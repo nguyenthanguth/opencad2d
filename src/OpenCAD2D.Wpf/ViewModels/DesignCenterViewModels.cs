@@ -229,7 +229,7 @@ namespace OpenCAD2D.Wpf
     public static class DesignCenterDrag
     {
         /// <summary>The name of the data format a drag carries.</summary>
-        public const string Format = "GeometryHelper.DesignCenter";
+        public const string Format = "OpenCAD2D.DesignCenter";
 
         /// <summary>Writes the path, the kind (empty for a whole drawing file) and the names as one text.</summary>
         /// <param name="path">The path of the drawing.</param>

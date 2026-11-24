@@ -58,7 +58,7 @@ namespace OpenCAD2D.Wpf
             nameof(AppName),
             typeof(string),
             typeof(CadWorkspace),
-            new PropertyMetadata("GeometryHelper Drawing")
+            new PropertyMetadata("OpenCAD2D")
         );
 
         private readonly System.Windows.Threading.DispatcherTimer _autosave =
@@ -226,7 +226,7 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>
         /// Gets or sets the name of the app, shown at the left of the title in the title bar and as the heading of the start
-        /// screen: "GeometryHelper Drawing" unless a host gives its own, as OpenCAD2D does.
+        /// screen: "OpenCAD2D" unless a host gives its own.
         /// </summary>
         public string AppName
         {

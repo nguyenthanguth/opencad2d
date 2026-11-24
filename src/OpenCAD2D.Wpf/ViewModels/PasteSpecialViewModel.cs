@@ -50,7 +50,7 @@ namespace OpenCAD2D.Wpf
 
             if (objects)
             {
-                Source = "GeometryHelper Drawing entities";
+                Source = "OpenCAD2D entities";
                 SourceDetail =
                     Count(data.Count)
                     + (data.Count == 1 ? " object" : " objects")

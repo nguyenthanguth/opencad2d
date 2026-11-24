@@ -1,6 +1,6 @@
 # Python examples
 
-Thirteen scripts, each doing one thing people do with GeometryHelper from Python: list the layers of a drawing, make a
+Thirteen scripts, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
 drawing in code, cut one solid from another, number points in the app, draw in an app that is running. They are in
 `src/python/examples` of the repository, in three folders for the three places Python works with the library, and this page
 shows each file as it is, with what it prints. A test of the repository runs every file, on .NET 8 and on .NET Framework

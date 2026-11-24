@@ -43,7 +43,7 @@ namespace OpenCAD2D
     public sealed class CadClipboardData
     {
         /// <summary>The name of the private clipboard format the objects go on the Windows clipboard under.</summary>
-        public const string Format = "GeometryHelper.Drawing.Entities";
+        public const string Format = "OpenCAD2D.Entities";
 
         private const string Header = "GeometryHelper clipboard 1";
 

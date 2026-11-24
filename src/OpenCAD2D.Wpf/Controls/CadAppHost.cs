@@ -19,8 +19,8 @@ namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Starts a standalone app of the presenter: the window on the drawing named on the command line, or, with
-    /// <c>--screenshot</c>, a picture of the window or of one of its dialogs drawn into a PNG with no window shown. GeometryHelper
-    /// DXF runs it as it is; a host that makes model drawings derives from it to add the model drawing and its own options.
+    /// <c>--screenshot</c>, a picture of the window or of one of its dialogs drawn into a PNG with no window shown. OpenCAD2D
+    /// runs it as it is; a host that makes model drawings derives from it to add the model drawing and its own options.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -30,7 +30,7 @@ namespace OpenCAD2D.Wpf
     /// </para>
     /// <para>
     /// <c>app.exe --register</c> associates .dxf and .dwg files with the app for the user alone, under
-    /// <c>HKEY_CURRENT_USER\Software\Classes</c> with no administrator: the ProgID <c>GeometryHelper.Drawing</c>, the icon
+    /// <c>HKEY_CURRENT_USER\Software\Classes</c> with no administrator: the ProgID <c>OpenCAD2D.Drawing</c>, the icon
     /// <c>drawing-file.ico</c> beside the exe, the command <c>"app.exe" "%1"</c>, and the ProgID in the Open with list of each
     /// extension, made its default only where no program has it. <c>app.exe --unregister</c> takes that out. Both exit with
     /// 0 when done and 1 when the registry refuses.

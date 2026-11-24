@@ -58,7 +58,7 @@ namespace OpenCAD2D
             double offsetY = (height - area.Height * scale) / 2.0 - area.MinY * scale;
             var eps = new StringBuilder();
             eps.Append("%!PS-Adobe-3.0 EPSF-3.0\n");
-            eps.Append("%%Creator: GeometryHelper PSOUT\n");
+            eps.Append("%%Creator: OpenCAD2D PSOUT\n");
             eps.Append("%%Title: ").Append(Comment(title)).Append('\n');
             eps.Append("%%BoundingBox: 0 0 ")
                 .Append(((long)Math.Ceiling(width - 1E-9)).ToString(CultureInfo.InvariantCulture))

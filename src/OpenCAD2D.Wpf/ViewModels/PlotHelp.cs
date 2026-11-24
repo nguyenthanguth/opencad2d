@@ -12,7 +12,7 @@ namespace OpenCAD2D.Wpf
     /// </summary>
     internal static class PlotHelp
     {
-        private const string Page = "https://nguyenthanguth.github.io/GeometryHelper/guides/presenter/plot.html";
+        private const string Page = "https://nguyenthanguth.github.io/opencad2d/guides/presenter/plot.html";
 
         /// <summary>The guide's page on plotting, at the heading "The page setup": the Plot dialog and the Page Setup form.</summary>
         internal static string PlotDialog => Page + "#the-page-setup";
