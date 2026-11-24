@@ -1,8 +1,9 @@
-"""The Drawing API over a ``CadDocument``: a drawing of the app (inside a run) and a drawing file (headless).
+"""The Drawing API over a ``CadDocument``: a drawing file with no app (headless), and the functions of ``opencad2d.cad`` that
+only a tool of the app has, which are the tool backend's in a tool and refuse in any other process.
 
 The commit goes through the public ``CadDocument.ApplyEdit``, as the remote server's commit does
-(``CadRemoteServer.Commit.cs``): one undo step, or part of the step of the run that is going on, with the planned changes
-asked of the owners of the entities first. Entities and styles are read as copies in a small drawing of their own.
+(``CadRemoteServer.Commit.cs``): one undo step with the planned changes asked of the owners of the entities first. Entities and
+styles are read as copies in a small drawing of their own.
 """
 
 from __future__ import annotations
@@ -13,44 +14,16 @@ from collections.abc import Callable
 from typing import Any
 
 from . import _tool
-from ._drawing import Backend, Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color, point3
+from ._drawing import Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color
 
 _net: Any = importlib.import_module("System")
 _cad: Any = importlib.import_module("OpenCAD2D")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
-_geo: Any = importlib.import_module("GeometryHelper.Geometry")
-
-_cache: dict[Any, Drawing] = {}
-_queued: list[Drawing] = []
 
 
-def _host_module() -> Any:
-    """The Python host assembly, which only the app has; None outside it."""
-    try:
-        return importlib.import_module("OpenCAD2D.Python")
-    except ImportError:
-        return None
-
-
-def _script() -> Any:
-    """The run going on, or None when no script runs (outside the app, or a callback of the window)."""
-    host = _host_module()
-    return None if host is None else host.CadPythonScript.Current
-
-
-def _run(name: str) -> Any:
-    """The run going on; ``RuntimeError`` naming the function where there is none."""
-    if _host_module() is None:
-        raise RuntimeError(f"{name} works inside OpenCAD2D only")
-    script = _script()
-    if script is None:
-        raise RuntimeError(f"{name} works only while a script runs in OpenCAD2D.")
-    return script
-
-
-def _app_host(name: str) -> Any:
-    """The window's list of drawings (``ICadRemoteHost``), or None where the app has none."""
-    return getattr(_run(name), "DocumentHost", None)
+def _inside_only(name: str) -> RuntimeError:
+    """The error of a function that only a tool of the app can call, called in any other process."""
+    return RuntimeError(f"{name} works inside OpenCAD2D only")
 
 
 def _name_key(record: Any) -> tuple[str, str]:
@@ -65,11 +38,10 @@ def _handle_key(handle: str) -> tuple[int, str]:
 
 
 class _LocalBackend:
-    """A ``CadDocument`` as the backend of a ``Drawing``; ``in_app`` is true for the drawings of a run."""
+    """A ``CadDocument`` of a drawing file as the backend of a ``Drawing``."""
 
-    def __init__(self, document: Any, in_app: bool) -> None:
+    def __init__(self, document: Any) -> None:
         self._document: Any = document
-        self._in_app = in_app
         self._closed: str | None = None
 
     @property
@@ -77,12 +49,6 @@ class _LocalBackend:
         if self._closed is not None:
             raise RuntimeError(f"The drawing {self._closed} is closed.")
         return self._document
-
-    def _host(self) -> Any:
-        if not self._in_app:
-            return None
-        script = _script()
-        return None if script is None else getattr(script, "DocumentHost", None)
 
     # ---- what the drawing is ----------------------------------------------------------------------------------------
 
@@ -97,11 +63,7 @@ class _LocalBackend:
 
     @property
     def is_active(self) -> bool:
-        host = self._host()
-        if host is None:
-            return True
-        active = host.ActiveDocument
-        return active is not None and active == self.document
+        return True
 
     @property
     def is_modified(self) -> bool:
@@ -258,10 +220,8 @@ class _LocalBackend:
                         self._replace(old, handle, op.entity)  # pyright: ignore[reportArgumentType]
                 i += 1
 
-        script = _script() if self._in_app else None
-        name = str(getattr(script, "StepName", "PYRUN")) if script is not None else "PYTHON"
         result = document.ApplyEdit(
-            name, _net.Array[_cad.CadEditRecord](planned), _net.Action[_cad.CadEditScope](apply)
+            "PYTHON", _net.Array[_cad.CadEditRecord](planned), _net.Action[_cad.CadEditScope](apply)
         )
         if not result.Succeeded:
             raise RuntimeError(str(result.Message))
@@ -379,9 +339,6 @@ class _LocalBackend:
     @current_layout.setter
     def current_layout(self, value: str) -> None:
         space = self._space_named(value)
-        host = self._host()
-        if host is not None and not self.is_active:
-            host.Activate(self.document)
         result = self.document.ShowSpace(space)
         if not result.Succeeded:
             raise RuntimeError(str(result.Message))
@@ -414,49 +371,21 @@ class _LocalBackend:
 
     # ---- the user ---------------------------------------------------------------------------------------------------
 
-    def _asks(self, name: str) -> None:
-        script = _run(name)
-        if not self._in_app or script.Document != self.document:
-            raise RuntimeError(f"{name} asks in the drawing of the run, not in {self.name}.")
-
     def pick_point(self, message: str, base: Any) -> Any:
-        if not self._in_app:
-            raise RuntimeError("pick_point works inside OpenCAD2D only")
-        self._asks("pick_point")
-        from . import get_point  # pyright: ignore[reportAttributeAccessIssue]
-
-        point: Any = get_point(message, None if base is None else _geo.GeoPoint2(base.X, base.Y))
-        return None if point is None or isinstance(point, str) else point3(point)
+        raise _inside_only("pick_point")
 
     def pick_object(self, message: str) -> tuple[str, Any, Any] | None:
-        if not self._in_app:
-            raise RuntimeError("pick_object works inside OpenCAD2D only")
-        self._asks("pick_object")
-        from . import get_entity  # pyright: ignore[reportAttributeAccessIssue]
-
-        found: Any = get_entity(message)
-        if isinstance(found, Entity):
-            return found.handle, found.net, found._source  # pyright: ignore[reportPrivateUsage]
-        return None
+        raise _inside_only("pick_object")
 
     def pick_objects(self, message: str) -> list[tuple[str, Any, Any]]:
-        if not self._in_app:
-            raise RuntimeError("pick_objects works inside OpenCAD2D only")
-        self._asks("pick_objects")
-        from . import get_selection  # pyright: ignore[reportAttributeAccessIssue]
-
-        chosen: list[Any] = get_selection()
-        return [(e.handle, e.net, e._source) for e in chosen]  # pyright: ignore[reportPrivateUsage]
+        raise _inside_only("pick_objects")
 
     # ---- the file ---------------------------------------------------------------------------------------------------
 
     def _saving(self, action: Callable[[], object]) -> None:
-        """Runs a save. A drawing cannot be saved while a group of edits is open, and a run holds one: the run's step is
-        ended for the save and opened again after it, so what was done before the save is one undo step and what follows is
-        another, both named after the run."""
+        """Runs a save. A drawing cannot be saved while a group of edits is open: any is ended for the save and opened again
+        after it."""
         document = self.document
-        script = _script() if self._in_app else None
-        name = str(getattr(script, "StepName", "PYRUN")) if script is not None else "PYTHON"
         depth = 0
         while document.IsInGroup:
             document.EndGroup()
@@ -465,105 +394,43 @@ class _LocalBackend:
             action()
         finally:
             for _ in range(depth):
-                document.BeginGroup(name)
+                document.BeginGroup("PYTHON")
 
     def save(self) -> None:
-        host = self._host()
-        self._saving(lambda: host.Save(self.document) if host is not None else self.document.Save())
+        self._saving(self.document.Save)
 
     def save_as(self, path: str, version: str | None) -> None:
-        host = self._host()
-        if host is not None:
-            self._saving(lambda: host.SaveAs(self.document, path, version))
-        elif version is None:
+        if version is None:
             self._saving(lambda: self.document.SaveAs(path))
         else:
             self._saving(lambda: self.document.SaveAs(path, version, None))
 
     def close(self, discard: bool) -> None:
-        document = self.document
-        host = self._host()
-        if host is not None:
-            if document.IsModified and not discard:
-                raise RuntimeError(f"{self.name} has changes not saved: save it, or close it with discard.")
-            host.Close(document)
         self._closed = self.name
-        _cache.pop(document, None)
-
-
-def _remember(drawing: Drawing) -> None:
-    if not any(drawing is queued for queued in _queued):
-        _queued.append(drawing)
-
-
-def drawing_of(document: Any) -> Drawing:
-    """The ``Drawing`` of a ``CadDocument`` of the app, the one every call in a run gets; the app's prompts use it."""
-    drawing = _cache.get(document)
-    if drawing is None:
-        backend: Backend = _LocalBackend(document, True)
-        drawing = Drawing(backend, _remember)
-        _cache[document] = drawing
-    return drawing
-
-
-def entity_of(document: Any, handle: str) -> Entity:
-    """The ``Entity`` of a ``CadDocument`` of the app with the handle; ``KeyError`` when it has none."""
-    return drawing_of(document).entity(handle)
-
-
-def commit_pending() -> None:
-    """Commit what the drawings of the app queued, each as one undo step (inside the run's, for the run's own drawing)."""
-    drawings = list(_queued)
-    _queued.clear()
-    _cache.clear()
-    for index, drawing in enumerate(drawings):
-        try:
-            drawing.commit()
-        except BaseException:
-            for rest in drawings[index + 1 :]:
-                rest._discard()  # pyright: ignore[reportPrivateUsage]
-            raise
-
-
-def discard_pending() -> None:
-    """Drop what the drawings of the app queued."""
-    drawings = list(_queued)
-    _queued.clear()
-    _cache.clear()
-    for drawing in drawings:
-        drawing._discard()  # pyright: ignore[reportPrivateUsage]
 
 
 def active_drawing() -> Drawing:
-    """The drawing the run started in (not the one shown later): ``active_drawing().add_line((0, 0), (10, 0))``.
+    """The drawing the command of the tool was typed in (not the one shown later): ``active_drawing().add_line((0, 0), (10, 0))``.
 
     Example:
-        drawing = active_drawing()            # the drawing the run started in
+        drawing = active_drawing()            # the drawing the command was typed in
         drawing.add_line((0, 0), (10, 0))
         drawing.commit()                      # ['2B'] in a drawing whose last handle was 2A: one undo step
     """
-    if _tool.in_tool():
-        return _tool.active_drawing()
-    return drawing_of(_run("active_drawing").Document)
+    if not _tool.in_tool():
+        raise _inside_only("active_drawing")
+    return _tool.active_drawing()
 
 
 def documents() -> Documents:
-    """The drawings of the app, in the order it lists them; only the drawing of the run where the app has no list.
+    """The drawings of the app, in the order it lists them.
 
     Example:
         [d.name for d in documents()]         # ['plan.dxf', 'Drawing2.dxf'] in the order the app lists them
     """
-    if _tool.in_tool():
-        return _tool.documents()
-    script = _run("documents")
-
-    def listed() -> list[Drawing]:
-        host = getattr(script, "DocumentHost", None)
-        if host is None:
-            return [drawing_of(script.Document)]
-        return [drawing_of(document) for document in host.Documents]
-
-    return Documents(listed)
+    if not _tool.in_tool():
+        raise _inside_only("documents")
+    return _tool.documents()
 
 
 def open_drawing(path: str) -> Drawing:
@@ -572,12 +439,9 @@ def open_drawing(path: str) -> Drawing:
     Example:
         drawing = open_drawing(r"C:\\plans\\plan.dxf")   # shown in the app; open_drawing again gives the same one
     """
-    if _tool.in_tool():
-        return _tool.open_drawing(os.path.abspath(path))
-    host = _app_host("open_drawing")
-    if host is None:
-        raise RuntimeError("open_drawing needs the list of drawings of the app's window, and there is none.")
-    return drawing_of(host.Open(os.path.abspath(path)))
+    if not _tool.in_tool():
+        raise _inside_only("open_drawing")
+    return _tool.open_drawing(os.path.abspath(path))
 
 
 def new_drawing(template: str | None = None) -> Drawing:
@@ -586,12 +450,9 @@ def new_drawing(template: str | None = None) -> Drawing:
     Example:
         drawing = new_drawing()               # a blank drawing, shown; drawing.name == "Drawing1.dxf" in a fresh app
     """
-    if _tool.in_tool():
-        return _tool.new_drawing(None if template is None else os.path.abspath(template))
-    host = _app_host("new_drawing")
-    if host is None:
-        raise RuntimeError("new_drawing needs the list of drawings of the app's window, and there is none.")
-    return drawing_of(host.New(None if template is None else os.path.abspath(template)))
+    if not _tool.in_tool():
+        raise _inside_only("new_drawing")
+    return _tool.new_drawing(None if template is None else os.path.abspath(template))
 
 
 def open_file(path: str) -> Drawing:
@@ -601,7 +462,7 @@ def open_file(path: str) -> Drawing:
         drawing = open_file("plan.dxf")       # drawing.name == "plan.dxf", drawing.is_modified == False
         len(drawing.entities())               # 5 for the drawing built under Drawing.save_as
     """
-    return Drawing(_LocalBackend(_cad.CadDocument.Open(os.path.abspath(path)), False))
+    return Drawing(_LocalBackend(_cad.CadDocument.Open(os.path.abspath(path))))
 
 
 def new_file() -> Drawing:
@@ -613,4 +474,4 @@ def new_file() -> Drawing:
         drawing.commit()                      # ['101']
         drawing.save_as("new.dxf")
     """
-    return Drawing(_LocalBackend(_cad.CadDocument.From(_dxf.DxfDatabase("AC1027")), False))
+    return Drawing(_LocalBackend(_cad.CadDocument.From(_dxf.DxfDatabase("AC1027"))))

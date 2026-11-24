@@ -89,8 +89,6 @@ def _needs_the_app() -> list[tuple[str, Callable[[], object]]]:
         ("cmd", lambda: cad.cmd("CIRCLE", (0, 0), 5)),
         ("active_drawing", lambda: cad.active_drawing()),
         ("documents", lambda: cad.documents()),
-        ("add_ribbon_panel", lambda: cad.add_ribbon_panel(cad.ribbon_panel("Tools", []))),
-        ("show_command_buttons", lambda: cad.show_command_buttons(False)),
     ]
 
 

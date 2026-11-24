@@ -451,7 +451,8 @@ scripts inside the app, and a script outside that drives a running app.
       code in about 20 ms, one undo step per run, PYLOAD with `@cad_command`, a script connecting to its own app refused
 - [ ] P3 parked: the command and function names (PYTHON, PYRUN, PYLOAD, get_point...) await the maintainer's word; a
       Wpf test of CadAppRemoteHost.IsOwnerThread; EntityCount cached inside an open group and a failed ApplyEdit taking back a run's whole group
-      silently (the maintainer to decide); output flushed only when the window is next idle during a long run
+      silently (the maintainer to decide); output flushed only when the window is next idle during a long run (settled by
+      TF7: the tools channel redraws the command line after each request)
 - [x] P4. Driving a running app from outside: a Python client over `GeometryHelper.Cad.Remote`'s named pipe (open,
       draw, select, run commands, read the drawing). Done 2026-11-21: the .NET CadApplication through pythonnet in a
       `with` block, no protocol change; a headless test server and 63 pytest tests on both runtimes; checked on the
@@ -468,8 +469,8 @@ scripts inside the app, and a script outside that drives a running app.
 - [x] P6. Scripts in the trusted folders of L6 only, and a script's errors shown without closing the app. Done
       2026-11-22: PYRUN, PYLOAD and the palette go through the same gate; every kind of script error leaves the app
       running with one line on the command line (a .NET error too), the streams put back before each run
-- [ ] P6 parked: a list of Python startup scripts; recursion through .NET callbacks past about 650 levels overflows the
-      stack
+- [x] P6 parked: a list of Python startup scripts; recursion through .NET callbacks past about 650 levels overflows the
+      stack. Settled by TF7 (2026-11-25): the Startup Suite holds tool folders; the recursion went with the embedding
 
 Re-scoped 2026-11-23 by the maintainer: Python is to work as a C# plugin plus Remote, "like LISP", not as a console
 inside the app; made to be used a lot, by people and by AI (plan and spec in .claude/scratch/pyl, D1600–D1642).
@@ -482,7 +483,7 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
 - [ ] PW1 parked: the dependent blocks of an xref (`grid|TAG`) not carried by Blocks (the core cannot make such a
       record); an unloaded Python row shows no commands (Lisp rows keep theirs); no Global settings row for the Pythons
       folder or the Python Startup Suite; a .py asking a prompt at module level while APPLOAD runs; Remove's tooltip
-      naming only Lisps and Plugins
+      naming only Lisps and Plugins. TF7 (2026-11-25) settled the unloaded row's commands (from its plugin.json)
 - [x] PW2. One API: `@command("NAME")`, `cmd(...)` and the get_* prompts; a Drawing API (entities, add, modify, erase,
       layers, tables, save, close) the same in the app, from outside (`connect()`, any open drawing) and headless
       (`open_file()`); parity with the C# plugin API (ribbon tabs, panels and buttons, side panel, settings, events).
@@ -490,7 +491,8 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       giving Entity objects; `add_ribbon_tab`, panels, buttons, split buttons, DRAWINGS button and menu, canvas menu
       and Properties from a .py, one host per file; Drawing, Entity, Layer, App, connect, open_file, new_file with
       commit() as one undo step; 25 shared scenarios held equal headless, outside and in the app
-- [ ] PW2 parked: no Python side panel (it takes WPF content); style and block reads copy the whole drawing
+- [ ] PW2 parked: no Python side panel (it takes WPF content); style and block reads copy the whole drawing. The side
+      panel is settled as never by TF-D16 (a tool shows no WPF content); the copies stay
 - [x] PW3. Finish: the PYTHON console and PYTHONCLOSE removed (PYRUN kept); a docstring with an example for every public
       name of `geometryhelper.cad` (typed inline, so no .pyi), checked by a test; the guide, the changelog and the
       examples on the new API; acceptance: the C1 layer command written in Python run in the app and from outside, and
@@ -500,8 +502,7 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       drawings, picture included (red without the redraw)
 - [ ] PW3 parked: `save()` inside a run makes two undo steps (the run's group ends and opens again); `Entity.dxf_type`
       is read from `str(net)` (a public DXF name on `DxfEntity` would touch the core and its 10-minute suite); custom
-      snaps and plugin settings (D1660); `CadPythonHost.Enter`, `ResetConsole` and `CadPythonEntry` no longer have a
-      window and are used by tests only; the remote examples take the raw `CadApplication` and wrap it in `App(...)`
+      snaps and plugin settings (D1660); `CadPythonHost.Enter`, `ResetConsole` and `CadPythonEntry` (gone with TF7); the remote examples take the raw `CadApplication` and wrap it in `App(...)`
       because `test_e0` pins that signature and `with CadApplication()`; `batch_folder.py` and `convert.py` stay on
       `DxfDatabase` (they need the version and the writer's warnings); no ribbon-button example file (`test_e0` lists
       the examples); the empty row 1 of the canvas grid stays
@@ -669,17 +670,23 @@ Plugins\Stairs\                Pythons\StairsPy\
       window), wired to ConfirmDownload in the app; Load folder…, the *.csproj file type, the "needs packages" and "install
       failed" badges for C# plugins; Wpf 2549. Left for TF6b: the pip question, the Python rows, "installing…" (an install
       off the UI thread). Parked: the command-line form of the question (FILEDIA 0) needs a two-phase ConfirmDownload in Core
-- [ ] TF7. The in-app Python retired (TF-D15): the pythonnet embedding and the in-app `opencad2d.cad` removed, PYRUN and
+- [x] TF7. The in-app Python retired (TF-D15): the pythonnet embedding and the in-app `opencad2d.cad` removed, PYRUN and
       the PYTHON console on a Python process, the tests and stubs that pinned the in-app Python moved or removed, the
       parked P/PW items it settles closed.
       -> verify: the app starts with no Python loaded; PYRUN and the console work; the Python suites green on what stays.
-- [ ] TF9. The samples (TF-D19): the C# ones after TF3 (DrawingInfo as source, HelloWorld; the tests and the Net8Runner
+      Done 2026-11-25: src/OpenCAD2D.Python and its tests gone (no Python.Runtime in the app); a tool folder's plugin.json
+      gives its commands and ribbon with no process; the first command readies its venv off the window's thread; PYRUN in
+      a process of the default venv (0.65-0.94 s); a lone .py refused with its line; the pip question on the command line
+      until TF6b; a failed requirements change runs on the old venv; a remote `extents` read. Core 13896, Wpf 2607,
+      Plugins 100 + 90, Remote 159, pytest 656/643. The console clause was dropped (S39: removed in PW3)
+- [x] TF9. The samples (TF-D19): the C# ones after TF3 (DrawingInfo as source, HelloWorld; the tests and the Net8Runner
       that loaded the built DrawingInfo .dll moved to the folder), the Python ones after TF4b and TF7 (DrawingInfo and
       HelloWorld folders).
       -> verify: each sample loads from the app's folders with its command and output; the first start compiles the
          three C# samples once (time measured), the next takes them from the cache.
       C# half done 2026-11-24: Plugins\DrawingInfo\ as source (the .dll dropped), Plugins\HelloWorld\ new; the first start
-      compiles the three in 1.09 to 1.34 s, a start from the cache 61 to 82 ms. The Python half waits on TF4b and TF7
+      compiles the three in 1.09 to 1.34 s, a start from the cache 61 to 82 ms. Python half done 2026-11-25:
+      Pythons\DrawingInfo\ (GHPYINFO, the same lines) and Pythons\HelloWorld\ (PYHELLOWORLD), in examples\Pythons\
 - [ ] TF8. Docs, the CHANGELOG (BREAKING), the setup (its size with the NuGet client and without the embedding, before
       and after).
       -> verify: the guides' examples run in tests; the setup built and both samples load from the installed app.

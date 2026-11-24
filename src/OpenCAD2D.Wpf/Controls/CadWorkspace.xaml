@@ -4860,7 +4860,7 @@ Annotation Scaling, Leaders and Dimensions collapse; Text and Centerlines never 
                                     IsEnabled="{Binding Model.HasDocument}"
                                     Command="{Binding Model.StartCommandCommand}"
                                     CommandParameter="PYLOAD"
-                                    ToolTip="Load Python (PYLOAD): choose a .py file and load it; its commands are added"
+                                    ToolTip="Load Python (PYLOAD): choose the requirements.txt of a Python tool and load it; its commands are added"
                                 />
                             </WrapPanel>
                             <Button

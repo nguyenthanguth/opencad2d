@@ -107,14 +107,14 @@
                         Style="{StaticResource Primary}"
                         Content="Load… (.lsp, .dll)"
                         Command="{Binding LoadCommand}"
-                        ToolTip="Open .lsp, .py and .dll files, or the .csproj of a C# plugin (its folder loads)"
+                        ToolTip="Open .lsp and .dll files, the .csproj of a C# plugin (its folder loads) or the requirements.txt of a Python tool (its folder loads)"
                     />
                     <Button
                         x:Name="LoadFolderButton"
                         Style="{StaticResource Outlined}"
                         Content="Load folder…"
                         Command="{Binding LoadFolderCommand}"
-                        ToolTip="Choose a tool's folder: a C# plugin, with its .csproj"
+                        ToolTip="Choose a tool's folder: a C# plugin, with its .csproj, or a Python tool, with its requirements.txt"
                     />
                     <Rectangle Width="1" Fill="{StaticResource GhBorder}" Margin="4,0,10,0" />
                     <Button

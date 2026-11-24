@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GeometryHelper;
+using OpenCAD2D.Plugins;
 
 namespace OpenCAD2D.Wpf
 {
@@ -14,11 +15,22 @@ namespace OpenCAD2D.Wpf
     /// stops the process within 5 seconds, and a process that crashes, hangs or leaves takes nothing of the app with it.
     /// </summary>
     /// <remarks>
-    /// Make it, and call <see cref="Add"/> and <see cref="Dispose"/>, on the thread of the drawings; the process's pipes are read
+    /// Make it, and call <see cref="Add(string, string, IEnumerable{string}, string)"/> and <see cref="Dispose"/>, on the thread of the drawings; the process's pipes are read
     /// on threads of their own and everything they find is handed to the dispatcher. Nothing here waits for a tool on that thread.
     /// </remarks>
     internal sealed class CadToolHost : IDisposable
     {
+        /// <summary>
+        /// Makes a tool's Python ready, on a thread other than that of the drawings, when its first command is typed: the venv made
+        /// and filled (<see cref="PythonEnvironments.Prepare"/>), after the question of pip if there is one. It is given the run that
+        /// waits for it, so that a question can be asked in that run, and the action that stops the tool's process where its venv
+        /// is about to be replaced.
+        /// </summary>
+        /// <param name="run">The run of the command that was typed.</param>
+        /// <param name="beforeSwap">Ends the tool's process; to be called when a venv in use is replaced.</param>
+        /// <returns>The environment, ready or with the lines that say why not.</returns>
+        public delegate PythonEnvironment Prepare(CadRemoteToolRun run, Action beforeSwap);
+
         private readonly ICadRemoteDispatcher _dispatcher;
         private readonly CadRemoteServer _server;
         private readonly string _library;
@@ -91,14 +103,109 @@ namespace OpenCAD2D.Wpf
         /// <exception cref="ObjectDisposedException">Thrown when the host has been disposed.</exception>
         public CadFolderTool Add(string folder, string python, IEnumerable<string> commands, string pythons = null)
         {
-            if (folder == null)
-            {
-                throw new ArgumentNullException(nameof(folder));
-            }
-
             if (python == null)
             {
                 throw new ArgumentNullException(nameof(python));
+            }
+
+            if (commands == null)
+            {
+                throw new ArgumentNullException(nameof(commands));
+            }
+
+            return Add(
+                folder,
+                python,
+                null,
+                commands.Select(c => new CadPluginCommandEntry(c, null, null, false)).ToList(),
+                pythons
+            );
+        }
+
+        /// <summary>
+        /// Adds a tool that has no Python yet: its commands as a <c>plugin.json</c> declares them, and the function that makes its
+        /// environment ready at its first command (see <see cref="Prepare"/>). Nothing is made now, and no process is started.
+        /// </summary>
+        /// <param name="folder">The folder of the tool, whose <c>__init__.py</c> is its package.</param>
+        /// <param name="prepare">Makes the environment ready at the first command.</param>
+        /// <param name="commands">The commands the tool declares.</param>
+        /// <param name="pythons">A folder of packages the tool imports besides the venv's, such as the Pythons folder of the app; null for none.</param>
+        /// <returns>The tool.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the folder, the function or the commands are null.</exception>
+        /// <exception cref="ArgumentException">Thrown when a command's name is not one word.</exception>
+        /// <exception cref="DirectoryNotFoundException">Thrown when the folder does not exist.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the host has been disposed.</exception>
+        public CadFolderTool Add(
+            string folder,
+            Prepare prepare,
+            IReadOnlyList<CadPluginCommandEntry> commands,
+            string pythons = null
+        )
+        {
+            if (prepare == null)
+            {
+                throw new ArgumentNullException(nameof(prepare));
+            }
+
+            return Add(folder, null, prepare, commands, pythons);
+        }
+
+        /// <summary>
+        /// Adds a one-run tool for a single <c>.py</c> file, as PYRUN runs it: one command, <c>PYRUN</c>, whose run runs the file as
+        /// <c>python file.py</c> does, in a process that ends with it. Nothing is started now.
+        /// </summary>
+        /// <param name="file">The <c>.py</c> file.</param>
+        /// <param name="prepare">Makes the environment ready.</param>
+        /// <returns>The tool, whose one command is for the registry of the drawing the file runs in.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the file or the function is null.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when the file does not exist.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the host has been disposed.</exception>
+        public CadFolderTool AddScript(string file, Prepare prepare)
+        {
+            if (file == null)
+            {
+                throw new ArgumentNullException(nameof(file));
+            }
+
+            if (prepare == null)
+            {
+                throw new ArgumentNullException(nameof(prepare));
+            }
+
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(CadToolHost));
+            }
+
+            if (!File.Exists(file))
+            {
+                throw new FileNotFoundException("The script " + file + " does not exist.", file);
+            }
+
+            var tool = new CadFolderTool(
+                this,
+                Path.GetFullPath(file),
+                null,
+                prepare,
+                true,
+                new[] { new CadPluginCommandEntry("PYRUN", null, null, false) },
+                null
+            );
+            _tools.Add(tool);
+            return tool;
+        }
+
+        private CadFolderTool Add(
+            string folder,
+            string python,
+            Prepare prepare,
+            IReadOnlyList<CadPluginCommandEntry> commands,
+            string pythons
+        )
+        {
+            if (folder == null)
+            {
+                throw new ArgumentNullException(nameof(folder));
             }
 
             if (commands == null)
@@ -116,7 +223,7 @@ namespace OpenCAD2D.Wpf
                 throw new DirectoryNotFoundException("The tool's folder " + folder + " does not exist.");
             }
 
-            var tool = new CadFolderTool(this, Path.GetFullPath(folder), python, commands.ToList(), pythons);
+            var tool = new CadFolderTool(this, Path.GetFullPath(folder), python, prepare, false, commands, pythons);
             _tools.Add(tool);
             return tool;
         }

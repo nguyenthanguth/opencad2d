@@ -290,7 +290,7 @@ loads the files chosen in the order chosen, as Load… does, with the same lines
 file is kept for the next time. Cancelling the dialog loads nothing. A window with no Open dialog
 (`MainViewModel.AskLispFiles` null) says `LISPLOAD needs a file dialog, which the window cannot show here.` The Shortcuts page of
 Global settings lists it as "Choose AutoLISP files to load". The Applications panel of the Manage tab has Load Plugin (NETLOAD,
-the Open dialog for a plugin `.dll`) and Load Python (PYLOAD, the Open dialog for a `.py` file).
+the Open dialog for a plugin `.dll`) and Load Python (PYLOAD, the Open dialog for the `requirements.txt` of a Python tool).
 
 #### The load-result line
 

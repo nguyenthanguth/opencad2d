@@ -53,8 +53,7 @@ when the stubs are written.
 
 `bash tools/python/verify-python.sh` does all of it, then makes a fresh virtual environment, installs the wheel there and
 runs `tests/python` against it, once on each runtime; the `python` job of `.github/workflows/build.yml` runs the same
-script on Python 3.11 and 3.14, and then the tests of the Python inside the app on both runtimes (`GH_PYTHON` names
-the Python to start). On the test machine, 390 tests pass on .NET 8 (73.2 s) and 390 on .NET Framework 4.8 (77.2 s).
+script on Python 3.11 and 3.14, and nothing else of Python: the app no longer embeds it. On the test machine, 390 tests pass on .NET 8 (73.2 s) and 390 on .NET Framework 4.8 (77.2 s).
 
 ## A first script
 
@@ -401,7 +400,7 @@ raised, the outer block finds none left and neither ends nor cancels one: the fi
 
 ## The Drawing API
 
-A drawing of a file is read and changed through a `Drawing`, the same one a command written in Python uses inside the app and
+A drawing of a file is read and changed through a `Drawing`, the same one a command of a Python tool uses in the app and
 `connect()` gives from outside ([Python commands and tools](presenter/python.md#the-drawing)). `open_file(path)` reads a DXF or
 a DWG and `new_file()` makes a blank drawing of AutoCAD 2013 with layer 0 only, with no app and no window:
 
@@ -429,11 +428,12 @@ to ask, so on a drawing of a file they raise `RuntimeError`. `make_drawing.py` a
 
 ## Inside OpenCAD2D
 
-The same library runs inside the app. OpenCAD2D loads `.py` files from a Pythons folder at start, from APPLOAD and
-PYLOAD, and runs one with PYRUN; a function marked `@command("C1")` becomes a command that asks the user for points,
-distances and objects through `opencad2d.cad`, with one undo step for the whole run. It starts a CPython 3.11 to 3.15 of
-your own, which Global settings can name; the wheel is not used there, as the app brings its own copy of the package.
-[Python commands and tools](presenter/python.md) is the guide.
+The same library runs in the app's tools. OpenCAD2D loads a Python tool, a folder with a `requirements.txt`, an `__init__.py`
+and a `plugin.json`, from a Pythons folder at start, from APPLOAD and PYLOAD, and runs a lone `.py` with PYRUN; a function
+marked `@command("C1")` becomes a command that asks the user for points, distances and objects through `opencad2d.cad`, with
+one undo step for the whole run. Python does not run inside the app: each tool runs in a `python.exe` of its own, started at its
+first command, with a venv of its own made from a CPython 3.11 to 3.15 of your own, which Global settings can name; the wheel is
+not installed there, as the app brings its own copy of the package. [Python commands and tools](presenter/python.md) is the guide.
 
 ## Stubs and an editor
 
@@ -500,8 +500,8 @@ tuple from [mcneel/pythonstubs](https://github.com/mcneel/pythonstubs), and the 
 - Installing from PyPI, until the package is published under a name of its own.
 - A frozen application (PyInstaller and the like): the package gives no hook, so the assemblies would have to be added
   by hand.
-- A module for the presenter outside the app: `opencad2d.cad` works inside OpenCAD2D only (see
-  [Inside OpenCAD2D](#inside-opencad2d)), and from outside `OpenCAD2D` is imported as any other
+- A module for the presenter outside the app: `opencad2d.cad` prompts, `cmd`, `write` and `active_drawing` work in a
+  tool of OpenCAD2D only (see [Inside OpenCAD2D](#inside-opencad2d)), and from outside `OpenCAD2D` is imported as any other
   namespace.
 
 ## Driving a running app
@@ -509,8 +509,7 @@ tuple from [mcneel/pythonstubs](https://github.com/mcneel/pythonstubs), and the 
 A script outside the app can connect to a running OpenCAD2D and draw, select, run commands and ask the user to
 pick, with `connect()` of `opencad2d.cad` (`with connect() as app:`, the same `Drawing` as above), or with `CadApplication`
 of `OpenCAD2D.Remote`, which `import opencad2d` has already loaded; either closes the connection at the end of
-the block, also when it raises. A script that runs
-inside the app is refused a connection to that app (it uses `opencad2d.cad`).
+the block, also when it raises. A tool of the app uses `opencad2d.cad`, whose `connect()` reaches the channel of the tools.
 [From Python](presenter/remote.md#from-python) has a full script, the points where Python differs from C#, and the timings.
 
 ## Where to go next
@@ -518,7 +517,7 @@ inside the app is refused a connection to that app (it uses `opencad2d.cad`).
 | Page | What it covers |
 |---|---|
 | [How do I](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
-| [Python examples](python-examples.md) | thirteen scripts, on the library, in the app and driving a running app, each shown with what it prints |
+| [Python examples](python-examples.md) | thirteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
 | [Python API](../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
 | [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md), [Reading and writing DWG files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) | the drawing, its tables and entities, read and written |
 | [The 2D presenter](presenter/index.md), [Editing as AutoCAD does](presenter/editing.md) | `CadDocument`, its command session and undo |

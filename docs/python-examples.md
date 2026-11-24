@@ -1,16 +1,16 @@
 # Python examples
 
-Thirteen scripts, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
+Thirteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
 drawing in code, cut one solid from another, number points in the app, draw in an app that is running. They are in
-`src/python/examples` of the repository, in three folders for the three places Python works with the library, and this page
-shows each file as it is, with what it prints. A test of the repository runs every file, on .NET 8 and on .NET Framework
+`src/python/examples` of the repository, in three folders for the three places Python works with the library (a tool of the
+app is a folder of its own), and this page shows each as it is, with what it prints. A test of the repository runs every file, on .NET 8 and on .NET Framework
 4.8, against a drawing the test builds, and a type check (pyright) finds no error in any of them, so what the page shows
 is what the files do.
 
 | Folder | Where it runs | How a file is run |
 |---|---|---|
 | `library` | outside the app, on the libraries alone | `python list_layers.py plan.dxf`, in the virtual environment the wheel is installed in ([Installing](python.md#installing)) |
-| `in_app` | inside OpenCAD2D | PYRUN runs a file and PYLOAD loads one ([Python commands and tools](presenter/python.md)) |
+| `tools` | tools of OpenCAD2D | each a folder with a `requirements.txt`, an `__init__.py` and a `plugin.json`: PYLOAD its `requirements.txt`, or put the folder in the Pythons folder ([Python commands and tools](presenter/python.md)) |
 | `remote` | outside the app, driving one that is running | `python draw_and_read.py` while the app runs with "Allow other programs to connect" on ([the setting](presenter/remote.md#the-setting)) |
 
 | File | What it does |
@@ -22,9 +22,9 @@ is what the files do.
 | [`solids.py`](#a-box-with-a-hole-measured) | a box with a hole cut through it: volume, surface area and centroid |
 | [`batch_folder.py`](#a-csv-report-of-a-folder) | one CSV row for each DXF and DWG file of a folder |
 | [`convert.py`](#convert-between-dxf-and-dwg) | a drawing read and written again as DXF or DWG, in a version |
-| [`number_points.py`](#number-the-points-you-pick) | a number written at each point you pick |
-| [`drawing_tools.py`](#commands-of-your-own) | the commands RECTC and LAYERCOUNT |
-| [`selection_lengths.py`](#the-length-of-a-selection) | the length and closed area of the selected objects |
+| [`number_points`](#number-the-points-you-pick) | a number written at each point you pick |
+| [`drawing_tools`](#commands-of-your-own) | the commands RECTC and LAYERCOUNT |
+| [`selection_lengths`](#the-length-of-a-selection) | the length and closed area of the selected objects |
 | [`draw_and_read.py`](#draw-a-grid-and-read-it-back) | a grid drawn in a new drawing of the running app, read back |
 | [`pick_and_mark.py`](#pick-a-point-and-mark-it) | a circle drawn where the user picks |
 | [`open_documents.py`](#the-open-drawings) | the drawings the app has open and what is in each |
@@ -186,16 +186,18 @@ holds: MTEXT 1.` The DWG writer says nothing of what it leaves out: it logs it.
 
 [!code-python[](../src/python/examples/library/convert.py)]
 
-## Inside the app
+## Tools of the app
 
-These files are run in OpenCAD2D with PYRUN and PYLOAD, and have no `main`: PYRUN runs the file, and PYLOAD runs it
-once to find the functions marked `@command`. They use [`opencad2d.cad`](presenter/python.md) for the prompts and the
-`Drawing` API, and each run is one undo step, so one `U` takes back all it drew.
+These are folders, each a Python tool with no `main`: the app loads one (PYLOAD of its `requirements.txt`, or the Pythons folder),
+shows the commands its `plugin.json` names, and starts its process at the first command typed. They use
+[`opencad2d.cad`](presenter/python.md) for the prompts and the `Drawing` API, and each command is one undo step, so one `U`
+takes back all it drew. A test of the repository (`PythonToolExampleTests`) loads each folder and types its commands in a
+window's model, answering the prompts, so what the page says is what the tools do.
 
 ### Number the points you pick
 
-`number_points.py`, run with PYRUN, asks `First number <1>:` and then `Specify point:` until Enter, and adds a text of
-height 2.5 at each point with `add_text`, the numbers counting up; the texts are applied when the run ends. After a first number of 1 and three points it writes
+`number_points`, run with its command NUMBERPOINTS, asks `First number <1>:` and then `Specify point:` until Enter, and adds a
+text of height 2.5 at each point with `add_text`, the numbers counting up; the texts are applied when the run ends. After a first number of 1 and three points it writes
 
 ```text
 3 points numbered, 1 to 3.
@@ -204,16 +206,16 @@ height 2.5 at each point with `add_text`, the numbers counting up; the texts are
 The three texts read 1, 2 and 3 at the points picked. Enter at the first question and at the first point writes
 `No point picked.` and draws nothing.
 
-[!code-python[](../src/python/examples/in_app/number_points.py)]
+[!code-python[](../src/python/examples/tools/number_points/__init__.py)]
 
 ### Commands of your own
 
-`drawing_tools.py`, loaded with PYLOAD, defines two commands. RECTC (alias RC) asks for a centre, a width (`<1000>`) and a
+`drawing_tools`, loaded with PYLOAD, defines two commands. RECTC (alias RC) asks for a centre, a width (`<1000>`) and a
 height (`<500>`) and draws a closed polyline rectangle about the centre; LAYERCOUNT writes the number of objects on each layer
 that has any, sorted by name. PYLOAD writes
 
 ```text
-drawing_tools.py loaded: LAYERCOUNT, RECTC.
+drawing_tools loaded: LAYERCOUNT, RECTC.
 ```
 
 RECTC with the centre 0,0, a width of 200 and a height of 100 draws a rectangle from -100,-50 to 100,50; with Enter at both
@@ -222,11 +224,11 @@ less, which it refuses with `The width and the height must be more than 0.` and 
 polyline with nothing inside it). On a drawing with one rectangle on layer `0`, LAYERCOUNT writes
 `0: 1`; an object on `walls` counts with the layer the table calls `Walls`.
 
-[!code-python[](../src/python/examples/in_app/drawing_tools.py)]
+[!code-python[](../src/python/examples/tools/drawing_tools/__init__.py)]
 
 ### The length of a selection
 
-`selection_lengths.py`, run with PYRUN, asks `Select objects:` and adds up the length of the lines, arcs, circles (their
+`selection_lengths`, run with its command SELECTIONLENGTHS, asks `Select objects:` and adds up the length of the lines, arcs, circles (their
 circumference) and polylines, and the area of the circles and closed polylines. Anything else is counted as skipped. On a
 line from 0,0 to 300,400, a circle of radius 120, a closed polyline rectangle 100 by 50 and a text, all selected, it writes
 
@@ -237,7 +239,7 @@ line from 0,0 to 300,400, a circle of radius 120, a closed polyline rectangle 10
 The length is the line's 500, the circle's 753.982 and the rectangle's 300; the area the circle's 45 238.934 and the
 rectangle's 5 000. With nothing selected it writes `Nothing selected.`
 
-[!code-python[](../src/python/examples/in_app/selection_lengths.py)]
+[!code-python[](../src/python/examples/tools/selection_lengths/__init__.py)]
 
 ## Driving a running app
 

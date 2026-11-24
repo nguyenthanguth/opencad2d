@@ -2,6 +2,42 @@
 
 ## Unreleased
 
+- **BREAKING.** Python runs in a process per tool, and a `.py` file directly in `Pythons` or in the Python Startup Suite no
+  longer loads (Tools as folders, TF7). The app no longer embeds CPython: `OpenCAD2D.Python` (pythonnet) and its 22 test files
+  are gone, `Python.Runtime.dll` and `OpenCAD2D.Python.dll` are no longer in the setup, and nothing of Python is in the app's
+  process. A Python tool is a folder with a `requirements.txt` (it may be empty), an `__init__.py` and a `plugin.json`; the
+  app starts it in a `python.exe` of its own, with a venv of its own, at its first command. A lone `.py` in `Pythons`, in the
+  Startup Suite, given to APPLOAD or PYLOAD or dropped on the window is refused with `GH-DrawingInfo.py is a lone Python file:
+  a Python tool is a folder with requirements.txt. Put it in Pythons\GH-DrawingInfo\ as __init__.py (see the Python guide).`;
+  to convert one, move it into a folder as `__init__.py`, add an empty `requirements.txt` and a `plugin.json` that names its
+  commands. Gone with the embedding: `add_ribbon_tab` and the other functions that added to the window (`ribbon_button`,
+  `ribbon_panel`, `ribbon_tab`, `split_button`, `menu_item`, `separator`, `icon_from_*`, `add_ribbon_panel`,
+  `add_drawings_button`, `add_drawings_menu`, `add_canvas_menu`, `add_properties`, `show_command_buttons`, `Context`) of
+  `opencad2d.cad`, which a tool declares in its `plugin.json` instead (tabs of panels of buttons that start a command);
+  `session()`, the raw .NET command session, which has no meaning in another process; the `PYTHONNET_PYDLL` setting; and the
+  python3XY.dll checks of the finder (a process needs `python.exe` only). `@command`, the `get_*` prompts, `cmd`, `PAUSE`,
+  `write`, `active_drawing`, `documents`, `Cancelled`, `@on_unload`, `connect()`, `open_file` and `new_file` keep their names.
+  A tool that needs a ribbon callback, a menu, a Properties row, an object snap or a panel is a C# plugin.
+- **NEW.** Python tools in the app (Tools as folders, TF7). The Pythons folder, the Startup Suite, APPLOAD, PYLOAD and a drop
+  load a folder with a `requirements.txt`; its commands and ribbon buttons come from its `plugin.json` (`"commands"` take
+  names or objects with an alias, a description and `usesSelection`; `"ribbon"` takes tabs of panels of buttons that start a
+  command), so they show at once with no Python running. The first use of a command makes the tool's venv ready off the
+  window's thread (the drawing waits at `NAME is working... (Esc to stop)`), asks on the command line `Install with pip
+  [Yes/No] <No>:` before anything is downloaded (a dialog comes later), and starts the process (0.37 s for the first
+  command, 16 ms for the next); where a change of `requirements.txt` cannot be installed, the tool starts on the venv it had and the failure lines are written on the command line and in the log. A command the `plugin.json` names and the tool does not define fails its run with `GHOST is
+  declared by the tool, but it has no @command of that name.` PYRUN runs a lone `.py` once in a new process of the default
+  venv, as a run named `PYRUN` (one undo step, Esc takes it back). Two sample tools ship in `Pythons` and in `examples\Pythons`:
+  `DrawingInfo` (`GHPYINFO`, the lines it wrote as a file, its `Extents` line read over the channel) and `HelloWorld`
+  (`PYHELLOWORLD` writes `Hello, World!`); the examples of `src/python/examples/in_app` are now tool folders in `tools`, still
+  run by tests.
+- **NEW.** `CadRemoteDocument.Extents` and the request `extents` of the channel read the extents a drawing's header holds
+  (`EXTMIN`, `EXTMAX`) as a `CadRemoteExtents` with `Min`, `Max` and `IsEmpty`: a tool has no `drawing.net.Database`.
+  `CadPluginManifest` gains `CommandEntries` and `Ribbon` (the commands as declared and the ribbon tabs, panels and buttons of
+  `plugin.json`); its `commands` takes names or objects, and `Commands` stays the names.
+- **CHANGED.** A venv's by-hand line, where the venv is not made yet, makes it first: `Stairs was not installed. If this
+  computer is offline, connect and try again, or run: "<python>" -m venv --without-pip "<venv>", then "<python>" -m pip
+  --python "<venv>\Scripts\python.exe" install -r "<folder>\requirements.txt"`.
+
 - **NEW.** A venv for each Python tool, and pip to fill it (Tools as folders, TF5). A tool's packages are installed into
   `%LocalAppData%\OpenCAD2D\python\envs\<name>-<8 hex>`, made from the Python of Global settings or the newest 3.11 to
   3.15 of the registry (the finder of OpenCAD2D.Python, moved to the window's project without its DLL checks, since a tool needs
@@ -14,7 +50,7 @@
   change keeps the old venv, which the tool goes on running on, with the failure lines given beside it. `opencad2d` is not installed in each venv: a `.pth` file puts the app's copy and a shared base
   (pythonnet, clr_loader, cffi, pycparser, installed once for a Python version from the wheels the app ships in
   `python\wheels`, 1.3 MB) after the venv's own packages. A venv with its `.pth` takes 75 to 98 ms and 0.54 MB, the base
-  1.7 s once and 2.7 MB. The window does not start tools yet.
+  1.7 s once and 2.7 MB.
 
 - **FIXED.** A .NET 8 plugin could fail with "AssemblyLoadContext is unloading or was already unloaded" when one of its
   commands first used a library of its folder after a garbage collection: the app held the plugin's collectible load

@@ -9,9 +9,9 @@ using Xunit;
 namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// The Python files of a window that has a fake in place of the engine (D1624): what each file defines, which it fails
-    /// to load with, and what it leaves loaded are the fake's to say, so no engine starts (it starts once per process, and
-    /// the Python host has its own suite). A file is named by what it defines in <see cref="Defines"/>, by what it fails
+    /// The Python tools of a window that has a fake in place of the tools (D1624): what each tool declares, which it fails
+    /// to load with, and what it leaves loaded are the fake's to say, so no process starts (the real tools have their own
+    /// suite). A tool is named, by the name of its folder, by what it declares in <see cref="Defines"/>, by what it fails
     /// with in <see cref="Fails"/>.
     /// </summary>
     internal sealed class FakePythonFiles : IPythonFiles
@@ -94,9 +94,9 @@ namespace OpenCAD2D.Wpf.UnitTest
 
     /// <summary>
     /// Python rows in Load/Unload Applications (D1618 to D1621, D1624), with <see cref="FakePythonFiles"/> in place of the
-    /// engine: the file filters, the row a loaded .py gets (Kind, commands, On, At start), the footer lines, Unload, Reload
-    /// and the On box, the Python Startup Suite, the <c>Python N</c> chip and its filter, the rows staying as the shown drawing
-    /// changes, and PYLOAD's picker. No test depends on a row that is gone leaving the table.
+    /// tools: the file filters, the row a loaded tool folder gets (Kind, commands, On, At start), the footer lines, a lone .py
+    /// refused, Unload, Reload and the On box, the Python Startup Suite, the <c>Python N</c> chip and its filter, the rows
+    /// staying as the shown drawing changes, and PYLOAD's picker. No test depends on a row that is gone leaving the table.
     /// </summary>
     public sealed class AppLoadPythonTests : IDisposable
     {
@@ -115,10 +115,23 @@ namespace OpenCAD2D.Wpf.UnitTest
 
         private string SettingsFile => Path.Combine(_folder.FullPath, "settings.json");
 
-        private string Py(string name)
+        /// <summary>A Python tool in a folder of its own: its folder, with a requirements.txt and an __init__.py.</summary>
+        private string Py(string name) => ToolIn(Path.Combine(_folder.FullPath, "py"), name);
+
+        private static string ToolIn(string parent, string name)
         {
-            Directory.CreateDirectory(Path.Combine(_folder.FullPath, "py"));
-            string path = Path.Combine(_folder.FullPath, "py", name);
+            string folder = Path.Combine(parent, name);
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, "requirements.txt"), string.Empty);
+            File.WriteAllText(Path.Combine(folder, "__init__.py"), "pass\n");
+            return folder;
+        }
+
+        /// <summary>A lone .py file, which is no tool.</summary>
+        private string LonePy(string name)
+        {
+            Directory.CreateDirectory(Path.Combine(_folder.FullPath, "lone"));
+            string path = Path.Combine(_folder.FullPath, "lone", name);
             File.WriteAllText(path, "pass\n");
             return path;
         }
@@ -160,34 +173,34 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- The filters
 
         [Fact]
-        public void TheOpenDialogOffersApplicationsFirst_ThenLispPythonPluginsAndAllFiles()
+        public void TheOpenDialogOffersApplicationsFirst_ThenLispPythonToolsPluginsAndAllFiles()
         {
             Assert.Equal(
-                "Applications (*.lsp;*.py;*.dll;*.csproj)|*.lsp;*.py;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*",
+                "Applications (*.lsp;requirements.txt;*.dll;*.csproj)|*.lsp;requirements.txt;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python tools (requirements.txt)|requirements.txt|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*",
                 AppLoadViewModel.OpenFilter
             );
         }
 
         [Fact]
-        public void ThePythonFilterOfPyLoad_IsPythonFilesAlone()
+        public void ThePythonFilterOfPyLoad_IsTheRequirementsFileOfAToolAlone()
         {
-            Assert.Equal("Python files (*.py)|*.py", AppLoadViewModel.PythonFilter);
+            Assert.Equal("Python tools (requirements.txt)|requirements.txt", AppLoadViewModel.PythonFilter);
         }
 
         // ---- A loaded file
 
         [Fact]
-        public void LoadingAPyFile_ShowsARowOfKindPython_WithItsCommandsInOrder_Ticked_AndNotAtStart()
+        public void LoadingAToolFolder_ShowsARowOfKindPython_WithItsCommandsInOrder_Ticked_AndNotAtStart()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string path = Py("tools.py");
-            python.Defines["tools.py"] = new[] { "ZETA", "ALPHA" };
+            string path = Py("tools");
+            python.Defines["tools"] = new[] { "ZETA", "ALPHA" };
             AppLoadViewModel dialog = Created(model);
 
             dialog.Load(new[] { path });
 
             AppLoadRow row = Assert.Single(dialog.Rows);
-            Assert.Equal("tools.py", row.Name);
+            Assert.Equal("tools", row.Name);
             Assert.Equal("Python", row.Kind);
             Assert.False(row.IsPlugin);
             Assert.Equal("ZETA, ALPHA", row.Commands);
@@ -200,103 +213,143 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void APyFileThatDefinesNoCommand_HasAnEmptyCommandsCell()
+        public void AToolThatDeclaresNoCommand_HasAnEmptyCommandsCell()
         {
             MainViewModel model = Opened(out _);
             AppLoadViewModel dialog = Created(model);
 
-            dialog.Load(new[] { Py("plain.py") });
+            dialog.Load(new[] { Py("plain") });
 
             Assert.Equal(string.Empty, Assert.Single(dialog.Rows).Commands);
         }
 
         [Fact]
-        public void AnUpperCasePyExtension_IsAPythonFileToo()
+        public void TheRequirementsFileOfAToolGiven_LoadsTheToolOfItsFolder_AndTheRowIsTheFolder()
         {
-            MainViewModel model = Opened(out _);
+            MainViewModel model = Opened(out FakePythonFiles python);
+            string folder = Py("viaFile");
+            python.Defines["viaFile"] = new[] { "VIA" };
             AppLoadViewModel dialog = Created(model);
 
-            dialog.Load(new[] { Py("LOUD.PY") });
+            dialog.Load(new[] { Path.Combine(folder, "requirements.txt") });
 
-            Assert.Equal("Python", Assert.Single(dialog.Rows).Kind);
+            AppLoadRow row = Assert.Single(dialog.Rows);
+            Assert.Equal("viaFile", row.Name);
+            Assert.Equal("Python", row.Kind);
+            Assert.Equal(folder, row.File);
+            Assert.Equal(new[] { folder }, python.Loads);
         }
 
         [Fact]
-        public void TheFooterOfAPyFileThatLoaded_IsSuccessfullyLoaded_AndTheHostsOwnLineStaysOnTheCommandLine()
+        public void ALonePyFile_IsRefusedWithTheLineThatSaysHowToMakeItATool_AndLoadsNothing()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            python.Defines["tools.py"] = new[] { "C1", "DOT" };
+            string path = LonePy("GH-DrawingInfo.py");
+            AppLoadViewModel dialog = Created(model);
 
-            AppLoadResult result = model.LoadApplication(Py("tools.py"));
+            AppLoadResult result = model.LoadApplication(path);
+            dialog.Load(new[] { path });
+
+            const string line =
+                "GH-DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\\GH-DrawingInfo\\ as __init__.py (see the Python guide).";
+            Assert.Equal(AppLoadStatusKind.Refused, result.Kind);
+            Assert.Equal(line, result.Message);
+            Assert.Contains(line, model.History);
+            Assert.True(dialog.HasLoadError);
+            Assert.Empty(python.Loads);
+        }
+
+        [Fact]
+        public void AFolderWithNoRequirementsFile_IsNoTool_AndIsNotLoadedAsOne()
+        {
+            MainViewModel model = Opened(out FakePythonFiles python);
+            string folder = Path.Combine(_folder.FullPath, "package");
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, "__init__.py"), "pass\n");
+
+            AppLoadResult result = model.LoadApplication(folder);
+
+            // Any other folder goes to the plugin manager, which the model here has none of.
+            Assert.Equal(AppLoadStatusKind.Failed, result.Kind);
+            Assert.Empty(python.Loads);
+        }
+
+        [Fact]
+        public void TheFooterOfAToolThatLoaded_IsSuccessfullyLoaded_AndTheHostsOwnLineStaysOnTheCommandLine()
+        {
+            MainViewModel model = Opened(out FakePythonFiles python);
+            python.Defines["tools"] = new[] { "C1", "DOT" };
+
+            AppLoadResult result = model.LoadApplication(Py("tools"));
 
             Assert.Equal(AppLoadStatusKind.Loaded, result.Kind);
-            Assert.Equal("tools.py successfully loaded.", result.Message);
-            Assert.Contains("tools.py loaded: C1, DOT.", model.History);
+            Assert.Equal("tools successfully loaded.", result.Message);
+            Assert.Contains("tools loaded: C1, DOT.", model.History);
         }
 
         [Fact]
-        public void TheFooterOfAPyFileThatFailed_IsFailedToLoadAndTheSummary_AndTheLoadErrorLineShowsIt()
+        public void TheFooterOfAToolThatFailed_IsFailedToLoadAndTheSummary_AndTheLoadErrorLineShowsIt()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            python.Fails["bad.py"] = "Python error: RuntimeError: boom (bad.py, line 2)";
-            string path = Py("bad.py");
+            python.Fails["bad"] = "Python error: RuntimeError: boom (bad, line 2)";
+            string path = Py("bad");
             AppLoadViewModel dialog = Created(model);
 
             AppLoadResult result = model.LoadApplication(path);
             dialog.Load(new[] { path });
 
             Assert.Equal(AppLoadStatusKind.Failed, result.Kind);
-            Assert.StartsWith("bad.py failed to load: ", result.Message, StringComparison.Ordinal);
+            Assert.StartsWith("bad failed to load: ", result.Message, StringComparison.Ordinal);
             Assert.Contains("RuntimeError: boom", result.Message, StringComparison.Ordinal);
             Assert.True(dialog.HasLoadError);
-            Assert.Equal("bad.py", dialog.LoadErrorName);
+            Assert.Equal("bad", dialog.LoadErrorName);
             Assert.StartsWith(" failed to load: ", dialog.LoadErrorText, StringComparison.Ordinal);
             Assert.Contains("RuntimeError: boom", dialog.LoadErrorText, StringComparison.Ordinal);
         }
 
         [Fact]
-        public void APyFileThatFailed_KeepsNoCommand_AndLeavesNoLoadedRow()
+        public void AToolThatFailed_KeepsNoCommand_AndLeavesNoLoadedRow()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            python.Fails["bad.py"] = "Python error: RuntimeError: boom (bad.py, line 2)";
+            python.Fails["bad"] = "Python error: RuntimeError: boom (bad, line 2)";
             AppLoadViewModel dialog = Created(model);
 
-            dialog.Load(new[] { Py("bad.py") });
+            dialog.Load(new[] { Py("bad") });
 
             Assert.DoesNotContain(dialog.Rows, r => r.IsOn);
             Assert.Empty(python.Loaded);
         }
 
         [Fact]
-        public void WithPythonNotInUse_APyFileFails_WithAReasonAfterFailedToLoad()
+        public void WithPythonNotInUse_AToolFails_WithAReasonAfterFailedToLoad()
         {
-            // The window has no Python files (the host did not enable Python): the file is not loaded and the footer says
-            // it failed, with a reason (its wording is the environment's).
+            // The window has no Python tools (the host did not enable Python): the tool is not loaded and the footer says
+            // it failed, with a reason.
             MainViewModel model = Opened(out _);
             model.PythonFiles = null;
 
-            AppLoadResult result = model.LoadApplication(Py("tools.py"));
+            AppLoadResult result = model.LoadApplication(Py("tools"));
 
             Assert.Equal(AppLoadStatusKind.Failed, result.Kind);
-            Assert.StartsWith("tools.py failed to load: ", result.Message, StringComparison.Ordinal);
-            Assert.True(result.Message.Length > "tools.py failed to load: ".Length);
+            Assert.StartsWith("tools failed to load: ", result.Message, StringComparison.Ordinal);
+            Assert.True(result.Message.Length > "tools failed to load: ".Length);
         }
 
         [Fact]
-        public void LoadingAPyFileWithNoDrawingOpen_SaysToOpenADrawing_AndLoadsNothing()
+        public void LoadingAToolWithNoDrawingOpen_SaysToOpenADrawing_AndLoadsNothing()
         {
             var model = new MainViewModel { SettingsPath = SettingsFile };
             var python = new FakePythonFiles();
             model.PythonFiles = python;
             AppLoadViewModel dialog = Created(model);
 
-            dialog.Load(new[] { Py("tools.py") });
+            dialog.Load(new[] { Py("tools") });
 
             Assert.Empty(python.Loads);
             Assert.Empty(dialog.Rows);
-            Assert.Contains("Open a drawing to load tools.py.", model.History);
+            Assert.Contains("Open a drawing to load tools.", model.History);
             Assert.True(dialog.HasLoadError);
-            Assert.Equal("Open a drawing to load tools.py.", dialog.LoadError);
+            Assert.Equal("Open a drawing to load tools.", dialog.LoadError);
         }
 
         [Fact]
@@ -317,44 +370,44 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- Unload, the On box, Reload
 
         [Fact]
-        public void UnloadOfAPyRow_TakesItsCommandsOut_SaysSo_AndTheRowStaysUnticked()
+        public void UnloadOfAToolRow_TakesItsCommandsOut_SaysSo_AndTheRowStaysUnticked_NamingThemStill()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string path = Py("tools.py");
-            python.Defines["tools.py"] = new[] { "C1", "DOT" };
+            string path = Py("tools");
+            python.Defines["tools"] = new[] { "C1", "DOT" };
             AppLoadViewModel dialog = Created(model);
             dialog.Load(new[] { path });
             dialog.ChooseRows(dialog.Rows);
 
             dialog.UnloadCommand.Execute(null);
 
-            AppLoadRow row = Row(dialog, "tools.py");
+            AppLoadRow row = Row(dialog, "tools");
             Assert.False(row.IsOn);
-            Assert.Equal(string.Empty, row.Commands);
+            Assert.Equal("C1, DOT", row.Commands);
             Assert.Equal(new[] { path }, python.Unloads);
             Assert.Empty(python.Loaded);
-            Assert.Equal("tools.py unloaded.", model.History.Last());
+            Assert.Equal("tools unloaded.", model.History.Last());
         }
 
         [Fact]
         public void UntickingOn_IsUnload_AndTickingItAgainLoadsTheFileAgain_WithItsCommandsBack()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string path = Py("tools.py");
-            python.Defines["tools.py"] = new[] { "C1", "DOT" };
+            string path = Py("tools");
+            python.Defines["tools"] = new[] { "C1", "DOT" };
             AppLoadViewModel dialog = Created(model);
             dialog.Load(new[] { path });
 
-            Row(dialog, "tools.py").IsOn = false;
+            Row(dialog, "tools").IsOn = false;
 
-            AppLoadRow off = Row(dialog, "tools.py");
+            AppLoadRow off = Row(dialog, "tools");
             Assert.False(off.IsOn);
-            Assert.Equal(string.Empty, off.Commands);
-            Assert.Equal("tools.py unloaded.", model.History.Last());
+            Assert.Equal("C1, DOT", off.Commands);
+            Assert.Equal("tools unloaded.", model.History.Last());
 
             off.IsOn = true;
 
-            AppLoadRow on = Row(dialog, "tools.py");
+            AppLoadRow on = Row(dialog, "tools");
             Assert.True(on.IsOn);
             Assert.Equal("C1, DOT", on.Commands);
             Assert.Equal(new[] { path, path }, python.Loads);
@@ -364,11 +417,11 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void ReloadLoadsTheChosenPyRowAgain_AndTheCommandsFollowTheFile()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string path = Py("edit.py");
-            python.Defines["edit.py"] = new[] { "ONE" };
+            string path = Py("edit");
+            python.Defines["edit"] = new[] { "ONE" };
             AppLoadViewModel dialog = Created(model);
             dialog.Load(new[] { path });
-            python.Defines["edit.py"] = new[] { "ONE", "TWO" };
+            python.Defines["edit"] = new[] { "ONE", "TWO" };
             dialog.ChooseRows(dialog.Rows);
 
             dialog.ReloadCommand.Execute(null);
@@ -380,40 +433,38 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- At start
 
         [Fact]
-        public void AFileInThePythonsFolder_ShowsATickedBoxThatCannotBeChanged_AndTheSuiteIsLeftAlone()
+        public void AToolInThePythonsFolder_ShowsATickedBoxThatCannotBeChanged_AndTheSuiteIsLeftAlone()
         {
             MainViewModel model = Opened(out _);
             string program = Path.Combine(_folder.FullPath, "program");
             string pythons = Directory.CreateDirectory(Path.Combine(program, "Pythons")).FullName;
             model.Document.SupportRoots = new CadSupportFolders(program);
-            string inside = Path.Combine(pythons, "gh-tools.py");
-            File.WriteAllText(inside, "pass\n");
-            string outside = Py("mine.py");
+            string inside = ToolIn(pythons, "gh-tools");
+            string outside = Py("mine");
             AppLoadViewModel dialog = Created(model);
             dialog.Load(new[] { inside, outside });
 
-            AppLoadRow fixedRow = Row(dialog, "gh-tools.py");
+            AppLoadRow fixedRow = Row(dialog, "gh-tools");
             Assert.True(fixedRow.AtStart);
             Assert.True(fixedRow.IsAtStartFixed);
             Assert.False(fixedRow.CanChangeAtStart);
-            Assert.True(Row(dialog, "mine.py").CanChangeAtStart);
+            Assert.True(Row(dialog, "mine").CanChangeAtStart);
 
             fixedRow.AtStart = false;
 
-            Assert.True(Row(dialog, "gh-tools.py").AtStart);
+            Assert.True(Row(dialog, "gh-tools").AtStart);
             Assert.Empty(model.Settings.PythonStartupSuite);
         }
 
         [Fact]
-        public void AnUnloadedPythonFileOfThePythonsFolder_AndOneFromElsewhere_StayInANewWindow_Unticked()
+        public void AnUnloadedToolOfThePythonsFolder_AndOneFromElsewhere_StayInANewWindow_Unticked()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
             string program = Path.Combine(_folder.FullPath, "program");
             string pythons = Directory.CreateDirectory(Path.Combine(program, "Pythons")).FullName;
             model.Document.SupportRoots = new CadSupportFolders(program);
-            string inside = Path.Combine(pythons, "gh-tools.py");
-            File.WriteAllText(inside, "pass\n");
-            string outside = Py("mine.py");
+            string inside = ToolIn(pythons, "gh-tools");
+            string outside = Py("mine");
             AppLoadViewModel dialog = Created(model);
             dialog.Load(new[] { inside, outside });
             dialog.ChooseRows(dialog.Rows);
@@ -424,8 +475,8 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             AppLoadViewModel again = Created(model);
             Assert.Equal(2, again.Rows.Count);
-            Assert.False(Row(again, "gh-tools.py").IsOn);
-            Assert.False(Row(again, "mine.py").IsOn);
+            Assert.False(Row(again, "gh-tools").IsOn);
+            Assert.False(Row(again, "mine").IsOn);
 
             // A new run of the app over the settings file.
             var second = new MainViewModel { SettingsPath = SettingsFile };
@@ -439,36 +490,36 @@ namespace OpenCAD2D.Wpf.UnitTest
             second.Document.SupportRoots = new CadSupportFolders(program);
             AppLoadViewModel restarted = Created(second);
             Assert.Equal(2, restarted.Rows.Count);
-            Assert.False(Row(restarted, "gh-tools.py").IsOn);
-            Assert.False(Row(restarted, "mine.py").IsOn);
+            Assert.False(Row(restarted, "gh-tools").IsOn);
+            Assert.False(Row(restarted, "mine").IsOn);
 
-            Row(restarted, "gh-tools.py").IsOn = true;
-            Assert.True(Row(restarted, "gh-tools.py").IsOn);
+            Row(restarted, "gh-tools").IsOn = true;
+            Assert.True(Row(restarted, "gh-tools").IsOn);
         }
 
         [Fact]
         public void TickingAtStart_WritesThePythonStartupSuite_AndUntickingTakesItOut_WhileTheLispSuiteIsNotTouched()
         {
             MainViewModel model = Opened(out _);
-            string path = Py("start.py");
+            string path = Py("start");
             AppLoadViewModel dialog = Created(model);
             dialog.Load(new[] { path });
 
-            Row(dialog, "start.py").AtStart = true;
+            Row(dialog, "start").AtStart = true;
 
             Assert.Equal(new[] { path }, model.Settings.PythonStartupSuite);
             Assert.Equal(new[] { path }, GlobalSettings.Load(SettingsFile).PythonStartupSuite);
             Assert.Empty(model.Settings.LispStartupSuite);
-            Assert.True(Row(dialog, "start.py").AtStart);
+            Assert.True(Row(dialog, "start").AtStart);
 
             // A window opened afterwards reads the suite back.
-            Assert.True(Row(Created(model), "start.py").AtStart);
+            Assert.True(Row(Created(model), "start").AtStart);
 
-            Row(dialog, "start.py").AtStart = false;
+            Row(dialog, "start").AtStart = false;
 
             Assert.Empty(model.Settings.PythonStartupSuite);
             Assert.Empty(GlobalSettings.Load(SettingsFile).PythonStartupSuite);
-            Assert.False(Row(dialog, "start.py").AtStart);
+            Assert.False(Row(dialog, "start").AtStart);
         }
 
         // ---- The chips
@@ -479,7 +530,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             MainViewModel model = Opened(out _);
             AppLoadViewModel dialog = Created(model);
 
-            dialog.Load(new[] { Lisp("b.lsp", "(setq b 1)"), Py("c.py"), Lisp("a.lsp", "(setq a 1)"), Py("d.py") });
+            dialog.Load(new[] { Lisp("b.lsp", "(setq b 1)"), Py("c"), Lisp("a.lsp", "(setq a 1)"), Py("d") });
 
             Assert.Equal("All 4", dialog.AllChipText);
             Assert.Equal("Lisp 2", dialog.LispChipText);
@@ -492,13 +543,13 @@ namespace OpenCAD2D.Wpf.UnitTest
         {
             MainViewModel model = Opened(out _);
             AppLoadViewModel dialog = Created(model);
-            dialog.Load(new[] { Lisp("b.lsp", "(setq b 1)"), Py("c.py"), Lisp("a.lsp", "(setq a 1)"), Py("d.py") });
+            dialog.Load(new[] { Lisp("b.lsp", "(setq b 1)"), Py("c"), Lisp("a.lsp", "(setq a 1)"), Py("d") });
 
-            Assert.Equal(new[] { "a.lsp", "b.lsp", "c.py", "d.py" }, dialog.Rows.Select(r => r.Name));
+            Assert.Equal(new[] { "a.lsp", "b.lsp", "c", "d" }, dialog.Rows.Select(r => r.Name));
 
             dialog.FilterCommand.Execute("Python");
             Assert.Equal("Python", dialog.Filter);
-            Assert.Equal(new[] { "c.py", "d.py" }, dialog.Rows.Select(r => r.Name));
+            Assert.Equal(new[] { "c", "d" }, dialog.Rows.Select(r => r.Name));
 
             dialog.FilterCommand.Execute("Lisp");
             Assert.Equal(new[] { "a.lsp", "b.lsp" }, dialog.Rows.Select(r => r.Name));
@@ -513,14 +564,14 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- Dropped on the table
 
         [Fact]
-        public void APyFileDroppedOnTheTable_LoadsAsLoadDoes_AndShowsItsRow()
+        public void TheRequirementsFileOfAToolDroppedOnTheTable_LoadsAsLoadDoes_AndShowsItsRow()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string path = Py("dropped.py");
-            python.Defines["dropped.py"] = new[] { "DROPPED" };
+            string path = Py("dropped");
+            python.Defines["dropped"] = new[] { "DROPPED" };
             AppLoadViewModel dialog = Created(model);
 
-            dialog.LoadDropped(new[] { path });
+            dialog.LoadDropped(new[] { Path.Combine(path, "requirements.txt") });
 
             AppLoadRow row = Assert.Single(dialog.Rows);
             Assert.Equal("Python", row.Kind);
@@ -531,13 +582,13 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- Not tied to the drawing shown
 
         [Fact]
-        public void APyRow_IsTheSameInAWindowOpenedWhenAnotherDrawingIsShown()
+        public void AToolRow_IsTheSameInAWindowOpenedWhenAnotherDrawingIsShown()
         {
             // Python commands are process-wide (D1618): the file loaded while drawing A was shown is listed, on, with its
             // commands, by a window made while drawing B is shown.
             MainViewModel model = Opened(out FakePythonFiles python);
-            string path = Py("tools.py");
-            python.Defines["tools.py"] = new[] { "C1", "DOT" };
+            string path = Py("tools");
+            python.Defines["tools"] = new[] { "C1", "DOT" };
             Created(model).Load(new[] { path });
             Assert.True(
                 model.Open(
@@ -545,7 +596,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 )
             );
 
-            AppLoadRow row = Row(Created(model), "tools.py");
+            AppLoadRow row = Row(Created(model), "tools");
 
             Assert.True(row.IsOn);
             Assert.Equal("C1, DOT", row.Commands);
@@ -555,7 +606,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- PYLOAD in the window
 
         [Fact]
-        public void PyLoadInTheWindow_AsksForPyFilesOnTheRememberedFolder_AndLoadsTheOnesChosenInOrder()
+        public void PyLoadInTheWindow_AsksForToolsOnTheRememberedFolder_AndLoadsTheOnesChosenInOrder()
         {
             var model = new MainViewModel { SettingsPath = SettingsFile };
             model.ApplySettings(
@@ -565,8 +616,8 @@ namespace OpenCAD2D.Wpf.UnitTest
             model.UsePython(Dispatcher.CurrentDispatcher);
             var python = new FakePythonFiles();
             model.PythonFiles = python;
-            string first = Py("one.py");
-            string second = Py("two.py");
+            string first = Py("one");
+            string second = Py("two");
             var asked = new List<string>();
             model.AskPythonFiles = (filter, folder) =>
             {
@@ -578,7 +629,14 @@ namespace OpenCAD2D.Wpf.UnitTest
             model.StartCommand("PYLOAD");
 
             string remembered = Path.GetDirectoryName(first);
-            Assert.Equal(new[] { "Python files (*.py)|*.py@", "Python files (*.py)|*.py@" + remembered }, asked);
+            Assert.Equal(
+                new[]
+                {
+                    "Python tools (requirements.txt)|requirements.txt@",
+                    "Python tools (requirements.txt)|requirements.txt@" + remembered,
+                },
+                asked
+            );
             Assert.Equal(new[] { second, first, second, first }, python.Loads);
             Assert.Equal(remembered, GlobalSettings.Load(SettingsFile).AppLoadFolder);
             Assert.False(model.IsCommandRunning);

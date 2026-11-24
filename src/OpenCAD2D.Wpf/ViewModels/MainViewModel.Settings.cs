@@ -197,7 +197,6 @@ namespace OpenCAD2D.Wpf
             }
 
             _settingsApplied = true;
-            RefreshPython();
 
             foreach (KnownFile file in _files.Values.Where(f => f.Session != null))
             {

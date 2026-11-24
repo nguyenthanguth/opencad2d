@@ -25,6 +25,18 @@ namespace OpenCAD2D.Wpf.UnitTest
         /// <summary>Gets the folder of the wheels the app ships (pythonnet, clr_loader, cffi for each Python, pycparser).</summary>
         public static string ShippedWheels => Path.Combine(Root, "src", "OpenCAD2D.App", "python-wheels");
 
+        /// <summary>Gets the folder tools load OpenCAD2D.Core.dll and the rest from, as the build of the repository leaves it.</summary>
+        public static string Library
+        {
+            get
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\'))
+                    .Parent
+                    .Name;
+                return Path.Combine(Root, "src", "OpenCAD2D.Core", "bin", configuration, "netstandard2.0");
+            }
+        }
+
         /// <summary>Gets the app's own copy of the package <c>opencad2d</c>, as the repository has it.</summary>
         public static string AppPython => Path.Combine(Root, "src", "python");
 

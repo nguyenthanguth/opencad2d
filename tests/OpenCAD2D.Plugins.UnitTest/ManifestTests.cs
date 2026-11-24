@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using OpenCAD2D.Plugins;
 using Xunit;
 
@@ -38,6 +39,61 @@ namespace OpenCAD2D.Plugins.UnitTest
             Assert.Empty(manifest.Commands);
             Assert.Null(manifest.Icon);
             Assert.Equal(string.Empty, manifest.Version);
+        }
+
+        [Fact]
+        public void TheCommandsOfAManifest_AreNamesOrObjects_InTheOrderWritten()
+        {
+            CadPluginManifest manifest = CadPluginManifest.Parse(
+                "{ \"name\": \"Tool\", \"commands\": [ \"first\", { \"name\": \"second\", \"alias\": \"sc\", \"description\": \"The second\", \"usesSelection\": true }, { \"alias\": \"none\" }, \" \", 5 ] }"
+            );
+
+            Assert.Equal(new[] { "FIRST", "SECOND" }, manifest.Commands);
+            Assert.Equal(new[] { "FIRST", "SECOND" }, manifest.CommandEntries.Select(c => c.Name));
+            Assert.Null(manifest.CommandEntries[0].Alias);
+            Assert.Null(manifest.CommandEntries[0].Description);
+            Assert.False(manifest.CommandEntries[0].UsesSelection);
+            Assert.Equal("SC", manifest.CommandEntries[1].Alias);
+            Assert.Equal("The second", manifest.CommandEntries[1].Description);
+            Assert.True(manifest.CommandEntries[1].UsesSelection);
+        }
+
+        [Fact]
+        public void TheRibbonOfAManifest_IsTabsOfPanelsOfButtons_AndALeftOutPartIsPassedOver()
+        {
+            CadPluginManifest manifest = CadPluginManifest.Parse(
+                "{ \"name\": \"Tool\", \"ribbon\": [ "
+                    + "{ \"id\": \"tools\", \"title\": \"Tools\", \"panels\": [ "
+                    + "{ \"title\": \"Draw\", \"buttons\": [ "
+                    + "{ \"text\": \"Ring\", \"command\": \"RING\", \"icon\": \"ring.png\", \"size\": \"large\", \"tooltip\": \"Draws a ring\" }, "
+                    + "{ \"text\": \"Dot\", \"command\": \"DOT\" }, "
+                    + "{ \"text\": \"No command\" } ] } ] }, "
+                    + "{ \"title\": \"Second\" }, "
+                    + "{ \"id\": \"untitled\" } ] }"
+            );
+
+            Assert.Equal(new[] { "tools", "Second" }, manifest.Ribbon.Select(t => t.Id));
+            CadPluginRibbonTabEntry tab = manifest.Ribbon[0];
+            Assert.Equal("Tools", tab.Title);
+            CadPluginRibbonPanelEntry panel = Assert.Single(tab.Panels);
+            Assert.Equal("Draw", panel.Title);
+            Assert.Equal(new[] { "Ring", "Dot" }, panel.Buttons.Select(b => b.Text));
+            Assert.Equal("RING", panel.Buttons[0].Command);
+            Assert.Equal("ring.png", panel.Buttons[0].Icon);
+            Assert.True(panel.Buttons[0].IsLarge);
+            Assert.Equal("Draws a ring", panel.Buttons[0].ToolTip);
+            Assert.False(panel.Buttons[1].IsLarge);
+            Assert.Null(panel.Buttons[1].Icon);
+            Assert.Empty(manifest.Ribbon[1].Panels);
+        }
+
+        [Fact]
+        public void AManifestWithNoRibbon_HasNoTabs_AndAnOldManifestOfNamesReadsAsBefore()
+        {
+            CadPluginManifest manifest = CadPluginManifest.Parse(PluginFiles.Manifest());
+
+            Assert.Empty(manifest.Ribbon);
+            Assert.Equal(new[] { "NUMCIRCLES", "FAILNOW" }, manifest.CommandEntries.Select(c => c.Name));
         }
 
         [Theory]

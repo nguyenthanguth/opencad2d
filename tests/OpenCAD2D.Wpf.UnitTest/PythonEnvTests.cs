@@ -144,6 +144,26 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void TheLineToRunByHand_OfAVenvNotMadeYet_MakesTheVenvFirst_AndOfOneThatIsThere_DoesNot()
+        {
+            PythonEnvironment first = Prepare("Tool", "demo-pkg==9.9\n");
+
+            Assert.False(Directory.Exists(first.Folder));
+            Assert.Contains(
+                "or run: \"" + MachinePython.Executable + "\" -m venv --without-pip \"" + first.Folder + "\", then \"",
+                first.Error
+            );
+
+            PythonEnvironment made = Prepare("Other", "demo-pkg==1.0\n");
+            Assert.True(made.IsReady, made.Error);
+            PythonEnvironment changed = Prepare("Other", "demo-pkg==9.9\n");
+
+            Assert.True(changed.IsReady);
+            Assert.DoesNotContain("-m venv --without-pip", changed.Failure, StringComparison.Ordinal);
+            Assert.Contains("-m pip --python", changed.Failure);
+        }
+
+        [Fact]
         public void TwoRequirementsThatClash_GivePipsLines_AndChangeNothing()
         {
             PythonEnvironment environment = Prepare("Tool", "demo-pkg==1.0\ndemo-pkg==2.0\n");

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
+using GeometryHelper.Geometry;
 using OpenCAD2D.Remote;
 
 namespace OpenCAD2D
@@ -50,6 +51,15 @@ namespace OpenCAD2D
             }
 
             return new JsonObject().Set("name", document.Database.Clayer);
+        }
+
+        private static JsonObject Extents(CadDocument document)
+        {
+            GeoPoint3 least = document.Database.Extmin;
+            GeoPoint3 greatest = document.Database.Extmax;
+            return new JsonObject()
+                .Set("min", new JsonObject().Set("x", least.X).Set("y", least.Y).Set("z", least.Z))
+                .Set("max", new JsonObject().Set("x", greatest.X).Set("y", greatest.Y).Set("z", greatest.Z));
         }
 
         private static JsonObject Layouts(CadDocument document)

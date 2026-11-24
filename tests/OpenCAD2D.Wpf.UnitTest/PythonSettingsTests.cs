@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using OpenCAD2D.Python;
 using Xunit;
 
 namespace OpenCAD2D.Wpf.UnitTest
@@ -10,9 +9,9 @@ namespace OpenCAD2D.Wpf.UnitTest
     /// <summary>
     /// The Python section of Global settings, in Folder preference (D720, D721, <c>design/PySettingsPython.png</c>): its path
     /// box is <c>GlobalSettings.PythonPath</c>, and what it found, where it looked and what it passed over are what
-    /// <see cref="CadPythonEnvironment.Find(string)"/> gives for the text in the box, read again as the text changes. The
-    /// installs are folders made in a temporary folder, with a <c>python3NN.dll</c> that is no Python but has a PE header of the
-    /// machine asked for, which is all the finder reads; no engine starts.
+    /// <see cref="PythonInstallation.Find(string)"/> gives for the text in the box, read again as the text changes. A good Python
+    /// is the one of the machine (the tests of the tools' venvs use it too); a bad one is a <c>python.exe</c> made in a temporary
+    /// folder that is no program at all. No process of a tool starts.
     /// </summary>
     public sealed class PythonSettingsTests : IDisposable
     {
@@ -29,29 +28,22 @@ namespace OpenCAD2D.Wpf.UnitTest
             return model.CreateGlobalSettings("Folder preference");
         }
 
-        /// <summary>A folder with a python.exe and the DLL named <paramref name="library"/>, of the machine asked for; gives the folder.</summary>
-        private string Install(string name, string library, bool x64 = true)
+        /// <summary>A folder with a python.exe that is two bytes and no program; gives the folder.</summary>
+        private string Install(string name)
         {
             string folder = Path.Combine(_folder.FullPath, name);
             Directory.CreateDirectory(folder);
             File.WriteAllBytes(Path.Combine(folder, "python.exe"), new byte[] { 0x4D, 0x5A });
-            var header = new byte[0x100];
-            header[0] = 0x4D;
-            header[1] = 0x5A;
-            header[0x3C] = 0x80;
-            header[0x80] = 0x50;
-            header[0x81] = 0x45;
-            header[0x84] = x64 ? (byte)0x64 : (byte)0x4C;
-            header[0x85] = x64 ? (byte)0x86 : (byte)0x01;
-            File.WriteAllBytes(Path.Combine(folder, library), header);
             return folder;
         }
+
+        private static string MachineFolder => Path.GetDirectoryName(PythonEnvTestSupport.MachinePython.Executable);
 
         [Fact]
         public void ThePathBox_ReadsTheSettingsPythonPath_AndWritingItIsAppliedAndSavedWithTheOthers()
         {
-            string first = Install("first", "python313.dll");
-            string second = Install("second", "python312.dll");
+            string first = Install("first");
+            string second = Install("second");
             var model = new MainViewModel { SettingsPath = SettingsFile };
             model.ApplySettings(new GlobalSettings { PythonPath = first });
             GlobalSettingsViewModel dialog = model.CreateGlobalSettings("Folder preference");
@@ -72,7 +64,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         {
             GlobalSettingsViewModel dialog = Dialog();
 
-            CadPythonEnvironment automatic = CadPythonEnvironment.Find("");
+            PythonInstallation automatic = PythonInstallation.Find("");
             Assert.Equal("", dialog.PythonPath);
             Assert.Equal(automatic.IsUsable, dialog.IsPythonUsable);
             Assert.Equal(automatic.IsUsable ? automatic.ToString() : automatic.Problem, dialog.PythonFound);
@@ -84,13 +76,19 @@ namespace OpenCAD2D.Wpf.UnitTest
         [Fact]
         public void AFolderTyped_IsTheInstallInIt_FoundAsGlobalSettings_WithItsVersionAndProgram()
         {
-            string folder = Install("py313", "python313.dll");
             GlobalSettingsViewModel dialog = Dialog();
 
-            dialog.PythonPath = folder;
+            dialog.PythonPath = MachineFolder;
 
             Assert.True(dialog.IsPythonUsable);
-            Assert.Equal("Python 3.13 (" + Path.Combine(folder, "python.exe") + ")", dialog.PythonFound);
+            Assert.Equal(
+                "Python "
+                    + PythonEnvTestSupport.MachinePython.Version
+                    + " ("
+                    + Path.Combine(MachineFolder, "python.exe")
+                    + ")",
+                dialog.PythonFound
+            );
             Assert.Equal("Global settings", dialog.PythonSource);
             Assert.Empty(dialog.PythonPassedOver);
             Assert.False(dialog.HasPythonPassedOver);
@@ -99,13 +97,12 @@ namespace OpenCAD2D.Wpf.UnitTest
         [Fact]
         public void ThePythonExeTyped_IsFoundAsTheFolderIs()
         {
-            string exe = Path.Combine(Install("py312", "python312.dll"), "python.exe");
             GlobalSettingsViewModel dialog = Dialog();
 
-            dialog.PythonPath = exe;
+            dialog.PythonPath = PythonEnvTestSupport.MachinePython.Executable;
 
             Assert.True(dialog.IsPythonUsable);
-            Assert.Equal("Python 3.12 (" + exe + ")", dialog.PythonFound);
+            Assert.Equal(PythonEnvTestSupport.MachinePython.ToString(), dialog.PythonFound);
         }
 
         [Fact]
@@ -122,33 +119,15 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void APythonOlderThanTheLeast_ShowsThatItIs310_AndThat311To315IsNeeded()
+        public void APythonExeThatIsNoProgram_ShowsThatItDidNotRun_AsAPythonProgram()
         {
-            string folder = Install("py310", "python310.dll");
+            string exe = Path.Combine(Install("broken"), "python.exe");
             GlobalSettingsViewModel dialog = Dialog();
 
-            dialog.PythonPath = folder;
+            dialog.PythonPath = exe;
 
             Assert.False(dialog.IsPythonUsable);
-            Assert.Equal(
-                Path.Combine(folder, "python.exe") + " is Python 3.10: OpenCAD2D needs 3.11 to 3.15.",
-                dialog.PythonFound
-            );
-        }
-
-        [Fact]
-        public void A32BitPython_ShowsThatA64BitOneIsNeeded()
-        {
-            string folder = Install("py32", "python313.dll", x64: false);
-            GlobalSettingsViewModel dialog = Dialog();
-
-            dialog.PythonPath = folder;
-
-            Assert.False(dialog.IsPythonUsable);
-            Assert.Equal(
-                Path.Combine(folder, "python.exe") + " is a 32-bit Python: OpenCAD2D needs a 64-bit one.",
-                dialog.PythonFound
-            );
+            Assert.Equal(exe + " did not run: it is not a Python program.", dialog.PythonFound);
         }
 
         [Fact]
@@ -158,7 +137,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             var changed = new List<string>();
             dialog.PropertyChanged += (s, e) => changed.Add(e.PropertyName);
 
-            dialog.PythonPath = Install("py313", "python313.dll");
+            dialog.PythonPath = MachineFolder;
 
             Assert.Contains(nameof(GlobalSettingsViewModel.PythonPath), changed);
             Assert.Contains(nameof(GlobalSettingsViewModel.PythonFound), changed);
@@ -166,16 +145,16 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Contains(nameof(GlobalSettingsViewModel.PythonPassedOver), changed);
 
             string before = dialog.PythonFound;
-            dialog.PythonPath = Install("py312", "python312.dll");
+            dialog.PythonPath = Install("broken");
 
             Assert.NotEqual(before, dialog.PythonFound);
-            Assert.StartsWith("Python 3.12 (", dialog.PythonFound, StringComparison.Ordinal);
+            Assert.EndsWith("did not run: it is not a Python program.", dialog.PythonFound, StringComparison.Ordinal);
         }
 
         [Fact]
         public void Browse_PutsTheFileChosenInTheBox_AndChoosingNothingLeavesTheBoxAsItWas()
         {
-            string exe = Path.Combine(Install("py313", "python313.dll"), "python.exe");
+            string exe = PythonEnvTestSupport.MachinePython.Executable;
             GlobalSettingsViewModel dialog = Dialog();
 
             dialog.BrowsePythonFile = () => null;
@@ -186,7 +165,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             dialog.BrowsePythonCommand.Execute(null);
 
             Assert.Equal(exe, dialog.PythonPath);
-            Assert.StartsWith("Python 3.13 (", dialog.PythonFound, StringComparison.Ordinal);
+            Assert.StartsWith("Python ", dialog.PythonFound, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -201,6 +180,15 @@ namespace OpenCAD2D.Wpf.UnitTest
             model.UsePython(System.Windows.Threading.Dispatcher.CurrentDispatcher);
 
             Assert.True(model.CreateGlobalSettings("Folder preference").IsPythonUsed);
+        }
+
+        [Fact]
+        public void NoToolIsRunningAtStart_SoNoChangeOfThePathWaitsForARestart()
+        {
+            var model = new MainViewModel { SettingsPath = SettingsFile };
+            model.UsePython(System.Windows.Threading.Dispatcher.CurrentDispatcher);
+
+            Assert.False(model.CreateGlobalSettings("Folder preference").HasPythonStarted);
         }
     }
 }

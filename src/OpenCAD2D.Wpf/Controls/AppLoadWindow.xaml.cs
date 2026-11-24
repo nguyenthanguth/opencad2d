@@ -79,7 +79,7 @@ namespace OpenCAD2D.Wpf
             string folder
         ) => AskFiles(owner, "Load AutoLISP files", filter, folder);
 
-        /// <summary>PYLOAD: an Open dialog for Python files, several allowed, opened on the folder of the last load.</summary>
+        /// <summary>PYLOAD: an Open dialog for the requirements.txt of Python tools, several allowed, opened on the folder of the last load.</summary>
         /// <param name="owner">The window the dialog belongs to.</param>
         /// <param name="filter">The filter, in the form the Windows dialogs take.</param>
         /// <param name="folder">The folder to start in; empty for the dialog's own.</param>
@@ -88,7 +88,7 @@ namespace OpenCAD2D.Wpf
             Window owner,
             string filter,
             string folder
-        ) => AskFiles(owner, "Load Python files", filter, folder);
+        ) => AskFiles(owner, "Load Python tools", filter, folder);
 
         /// <summary>
         /// Load folder…: a folder dialog for a plugin's folder, opened on the folder of the last Load (the app's .NET 8 build; for

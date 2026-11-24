@@ -91,6 +91,28 @@ namespace OpenCAD2D.Wpf
             );
         }
 
+        /// <summary>
+        /// Gets the folder of the stand-in tool of the default venv, <c>_default</c> beside the venvs, with an empty
+        /// <c>requirements.txt</c> (made now where it is not there): the venv a lone script runs in (PYRUN), which holds nothing
+        /// but the package <c>opencad2d</c> and its base, is <see cref="FolderOf"/> this folder and is made by
+        /// <see cref="Prepare"/> as any tool's is.
+        /// </summary>
+        /// <returns>The folder's full path.</returns>
+        /// <exception cref="IOException">Thrown when the folder cannot be made.</exception>
+        public string DefaultTool()
+        {
+            string folder = Path.Combine(Path.GetDirectoryName(_environments) ?? _environments, "_default");
+            Directory.CreateDirectory(folder);
+            string requirements = Path.Combine(folder, "requirements.txt");
+
+            if (!File.Exists(requirements))
+            {
+                File.WriteAllBytes(requirements, new byte[0]);
+            }
+
+            return folder;
+        }
+
         /// <summary>Gets the folder of a tool's venv: <c>&lt;envs&gt;\Stairs-1a2b3c4d</c>, made or not.</summary>
         /// <param name="toolFolder">The tool's folder.</param>
         /// <returns>The venv's full path.</returns>
@@ -566,8 +588,14 @@ namespace OpenCAD2D.Wpf
             bool offline
         )
         {
+            // A venv not made yet is made first by hand, as the app makes it.
             string hand =
-                "\""
+                (
+                    Directory.Exists(target)
+                        ? string.Empty
+                        : "\"" + python.Executable + "\" -m venv --without-pip \"" + target + "\", then "
+                )
+                + "\""
                 + python.Executable
                 + "\" -m pip --python \""
                 + Path.Combine(target, "Scripts", "python.exe")

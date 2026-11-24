@@ -112,6 +112,11 @@ and sets the tab shown, as clicking it does: the switch is an undo step of its o
 a command running in it refuses it. `GetObjects(new CadObjectFilter { Layout = "Layout1" })` reads a layout's objects, and
 `Insert(entity, "Layout1")` puts one there.
 
+`drawing.Extents` reads the extents the header of the drawing holds (`EXTMIN` and `EXTMAX`) as a `CadRemoteExtents` with `Min`,
+`Max` and `IsEmpty`: a drawing with nothing drawn has the empty box a header starts with, whose least corner is above its
+greatest. It is the request `extents` of the channel, and what the `DrawingInfo` tool of the Pythons folder writes on its
+`Extents:` line (`drawing.net.Extents` in Python).
+
 ## Commands
 
 `drawing.SendCommand("ZOOM E ")` types on the drawing's command line as the user does, words parted by spaces going in one by
@@ -451,12 +456,10 @@ What it costs, on this machine with the app in another process, and a drawing of
 Most of the 10 000-line read is the app's, which writes the drawing as DXF text: a client that took only that text, with no
 Python or .NET types made from it, waited 260 to 281 ms for it.
 
-**A script that runs inside the app does not connect to that app.** The Python of PYRUN, PYLOAD and the commands of loaded `.py` files
-runs on the app's own UI thread, and a request from it to the same app would wait for that thread, which is the script
-itself, for good. The app refuses such a connection before anything is sent, with a `CadRemoteException`:
-`A script inside OpenCAD2D cannot drive the same app through CadApplication: use opencad2d.cad, which
-reaches the drawing directly.` Inside the app, use `opencad2d.cad` ([Python commands and tools](python.md));
-`CadApplication` is for a script that runs outside it.
+**A plugin on the app's thread does not connect to that app.** A request from the UI thread to the same app would wait for that
+thread, which is the plugin itself, for good. The app refuses such a connection before anything is sent, with a
+`CadRemoteException`. A Python tool is not on that thread: it runs in a process of its own and `connect()` inside it connects to the
+channel of the tools ([The channel of the tools and runs](#the-channel-of-the-tools-and-runs)), so it needs no setting.
 
 Three scripts that drive the app, one that draws a grid and reads it back, one that waits for a pick and one that lists the
 open drawings, are in [Python examples](../python-examples.md#driving-a-running-app).

@@ -1,14 +1,10 @@
-"""Type-checks clean: the module opencad2d.cad as a script of OpenCAD2D uses it (P3 D709, D1650 to D1654)."""
+"""Type-checks clean: the module opencad2d.cad as a Python tool of OpenCAD2D uses it (P3 D709, D1650 to D1654)."""
 
 from collections.abc import Sequence
 
 from opencad2d import cad
 from opencad2d.cad import Cancelled, Entity, command, on_unload
-from OpenCAD2D import CadCommandSession, CadDocument
 from GeometryHelper.Geometry import GeoPoint2
-
-document: CadDocument = cad.session().Document
-session: CadCommandSession = cad.session()
 
 cad.write("a line")
 cad.cmd("CIRCLE", (0, 0), 50)

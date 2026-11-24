@@ -17,11 +17,35 @@ import threading
 from collections.abc import Callable, Sequence
 from typing import Any
 
-from ._drawing import Documents, Drawing, Entity
+from ._drawing import Documents, Drawing, Entity, point3
+from ._remote import _RemoteBackend  # pyright: ignore[reportPrivateUsage]
 
 _net: Any = importlib.import_module("System")
 _geo: Any = importlib.import_module("GeometryHelper.Geometry")
 _remote: Any = importlib.import_module("OpenCAD2D.Remote")
+
+
+class _ToolBackend(_RemoteBackend):
+    """A drawing of the app inside a run: what the user is asked is asked as the run's own questions (``get_point`` and the
+    others), since the app takes no ``pick`` request inside a run."""
+
+    def pick_point(self, message: str, base: Any) -> Any:
+        from . import get_point  # pyright: ignore[reportAttributeAccessIssue]
+
+        point: Any = get_point(message, None if base is None else _geo.GeoPoint2(base.X, base.Y))
+        return None if point is None or isinstance(point, str) else point3(point)
+
+    def pick_object(self, message: str) -> tuple[str, Any, Any] | None:
+        from . import get_entity  # pyright: ignore[reportAttributeAccessIssue]
+
+        found: Any = get_entity(message)
+        return (found.handle, found.net, None) if isinstance(found, Entity) else None
+
+    def pick_objects(self, message: str) -> list[tuple[str, Any, Any]]:
+        from . import get_selection  # pyright: ignore[reportAttributeAccessIssue]
+
+        chosen: list[Any] = get_selection()
+        return [(e.handle, e.net, None) for e in chosen]
 
 
 class Command:
@@ -90,12 +114,10 @@ class Runtime:
 
     def drawing_of(self, document: Any) -> Drawing:
         """The ``Drawing`` of a ``CadRemoteDocument``: one for each, for the whole run."""
-        from ._remote import _RemoteBackend  # pyright: ignore[reportPrivateUsage]
-
         key = int(document.Id)
         drawing = self._drawings.get(key)
         if drawing is None:
-            drawing = Drawing(_RemoteBackend(self.app, document), self._remember)
+            drawing = Drawing(_ToolBackend(self.app, document), self._remember)
             self._drawings[key] = drawing
         return drawing
 

@@ -1,0 +1,5 @@
+{
+    "name": "HelloWorld",
+    "version": "1.0.0",
+    "commands": [{ "name": "PYHELLOWORLD", "description": "Write Hello, World! on the command line" }]
+}

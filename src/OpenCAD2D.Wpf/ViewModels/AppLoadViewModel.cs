@@ -179,8 +179,8 @@ namespace OpenCAD2D.Wpf
     /// <c>needs packages</c>, and ticking it asks again; one whose restore failed has <c>install failed</c> and a red line).
     /// Reload loads the rows chosen again and Unload unloads them: a plugin as the plugin manager does, an AutoLISP file
     /// by losing the <c>c:</c> commands it defined, which become unknown commands, its row staying in the table unticked;
-    /// AutoLISP can unload no more than that. A Python file (a row of Kind <c>Python</c>) is loaded as PYLOAD does and belongs to the process, not to
-    /// the drawing shown; unloading it takes the commands it defined out of every drawing, its Startup Suite is <see cref="GlobalSettings.PythonStartupSuite"/>.
+    /// AutoLISP can unload no more than that. A Python tool (a row of Kind <c>Python</c>; its file is its folder) is loaded as PYLOAD does and belongs to the process, not to
+    /// the drawing shown; unloading it takes the commands it declared out of every drawing, its Startup Suite is <see cref="GlobalSettings.PythonStartupSuite"/>.
     /// What each action did is a line of the command history. The folder of the last Load is kept in Global
     /// settings (<see cref="GlobalSettings.AppLoadFolder"/>), the Startup Suite in <see cref="GlobalSettings.LispStartupSuite"/>.
     /// </para>
@@ -199,15 +199,15 @@ namespace OpenCAD2D.Wpf
     /// </summary>
     public sealed class AppLoadViewModel : ObservableObject, IDisposable
     {
-        /// <summary>The filter of the file dialog Load… shows: applications (.lsp, .py, .dll and .csproj), AutoLISP, Python, plugins, C# plugins (the .csproj of a plugin's folder), and all files.</summary>
+        /// <summary>The filter of the file dialog Load… shows: applications (.lsp, the requirements.txt of a Python tool, .dll and .csproj), AutoLISP, Python tools, plugins, C# plugins (the .csproj of a plugin's folder), and all files.</summary>
         public const string OpenFilter =
-            "Applications (*.lsp;*.py;*.dll;*.csproj)|*.lsp;*.py;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*";
+            "Applications (*.lsp;requirements.txt;*.dll;*.csproj)|*.lsp;requirements.txt;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python tools (requirements.txt)|requirements.txt|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*";
 
         /// <summary>The filter of the file dialog LISPLOAD shows: AutoLISP files.</summary>
         public const string LispFilter = "Lisp files (*.lsp)|*.lsp";
 
-        /// <summary>The filter of the file dialog PYLOAD shows: Python files.</summary>
-        public const string PythonFilter = "Python files (*.py)|*.py";
+        /// <summary>The filter of the file dialog PYLOAD shows: the <c>requirements.txt</c> of a Python tool.</summary>
+        public const string PythonFilter = "Python tools (requirements.txt)|requirements.txt";
 
         private const string LispKind = "Lisp";
         private const string PythonKind = "Python";
@@ -401,8 +401,8 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Loads a plugin's folder as PLUGINLOAD does: a folder with a .csproj is a C# plugin, compiled and, where it names NuGet
         /// packages that are not on the computer, loaded after the question whether to download them; a folder of .dll files is a
-        /// plugin as it is. A folder with a requirements.txt is a Python tool, which is refused with <c>Python tools load in a
-        /// later build.</c> The folder's parent is kept for the next Load.
+        /// plugin as it is. A folder with a requirements.txt is a Python tool, loaded as PYLOAD loads it (its commands
+        /// from its plugin.json; no Python starts). The folder's parent is kept for the next Load.
         /// </summary>
         /// <param name="folder">The folder.</param>
         public void LoadFolder(string folder) => Load(new[] { folder });
@@ -649,6 +649,8 @@ namespace OpenCAD2D.Wpf
                     continue;
                 }
 
+                // A Python tool is its folder, however it was named: the folder or its requirements.txt.
+                full = PythonToolFolder.Resolve(full) ?? full;
                 last = full;
 
                 if (IsLisp(full) || IsPython(full))
@@ -684,7 +686,8 @@ namespace OpenCAD2D.Wpf
             string.Equals(Path.GetExtension(path), ".lsp", StringComparison.OrdinalIgnoreCase);
 
         private static bool IsPython(string path) =>
-            string.Equals(Path.GetExtension(path), ".py", StringComparison.OrdinalIgnoreCase);
+            string.Equals(Path.GetExtension(path), ".py", StringComparison.OrdinalIgnoreCase)
+            || PythonToolFolder.Resolve(path) != null;
 
         /// <summary>Whether a plugin known from an earlier run is given as C# source: a .csproj, or a folder with a .csproj directly in it.</summary>
         private static bool IsSource(string path)

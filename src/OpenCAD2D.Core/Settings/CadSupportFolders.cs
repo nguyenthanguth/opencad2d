@@ -19,7 +19,7 @@ namespace OpenCAD2D
         /// <summary>AutoLISP files (.lsp) loaded into every drawing at start, and the .dcl files they use.</summary>
         Lisps,
 
-        /// <summary>Python files (.py) loaded once at start, those directly in the folder; its subfolders hold the packages they import.</summary>
+        /// <summary>Python tools loaded once at start: the folders directly in it that hold a requirements.txt; the other folders hold the packages the tools import.</summary>
         Pythons,
 
         /// <summary>Command plugins (.dll) loaded at every start, each .dll and each folder of .dll files, at any depth, one plugin; on no search path.</summary>
@@ -39,8 +39,9 @@ namespace OpenCAD2D
     /// file at the top level comes before one in a subfolder and, of two files of one name, the first wins; a subfolder that
     /// is a junction or a symbolic link, or is hidden or a system folder, is not entered. Every <c>.lsp</c> file in
     /// <c>Lisps</c>, at any depth, is loaded into each drawing when it opens, and the folder itself (not its subfolders) is
-    /// on the AutoLISP search path after the user's folders. Every <c>.py</c> file directly in <c>Pythons</c> (its subfolders
-    /// are packages those files import, not startup files) is loaded once when the app starts, where the app uses Python.
+    /// on the AutoLISP search path after the user's folders. Every folder directly in <c>Pythons</c> that holds a
+    /// <c>requirements.txt</c> is a Python tool, loaded once when the app starts (a folder without one is a package the tools
+    /// import, and a <c>.py</c> file directly in it is refused), where the app uses Python.
     /// Every <c>.dll</c> directly in <c>Plugins</c> is one command
     /// plugin, and so is every folder at any depth that holds <c>.dll</c> files directly (the folders below it are not
     /// walked); a folder with none is walked into, so that <c>Plugins\Company\ToolA\ToolA.dll</c> is the plugin ToolA. They

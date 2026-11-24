@@ -35,7 +35,6 @@
         <InternalsVisibleTo Include="OpenCAD2D.UnitTest" />
         <InternalsVisibleTo Include="OpenCAD2D.Remote.UnitTest" />
         <InternalsVisibleTo Include="OpenCAD2D.Wpf" />
-        <InternalsVisibleTo Include="OpenCAD2D.Python" />
         <InternalsVisibleTo Include="OpenCAD2D.Wpf.UnitTest" />
     </ItemGroup>
 </Project>

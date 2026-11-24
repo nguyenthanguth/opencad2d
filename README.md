@@ -23,7 +23,7 @@ dotnet add package OpenCAD2D.Core   # .NET: the engine with no UI, and OpenCAD2D
 ```
 
 Windows x64 only. The wheel needs CPython 3.11 to 3.15, 64-bit (the range of pythonnet 3.2.1); the setup of the app
-carries .NET 8 and needs no Python, which only the `.py` commands use.
+carries .NET 8 and needs no Python, which only the Python tools (folders in `Pythons`) and PYRUN use.
 
 Guides and the API reference: https://nguyenthanguth.github.io/opencad2d/
 
