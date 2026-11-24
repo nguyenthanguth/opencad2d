@@ -266,6 +266,9 @@ namespace OpenCAD2D.Wpf
         internal IReadOnlyList<string> PythonCommandsOf(string path) =>
             PythonFiles?.CommandsOf(path) ?? (IReadOnlyList<string>)Array.Empty<string>();
 
+        /// <summary>Gets how many runs of the loaded Python tools' commands ended any way but well; 0 where the app does not use Python.</summary>
+        internal int PythonRunsNotCompleted => _pythonTools?.Tools.Sum(t => t.RunsNotCompleted) ?? 0;
+
         /// <summary>Unloads a Python tool: its commands are unknown again in every drawing.</summary>
         internal bool UnloadPythonFile(string path) => PythonFiles != null && PythonFiles.Unload(path);
 

@@ -108,7 +108,8 @@
   `--screenshot ... --plugin Pythons\HelloWorld --run PYHELLOWORLD` loads and runs a tool folder with no window, so that
   the installed app can be probed headless: its venvs are made under the run's own temporary folder and removed with it,
   the question of pip is answered no (a tool that needs packages exits 2 with `... its packages were not approved`; one with
-  an empty `requirements.txt` runs, in about 3 s), and the lines the command wrote are on the output.
+  an empty `requirements.txt` runs, in about 3 s), and the lines the command wrote are on the output; a command that ends
+  with an error (the tool raises or exits, no Python, no venv) exits 2 as well, its lines on the error output.
 
 - **NEW.** A venv for each Python tool, and pip to fill it (Tools as folders). A tool's packages are installed into
   `%LocalAppData%\OpenCAD2D\python\envs\<name>-<8 hex>`, made from the Python of Global settings or the newest 3.11 to 3.15

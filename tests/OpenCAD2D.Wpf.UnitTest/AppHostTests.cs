@@ -281,6 +281,55 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal(before, Listing(users));
         }
 
+        [Fact]
+        public void TheScreenshotOfAPythonTool_WhoseCommandRaises_ExitsWith2AndItsLinesOnTheErrorOutput()
+        {
+            _ = PythonEnvTestSupport.MachinePython;
+            string users = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "OpenCAD2D",
+                "python"
+            );
+            string before = Listing(users);
+
+            using (var folder = new TestFolder())
+            {
+                string room = folder.Write("room.dxf", TestFiles.Room(out _, out _));
+                string png = Path.Combine(folder.FullPath, "boom.png");
+                string tool = Path.Combine(folder.FullPath, "HelloWorld");
+                Directory.CreateDirectory(tool);
+
+                foreach (
+                    string file in Directory.GetFiles(
+                        Path.Combine(PythonEnvTestSupport.Root, "examples", "Pythons", "HelloWorld")
+                    )
+                )
+                {
+                    File.Copy(file, Path.Combine(tool, Path.GetFileName(file)));
+                }
+
+                string source = Path.Combine(tool, "__init__.py");
+                File.WriteAllText(
+                    source,
+                    File.ReadAllText(source).Replace("write(\"Hello, World!\")", "raise RuntimeError(\"boom\")")
+                );
+
+                (int code, string output) = RunApp(
+                    "--screenshot",
+                    png,
+                    room,
+                    "--plugin",
+                    tool,
+                    "--run",
+                    "PYHELLOWORLD"
+                );
+                Assert.True(code == 2, output);
+                Assert.Contains("boom", output);
+            }
+
+            Assert.Equal(before, Listing(users));
+        }
+
         /// <summary>The names under a folder, two levels deep, as one text; empty for a folder that is not there.</summary>
         private static string Listing(string folder) =>
             Directory.Exists(folder)

@@ -643,7 +643,7 @@ Plugins\Stairs\                Pythons\StairsPy\
       name load side by side), the list kept per .csproj; the question is a hook the window sets in TF6 (until then a plugin
       with packages is refused with its line); Plugins 84 (net8) + 100; setup +3.6 MB in 9 files. Not yet checked against
       the live nuget.org (tests never use the network): checked by hand in TF6
-- [ ] TF4. Python tools as folders, out of process (TF-D5, D10, D12 to D17): the folder found, the tool's process
+- [x] TF4. Python tools as folders, out of process (TF-D5, D10, D12 to D17): the folder found, the tool's process
       started at its first command and kept, its commands from `plugin.json`, one undo step and Esc through the Remote
       command scope, a crashed or hung tool stopped without the app; the lone `.py` in `Pythons` dropped, the
       GH-DrawingInfo sample moved.
@@ -655,7 +655,8 @@ Plugins\Stairs\                Pythons\StairsPy\
       `(command ...)` does, with no "Resuming" line (TF4b)
       Part TF4b done 2026-11-24: a tool's python.exe started suspended into a job (killed with the app), control pipes,
       stdout/stderr, Esc then 5 s stop, a crash or hang leaves the app working; `cmd()` nests in the run (one undo step);
-      first command 0.37-0.39 s, next 16 ms; Remote 157, Wpf 2527, pytest 710. The window starts no tool yet (TF7)
+      first command 0.37-0.39 s, next 16 ms; Remote 157, Wpf 2527, pytest 710. The window starts no tool yet (TF7). Closed 2026-11-25: the
+      window starts tools since TF7 (plugin.json commands, the lone .py refused, the sample moved by TF9)
 - [x] TF5. A venv per tool and pip (TF-D6 to D9): the venv made, `requirements.txt` and the wheel installed after a
       yes, errors that say what to do.
       -> verify: tests with a local package index (no network); two tools with two versions of one package both run.
