@@ -85,6 +85,12 @@ namespace OpenCAD2D.Remote
         /// </summary>
         public const string Ask = "ask";
 
+        /// <summary>
+        /// Runs a command inside a run, with the answers its prompts are given (text, a point, a list of handles; a backslash
+        /// leaves a prompt to the user), and waits for the command to end. Only on the channel of the tools.
+        /// </summary>
+        public const string Feed = "feed";
+
         /// <summary>Writes a line on the command line of the drawing a run works in.</summary>
         public const string Write = "write";
 

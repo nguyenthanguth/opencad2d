@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using GeometryHelper.Geometry;
 
 namespace OpenCAD2D.Remote
@@ -54,6 +55,9 @@ namespace OpenCAD2D.Remote
             _app = app;
             Id = id;
         }
+
+        /// <summary>The answer of <see cref="RunCommand"/> that leaves one prompt of the command to the user: one backslash, as AutoLISP's <c>pause</c> is.</summary>
+        public const string Pause = "\\";
 
         /// <summary>Gets the number of the run, as the app gave it.</summary>
         public int Id { get; }
@@ -128,6 +132,70 @@ namespace OpenCAD2D.Remote
             }
 
             _app.Connection.Request(new JsonObject().Set("op", RemoteOps.Write).Set("text", text));
+        }
+
+        /// <summary>
+        /// Runs a command to its end inside the run, as AutoLISP's <c>command</c> does: it asks its prompts on the command line,
+        /// each answered in turn by the answers given, its changes join the one undo step of the run, and nothing is written about
+        /// the run being resumed. <see cref="Pause"/> leaves a prompt to the user, and the call waits for them; Esc then ends the
+        /// run. A command that is still asking after the last answer is ended, and the call fails.
+        /// </summary>
+        /// <param name="name">The name or alias of the command, as typed at the command line.</param>
+        /// <param name="answers">
+        /// The answers, in order: a text is typed and an empty one is Enter; a whole or real number is typed; a
+        /// <see cref="GeoPoint2"/> is a point picked; a list of handles answers "Select objects:" and ends it.
+        /// </param>
+        /// <exception cref="ArgumentNullException">Thrown when the name or the answers are null.</exception>
+        /// <exception cref="ArgumentException">Thrown when an answer is of a kind the call does not take.</exception>
+        /// <exception cref="CadRemoteException">
+        /// Thrown with <see cref="CadRemoteException.IsCancelled"/> true when the user pressed Esc; with it false when the app has no
+        /// such command, the command did not take an answer or asked for more after the last, or the run has ended.
+        /// </exception>
+        public void RunCommand(string name, params object[] answers)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (answers == null)
+            {
+                throw new ArgumentNullException(nameof(answers));
+            }
+
+            var list = new JsonArray { name };
+
+            foreach (object answer in answers)
+            {
+                switch (answer)
+                {
+                    case string text:
+                        list.Add(text);
+                        break;
+                    case int number:
+                        list.Add(number.ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case long number:
+                        list.Add(number.ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case double number:
+                        list.Add(number.ToString("R", CultureInfo.InvariantCulture));
+                        break;
+                    case GeoPoint2 point:
+                        list.Add(new JsonObject().Set("x", point.X).Set("y", point.Y));
+                        break;
+                    case IEnumerable<string> handles:
+                        list.Add(new JsonArray(handles));
+                        break;
+                    default:
+                        throw new ArgumentException(
+                            (answer?.GetType().Name ?? "null") + " cannot be fed to a command.",
+                            nameof(answers)
+                        );
+                }
+            }
+
+            _app.Connection.Request(new JsonObject().Set("op", RemoteOps.Feed).Set("answers", list));
         }
 
         /// <summary>Ends the run well: the changes it committed stay, as one undo step named after the command. The connection leaves the run.</summary>

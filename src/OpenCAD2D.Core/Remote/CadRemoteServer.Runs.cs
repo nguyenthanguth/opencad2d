@@ -166,7 +166,14 @@ namespace OpenCAD2D
                 throw new ArgumentNullException(nameof(token));
             }
 
-            return new CadCommand(name, c => Running(c, token, started), usesSelection);
+            var command = new CadCommand(name, c => Running(c, token, started), usesSelection);
+
+            lock (_gate)
+            {
+                _runCommands.Add(command);
+            }
+
+            return command;
         }
 
         // ---- The body of the command ---------------------------------------------------------------------------------
@@ -390,7 +397,11 @@ namespace OpenCAD2D
 
         /// <summary>Whether an op is one that only makes sense inside a run.</summary>
         private static bool IsRunOp(string op) =>
-            op == RemoteOps.Ask || op == RemoteOps.Write || op == RemoteOps.End || op == RemoteOps.Fail;
+            op == RemoteOps.Ask
+            || op == RemoteOps.Feed
+            || op == RemoteOps.Write
+            || op == RemoteOps.End
+            || op == RemoteOps.Fail;
 
         /// <summary>Answers a request of a run other than a question, in one dispatch, holding up no other client.</summary>
         private JsonObject RunRequest(string op, JsonObject request, string token)
