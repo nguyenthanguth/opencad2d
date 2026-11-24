@@ -16,7 +16,9 @@ namespace OpenCAD2D.Wpf.Plugins
     /// assembly's name and version, the language, the usings and the symbols), the files it compiles (every .cs below the
     /// folder but <c>bin</c> and <c>obj</c>, less what <c>Compile Remove</c> takes out) and the libraries it names
     /// (<c>Reference</c> with a <c>HintPath</c> inside the folder). What cannot be read is an error of its line, such as
-    /// <c>Stairs.csproj(7,10): error OC0002: ...</c>; what is skipped on purpose is a warning line. Reading touches nothing of
+    /// <c>Stairs.csproj(7,10): error OC0002: ...</c>; what is skipped on purpose is a warning line. The <c>PackageReference</c>
+    /// items are only listed here (<see cref="Packages"/>, <see cref="HostPackages"/>); restoring them is
+    /// <see cref="CadPackageSet"/>'s. Reading touches nothing of
     /// the compiler, so that a build taken from the cache never loads it.
     /// </summary>
     internal sealed class CadPluginProject
@@ -104,6 +106,12 @@ namespace OpenCAD2D.Wpf.Plugins
         /// <summary>Gets the full paths of the .dll files its references name, sorted ignoring case, each once.</summary>
         internal IReadOnlyList<string> Libraries { get; private set; }
 
+        /// <summary>Gets the packages the project names that are restored: not the app's own, and not those for the build alone, in the order the project gives them.</summary>
+        internal IReadOnlyList<CadPackageRequest> Packages => _packages;
+
+        /// <summary>Gets the packages the project names that are the app's own, which are never downloaded.</summary>
+        internal IReadOnlyList<CadPackageRequest> HostPackages => _hostPackages;
+
         /// <summary>
         /// Reads a .csproj. Errors and warnings are added to the lists given; a project with errors holds nothing that can be
         /// compiled.
@@ -163,9 +171,12 @@ namespace OpenCAD2D.Wpf.Plugins
             return project;
         }
 
+        private readonly List<CadPackageRequest> _packages = new List<CadPackageRequest>();
+        private readonly List<CadPackageRequest> _hostPackages = new List<CadPackageRequest>();
         private readonly List<string> _defines = new List<string>();
         private readonly List<string> _libraries = new List<string>();
-        private readonly List<string> _usings = new List<string>();
+        private readonly List<KeyValuePair<string, string>> _usings = new List<KeyValuePair<string, string>>();
+        private readonly List<string> _removedUsings = new List<string>();
         private readonly List<string> _removes = new List<string>();
         private readonly List<string> _includes = new List<string>();
         private bool _implicitUsings;
@@ -182,16 +193,27 @@ namespace OpenCAD2D.Wpf.Plugins
 
                 if (_implicitUsings)
                 {
-                    names.AddRange(SdkUsings.Where(u => !(_wpf && (u == "System.IO" || u == "System.Net.Http"))));
+                    names.AddRange(
+                        SdkUsings.Where(u =>
+                            !(_wpf && (u == "System.IO" || u == "System.Net.Http"))
+                            && !_removedUsings.Contains(u, StringComparer.Ordinal)
+                        )
+                    );
 
                     if (_forms)
                     {
-                        names.Add("System.Drawing");
-                        names.Add("System.Windows.Forms");
+                        names.AddRange(
+                            new[] { "System.Drawing", "System.Windows.Forms" }.Where(u =>
+                                !_removedUsings.Contains(u, StringComparer.Ordinal)
+                            )
+                        );
                     }
                 }
 
-                return names.Select(u => "global using global::" + u + ";").Concat(_usings).ToArray();
+                return names
+                    .Select(u => "global using global::" + u + ";")
+                    .Concat(_usings.Select(u => u.Value))
+                    .ToArray();
             }
         }
 
@@ -538,6 +560,14 @@ namespace OpenCAD2D.Wpf.Plugins
         private void ApplyUsing(XElement item, List<string> warnings)
         {
             string include = item.Attribute("Include")?.Value.Trim();
+            string remove = item.Attribute("Remove")?.Value.Trim();
+
+            // <Using Remove="System.Net.Http" /> takes out an implicit using, and an earlier <Using Include> of the same name.
+            if (!string.IsNullOrEmpty(remove))
+            {
+                _removedUsings.Add(remove);
+                _usings.RemoveAll(u => string.Equals(u.Key, remove, StringComparison.Ordinal));
+            }
 
             if (string.IsNullOrEmpty(include))
             {
@@ -548,15 +578,18 @@ namespace OpenCAD2D.Wpf.Plugins
             string alias = Meta(item, "Alias");
             bool isStatic = IsTrue(Meta(item, "Static") ?? string.Empty);
             _usings.Add(
-                "global using "
-                    + (
-                        alias != null ? alias + " = "
-                        : isStatic ? "static "
-                        : string.Empty
-                    )
-                    + "global::"
-                    + include
-                    + ";"
+                new KeyValuePair<string, string>(
+                    include,
+                    "global using "
+                        + (
+                            alias != null ? alias + " = "
+                            : isStatic ? "static "
+                            : string.Empty
+                        )
+                        + "global::"
+                        + include
+                        + ";"
+                )
             );
         }
 
@@ -576,14 +609,52 @@ namespace OpenCAD2D.Wpf.Plugins
                             + "\"> has no Version: central package management is not read."
                     )
                 );
+                return;
             }
-            else if (!Array.Exists(Host, h => string.Equals(h, id, StringComparison.OrdinalIgnoreCase)))
+
+            var line = (IXmlLineInfo)item;
+            var request = new CadPackageRequest(id, version, line.LineNumber, line.LinePosition);
+
+            if (IsHost(id))
             {
-                errors.Add(
-                    Error(item, "OC0002", "<PackageReference Include=\"" + id + "\"> is refused: NuGet comes with TF3.")
-                );
+                _hostPackages.Add(request);
+            }
+            else if (
+                !BuildOnly(item) && !_packages.Exists(p => string.Equals(p.Id, id, StringComparison.OrdinalIgnoreCase))
+            )
+            {
+                _packages.Add(request);
             }
         }
+
+        /// <summary>
+        /// Whether a reference is for the build alone, as an analyzer is (<c>PrivateAssets="all"</c>, or <c>IncludeAssets</c>
+        /// with none of <c>compile</c>, <c>runtime</c> and <c>all</c>): nothing of it is compiled against or run, so it is not
+        /// restored.
+        /// </summary>
+        private static bool BuildOnly(XElement item)
+        {
+            if (Tokens(Meta(item, "PrivateAssets")).Contains("all"))
+            {
+                return true;
+            }
+
+            string include = Meta(item, "IncludeAssets");
+            return include != null && !Tokens(include).Any(t => t == "compile" || t == "runtime" || t == "all");
+        }
+
+        private static IEnumerable<string> Tokens(string list) =>
+            (list ?? string.Empty)
+                .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim().ToLowerInvariant());
+
+        /// <summary>Whether an id is one of the app's own assemblies, which a plugin is built against and never downloads.</summary>
+        internal static bool IsHost(string id) =>
+            Array.Exists(Host, h => string.Equals(h, id, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>The id of a host package as the app writes it (<c>OpenCAD2D.Remote</c> for <c>opencad2d.remote</c>).</summary>
+        internal static string HostName(string id) =>
+            Array.Find(Host, h => string.Equals(h, id, StringComparison.OrdinalIgnoreCase));
 
         private void ApplyReference(XElement item, List<CadPluginError> errors, List<string> warnings)
         {

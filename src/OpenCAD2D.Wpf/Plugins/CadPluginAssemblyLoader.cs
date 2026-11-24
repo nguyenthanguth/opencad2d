@@ -21,7 +21,11 @@ namespace OpenCAD2D.Wpf.Plugins
     /// Either way the presenter's own assemblies (GeometryHelper, OpenCAD2D, ...) are never loaded from a
     /// plugin's folder: a plugin is given the presenter's, so that the <see cref="CadCommandContext"/> it is handed is of the
     /// type it was built against. A dependency a plugin asks for is taken from its folder of copies, copied there first from
-    /// the folder of a bare .dll where it is missing.
+    /// the folder of a bare .dll where it is missing, and then from the NuGet packages its .csproj names, loaded in place
+    /// from the packages folder. So two plugins may run two versions of one package, Foo 1.0 and Foo 2.0 each in its own
+    /// load context, but not of a library the app carries itself (the framework, SkiaSharp, Roslyn's and NuGet's own): the
+    /// app's copy is compiled against and runs, and a package asking a higher version gets a line of the load log. A native
+    /// file of a package is loaded by its full path; it stays loaded until the app exits.
     /// </remarks>
     public sealed class CadPluginAssemblyLoader : CadPluginLoader
     {
@@ -35,6 +39,11 @@ namespace OpenCAD2D.Wpf.Plugins
 
 #if NET8_0_OR_GREATER
         private readonly CadPluginCompiler _compiler;
+
+        /// <summary>The packages of the plugins compiled and not yet loaded, by plugin name: what <see cref="Compile(string, string)"/> found for <see cref="Load"/>.</summary>
+        private readonly Dictionary<string, CadPackageSet> _packages = new Dictionary<string, CadPackageSet>(
+            StringComparer.OrdinalIgnoreCase
+        );
 #endif
 
         /// <summary>Initializes the loader of the app: on .NET 8 plugins given as C# source are cached in <c>%LocalAppData%\OpenCAD2D\PluginCache</c>.</summary>
@@ -51,6 +60,26 @@ namespace OpenCAD2D.Wpf.Plugins
         }
 
 #if NET8_0_OR_GREATER
+        /// <summary>Initializes a loader whose NuGet packages come from a restorer of its own, which the tests point at a folder of .nupkg and a temporary folder.</summary>
+        internal CadPluginAssemblyLoader(string cacheFolder, CadPackageRestorer restorer)
+        {
+            _compiler = new CadPluginCompiler(cacheFolder, restorer);
+        }
+
+        /// <summary>
+        /// Gets or sets what is asked before the NuGet packages of a plugin are downloaded: given the plugin's name and its
+        /// packages (the direct ones first, then the rest, each in ordinal order, those already in the cache marked), it says
+        /// whether to download them from nuget.org. The window asks with a dialog, the command line with
+        /// <see cref="CadPackageQuestion.Prompt"/>. Null, as it is until set, downloads none and refuses a plugin whose
+        /// packages are not all in the cache with <c>Stairs was not loaded: its packages were not downloaded.</c>; it is not
+        /// asked where every package is in the cache already.
+        /// </summary>
+        public Func<string, IReadOnlyList<CadPackage>, bool> ConfirmDownload
+        {
+            get => _compiler.ConfirmDownload;
+            set => _compiler.ConfirmDownload = value;
+        }
+
         /// <summary>Gets true: a plugin's load context is freed when it is unloaded.</summary>
         public override bool CanUnload => true;
 
@@ -58,7 +87,17 @@ namespace OpenCAD2D.Wpf.Plugins
         public override bool CanCompile => true;
 
         /// <inheritdoc/>
-        public override CadPluginBuild Compile(string name, string projectPath) => _compiler.Compile(name, projectPath);
+        public override CadPluginBuild Compile(string name, string projectPath)
+        {
+            CadPluginBuild build = _compiler.Compile(name, projectPath, out CadPackageSet packages);
+
+            lock (_packages)
+            {
+                _packages[name] = packages;
+            }
+
+            return build;
+        }
 
         /// <inheritdoc/>
         public override IReadOnlyList<Assembly> Load(string name, IReadOnlyList<string> files, string probeFolder)
@@ -75,7 +114,22 @@ namespace OpenCAD2D.Wpf.Plugins
                 return loaded;
             }
 
-            var context = new PluginContext(name, Path.GetDirectoryName(files[0]), probeFolder);
+            CadPackageSet packages;
+
+            lock (_packages)
+            {
+                if (_packages.TryGetValue(name, out packages))
+                {
+                    _packages.Remove(name);
+                }
+            }
+
+            var context = new PluginContext(
+                name,
+                Path.GetDirectoryName(files[0]),
+                probeFolder,
+                packages ?? CadPackageSet.None
+            );
 
             try
             {
@@ -115,17 +169,66 @@ namespace OpenCAD2D.Wpf.Plugins
             }
         }
 
+        /// <summary>
+        /// The version of the app's own copy of an assembly the plugin is given instead of its own (the framework, the app's
+        /// libraries); null where the name is not shared.
+        /// </summary>
+        internal static Version SharedVersion(AssemblyName name)
+        {
+            if (!PluginContext.IsShared(name))
+            {
+                return null;
+            }
+
+            foreach (Assembly assembly in AssemblyLoadContext.Default.Assemblies)
+            {
+                if (string.Equals(assembly.GetName().Name, name.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return assembly.GetName().Version;
+                }
+            }
+
+            return AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(name.Name)).GetName().Version;
+        }
+
         /// <summary>The collectible load context of one plugin.</summary>
         private sealed class PluginContext : AssemblyLoadContext
         {
             private readonly string _folder;
             private readonly string _probeFolder;
+            private readonly Dictionary<string, string> _managed = new Dictionary<string, string>(
+                StringComparer.OrdinalIgnoreCase
+            );
+            private readonly Dictionary<string, string> _native = new Dictionary<string, string>(
+                StringComparer.OrdinalIgnoreCase
+            );
 
-            internal PluginContext(string name, string folder, string probeFolder)
+            internal PluginContext(string name, string folder, string probeFolder, CadPackageSet packages)
                 : base("OpenCAD2D plugin " + name, true)
             {
                 _folder = folder;
                 _probeFolder = probeFolder;
+
+                // The first package to give a name is the one that does: the packages are in a fixed order.
+                foreach (KeyValuePair<CadPackageEntry, string> asset in packages.RuntimePaths)
+                {
+                    string simple = Path.GetFileNameWithoutExtension(asset.Value);
+
+                    if (!_managed.ContainsKey(simple))
+                    {
+                        _managed.Add(simple, asset.Value);
+                    }
+                }
+
+                foreach (string path in packages.NativePaths)
+                {
+                    string file = Path.GetFileName(path);
+
+                    if (!_native.ContainsKey(file))
+                    {
+                        _native.Add(file, path);
+                    }
+                }
             }
 
             /// <summary>Whether the presenter has an assembly of the name, or can load one: then the plugin is given the presenter's.</summary>
@@ -167,8 +270,34 @@ namespace OpenCAD2D.Wpf.Plugins
                     return null;
                 }
 
+                // The plugin's own folder first, then the package folders in the cache, from where they are loaded in place.
                 string path = Locate(_folder, _probeFolder, assemblyName.Name);
+
+                if (path == null)
+                {
+                    _managed.TryGetValue(assemblyName.Name, out path);
+                }
+
                 return path != null ? LoadFromAssemblyPath(path) : null;
+            }
+
+            /// <summary>A native file of a package, loaded by its full path in the packages folder; the default search finds any other.</summary>
+            protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+            {
+                string file = Path.GetFileName(unmanagedDllName);
+
+                if (
+                    _native.TryGetValue(file, out string path)
+                    || (
+                        !file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+                        && _native.TryGetValue(file + ".dll", out path)
+                    )
+                )
+                {
+                    return LoadUnmanagedDllFromPath(path);
+                }
+
+                return IntPtr.Zero;
             }
         }
 #else

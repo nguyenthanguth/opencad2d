@@ -31,9 +31,10 @@ namespace OpenCAD2D.Wpf.Plugins
         /// <summary>
         /// Compiles a project's sources, each a syntax tree of its own path, into an assembly named as the project says and a
         /// portable PDB that embeds them. The project's global usings and the assembly attributes the SDK would generate are
-        /// two more trees of their own, put first.
+        /// two more trees of their own, put first. The assemblies of the plugin's packages are referenced after those its
+        /// <c>Reference</c> items name.
         /// </summary>
-        internal static CadPluginEmit Compile(CadPluginProject project)
+        internal static CadPluginEmit Compile(CadPluginProject project, IReadOnlyList<string> packageReferences)
         {
             var emit = new CadPluginEmit();
             LanguageVersion language = LanguageVersion.Latest;
@@ -77,6 +78,11 @@ namespace OpenCAD2D.Wpf.Plugins
             foreach (string library in project.Libraries)
             {
                 all.Add(MetadataReference.CreateFromFile(library));
+            }
+
+            foreach (string reference in packageReferences)
+            {
+                all.Add(MetadataReference.CreateFromFile(reference));
             }
 
             var options = new CSharpCompilationOptions(

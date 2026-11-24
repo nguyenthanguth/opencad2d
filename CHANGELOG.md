@@ -83,11 +83,23 @@
   `GenerateAssemblyInfo` are read, the symbols are the SDK's for `net8.0-windows` Release, a `<Reference>` takes a
   `HintPath` to a `.dll` inside the folder (a name of the app's own is its own, whatever its `HintPath`), and a
   `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Remote`, `OpenCAD2D.Wpf` or `GeometryHelper` is the app's own and
-  downloads nothing. What is not read is a line of the load log, and the plugin loads: an element with a `Condition`
+  downloads nothing (a version above the app's gives a line and the compile goes on against the app's), and so does one for the
+  build alone (`PrivateAssets="all"`, or an `IncludeAssets` with no `compile` or `runtime`). Any other `<PackageReference>`
+  is a NuGet package restored from nuget.org after asking, with no .NET SDK: the lowest version that meets each reference
+  (`Version="13.0.3"` is 13.0.3), its dependencies for `net8.0-windows`, cousins at the higher of their lowest versions,
+  every range checked (`Stairs.csproj(6,10): error NU1107: Stairs needs Foo [2.0.0, 3.0.0); Bar 1.0.0 needs Foo [1.0.0, 2.0.0); no version meets both.`,
+  and NU1605 for a reference lower than another package needs); the nearest framework's assets (`lib/net6.0` over
+  `netstandard2.0`); the question `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:` before the first
+  download and when the list changes, a no or an unreachable nuget.org leaving the plugin not loaded with the line to
+  reconnect and PLUGINRELOAD; packages kept in `%LocalAppData%\OpenCAD2D\NuGet\packages`, the resolved list in
+  `PluginCache` so that a start asks nothing of the network; two plugins with `Foo 1.0.0` and `Foo 2.0.0` both run (a
+  library the app carries itself is shared, with a line when a package asks a higher version); a native file loaded by its
+  full path, two of one name side by side. `<Using Remove>` is read. The app carries NuGet.Protocol 7.9.0: 3 645 480 bytes
+  in 9 files more in its folder. What is not read is a line of the load log, and the plugin loads: an element with a `Condition`
   (`Stairs.csproj: <PropertyGroup Condition="..."> was not read (conditions are not evaluated).`), a
   `Directory.Build.props` in the folder, a `$(...)` in a value, a target framework that is not .NET 8. What cannot be
   read is refused with a line per error in the form of a compiler's (`Stairs.csproj(7,10): error OC0002: ...`): a
-  `<ProjectReference>`, a package with no version or any other package (NuGet comes later), `EnableDefaultCompileItems`
+  `<ProjectReference>`, a package with no version, `EnableDefaultCompileItems`
   false, a `<Compile Include>` or a `HintPath` outside the folder. A lone `.cs`, a folder of `.cs` files with no
   `.csproj`, and a folder with two `.csproj` files are refused, saying how to make a plugin of them. The build is cached
   in `%LocalAppData%\OpenCAD2D\PluginCache` by the SHA-256 of the `.csproj`, the sources and the libraries, so a start with
@@ -95,7 +107,8 @@
   plugin of 220 lines. A source that does not compile is refused with a line per error,
   `Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context`, the first 20.
   `CadPluginLoader.CanCompile` and `Compile(name, projectPath)`, `CadPluginBuild` (with `Warnings`),
-  `CadLoadedPlugin.IsSource` and `CadPluginAssemblyLoader(cacheFolder)` are new. The screenshot mode
+  `CadLoadedPlugin.IsSource`, `CadPluginAssemblyLoader(cacheFolder)`, `CadPluginAssemblyLoader.ConfirmDownload`, `CadPackage` and
+  `CadPackageQuestion` are new. The screenshot mode
   (`--screenshot ... --plugin Stairs`) keeps its builds in its own temporary folder, never
   `%LocalAppData%\OpenCAD2D\PluginCache`. The app ships a sample, the folder `Plugins\Stairs` (the command `STAIRS` of the
   plugin guide, from `examples/Stairs`), compiled at the first start after an install or an upgrade and cached after;

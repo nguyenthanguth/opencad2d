@@ -620,6 +620,7 @@ Plugins\Stairs\                Pythons\StairsPy\
 | TF-D16 | What a Python tool adds to the window is declared in its `plugin.json` (commands, aliases, ribbon buttons, icons); the app shows them and starts the tool when one is used. A Python tool shows no WPF content of its own in the app (PW2's side panel stays out). | recommended 2026-11-24 |
 | TF-D17 | A command run of an out-of-process tool is one undo step and Esc stops it, as in the app today: the Remote channel gains a command scope (begin, end, cancel) that the run holds. A tool process that crashes or hangs never takes the app down; the app can stop it, and the run's changes are taken back. | recommended 2026-11-24 |
 | TF-D18 | The cost is accepted: 0.2 to 0.3 s at a tool's first command, and a round trip per call (about 17 ms for SendCommand, 0.15 s for 1 000 inserts queued and committed); a tool that makes many calls batches them (the array API). | accepted by the maintainer 2026-11-24 |
+| TF-D19 | The samples (maintainer 2026-11-24): `Plugins\DrawingInfo\` ships as source (`DrawingInfo.csproj` + `DrawingInfoCommands.cs`), the built `.dll` dropped; `Plugins\HelloWorld\` new (`HELLOWORLD` writes `Hello, World!`); `Plugins\Stairs\` stays. `Pythons\GH-DrawingInfo.py` becomes the folder `Pythons\DrawingInfo\`; `Pythons\HelloWorld\` new (`PYHELLOWORLD`). The commands of the existing samples keep their names (GHDWGINFO, GHPYINFO). `examples\` holds the same folders. | decided 2026-11-24 (names by recommendation) |
 
 - [x] TF1. Research and the spec: how Rhino 8 (`# r:`, `#r "nuget:"`), pyRevit, Blender extensions and dotnet-script
       get a script's libraries; the NuGet client libraries (Apache-2.0) for a restore without the SDK; `pip --dry-run
@@ -634,9 +635,13 @@ Plugins\Stairs\                Pythons\StairsPy\
          its line; the cache key changes with the `.csproj`.
       Done 2026-11-24: CadPluginProject reads the .csproj (S1-S11); the lone .cs and `//#r` refused; examples/Stairs
       builds with `dotnet build` and runs in the app (`Steps: 18`); Plugins 59 (net8) + 100 (net48), Wpf 2512, pytest 697 x2
-- [ ] TF3. NuGet (TF-D4, D8, D9): restore, dependencies, framework choice, native assets, the cache, asking first.
+- [x] TF3. NuGet (TF-D4, D8, D9): restore, dependencies, framework choice, native assets, the cache, asking first.
       -> verify: tests against a local package source in a temporary folder (no network); two plugins with two versions
          of one package both run; the host's own packages are never downloaded.
+      Done 2026-11-24: NuGet.Protocol 7.9.0, restore as `dotnet restore` (NU1107/NU1605...), natives by full path (two of one
+      name load side by side), the list kept per .csproj; the question is a hook the window sets in TF6 (until then a plugin
+      with packages is refused with its line); Plugins 84 (net8) + 100; setup +3.6 MB in 9 files. Not yet checked against
+      the live nuget.org (tests never use the network): checked by hand in TF6
 - [ ] TF4. Python tools as folders, out of process (TF-D5, D10, D12 to D17): the folder found, the tool's process
       started at its first command and kept, its commands from `plugin.json`, one undo step and Esc through the Remote
       command scope, a crashed or hung tool stopped without the app; the lone `.py` in `Pythons` dropped, the
@@ -657,6 +662,11 @@ Plugins\Stairs\                Pythons\StairsPy\
       the PYTHON console on a Python process, the tests and stubs that pinned the in-app Python moved or removed, the
       parked P/PW items it settles closed.
       -> verify: the app starts with no Python loaded; PYRUN and the console work; the Python suites green on what stays.
+- [ ] TF9. The samples (TF-D19): the C# ones after TF3 (DrawingInfo as source, HelloWorld; the tests and the Net8Runner
+      that loaded the built DrawingInfo .dll moved to the folder), the Python ones after TF4b and TF7 (DrawingInfo and
+      HelloWorld folders).
+      -> verify: each sample loads from the app's folders with its command and output; the first start compiles the
+         three C# samples once (time measured), the next takes them from the cache.
 - [ ] TF8. Docs, the CHANGELOG (BREAKING), the setup (its size with the NuGet client and without the embedding, before
       and after).
       -> verify: the guides' examples run in tests; the setup built and both samples load from the installed app.

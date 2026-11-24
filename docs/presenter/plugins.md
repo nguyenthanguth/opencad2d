@@ -246,9 +246,10 @@ none), written into the assembly as the SDK writes it.
 | `LangVersion` | `latest` (the default), `default`, `preview`, `13.0`, `7.3`...; one the compiler does not know is an error of its line |
 | `Nullable` | `enable`, `disable` (the default), `warnings` or `annotations` |
 | `ImplicitUsings`, `UseWPF`, `UseWindowsForms` | the SDK's global usings: `System`, `System.Collections.Generic`, `System.IO`, `System.Linq`, `System.Net.Http`, `System.Threading` and `System.Threading.Tasks`, less `System.IO` and `System.Net.Http` for `UseWPF`, plus `System.Drawing` and `System.Windows.Forms` for `UseWindowsForms` |
-| `<Using Include="...">` | a global using; `Static="true"` and `Alias="..."` as in the SDK |
+| `<Using Include="...">`, `<Using Remove="...">` | a global using; `Static="true"` and `Alias="..."` as in the SDK; `Remove` takes out an implicit using (`System.Net.Http`) and an `Include` of the same name before it |
 | `DefineConstants`, `AllowUnsafeBlocks` | as in the SDK |
-| `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Remote`, `OpenCAD2D.Wpf` or `GeometryHelper` | the app's own: the plugin is built against the app's copy and nothing is downloaded. Any other package is refused for now (`<PackageReference Include="Newtonsoft.Json"> is refused: NuGet comes with TF3.`) |
+| `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Remote`, `OpenCAD2D.Wpf` or `GeometryHelper` | the app's own: the plugin is built against the app's copy and nothing is downloaded, never asked of nuget.org. A version above the app's gives a line and the compile goes on against the app's: `Stairs was written for OpenCAD2D.Core 1.2.0; this app has 1.0.0.` |
+| any other `<PackageReference>` | a NuGet package, restored from nuget.org after asking (see *NuGet packages* below); one with `PrivateAssets="all"`, or an `IncludeAssets` with none of `compile`, `runtime` and `all` (an analyzer, `CSharpier.MsBuild`), is for the build alone and is skipped |
 | `<Reference Include="...">` | a name of the app's own (the four above, or an assembly of .NET or WPF) is the app's, and its `HintPath` is ignored, so a project that points at `C:\Program Files\OpenCAD2D\OpenCAD2D.Core.dll` loads unchanged; any other needs a `HintPath` to a .dll inside the plugin's folder |
 | `<Compile Remove="...">` | takes files out of the sources |
 
@@ -275,10 +276,57 @@ SDK-style project (`<Project Sdk="...">`) is refused too. The `//#r "Name.dll"` 
 are no longer read: a `<Reference>` takes their place.
 
 **What the source can use.** The .NET 8 runtime the app runs on, WPF, `GeometryHelper`, `OpenCAD2D.Core` and
-`OpenCAD2D.Wpf`, as a .dll plugin can, and the libraries the `.csproj` names. There are no NuGet packages yet.
+`OpenCAD2D.Wpf`, as a .dll plugin can, the libraries the `.csproj` names and the NuGet packages it asks for.
+
+**NuGet packages.** A `<PackageReference Include="Foo" Version="1.2.0" />` that is not the app's own is a package of nuget.org. The app restores
+it with no .NET SDK, as `dotnet restore` does, and compiles and runs the plugin against it.
+
+- **The version** is the lowest the source has that meets the reference, never the newest: `Version="13.0.3"` means 13.0.3 or
+  higher, so it is 13.0.3 where nuget.org has it, on every computer. The dependencies of the version chosen are taken for
+  `net8.0-windows` the same way, and a package met twice (two packages that both need `Foo`) is taken at the higher of the
+  two lowest versions. Then every range is checked, and what no version meets is refused with a line of the
+  `.csproj`'s, in the form of a compiler's:
+  `Stairs.csproj(6,10): error NU1107: Stairs needs Foo [2.0.0, 3.0.0); Bar 1.0.0 needs Foo [1.0.0, 2.0.0); no version meets both.`
+  A reference lower than what another package needs is refused as the SDK refuses it (NU1605):
+  `Stairs asks Foo 1.0.0, and Bar 2.0.0 needs Foo 1.2.0 or higher.` A version or package the source lacks is NU1102 or
+  NU1101. A floating range, `Version="1.*"`, takes the highest 1.x, once: the line
+  `Stairs.csproj: Foo 1.* is a range: Foo 1.4.2 was chosen and stays until the .csproj changes.` says which, and the choice is
+  kept (PLUGINRELOAD does not choose again) until the `.csproj` changes.
+- **The assets** are the nearest framework's, as Visual Studio picks them: `Newtonsoft.Json` 13.0.3 gives `lib/net6.0`, not
+  `lib/netstandard2.0`; a package with only `lib/net48` is refused (`Foo 1.0.0 has nothing for net8.0-windows7.0 (it has net48).`).
+  The plugin compiles against `ref/` where a package has it, else `lib/`.
+- **Asking.** Nothing is downloaded without a yes. Before the first download of a plugin's packages, and again when its
+  list changes, the app lists them (the plugin's own references first, then the rest, each in order of the id, those
+  already in the cache marked) and asks to download them from nuget.org; on the command line (`FILEDIA` 0) the question is
+  `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:`. A no leaves the plugin not loaded
+  (`Stairs was not loaded: its packages were not downloaded.`), and so does a host that has no way to ask. No question is put
+  where every package is in the cache already.
+- **Offline.** A source that cannot be reached, or a download that fails, leaves the plugin not loaded:
+  `Stairs was not loaded: nuget.org could not be reached (<why>). Connect and run PLUGINRELOAD Stairs.` A package cut short
+  does not count: a package is in the cache once its `.sha512` file is written, after everything else.
+- **Where.** The packages are extracted into `%LocalAppData%\OpenCAD2D\NuGet\packages` in the layout of NuGet's global-packages
+  folder (`<id>\<version>\`), shared by every plugin, and their signatures are checked as `dotnet restore` checks them. The
+  source is nuget.org only: no `nuget.config` is read. The list a plugin resolved to (ids, versions, the SHA-512 of each
+  package, the files used) is kept in `%LocalAppData%\OpenCAD2D\PluginCache\<plugin>\packages.<key>.json`, the key the
+  SHA-256 of the `.csproj`: a start with an unchanged `.csproj` and every package in the cache reads it and asks nothing of
+  nuget.org, so the 1 to 3 s of version lists are not spent again. The packages' ids, versions and SHA-512 are part of the
+  build's cache key.
+- **Two versions of one package.** Each plugin has a load context of its own and loads a package's assembly from the
+  cache folder in place, after its own folder, so a plugin with `Foo 1.0.0` and another with `Foo 2.0.0` both run, each with
+  its own. This holds for a library the app does not carry itself. A name the app has (the .NET runtime and its libraries,
+  WPF, SkiaSharp, Roslyn's and NuGet's own, `Newtonsoft.Json` among them) is **shared**: the app's copy is compiled against and
+  runs, and a package that asks a higher assembly version gets a line: `Stairs asks System.Text.Json 9.0.0; the app runs 8.0.0.`
+- **Native files.** A package's `runtimes\win-x64\native\*.dll` (or `runtimes\win\native`) is loaded by its full path in the
+  cache folder when the plugin's code asks for it by name. .NET cannot unload a native library, so it stays loaded until the
+  app exits, also after the plugin is unloaded. Two plugins with two different native files of one name (`foo.dll`) load
+  side by side and each calls its own: the second plugin's call reaches its own file, not the first's (tested with two files
+  of Windows given the one name). So PLUGINRELOAD with a new native version loads the new file beside the old one, which
+  stays in memory until the app is closed.
+- **Size.** The NuGet client in the app is `NuGet.Protocol` 7.9.0 (Apache-2.0), the last that targets `net8.0`, with its
+  libraries, `Newtonsoft.Json` and `System.Security.Cryptography.Pkcs`: 3 645 480 bytes in 9 files in the app's folder.
 
 **The cache.** The build is kept in `%LocalAppData%\OpenCAD2D\PluginCache\<plugin>`, named by the SHA-256 of the `.csproj`,
-each source's path from the folder and bytes, the referenced libraries, the app's version and the runtime's version. A
+each source's path from the folder and bytes, the referenced libraries, each package's id, version and SHA-512, the app's version and the runtime's version. A
 start with unchanged files takes it from there and does not load the compiler at all; a change of one byte, even in the
 `.csproj`, compiles again, and the build it replaces is deleted. The first compile of a session takes about 0.9 s (the
 compiler's own start: a plugin of two files, 220 lines, measured on .NET 8.0.28), a compile after that about 20 ms. The PDB
