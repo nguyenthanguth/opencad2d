@@ -929,9 +929,20 @@ the choice "Always use this app" itself. It writes one line, `.dxf and .dwg file
 exits with 0, or with 1 and the reason where the registry refuses. `--unregister` takes out the ProgID and its Open with
 entries, and the default of an extension only where it is the app's; what other programs wrote stays. Both take out
 `GeometryHelper.Drawing` too, the ProgID of the app before it was named OpenCAD2D, so Open with lists it once. Run it
-again after moving the app, since the command names the exe where it was. A file opened from Explorer starts a new window of the app,
-one per file, even while the app runs. A host built on `CadAppHost` takes the same two switches and writes the same ProgID, so
-the app registered last is the one that opens the files.
+again after moving the app, since the command names the exe where it was. A host built on `CadAppHost` takes the same two
+switches and writes the same ProgID, so the app registered last is the one that opens the files.
+
+A drawing opened from Explorer while OpenCAD2D runs opens in that window as a new drawing, as in AutoCAD 2021, and the
+window comes to the front (restored first if it was minimized). The second start hands the file's full path to the running
+app and exits with 0, with no window of its own: from its start to its exit it took 121 to 153 ms in six runs on the built exe. A
+drawing already open is shown, not opened again. Two drawings selected in Explorer and opened at once open one after the
+other, in the order Windows starts them. While a dialog is open the drawing waits and opens when the dialog closes, and
+while another drawing is still opening it waits for that. A command running is escaped, as when another drawing's tab is
+clicked. `OpenCAD2D.exe` with no file starts a window of its own, as acad.exe from its icon starts a second AutoCAD, and
+so does a start with a file where the running app does not answer within 4 seconds (1 to connect, 3 to answer). The running
+app is found by the app's name and the Windows session, not by its exe, so an installed copy and a copy run from another
+folder share it; Global settings' "Allow other programs to connect" has no part in it. `--screenshot`, `--register` and
+`--unregister` never hand anything over.
 
 ### Installing with the setup
 

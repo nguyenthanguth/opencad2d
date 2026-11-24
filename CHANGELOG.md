@@ -9,6 +9,12 @@
   segment:" and waited for a point; as in AutoCAD 2021 it now makes the segment straight at once (bulge 0, vertices
   unchanged, one undo step), for LWPOLYLINE and 2D POLYLINE alike. Convert to Arc still asks for the arc's midpoint, and
   Remove Vertex still acts at once.
+- **FIXED.** A .dwg or .dxf opened from Explorer while OpenCAD2D runs opened a second window. It now opens in the running
+  window as a new drawing, the window brought to the front, as AutoCAD 2021 does: the new start hands the file's full path
+  to the running app on a pipe named `<AppName>.Open.<session>` and exits with 0 in 121 to 153 ms (six runs on the built
+  exe). A drawing already open is shown; two opened at once, or one handed over while another opens or a dialog is up,
+  wait and open one after the other. A start with no file, or one the running app does not answer within 4 s, still opens
+  a window of its own. Nothing public changes.
 - **NEW.** A command plugin can be given as C# source: a `.cs` file, or a folder of them, loads as a `.dll` does (the
   `Plugins` folder, PLUGINLOAD/NETLOAD, the startup list, PLUGINRELOAD), compiled by Roslyn when it loads, on .NET 8 only.
   Other libraries are named with `//#r "Name.dll"` lines. The build is cached in `%LocalAppData%\OpenCAD2D\PluginCache` by
