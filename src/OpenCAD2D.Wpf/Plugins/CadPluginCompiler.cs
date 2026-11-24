@@ -19,10 +19,11 @@ namespace OpenCAD2D.Wpf.Plugins
     /// <remarks>
     /// What the .csproj says is read by <see cref="CadPluginProject"/>, and the sources are compiled against the .NET 8
     /// runtime the app runs on (its own assemblies and WPF's), GeometryHelper, OpenCAD2D.Core and OpenCAD2D.Wpf, and the .dll
-    /// files its references name inside the plugin's folder. Where the .csproj is silent, C# is the latest the compiler knows,
-    /// nullable off and no implicit usings; warnings of the compiler are dropped. The cache key takes the app's version, the
-    /// runtime's version, the .csproj, each source's path from the folder and bytes, and each referenced .dll's name and
-    /// bytes.
+    /// files its references name inside the plugin's folder and the assemblies of the NuGet packages it names (restored
+    /// from nuget.org into the packages folder after asking: see <see cref="ConfirmDownload"/>). Where the .csproj is
+    /// silent, C# is the latest the compiler knows, nullable off and no implicit usings; warnings of the compiler are
+    /// dropped. The cache key takes the app's version, the runtime's version, the .csproj, each source's path from the
+    /// folder and bytes, each referenced .dll's name and bytes, and each package's id, version and SHA-512.
     /// </remarks>
     public sealed class CadPluginCompiler
     {
@@ -30,6 +31,7 @@ namespace OpenCAD2D.Wpf.Plugins
         public const int MaxErrors = 20;
 
         private readonly string _appVersion;
+        private CadPackageRestorer _restorer;
 
         /// <summary>Initializes a compiler that caches its builds in a folder.</summary>
         /// <param name="cacheFolder">The cache folder; the app gives <see cref="DefaultCacheFolder"/>.</param>
@@ -38,6 +40,13 @@ namespace OpenCAD2D.Wpf.Plugins
 
         /// <summary>Initializes a compiler with the app's version given, which the tests change.</summary>
         internal CadPluginCompiler(string cacheFolder, string appVersion)
+            : this(cacheFolder, appVersion, null) { }
+
+        /// <summary>Initializes a compiler with the restorer of packages given, which the tests point at a folder of their own.</summary>
+        internal CadPluginCompiler(string cacheFolder, CadPackageRestorer restorer)
+            : this(cacheFolder, AppVersion(), restorer) { }
+
+        private CadPluginCompiler(string cacheFolder, string appVersion, CadPackageRestorer restorer)
         {
             if (string.IsNullOrEmpty(cacheFolder))
             {
@@ -46,6 +55,7 @@ namespace OpenCAD2D.Wpf.Plugins
 
             CacheFolder = Path.GetFullPath(cacheFolder);
             _appVersion = appVersion ?? string.Empty;
+            _restorer = restorer;
         }
 
         /// <summary>Gets the cache folder of the app: <c>%LocalAppData%\OpenCAD2D\PluginCache</c>.</summary>
@@ -60,6 +70,14 @@ namespace OpenCAD2D.Wpf.Plugins
         public string CacheFolder { get; }
 
         /// <summary>
+        /// Gets or sets what is asked before the packages of a plugin are downloaded: given the plugin's name and its
+        /// packages, it says whether to download them from nuget.org, as a dialog that lists them does. Null, as it is until
+        /// set, downloads none: a plugin whose packages are not all in the cache is refused. It is not asked where every
+        /// package is in the cache.
+        /// </summary>
+        public Func<string, IReadOnlyList<CadPackage>, bool> ConfirmDownload { get; set; }
+
+        /// <summary>
         /// Compiles a plugin, or takes the build from the cache where its .csproj, sources and libraries are unchanged since the
         /// last compile. A plugin Stairs whose folder holds Stairs.csproj gives <c>&lt;cache&gt;\Stairs\&lt;key&gt;.dll</c> and
         /// its .pdb; a reference to an unknown name on line 12, column 9 of Stairs.cs gives a failed build with the error
@@ -70,8 +88,16 @@ namespace OpenCAD2D.Wpf.Plugins
         /// <param name="projectPath">The path of the plugin's .csproj; its folder holds the sources.</param>
         /// <returns>The assembly built or found in the cache, with the warnings about the project, or the errors that kept it from being built.</returns>
         /// <exception cref="ArgumentException">There is no name or no project.</exception>
-        public CadPluginBuild Compile(string name, string projectPath)
+        /// <exception cref="CadPluginException">The plugin's packages are not in the cache and were not to be downloaded
+        /// (<c>Stairs was not loaded: its packages were not downloaded.</c>), or nuget.org could not be reached
+        /// (<c>Stairs was not loaded: nuget.org could not be reached (...). Connect and run PLUGINRELOAD Stairs.</c>).</exception>
+        public CadPluginBuild Compile(string name, string projectPath) => Compile(name, projectPath, out _);
+
+        /// <summary>Compiles a plugin and gives the packages it runs with, which the loader hands its load context.</summary>
+        internal CadPluginBuild Compile(string name, string projectPath, out CadPackageSet packages)
         {
+            packages = CadPackageSet.None;
+
             if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentException("A plugin's name is needed.", nameof(name));
@@ -91,8 +117,24 @@ namespace OpenCAD2D.Wpf.Plugins
                 return Failed(errors);
             }
 
-            string key = Key(project);
             string folder = Path.Combine(CacheFolder, Safe(name));
+            packages = CadPackageSet.Obtain(
+                _restorer ?? (_restorer = CadPackageRestorer.Default()),
+                folder,
+                name,
+                project,
+                ConfirmDownload,
+                errors,
+                warnings
+            );
+
+            if (errors.Count > 0)
+            {
+                return Failed(errors);
+            }
+
+            warnings.AddRange(AboveTheApp(name, packages));
+            string key = Key(project, packages);
             string dll = Path.Combine(folder, key + ".dll");
             string pdb = Path.Combine(folder, key + ".pdb");
 
@@ -102,7 +144,7 @@ namespace OpenCAD2D.Wpf.Plugins
                 return new CadPluginBuild(dll, pdb, true, warnings);
             }
 
-            CadPluginEmit emit = CadPluginRoslyn.Compile(project);
+            CadPluginEmit emit = CadPluginRoslyn.Compile(project, References(packages));
 
             if (emit.Errors.Count > 0)
             {
@@ -112,16 +154,17 @@ namespace OpenCAD2D.Wpf.Plugins
             Directory.CreateDirectory(folder);
             Write(pdb, emit.Pdb);
             Write(dll, emit.Assembly);
-            Prune(folder, key);
+            Prune(folder, key, project.Packages.Count > 0 ? CadPackageSet.ListFileName(project.Bytes) : null);
             return new CadPluginBuild(dll, pdb, false, warnings);
         }
 
         /// <summary>
         /// The cache key, 64 hex digits: the SHA-256 of a format tag, the app's version, the runtime's version, the .csproj's
         /// bytes, then each source (its path from the folder, its length, its bytes) in ordinal order of the paths, then each
-        /// referenced .dll (its name, its length, its bytes) in order of the paths.
+        /// referenced .dll (its name, its length, its bytes) in order of the paths, then each package restored (its id, its
+        /// version, its SHA-512) in ordinal order of the id; a plugin with no packages takes nothing more than it did.
         /// </summary>
-        internal string Key(CadPluginProject project)
+        internal string Key(CadPluginProject project, CadPackageSet packages)
         {
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
             {
@@ -142,8 +185,57 @@ namespace OpenCAD2D.Wpf.Plugins
                     AppendBytes(hash, File.ReadAllBytes(library));
                 }
 
+                foreach (string part in packages.KeyParts)
+                {
+                    AppendText(hash, part);
+                }
+
                 return Convert.ToHexString(hash.GetHashAndReset());
             }
+        }
+
+        /// <summary>The assemblies of the packages to compile against: all but those of a name the app has itself, which the plugin is built against and runs on as they are.</summary>
+        private static IReadOnlyList<string> References(CadPackageSet packages)
+        {
+            var references = new List<string>();
+
+            foreach (string path in packages.CompilePaths)
+            {
+                if (CadPluginAssemblyLoader.SharedVersion(AssemblyName.GetAssemblyName(path)) == null)
+                {
+                    references.Add(path);
+                }
+            }
+
+            return references;
+        }
+
+        /// <summary>A line for each package assembly that is a higher version than the app's own copy it runs on: <c>Stairs asks System.Text.Json 9.0.0; the app runs 8.0.0.</c></summary>
+        private static IEnumerable<string> AboveTheApp(string name, CadPackageSet packages)
+        {
+            var lines = new List<string>();
+
+            foreach (KeyValuePair<CadPackageEntry, string> asset in packages.RuntimePaths)
+            {
+                AssemblyName own = AssemblyName.GetAssemblyName(asset.Value);
+                Version app = CadPluginAssemblyLoader.SharedVersion(own);
+                string line =
+                    name
+                    + " asks "
+                    + asset.Key.Id
+                    + " "
+                    + asset.Key.Version
+                    + "; the app runs "
+                    + app?.ToString(3)
+                    + ".";
+
+                if (app != null && own.Version > app && !lines.Contains(line))
+                {
+                    lines.Add(line);
+                }
+            }
+
+            return lines;
         }
 
         private static CadPluginBuild Failed(List<CadPluginError> errors)
@@ -167,12 +259,17 @@ namespace OpenCAD2D.Wpf.Plugins
             File.Move(temporary, path, true);
         }
 
-        /// <summary>Deletes the other builds of a plugin in the cache; one in use stays.</summary>
-        private static void Prune(string folder, string key)
+        /// <summary>Deletes the other builds of a plugin in the cache, and the lists of packages of other .csproj files; one in use stays.</summary>
+        private static void Prune(string folder, string key, string list)
         {
             foreach (string file in Directory.GetFiles(folder))
             {
-                if (Path.GetFileName(file).StartsWith(key + ".", StringComparison.OrdinalIgnoreCase))
+                string name = Path.GetFileName(file);
+
+                if (
+                    name.StartsWith(key + ".", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(name, list, StringComparison.OrdinalIgnoreCase)
+                )
                 {
                     continue;
                 }

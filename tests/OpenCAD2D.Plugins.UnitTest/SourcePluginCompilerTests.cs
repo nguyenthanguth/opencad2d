@@ -290,6 +290,59 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
         [Fact]
+        public void UsingRemove_TakesOutAnImplicitUsing_AndAnEarlierUsingInclude()
+        {
+            string source =
+                "namespace Stairs { class A { object M() => new List<int>().Select(x => x).Count(); Task T() => Task.CompletedTask; Version V; } }\n";
+
+            CadPluginBuild kept = Compile(
+                Project(
+                    "using-kept",
+                    SourceProject.Csproj(
+                        new[] { "<ImplicitUsings>enable</ImplicitUsings>" },
+                        new[] { "<Using Include=\"System\" />" }
+                    ),
+                    "A.cs",
+                    source
+                ),
+                "Kept"
+            );
+            CadPluginBuild removed = Compile(
+                Project(
+                    "using-removed",
+                    SourceProject.Csproj(
+                        new[] { "<ImplicitUsings>enable</ImplicitUsings>" },
+                        new[]
+                        {
+                            "<Using Include=\"System.Threading.Tasks\" />",
+                            "<Using Remove=\"System.Threading.Tasks\" />",
+                            "<Using Remove=\"System.Linq\" />",
+                        }
+                    ),
+                    "A.cs",
+                    source
+                ),
+                "Removed"
+            );
+
+            Assert.True(kept.Succeeded, Failure(kept));
+            Assert.False(removed.Succeeded);
+            Assert.Equal(3, removed.ErrorCount);
+            Assert.StartsWith(
+                "A.cs(1,60): error CS1061: 'List<int>' does not contain a definition for 'Select'",
+                removed.Errors[0]
+            );
+            Assert.StartsWith(
+                "A.cs(1,84): error CS0246: The type or namespace name 'Task' could not be found",
+                removed.Errors[1]
+            );
+            Assert.Equal(
+                "A.cs(1,96): error CS0103: The name 'Task' does not exist in the current context",
+                removed.Errors[2]
+            );
+        }
+
+        [Fact]
         public void LangVersion_IsReadFromTheProject_AndAnUnknownOneIsAnError()
         {
             string switchExpression = "namespace Stairs { class A { int M(int x) => x switch { 1 => 2, _ => 3 }; } }\n";
@@ -684,7 +737,7 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
         [Fact]
-        public void APackageOfTheHost_IsTheAppsOwn_AnyOtherPackageIsRefusedUntilNuGetComes()
+        public void APackageOfTheHost_IsTheAppsOwn_AndNothingIsDownloadedForIt()
         {
             string[] host =
             {
@@ -696,32 +749,9 @@ namespace OpenCAD2D.Plugins.UnitTest
             string source = "namespace Stairs { public class A { } }\n";
 
             CadPluginBuild own = Compile(Project("package-host", SourceProject.Csproj(items: host), "A.cs", source));
-            CadPluginBuild other = Compile(
-                Project(
-                    "package-other",
-                    SourceProject.Csproj(
-                        items: new[]
-                        {
-                            "<PackageReference Include=\"OpenCAD2D.Core\" Version=\"1.0.0\" />",
-                            "<PackageReference Include=\"Newtonsoft.Json\" Version=\"13.0.3\" />",
-                        }
-                    ),
-                    "A.cs",
-                    source
-                ),
-                "Other"
-            );
 
             Assert.True(own.Succeeded, Failure(own));
             Assert.Empty(own.Warnings);
-            Assert.False(other.Succeeded);
-            Assert.Equal(
-                new[]
-                {
-                    "Stairs.csproj(7,10): error OC0002: <PackageReference Include=\"Newtonsoft.Json\"> is refused: NuGet comes with TF3.",
-                },
-                other.Errors
-            );
         }
 
         [Fact]
