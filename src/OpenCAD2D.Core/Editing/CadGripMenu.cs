@@ -22,7 +22,7 @@ namespace OpenCAD2D
         /// <summary>The middle of a straight segment: asks for the arc's middle and makes the segment an arc.</summary>
         ConvertToArc,
 
-        /// <summary>The middle of an arc segment: asks for a pick ("Pick to convert to line segment:") and makes it straight.</summary>
+        /// <summary>The middle of an arc segment: makes it straight at once, with no prompt, as AutoCAD 2021 does.</summary>
         ConvertToLine,
 
         /// <summary>An end of a line or an arc: asks for the new end, which keeps the line's way or the arc's centre and radius.</summary>

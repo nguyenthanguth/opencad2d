@@ -284,41 +284,31 @@ namespace OpenCAD2D.UnitTest
             );
 
         [Fact]
-        public void ConvertToLineFromTheMenu_AsksForAPick_AsAutoCADsStringSays_AndAPointMakesTheSegmentStraight()
+        public void ConvertToLineFromTheMenu_MakesTheArcSegmentStraightAtOnce_WithNoPrompt_AsOneUndoStep()
         {
             CadDocument document = ArcPolyline();
             CadCommandSession session = Session(document);
             session.Tolerance = Tolerance.Default;
+            document.Selection.Set(new[] { "M1" });
+            Assert.Equal(1.0, Entity<DxfPolyline>(document, "M1").GetBulgeAt(0));
 
             Assert.True(session.StartGripAction("M1", 3, CadGripAction.ConvertToLine));
 
-            Assert.True(session.IsRunning);
-            Assert.Equal("** CONVERT TO LINE **", session.History.Last());
-            Assert.Equal("Pick to convert to line segment:", session.PromptText);
-            Assert.Equal(1.0, Entity<DxfPolyline>(document, "M1").GetBulgeAt(0));
-
-            Run(session, P(50, -50));
-
+            // AutoCAD 2021 straightens the segment at once: no pick asked, the bulge 0, the vertices where they were.
             Assert.False(session.IsRunning);
-            Assert.Equal(0.0, Entity<DxfPolyline>(document, "M1").GetBulgeAt(0));
+            Assert.Null(session.Prompt);
+            DxfPolyline polyline = Entity<DxfPolyline>(document, "M1");
+            Assert.Equal(0.0, polyline.GetBulgeAt(0));
+            Assert.Equal(3, polyline.NumberOfVertices);
+            Near(P(0, 0), polyline.GetPoint2dAt(0));
+            Near(P(100, 0), polyline.GetPoint2dAt(1));
+            Near(P(100, 100), polyline.GetPoint2dAt(2));
+            Assert.Equal(new[] { "M1" }, document.Selection.Handles.ToArray());
             Assert.Equal("GRIP", document.NextUndo.Name);
+
             Assert.True(document.Undo());
             Assert.False(document.CanUndo);
             Assert.Equal(1.0, Entity<DxfPolyline>(document, "M1").GetBulgeAt(0));
-        }
-
-        [Fact]
-        public void ConvertToLineFromTheMenu_EscAtItsPromptLeavesTheArcSegmentAsItWas()
-        {
-            CadDocument document = ArcPolyline();
-            CadCommandSession session = Session(document);
-
-            Assert.True(session.StartGripAction("M1", 3, CadGripAction.ConvertToLine));
-            Run(session, Esc);
-
-            Assert.False(session.IsRunning);
-            Assert.Equal(1.0, Entity<DxfPolyline>(document, "M1").GetBulgeAt(0));
-            Assert.False(document.CanUndo);
         }
     }
 }

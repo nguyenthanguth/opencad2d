@@ -632,7 +632,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
-        public void RemoveVertexFromTheMenu_TakesTheVertexOutAtOnce_ConvertToLineAsksForAPick_OneUndoStepEach()
+        public void RemoveVertexAndConvertToLineFromTheMenu_ActAtOnce_OneUndoStepEach()
         {
             CadDocument document = Rectangle();
             CadCommandSession session = Session(document);
@@ -650,10 +650,8 @@ namespace OpenCAD2D.UnitTest
             Assert.True(document.Undo());
             Assert.True(CadGrips.ConvertToArc(document, "R1", 4, P(50, -20)).Succeeded);
             Assert.True(session.StartGripAction("R1", 4, CadGripAction.ConvertToLine));
-            Assert.True(session.IsRunning);
-            Assert.Equal("Pick to convert to line segment:", session.PromptText);
-            Run(session, P(50, 5));
             Assert.False(session.IsRunning);
+            Assert.Null(session.Prompt);
             Assert.Equal(0.0, Poly(document).GetBulgeAt(0));
         }
 

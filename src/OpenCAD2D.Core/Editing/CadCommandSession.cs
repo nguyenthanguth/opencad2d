@@ -504,8 +504,8 @@ namespace OpenCAD2D
         /// point or [Base point/Copy/Undo/eXit]:", the polyline drawn with the vertex at the cursor, and puts the vertex after
         /// the grip's vertex (with Copy on it asks again, each vertex after the last, until eXit or Enter; Undo takes the last
         /// one back). Convert to Arc asks "** CONVERT TO ARC **" and "Specify midpoint of arc segment:" and makes the segment the arc
-        /// through the point; Convert to Line asks "** CONVERT TO LINE **" and "Pick to convert to line segment:" and makes the
-        /// segment straight at a pick. Remove Vertex takes the vertex out at once, asking nothing (a spline's fit point or control vertex likewise).
+        /// through the point; Convert to Line makes the arc
+        /// segment straight at once, asking nothing. Remove Vertex takes the vertex out at once, asking nothing (a spline's fit point or control vertex likewise).
         /// A line's or an arc's end offers Lengthen ("** LENGTHEN **",
         /// "Specify end point:"), the middle of an arc Radius ("** RADIUS **", "Specify radius:"), a hatch Hatch Scale, Hatch Angle
         /// and Origin Point, a spline's point its own Add Vertex ("** ADD FIT POINT **" or "** ADD CONTROL VERTEX **"). Lengthen
