@@ -44,6 +44,14 @@ namespace OpenCAD2D.Wpf.Plugins
         private readonly Dictionary<string, CadPackageSet> _packages = new Dictionary<string, CadPackageSet>(
             StringComparer.OrdinalIgnoreCase
         );
+
+        /// <summary>
+        /// The load contexts of the plugins loaded and not unloaded. A collectible context is held by the runtime only weakly,
+        /// and its finalizer starts the unloading: where nothing holds it, a collection puts it in the state of unloading while
+        /// its plugin is in use, and a library the plugin first asks for after that is refused (<c>AssemblyLoadContext is
+        /// unloading</c>).
+        /// </summary>
+        private readonly List<AssemblyLoadContext> _contexts = new List<AssemblyLoadContext>();
 #endif
 
         /// <summary>Initializes the loader of the app: on .NET 8 plugins given as C# source are cached in <c>%LocalAppData%\OpenCAD2D\PluginCache</c>.</summary>
@@ -131,6 +139,11 @@ namespace OpenCAD2D.Wpf.Plugins
                 packages ?? CadPackageSet.None
             );
 
+            lock (_contexts)
+            {
+                _contexts.Add(context);
+            }
+
             try
             {
                 foreach (string file in files)
@@ -143,12 +156,14 @@ namespace OpenCAD2D.Wpf.Plugins
             }
             catch
             {
+                Release(context);
                 context.Unload();
                 throw;
             }
 
             if (loaded.Count == 0)
             {
+                Release(context);
                 context.Unload();
             }
 
@@ -165,7 +180,16 @@ namespace OpenCAD2D.Wpf.Plugins
 
             if (AssemblyLoadContext.GetLoadContext(assemblies[0]) is PluginContext context)
             {
+                Release(context);
                 context.Unload();
+            }
+        }
+
+        private void Release(AssemblyLoadContext context)
+        {
+            lock (_contexts)
+            {
+                _contexts.Remove(context);
             }
         }
 
