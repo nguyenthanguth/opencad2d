@@ -655,9 +655,13 @@ Plugins\Stairs\                Pythons\StairsPy\
       Part TF4b done 2026-11-24: a tool's python.exe started suspended into a job (killed with the app), control pipes,
       stdout/stderr, Esc then 5 s stop, a crash or hang leaves the app working; `cmd()` nests in the run (one undo step);
       first command 0.37-0.39 s, next 16 ms; Remote 157, Wpf 2527, pytest 710. The window starts no tool yet (TF7)
-- [ ] TF5. A venv per tool and pip (TF-D6 to D9): the venv made, `requirements.txt` and the wheel installed after a
+- [x] TF5. A venv per tool and pip (TF-D6 to D9): the venv made, `requirements.txt` and the wheel installed after a
       yes, errors that say what to do.
       -> verify: tests with a local package index (no network); two tools with two versions of one package both run.
+      Done 2026-11-24: PythonEnvironments (a venv per tool --without-pip + a .pth to the app's package and a shared base made
+      once per Python from the shipped wheels, 1.3 MB), the dry-run list asked before installing, a lower bound pinned with
+      a fallback, the old venv kept when an install fails; venv 75-98 ms, base 1.7 s once, one package 2.1-2.2 s; Wpf 2575.
+      Wired into the app in TF7; live PyPI checked by hand in TF6
 - [ ] TF6. The app (design first in the Design artifact): the question before installing, "Load folder…" in
       Load/Unload Applications, a row's state (needs installing, conflict, installing).
       -> verify: Wpf tests of the question and the rows; the screenshots match the design.

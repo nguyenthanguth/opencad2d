@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Reference Include="System.IO.Compression" />
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
         <ProjectReference Include="..\..\src\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
         <ProjectReference Include="..\..\src\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj" />

@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **NEW.** A venv for each Python tool, and pip to fill it (Tools as folders, TF5). A tool's packages are installed into
+  `%LocalAppData%\OpenCAD2D\python\envs\<name>-<8 hex>`, made from the Python of Global settings or the newest 3.11 to
+  3.15 of the registry (the finder of OpenCAD2D.Python, moved to the window's project without its DLL checks, since a tool needs
+  only `python.exe`), so two tools may pin two versions of one package and both run. The app lists what pip's dry run would
+  install and asks before anything is downloaded (a hook the window sets; with none, nothing is installed and the tool is
+  refused with the line to run by hand). `numpy>=1.26` is installed as `numpy==1.26`, as written where pip has no `1.26` for
+  the Python in use, with no warning; an option line in `requirements.txt` is refused. A missing version or a clash gives pip's
+  lines and changes nothing; a change of `requirements.txt` builds a new venv beside the old and swaps it in, and a failed
+  install keeps the old one. `opencad2d` is not installed in each venv: a `.pth` file puts the app's copy and a shared base
+  (pythonnet, clr_loader, cffi, pycparser, installed once for a Python version from the wheels the app ships in
+  `python\wheels`, 1.3 MB) after the venv's own packages. A venv with its `.pth` takes 75 to 98 ms and 0.54 MB, the base
+  1.7 s once and 2.7 MB. The window does not start tools yet.
+
 - **FIXED.** A .NET 8 plugin could fail with "AssemblyLoadContext is unloading or was already unloaded" when one of its
   commands first used a library of its folder after a garbage collection: the app held the plugin's collectible load
   context only weakly, so a collection began unloading it while the plugin still ran. The app now keeps every plugin's

@@ -83,41 +83,35 @@ namespace OpenCAD2D.Wpf.UnitTest
     }
 
     /// <summary>
-    /// A Python for the tool tests, made with no network: a venv with no pip, in a temporary folder, whose <c>.pth</c> file puts
-    /// the package <c>opencad2d</c> of this repository's source (as the app's own copy is) and a folder with pythonnet and its three
-    /// dependencies (copied from a Python that has them) on the path. A tool runs on coreclr, from the library the build left.
+    /// A Python for the tool tests, made with no network as the app makes a tool's: a venv of the machine's Python in a temporary
+    /// folder (<see cref="PythonEnvironments"/>), whose <c>.pth</c> file puts the package <c>opencad2d</c> of this repository's
+    /// source (as the app's own copy is) and a base with pythonnet and its three dependencies, installed from the wheels the app ships,
+    /// on the path. A tool runs on coreclr, from the library the build left.
     /// </summary>
     public sealed class ToolPython : IDisposable
     {
         public ToolPython()
         {
-            Root = RepositoryRoot();
+            Root = PythonEnvTestSupport.Root;
             Folder = Path.Combine(Path.GetTempPath(), "OpenCAD2D.ToolTests", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(Folder);
-            string site = FindPythonnet(Root, out string maker);
-            string baseFolder = Path.Combine(Folder, "base");
-            Directory.CreateDirectory(baseFolder);
-
-            foreach (string name in new[] { "pythonnet", "clr_loader", "cffi", "pycparser" })
-            {
-                Copy(Path.Combine(site, name), Path.Combine(baseFolder, name));
-            }
-
-            foreach (
-                string file in Directory.GetFiles(site, "_cffi_backend*").Concat(Directory.GetFiles(site, "clr.py"))
-            )
-            {
-                File.Copy(file, Path.Combine(baseFolder, Path.GetFileName(file)));
-            }
-
-            string venv = Path.Combine(Folder, "venv");
-            Run(maker, "-m venv --without-pip \"" + venv + "\"");
-            File.WriteAllText(
-                Path.Combine(venv, "Lib", "site-packages", "opencad2d-tool.pth"),
-                Path.Combine(Root, "src", "python") + "\n" + baseFolder + "\n",
-                new UTF8Encoding(false)
+            var environments = new PythonEnvironments(
+                Path.Combine(Folder, "envs"),
+                PythonEnvTestSupport.SharedBase,
+                PythonEnvTestSupport.AppPython,
+                PythonEnvTestSupport.ShippedWheels
             );
-            Python = Path.Combine(venv, "Scripts", "python.exe");
+            PythonEnvironment venv = environments.Prepare(
+                Tool("_default", string.Empty),
+                PythonEnvTestSupport.MachinePython
+            );
+
+            if (!venv.IsReady)
+            {
+                throw new InvalidOperationException("The venv of the tool tests could not be made: " + venv.Error);
+            }
+
+            Python = venv.Python;
 
             // The library the build leaves, as the wheel takes it: the three assemblies and their support folders.
             string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\')).Parent.Name;
@@ -154,161 +148,6 @@ namespace OpenCAD2D.Wpf.UnitTest
             File.WriteAllText(Path.Combine(folder, "__init__.py"), source, new UTF8Encoding(false));
             File.WriteAllText(Path.Combine(folder, "requirements.txt"), string.Empty);
             return folder;
-        }
-
-        private static string RepositoryRoot()
-        {
-            for (
-                var folder = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-                folder != null;
-                folder = folder.Parent
-            )
-            {
-                if (File.Exists(Path.Combine(folder.FullName, "OpenCAD2D.slnx")))
-                {
-                    return folder.FullName;
-                }
-            }
-
-            throw new InvalidOperationException(
-                "The folder of OpenCAD2D.slnx is not above " + AppDomain.CurrentDomain.BaseDirectory + "."
-            );
-        }
-
-        /// <summary>
-        /// A site-packages that has pythonnet, clr_loader, cffi and pycparser, and the python.exe to make a venv from that goes
-        /// with it (a different Python would not take the compiled cffi): the venv the Python suite makes (here or in the
-        /// repository this is a worktree of), else a Python of the machine, else the one named by <c>OPENCAD2D_TEST_PYTHON</c>.
-        /// </summary>
-        private static string FindPythonnet(string root, out string python)
-        {
-            var found = new List<string>();
-            string named = Environment.GetEnvironmentVariable("OPENCAD2D_TEST_PYTHON");
-
-            if (!string.IsNullOrEmpty(named))
-            {
-                found.Add(Path.GetDirectoryName(Path.GetFullPath(named)));
-            }
-
-            found.Add(Path.Combine(root, "artifacts", "python", "venv", "Scripts"));
-            string main = MainRepository(root);
-
-            if (main != null)
-            {
-                found.Add(Path.Combine(main, "artifacts", "python", "venv", "Scripts"));
-            }
-
-            found.AddRange(PythonsOfTheMachine());
-
-            foreach (string scripts in found)
-            {
-                // A venv's python.exe is in Scripts, with Lib beside it; an installed Python's has Lib beside it too.
-                string exe = Path.Combine(scripts, "python.exe");
-                string home =
-                    File.Exists(Path.Combine(scripts, "python.exe"))
-                    && Directory.Exists(Path.Combine(scripts, "..", "Lib"))
-                        ? Path.GetFullPath(Path.Combine(scripts, ".."))
-                        : Path.GetFullPath(scripts);
-                string site = Path.Combine(home, "Lib", "site-packages");
-
-                if (
-                    File.Exists(exe)
-                    && Directory.Exists(Path.Combine(site, "pythonnet"))
-                    && Directory.Exists(Path.Combine(site, "clr_loader"))
-                    && Directory.Exists(Path.Combine(site, "cffi"))
-                    && Directory.Exists(Path.Combine(site, "pycparser"))
-                )
-                {
-                    python = exe;
-                    return site;
-                }
-            }
-
-            throw new InvalidOperationException(
-                "No Python with pythonnet was found for the tool tests: run tools/python/verify-python.sh once (it makes artifacts/python/venv), or name a python.exe with pythonnet in OPENCAD2D_TEST_PYTHON."
-            );
-        }
-
-        /// <summary>The folder of the repository a worktree belongs to, from the <c>.git</c> file it holds; null where this is no worktree.</summary>
-        private static string MainRepository(string root)
-        {
-            string git = Path.Combine(root, ".git");
-
-            if (!File.Exists(git))
-            {
-                return null;
-            }
-
-            string line = File.ReadAllLines(git).FirstOrDefault(l => l.StartsWith("gitdir:", StringComparison.Ordinal));
-            int worktrees = line == null ? -1 : line.IndexOf("/.git/worktrees/", StringComparison.Ordinal);
-            return worktrees < 0
-                ? null
-                : line.Substring("gitdir:".Length, worktrees - "gitdir:".Length).Trim().Replace('/', '\\');
-        }
-
-        private static IEnumerable<string> PythonsOfTheMachine()
-        {
-            string output;
-
-            try
-            {
-                output = Run("py", "-0p");
-            }
-            catch (System.ComponentModel.Win32Exception)
-            {
-                yield break;
-            }
-
-            foreach (string line in output.Split('\n'))
-            {
-                string path = line.Trim();
-                int exe = path.IndexOf("python.exe", StringComparison.OrdinalIgnoreCase);
-
-                if (exe > 0)
-                {
-                    int start = path.LastIndexOf(' ', exe) + 1;
-                    yield return Path.GetDirectoryName(path.Substring(start, exe + "python.exe".Length - start));
-                }
-            }
-        }
-
-        private static string Run(string program, string arguments)
-        {
-            var start = new ProcessStartInfo(program, arguments)
-            {
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-            };
-
-            using (Process process = Process.Start(start))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-
-                if (!process.WaitForExit(120000) || (process.ExitCode != 0 && program != "py"))
-                {
-                    throw new InvalidOperationException(program + " " + arguments + " failed: " + error);
-                }
-
-                return output;
-            }
-        }
-
-        private static void Copy(string from, string to)
-        {
-            Directory.CreateDirectory(to);
-
-            foreach (string file in Directory.GetFiles(from))
-            {
-                File.Copy(file, Path.Combine(to, Path.GetFileName(file)));
-            }
-
-            foreach (string folder in Directory.GetDirectories(from).Where(d => Path.GetFileName(d) != "__pycache__"))
-            {
-                Copy(folder, Path.Combine(to, Path.GetFileName(folder)));
-            }
         }
     }
 }
