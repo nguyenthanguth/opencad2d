@@ -36,14 +36,15 @@ namespace OpenCAD2D.Plugins
         public virtual bool CanCompile => false;
 
         /// <summary>
-        /// Compiles a plugin given as C# source into an assembly and its PDB, or takes them from the cache where the sources
-        /// are unchanged since they were last compiled. This loader cannot (<see cref="CanCompile"/> is false).
+        /// Compiles a plugin given as a folder with a .csproj into an assembly and its PDB, or takes them from the cache where
+        /// the project and its sources are unchanged since they were last compiled. This loader cannot
+        /// (<see cref="CanCompile"/> is false).
         /// </summary>
-        /// <param name="name">The plugin's name, which names the assembly.</param>
-        /// <param name="sources">The full paths of the .cs files, all in one folder.</param>
+        /// <param name="name">The plugin's name, which names its folder in the cache.</param>
+        /// <param name="projectPath">The full path of the plugin's .csproj; its folder holds the sources.</param>
         /// <returns>The assembly built, or the errors that kept it from being built.</returns>
         /// <exception cref="NotSupportedException">Always: this loader compiles nothing.</exception>
-        public virtual CadPluginBuild Compile(string name, IReadOnlyList<string> sources)
+        public virtual CadPluginBuild Compile(string name, string projectPath)
         {
             throw new NotSupportedException("C# source plugins need the .NET 8 app.");
         }

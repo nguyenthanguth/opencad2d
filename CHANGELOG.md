@@ -59,22 +59,37 @@
   exe). A drawing already open is shown; two opened at once, or one handed over while another opens or a dialog is up,
   wait and open one after the other. A start with no file, or one the running app does not answer within 4 s, still opens
   a window of its own. Nothing public changes.
-- **NEW.** A command plugin can be given as C# source: a `.cs` file, or a folder of them, loads as a `.dll` does (the
-  `Plugins` folder, PLUGINLOAD/NETLOAD, the startup list, PLUGINRELOAD), compiled by Roslyn when it loads, on .NET 8 only.
-  Other libraries are named with `//#r "Name.dll"` lines. The build is cached in `%LocalAppData%\OpenCAD2D\PluginCache` by
-  the SHA-256 of the sources, so a start with unchanged sources compiles nothing; the first compile of a session takes
-  about 0.9 s and a later one about 20 ms for a plugin of 220 lines. A source that does not compile is refused with a line
-  per error, `Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context`, the first 20.
-  `CadPluginLoader.CanCompile` and `Compile`, `CadPluginBuild`, `CadLoadedPlugin.IsSource` and
-  `CadPluginAssemblyLoader(cacheFolder)` are new. The screenshot mode (`--screenshot ... --plugin x.cs`) keeps its
-  builds in its own temporary folder, never `%LocalAppData%\OpenCAD2D\PluginCache`. The app ships a sample,
-  `Plugins\Stairs.cs` (the command `STAIRS` of the plugin guide), compiled at the first start after an install or an
-  upgrade and cached after; delete the file to remove it.
-- **NEW.** Load/Unload Applications takes C# source: Load… (now `Load… (.lsp, .dll, .cs)`), NETLOAD's Open dialog and a
-  drop on the table load a `.cs`; its row has the Kind `C# source` in light purple and a chip of its own, `C# source 1`
-  (`Plugins` counts the .dll plugins only). A source that does not compile shows **Stairs.cs** `did not compile: 2 errors.`
-  and the first error on the red line, with `Every error is on the command line` on the right and every error in its tooltip.
-- **FIXED.** `OpenCAD2D.exe --screenshot ... --plugin x.dll` (and `x.cs`) rewrote the user's `%AppData%\OpenCAD2D\settings.json`
+- **NEW.** A command plugin can be given as C# source: a folder with a `.csproj` loads as a `.dll` does (the `Plugins`
+  folder, PLUGINLOAD/NETLOAD of the folder or its `.csproj`, the startup list, PLUGINRELOAD), compiled by Roslyn when it
+  loads, on .NET 8 only, and Visual Studio builds the same folder. The app reads the `.csproj` with no MSBuild: the sources
+  are every `.cs` below the folder but `bin\` and `obj\`, less `<Compile Remove>`; `AssemblyName`, `Version` (written into
+  the assembly as the SDK does, 1.0.0 where there is none, so the plugin loads as `Stairs 1.0.0`), `LangVersion`, `Nullable`,
+  `ImplicitUsings`, `UseWPF`, `UseWindowsForms`, `<Using>`, `DefineConstants`, `AllowUnsafeBlocks` and
+  `GenerateAssemblyInfo` are read, the symbols are the SDK's for `net8.0-windows` Release, a `<Reference>` takes a
+  `HintPath` to a `.dll` inside the folder (a name of the app's own is its own, whatever its `HintPath`), and a
+  `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Remote`, `OpenCAD2D.Wpf` or `GeometryHelper` is the app's own and
+  downloads nothing. What is not read is a line of the load log, and the plugin loads: an element with a `Condition`
+  (`Stairs.csproj: <PropertyGroup Condition="..."> was not read (conditions are not evaluated).`), a
+  `Directory.Build.props` in the folder, a `$(...)` in a value, a target framework that is not .NET 8. What cannot be
+  read is refused with a line per error in the form of a compiler's (`Stairs.csproj(7,10): error OC0002: ...`): a
+  `<ProjectReference>`, a package with no version or any other package (NuGet comes later), `EnableDefaultCompileItems`
+  false, a `<Compile Include>` or a `HintPath` outside the folder. A lone `.cs`, a folder of `.cs` files with no
+  `.csproj`, and a folder with two `.csproj` files are refused, saying how to make a plugin of them. The build is cached
+  in `%LocalAppData%\OpenCAD2D\PluginCache` by the SHA-256 of the `.csproj`, the sources and the libraries, so a start with
+  unchanged files compiles nothing; the first compile of a session takes about 0.9 s and a later one about 20 ms for a
+  plugin of 220 lines. A source that does not compile is refused with a line per error,
+  `Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context`, the first 20.
+  `CadPluginLoader.CanCompile` and `Compile(name, projectPath)`, `CadPluginBuild` (with `Warnings`),
+  `CadLoadedPlugin.IsSource` and `CadPluginAssemblyLoader(cacheFolder)` are new. The screenshot mode
+  (`--screenshot ... --plugin Stairs`) keeps its builds in its own temporary folder, never
+  `%LocalAppData%\OpenCAD2D\PluginCache`. The app ships a sample, the folder `Plugins\Stairs` (the command `STAIRS` of the
+  plugin guide, from `examples/Stairs`), compiled at the first start after an install or an upgrade and cached after;
+  delete the folder to remove it.
+- **NEW.** Load/Unload Applications takes C# source: a `.csproj` loaded with Load… or dropped on the table loads its
+  folder; the row has the Kind `C# source` in light purple and a chip of its own, `C# source 1` (`Plugins` counts the
+  .dll plugins only). A source that does not compile shows **Stairs.csproj** `did not compile: 2 errors.` and the first
+  error on the red line, with `Every error is on the command line` on the right and every error in its tooltip.
+- **FIXED.** `OpenCAD2D.exe --screenshot ... --plugin x.dll` (and a source plugin's folder) rewrote the user's `%AppData%\OpenCAD2D\settings.json`
   with default settings plus the application it remembered. A screenshot now keeps its settings, tool palettes, plot
   styles and LISP registry in a folder of its own, `%TEMP%\OpenCAD2D\ScreenshotSettings\<process id>`, and never reads
   or writes the user's.

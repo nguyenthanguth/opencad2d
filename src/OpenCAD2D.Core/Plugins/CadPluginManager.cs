@@ -568,8 +568,16 @@ namespace OpenCAD2D.Plugins
                 return Refuse(action, path, path, false, "\"" + path + "\" is not a path: " + exception.Message);
             }
 
-            string file = Path.GetFileName(full);
             string extension = Path.GetExtension(full);
+
+            // The .csproj of a plugin stands for its folder.
+            if (string.Equals(extension, ".csproj", StringComparison.OrdinalIgnoreCase) && File.Exists(full))
+            {
+                full = Path.GetDirectoryName(full);
+                extension = string.Empty;
+            }
+
+            string file = Path.GetFileName(full);
             bool isFolder = Directory.Exists(full);
             bool isDll = !isFolder && string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase);
             bool isCs = !isFolder && string.Equals(extension, ".cs", StringComparison.OrdinalIgnoreCase);
@@ -581,7 +589,57 @@ namespace OpenCAD2D.Plugins
                     file,
                     full,
                     false,
-                    "There is no plugin " + full + ": a plugin is a .dll, a .cs, or the folder of one."
+                    "There is no plugin " + full + ": a plugin is a .dll, a .csproj, or the folder of one."
+                );
+            }
+
+            if (isCs)
+            {
+                string stem = Path.GetFileNameWithoutExtension(full);
+                return Refuse(
+                    action,
+                    stem,
+                    full,
+                    IsTrusted(full),
+                    file
+                        + " is a lone source file: a C# plugin is a folder with a .csproj. Put it in Plugins\\"
+                        + stem
+                        + "\\ with "
+                        + stem
+                        + ".csproj (see the plugin guide)."
+                );
+            }
+
+            // A folder with a .csproj is a plugin given as source, whatever .dll files lie beside it; a folder with .cs files and
+            // no .csproj is not one.
+            List<string> projects = isFolder ? ProjectsOf(full) : new List<string>();
+
+            if (projects.Count > 1)
+            {
+                return Refuse(
+                    action,
+                    file,
+                    full,
+                    IsTrusted(full),
+                    full
+                        + " holds "
+                        + projects.Count.ToString(CultureInfo.InvariantCulture)
+                        + " .csproj files: a plugin folder holds one."
+                );
+            }
+
+            if (projects.Count == 0 && isFolder && SourcesOf(full).Count > 0 && DllsOf(full).Count == 0)
+            {
+                return Refuse(
+                    action,
+                    file,
+                    full,
+                    IsTrusted(full),
+                    "The folder "
+                        + full
+                        + " holds .cs files and no .csproj: a C# plugin is a folder with a .csproj. Add "
+                        + file
+                        + ".csproj to it (see the plugin guide)."
                 );
             }
 
@@ -648,13 +706,9 @@ namespace OpenCAD2D.Plugins
                 }
             }
 
-            // A folder with a .cs directly in it is a plugin given as source; its .dll files are what its //#r lines name.
-            List<string> sources =
-                isCs ? new List<string> { full }
-                : isFolder ? SourcesOf(full)
-                : new List<string>();
+            string project = projects.Count == 1 ? projects[0] : null;
 
-            if (sources.Count > 0 && !_loader.CanCompile)
+            if (project != null && !_loader.CanCompile)
             {
                 return Refuse(
                     action,
@@ -677,13 +731,12 @@ namespace OpenCAD2D.Plugins
             int sequence = _loads;
             IReadOnlyList<Assembly> assemblies = null;
             CadPlugin plugin = null;
+            var buildWarnings = new List<string>();
 
             try
             {
                 List<string> files =
-                    sources.Count > 0
-                        ? Build(name, sources, isFolder ? full : null, copies)
-                        : Copy(full, isFolder, copies);
+                    project != null ? Build(name, project, copies, buildWarnings) : Copy(full, isFolder, copies);
                 assemblies = _loader.Load(name, files, isFolder ? null : Path.GetDirectoryName(full));
 
                 // The folder files beside the plugin are read from: where it was loaded from.
@@ -708,7 +761,8 @@ namespace OpenCAD2D.Plugins
                 return Refuse(action, name, full, trusted, reason, exception is CadPluginException ? null : exception);
             }
 
-            var warnings = new List<string>(plugin.Problems);
+            var warnings = new List<string>(buildWarnings);
+            warnings.AddRange(plugin.Problems);
 
             if (!_loader.CanUnload && FirstBuildKept(assemblies, copies))
             {
@@ -734,7 +788,7 @@ namespace OpenCAD2D.Plugins
             bool installed = IsInThePluginFolder(full);
             var entry = new CadLoadedPlugin(name, full, manifest, installed, trusted)
             {
-                IsSource = sources.Count > 0,
+                IsSource = project != null,
                 Plugin = plugin,
                 Assemblies = assemblies,
                 ShadowFolder = copies,
@@ -771,13 +825,15 @@ namespace OpenCAD2D.Plugins
         }
 
         /// <summary>
-        /// Compiles a plugin given as source (or takes its build from the cache) and puts the assembly and its PDB, named after
-        /// the plugin, into its folder of copies, with the files of its folder where it is one; the assembly to load. Errors
-        /// refuse it with a line <c>Plugin Stairs was not loaded: 1 error</c> and a line per error.
+        /// Compiles a plugin given as a folder with a .csproj (or takes its build from the cache) and puts the assembly and its
+        /// PDB, named after the plugin, into its folder of copies, with the files of its folder, but for its bin and obj, and its
+        /// libraries (the .dll files below it) beside them where they are found; the assembly to load. Errors refuse it with a
+        /// line <c>Plugin Stairs was not loaded: 1 error</c> and a line per error; what the project holds that is not read is
+        /// added to <paramref name="warnings"/>.
         /// </summary>
-        private List<string> Build(string name, List<string> sources, string folder, string copies)
+        private List<string> Build(string name, string project, string copies, List<string> warnings)
         {
-            CadPluginBuild build = _loader.Compile(name, sources);
+            CadPluginBuild build = _loader.Compile(name, project);
 
             if (!build.Succeeded)
             {
@@ -793,13 +849,10 @@ namespace OpenCAD2D.Plugins
                 );
             }
 
+            warnings.AddRange(build.Warnings);
             Directory.CreateDirectory(copies);
-
-            if (folder != null)
-            {
-                CopyFolder(folder, copies);
-            }
-
+            CopyFolder(Path.GetDirectoryName(project), copies, true);
+            CopyLibraries(copies);
             string dll = Path.Combine(copies, Safe(name) + ".dll");
 
             if (File.Exists(dll))
@@ -819,8 +872,31 @@ namespace OpenCAD2D.Plugins
             return new List<string> { dll };
         }
 
+        /// <summary>The .csproj files directly in a folder, in ordinal order; <c>*.csproj</c> alone would take "x.csproj2" too.</summary>
+        private static List<string> ProjectsOf(string folder) => Sorted(FilesOf(folder, ".csproj"));
+
         /// <summary>The .cs files directly in a folder, in ordinal order; <c>*.cs</c> alone would take "x.csx" too.</summary>
         private static List<string> SourcesOf(string folder) => Sorted(FilesOf(folder, ".cs"));
+
+        /// <summary>
+        /// Puts each .dll found below a folder of copies beside the others, the first of a name in ordinal order of the paths
+        /// winning, so that a <c>&lt;Reference HintPath="libs\Foo.dll"&gt;</c> is found when the plugin asks for Foo at run time.
+        /// </summary>
+        private static void CopyLibraries(string copies)
+        {
+            var found = new List<string>(Directory.GetFiles(copies, "*.dll", SearchOption.AllDirectories));
+            found.Sort(StringComparer.Ordinal);
+
+            foreach (string library in found)
+            {
+                string beside = Path.Combine(copies, Path.GetFileName(library));
+
+                if (!File.Exists(beside))
+                {
+                    File.Copy(library, beside);
+                }
+            }
+        }
 
         /// <summary>Copies a plugin's files into its folder of copies; the .dll files to load, in ordinal order.</summary>
         private static List<string> Copy(string path, bool isFolder, string copies)
@@ -850,7 +926,8 @@ namespace OpenCAD2D.Plugins
             return files;
         }
 
-        private static void CopyFolder(string from, string to)
+        /// <summary>Copies a folder and the folders below it; <paramref name="project"/> leaves out its bin and obj, which a build of the project wrote.</summary>
+        private static void CopyFolder(string from, string to, bool project = false)
         {
             Directory.CreateDirectory(to);
 
@@ -861,7 +938,20 @@ namespace OpenCAD2D.Plugins
 
             foreach (string folder in Directory.GetDirectories(from))
             {
-                CopyFolder(folder, Path.Combine(to, Path.GetFileName(folder)));
+                string name = Path.GetFileName(folder);
+
+                if (
+                    project
+                    && (
+                        string.Equals(name, "bin", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(name, "obj", StringComparison.OrdinalIgnoreCase)
+                    )
+                )
+                {
+                    continue;
+                }
+
+                CopyFolder(folder, Path.Combine(to, name));
             }
         }
 
@@ -979,7 +1069,8 @@ namespace OpenCAD2D.Plugins
             {
                 return File.Exists(Path.Combine(folder, CadPluginManifest.FileName))
                     || DllsOf(folder).Count > 0
-                    || SourcesOf(folder).Count > 0;
+                    || SourcesOf(folder).Count > 0
+                    || ProjectsOf(folder).Count > 0;
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {
@@ -1132,7 +1223,7 @@ namespace OpenCAD2D.Plugins
 
         private IEnumerable<CadPrompt> LoadByPath(CadCommandContext c)
         {
-            yield return CadPrompt.ForString("Enter the path of a plugin (.dll, .cs or its folder)");
+            yield return CadPrompt.ForString("Enter the path of a plugin (.dll, .csproj or its folder)");
 
             if (c.Input.Kind != CadInputKind.Text || string.IsNullOrWhiteSpace(c.Input.Text))
             {

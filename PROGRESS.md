@@ -621,14 +621,19 @@ Plugins\Stairs\                Pythons\StairsPy\
 | TF-D17 | A command run of an out-of-process tool is one undo step and Esc stops it, as in the app today: the Remote channel gains a command scope (begin, end, cancel) that the run holds. A tool process that crashes or hangs never takes the app down; the app can stop it, and the run's changes are taken back. | recommended 2026-11-24 |
 | TF-D18 | The cost is accepted: 0.2 to 0.3 s at a tool's first command, and a round trip per call (about 17 ms for SendCommand, 0.15 s for 1 000 inserts queued and committed); a tool that makes many calls batches them (the array API). | accepted by the maintainer 2026-11-24 |
 
-- [ ] TF1. Research and the spec: how Rhino 8 (`# r:`, `#r "nuget:"`), pyRevit, Blender extensions and dotnet-script
+- [x] TF1. Research and the spec: how Rhino 8 (`# r:`, `#r "nuget:"`), pyRevit, Blender extensions and dotnet-script
       get a script's libraries; the NuGet client libraries (Apache-2.0) for a restore without the SDK; `pip --dry-run
       --report` for conflicts; the way of TF-D14 measured; the spec with numbered decisions in `.claude/scratch/tf/spec.md`.
       -> verify: the comparison and the spec written; TF-D14 settled with numbers.
-- [ ] TF2. C# plugins as folders with a `.csproj` (TF-D1 to D3, D10 to D13 for C#): the `.csproj` read, sources below
+      Done 2026-11-24: spec S1-S44 in `.claude/scratch/tf/spec.md`; a tool process starts and connects in 0.295-0.314 s
+      (0.36-0.37 s with numpy), 66 MB kept; two tools with numpy 2.3.5 and 2.4.4 ran side by side; NuGet.Protocol 7.9.0
+      resolves as `dotnet restore` does (3.68 MB); Q1-Q8 taken as recommended
+- [x] TF2. C# plugins as folders with a `.csproj` (TF-D1 to D3, D10 to D13 for C#): the `.csproj` read, sources below
       the folder, `<Reference HintPath>`, the lone `.cs` and `//#r` dropped, the Stairs sample moved.
       -> verify: a sample that Visual Studio builds runs in the app with the same commands; a lone `.cs` is refused with
          its line; the cache key changes with the `.csproj`.
+      Done 2026-11-24: CadPluginProject reads the .csproj (S1-S11); the lone .cs and `//#r` refused; examples/Stairs
+      builds with `dotnet build` and runs in the app (`Steps: 18`); Plugins 59 (net8) + 100 (net48), Wpf 2512, pytest 697 x2
 - [ ] TF3. NuGet (TF-D4, D8, D9): restore, dependencies, framework choice, native assets, the cache, asking first.
       -> verify: tests against a local package source in a temporary folder (no network); two plugins with two versions
          of one package both run; the host's own packages are never downloaded.

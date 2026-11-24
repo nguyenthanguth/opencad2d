@@ -1036,7 +1036,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- C# source plugins (CS4)
 
         /// <summary>
-        /// A loader that compiles as the app on .NET 8 does, without the compiler: a .cs with <c>x = 1</c> in it gives two
+        /// A loader that compiles as the app on .NET 8 does, without the compiler: a .csproj with <c>x = 1</c> in it gives two
         /// errors, any other gives the sample plugin's .dll. The window's tests run on .NET Framework, which compiles nothing;
         /// the compiler itself is tested in OpenCAD2D.Plugins.UnitTest on .NET 8.
         /// </summary>
@@ -1064,8 +1064,8 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             public override void Unload(IReadOnlyList<Assembly> assemblies) => _inner.Unload(assemblies);
 
-            public override CadPluginBuild Compile(string name, IReadOnlyList<string> sources) =>
-                File.ReadAllText(sources[0]).Contains("x = 1")
+            public override CadPluginBuild Compile(string name, string projectPath) =>
+                File.ReadAllText(projectPath).Contains("x = 1")
                     ? new CadPluginBuild(
                         2,
                         new[]
@@ -1074,10 +1074,10 @@ namespace OpenCAD2D.Wpf.UnitTest
                             "Stairs.cs(13,9): error CS0103: The name 'y' does not exist in the current context",
                         }
                     )
-                    : new CadPluginBuild(_dll, _pdb, false);
+                    : new CadPluginBuild(_dll, _pdb, false, Array.Empty<string>());
         }
 
-        /// <summary>A drawing open with a manager over <see cref="SourceLoader"/>, and Stairs.cs written in a folder it trusts.</summary>
+        /// <summary>A drawing open with a manager over <see cref="SourceLoader"/>, and Stairs\Stairs.csproj written in a folder it trusts (the fake compiler reads what the .csproj holds).</summary>
         private MainViewModel WithSources(string source, out string stairs, out CadPluginManager manager)
         {
             string built = Path.Combine(_folder.FullPath, "built");
@@ -1086,7 +1086,8 @@ namespace OpenCAD2D.Wpf.UnitTest
             File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SamplePlugin", SampleName + ".dll"), dll);
             File.WriteAllText(Path.ChangeExtension(dll, ".pdb"), string.Empty);
             manager = Manager(out _, loader: new SourceLoader(dll, Path.ChangeExtension(dll, ".pdb")));
-            stairs = Path.Combine(_folder.FullPath, "dev", "Stairs.cs");
+            stairs = Path.Combine(_folder.FullPath, "dev", "Stairs", "Stairs.csproj");
+            Directory.CreateDirectory(Path.GetDirectoryName(stairs));
             File.WriteAllText(stairs, source);
             var model = new MainViewModel { SettingsPath = SettingsFile };
             model.UsePlugins(manager, loadAtStart: false);
@@ -1096,7 +1097,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void ACSharpSource_IsARowOfKindCSharpSource_WithAChipOfItsOwn()
+        public void ACSharpSourceProject_IsARowOfKindCSharpSource_WithAChipOfItsOwn()
         {
             MainViewModel model = WithSources("// Stairs", out string stairs, out _);
             AppLoadViewModel dialog = Shown(model);
@@ -1107,7 +1108,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal("C# source", row.Kind);
             Assert.True(row.IsPlugin);
             Assert.True(row.IsOn);
-            Assert.Equal(stairs, row.File);
+            Assert.Equal(Path.GetDirectoryName(stairs), row.File);
             Assert.Equal("All 2", dialog.AllChipText);
             Assert.Equal("Plugins 0", dialog.PluginChipText);
             Assert.Equal("C# source 1", dialog.SourceChipText);
@@ -1121,7 +1122,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void ACSharpSourceDropped_LoadsAsOneLoadedWithLoad()
+        public void ACSharpSourceProjectDropped_LoadsAsOneLoadedWithLoad()
         {
             MainViewModel model = WithSources("// Stairs", out string stairs, out CadPluginManager manager);
             AppLoadViewModel dialog = Shown(model);
@@ -1133,6 +1134,26 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void ALoneCs_IsRefused_WithTheLineThatSaysHowToMakeItAFolderWithACsproj()
+        {
+            MainViewModel model = WithSources("// Stairs", out string stairs, out CadPluginManager manager);
+            string lone = Path.Combine(_folder.FullPath, "dev", "Lone.cs");
+            File.WriteAllText(lone, "// Lone");
+            AppLoadViewModel dialog = Shown(model);
+
+            dialog.Load(new[] { lone });
+
+            string line =
+                "Lone.cs is a lone source file: a C# plugin is a folder with a .csproj. Put it in Plugins\\Lone\\ with Lone.csproj (see the plugin guide).";
+            Assert.True(dialog.HasLoadError);
+            Assert.Equal("Lone.cs", dialog.LoadErrorName);
+            Assert.Equal(" failed to load: " + line, dialog.LoadErrorText);
+            Assert.Contains(line, model.History);
+            Assert.DoesNotContain(dialog.Rows, r => r.Name == "Lone");
+            Assert.Null(manager.Find("Lone"));
+        }
+
+        [Fact]
         public void ACSharpSourceThatDoesNotCompile_ShowsTheCountAndTheFirstError_AndEveryErrorInTheTooltipAndOnTheCommandLine()
         {
             MainViewModel model = WithSources("        x = 1;", out string stairs, out _);
@@ -1141,7 +1162,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             dialog.Load(new[] { stairs });
 
             Assert.True(dialog.HasLoadError);
-            Assert.Equal("Stairs.cs", dialog.LoadErrorName);
+            Assert.Equal("Stairs.csproj", dialog.LoadErrorName);
             Assert.Equal(
                 " did not compile: 2 errors. Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context",
                 dialog.LoadErrorText
@@ -1179,7 +1200,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             AppLoadRow row = Row(dialog, "Stairs");
             Assert.Equal("C# source", row.Kind);
             Assert.False(row.IsOn);
-            Assert.Equal("Stairs.cs", dialog.LoadErrorName);
+            Assert.Equal("Stairs", dialog.LoadErrorName);
             Assert.Equal(
                 " did not compile: 2 errors. Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context",
                 dialog.LoadErrorText

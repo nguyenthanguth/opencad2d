@@ -108,7 +108,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 {
                     string room = folder.Write("room.dxf", TestFiles.Room(out _, out _));
                     string png = Path.Combine(folder.FullPath, "stairs.png");
-                    string plugin = folder.WriteText(name + ".cs", source);
+                    string plugin = SourceFolder(folder, name, source);
 
                     (int code, string output) = RunApp(
                         "--screenshot",
@@ -124,14 +124,15 @@ namespace OpenCAD2D.Wpf.UnitTest
                     Assert.False(Directory.Exists(userCache), userCache + " was written by a screenshot.");
 
                     // A source that does not compile exits with 2 and the error on the output.
-                    string broken = folder.WriteText(
-                        name + "b.cs",
+                    string broken = SourceFolder(
+                        folder,
+                        name + "b",
                         source.Replace("            c.Write(", "            x = 1;\n            c.Write(")
                     );
                     (int failed, string why) = RunApp("--screenshot", png, "--plugin", broken);
                     Assert.Equal(2, failed);
                     Assert.Contains(
-                        name + "b.cs(12,13): error CS0103: The name 'x' does not exist in the current context",
+                        "Stairs.cs(12,13): error CS0103: The name 'x' does not exist in the current context",
                         why
                     );
                     Assert.False(Directory.Exists(userCache + "b"), userCache + "b was written by a screenshot.");
@@ -147,6 +148,19 @@ namespace OpenCAD2D.Wpf.UnitTest
                     }
                 }
             }
+        }
+
+        /// <summary>A plugin given as source: the folder <paramref name="name"/> with Stairs.csproj and Stairs.cs in it; its path.</summary>
+        private static string SourceFolder(TestFolder folder, string name, string source)
+        {
+            string path = Path.Combine(folder.FullPath, name);
+            Directory.CreateDirectory(path);
+            File.WriteAllText(
+                Path.Combine(path, "Stairs.csproj"),
+                "<Project Sdk=\"Microsoft.NET.Sdk\">\n    <PropertyGroup>\n        <TargetFramework>net8.0-windows</TargetFramework>\n    </PropertyGroup>\n</Project>\n"
+            );
+            File.WriteAllText(Path.Combine(path, "Stairs.cs"), source);
+            return path;
         }
 
         [Fact]

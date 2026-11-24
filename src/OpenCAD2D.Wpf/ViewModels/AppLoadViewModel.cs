@@ -622,10 +622,10 @@ namespace OpenCAD2D.Wpf
         private static bool IsPython(string path) =>
             string.Equals(Path.GetExtension(path), ".py", StringComparison.OrdinalIgnoreCase);
 
-        /// <summary>Whether a plugin known from an earlier run is given as C# source: a .cs, or a folder with a .cs directly in it.</summary>
+        /// <summary>Whether a plugin known from an earlier run is given as C# source: a .csproj, or a folder with a .csproj directly in it.</summary>
         private static bool IsSource(string path)
         {
-            if (string.Equals(Path.GetExtension(path), ".cs", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(Path.GetExtension(path), ".csproj", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -635,7 +635,7 @@ namespace OpenCAD2D.Wpf
                 return Directory.Exists(path)
                     && Directory
                         .GetFiles(path)
-                        .Any(f => string.Equals(Path.GetExtension(f), ".cs", StringComparison.OrdinalIgnoreCase));
+                        .Any(f => string.Equals(Path.GetExtension(f), ".csproj", StringComparison.OrdinalIgnoreCase));
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             {

@@ -367,7 +367,7 @@ namespace OpenCAD2D.Plugins.UnitTest
 
                 Assert.False(refused.Succeeded);
                 Assert.Equal(
-                    "There is no plugin " + package + ": a plugin is a .dll, a .cs, or the folder of one.",
+                    "There is no plugin " + package + ": a plugin is a .dll, a .csproj, or the folder of one.",
                     refused.Message
                 );
                 Assert.Empty(manager.LoadAtStart());
@@ -388,7 +388,7 @@ namespace OpenCAD2D.Plugins.UnitTest
 
                 session.Feed("NETLOAD");
 
-                Assert.Equal("Enter the path of a plugin (.dll, .cs or its folder):", session.PromptText);
+                Assert.Equal("Enter the path of a plugin (.dll, .csproj or its folder):", session.PromptText);
             }
         }
     }

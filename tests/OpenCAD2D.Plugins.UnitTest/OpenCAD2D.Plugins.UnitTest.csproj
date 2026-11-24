@@ -60,10 +60,16 @@
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />
-        <!-- The sample the app ships as Plugins\Stairs.cs: a test holds the guide's example to it. -->
+        <!-- The sample the app ships as Plugins\Stairs: a test holds the guide's example to it and loads it. -->
         <None
-            Include="..\..\examples\Stairs.cs"
-            Link="Stairs\Stairs.cs.txt"
+            Include="..\..\examples\Stairs\StairsCommands.cs"
+            Link="Stairs\StairsCommands.cs.txt"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\examples\Stairs\Stairs.csproj"
+            Link="Stairs\Stairs.csproj.txt"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />

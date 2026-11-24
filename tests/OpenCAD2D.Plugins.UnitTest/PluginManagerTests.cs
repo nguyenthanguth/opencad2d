@@ -326,7 +326,7 @@ namespace OpenCAD2D.Plugins.UnitTest
                 CadCommandSession session = PluginFiles.Session(PluginFiles.Circles(), registry);
 
                 session.Feed("NETLOAD");
-                Assert.Equal("Enter the path of a plugin (.dll, .cs or its folder):", session.PromptText);
+                Assert.Equal("Enter the path of a plugin (.dll, .csproj or its folder):", session.PromptText);
                 session.Feed("\"" + path + "\"");
                 Assert.NotNull(registry.Find("NUMCIRCLES"));
 
@@ -505,7 +505,7 @@ namespace OpenCAD2D.Plugins.UnitTest
 
                 Assert.False(refused.Succeeded);
                 Assert.Equal(
-                    "There is no plugin " + path + ": a plugin is a .dll, a .cs, or the folder of one.",
+                    "There is no plugin " + path + ": a plugin is a .dll, a .csproj, or the folder of one.",
                     refused.Message
                 );
             }
