@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -26,7 +27,12 @@ namespace OpenCAD2D.Wpf
     /// <para>
     /// <c>app.exe plan.dxf</c> opens the window on a drawing, reads the global settings from the user's file and loads the
     /// command plugins of the <c>Plugins</c> folder beside the app (<see cref="CadSupportKind.Plugins"/>) and of the startup list
-    /// kept in <see cref="PluginFolder"/>.
+    /// kept in <see cref="PluginFolder"/>. Where the app already runs for the same Windows user, a start with a file does not
+    /// open a second window: it hands the file's full path to the running app, which opens it as a new drawing (a drawing
+    /// already open is shown) and comes to the front, and the new start exits with 0. A drawing handed over while another
+    /// still opens, or a dialog is up, waits and opens when the app can. A start with no file, or one the running app does not
+    /// answer within 4 seconds (1 to connect, 3 to answer), opens a window of its own. The running app is found by the app's
+    /// name and the session, not by its exe.
     /// </para>
     /// <para>
     /// <c>app.exe --register</c> associates .dxf and .dwg files with the app for the user alone, under
@@ -141,15 +147,17 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Runs the app on the STA thread of its entry point: the window until it is closed, or the screenshot where the first
         /// argument is <c>--screenshot</c>, or the association of drawing files where it is <c>--register</c> or
-        /// <c>--unregister</c>.
+        /// <c>--unregister</c>. Where the app already runs, a start with a file hands the file to it and returns 0 with no window
+        /// of its own.
         /// </summary>
         /// <param name="args">
         /// The command-line arguments: a DXF file to open, <c>--screenshot</c> and its options, <c>--register</c> or
         /// <c>--unregister</c>.
         /// </param>
         /// <returns>
-        /// The exit code: the window's; for a screenshot 0 when written and 2 for arguments or a file it cannot read; for
-        /// <c>--register</c> and <c>--unregister</c> 0 when done and 1 when the registry refused.
+        /// The exit code: the window's; 0 for a file handed to the running app; for a screenshot 0 when written and 2 for
+        /// arguments or a file it cannot read; for <c>--register</c> and <c>--unregister</c> 0 when done and 1 when the registry
+        /// refused.
         /// </returns>
         public int Run(string[] args)
         {
@@ -172,6 +180,34 @@ namespace OpenCAD2D.Wpf
                 return Associate(args[0], new CadRegistryUserClasses(), exe, Console.Out);
             }
 
+            // The first app of the name claims the channel at once, before its settings and plugins load, so that a drawing
+            // opened from Explorer meanwhile is handed on; a start with a file that finds it taken hands the file over and ends.
+            Dispatcher ui = Dispatcher.CurrentDispatcher;
+            CadForwardedFiles forwarded = null;
+            CadAppWindow window = null;
+            string channelName = CadLaunchChannel.NameFor(AppName);
+            CadLaunchChannel channel = CadLaunchChannel.TryClaim(channelName, path => ui.BeginInvoke(
+                    new Action(() =>
+                    {
+                        BringToFront(window);
+                        forwarded.Add(path);
+                    })
+                ));
+            string forward = channel == null ? CadLaunchChannel.FileToForward(args) : null;
+
+            if (
+                forward != null
+                && CadLaunchChannel.TryForward(
+                    channelName,
+                    forward,
+                    CadLaunchChannel.ConnectTimeout,
+                    CadLaunchChannel.AnswerTimeout
+                )
+            )
+            {
+                return 0;
+            }
+
             var app = new Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
             var model = new MainViewModel
             {
@@ -179,7 +215,7 @@ namespace OpenCAD2D.Wpf
                 FilterListsPath = Path.Combine(PluginFolder, "filter.nfl"),
                 SpellDictionaryPath = Path.Combine(Path.GetDirectoryName(GlobalSettings.DefaultPath), "sample.cus"),
             };
-            var window = new CadAppWindow(model, AppName);
+            window = new CadAppWindow(model, AppName);
 
             // An exception nobody catches is written to crash.log; one of the window's thread is shown and the app goes on.
             CadCrashLog.Install(app, AppName, () => model.Session?.LastCommandName);
@@ -285,6 +321,27 @@ namespace OpenCAD2D.Wpf
                 model.Open(file);
             }
 
+            // A drawing handed over by a later start opens when no other is opening and no dialog is up, and is tried again
+            // when either ends; a command running does not hold it back, as clicking another drawing's tab does not.
+            forwarded = new CadForwardedFiles(
+                () => !model.IsOpening && !ComponentDispatcher.IsThreadModal,
+                p => model.Open(p)
+            );
+            Action retry = forwarded.Retry;
+            model.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(MainViewModel.IsOpening))
+                {
+                    ui.BeginInvoke(DispatcherPriority.Background, retry);
+                }
+            };
+            ComponentDispatcher.LeaveThreadModal += (s, e) => ui.BeginInvoke(DispatcherPriority.Background, retry);
+
+            if (channel != null)
+            {
+                window.Closed += (s, e) => channel.Dispose();
+            }
+
             // Other programs drive the app through a pipe of its own, while Global settings allow it; a failure to open the
             // pipe leaves the app running without it.
             CadRemoteSwitch remote = StartRemote(model, window);
@@ -295,10 +352,25 @@ namespace OpenCAD2D.Wpf
             }
             finally
             {
+                channel?.Dispose();
                 remote.Stop();
                 model.DisposePython();
                 plugins.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Brings the window to the front for a drawing handed over: restored if minimized, then activated. The start that
+        /// handed it over let this process take the foreground.
+        /// </summary>
+        private static void BringToFront(Window window)
+        {
+            if (window.WindowState == WindowState.Minimized)
+            {
+                window.WindowState = WindowState.Normal;
+            }
+
+            window.Activate();
         }
 
         /// <summary>
