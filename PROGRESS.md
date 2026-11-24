@@ -582,6 +582,63 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
       C1, decided by recommendation: the setup ships only the sample's .dll; its .cs is in `examples/` and the guide
       and Plugins\README.txt say how to load it in place of the .dll.
 
+#### Tools as folders (planned 2026-11-24)
+
+Asked for by the maintainer on 2026-11-24: a tool that needs libraries must be able to say so. Every tool of the
+`Plugins` and `Pythons` folders becomes a folder of its own: a C# plugin a folder with a `.csproj` (its NuGet packages
+in `<PackageReference>`), a Python tool a folder with a `requirements.txt`. The one-file forms (a `.cs` or a `.py`
+directly in `Plugins` or `Pythons`) are dropped. A built `.dll` plugin, alone or as a folder (`dotnet publish`), stays as
+it is. The same folder is what the Share website will carry.
+
+```
+Plugins\Stairs\                Pythons\StairsPy\
+    Stairs.csproj  (required)      requirements.txt  (required, may be empty)
+    StairsCommands.cs              __init__.py       (runs when the tool loads)
+    Geometry\Steps.cs              steps.py
+    plugin.json    (optional)      plugin.json       (optional)
+```
+
+| # | Decision | State |
+|---|---|---|
+| TF-D1 | A C# plugin is a folder with exactly one `.csproj`. The app does not build it with the .NET SDK (not on users' machines): it reads the `.csproj` and compiles with Roslyn as CS1-CS5 do. | agreed by the maintainer 2026-11-24 |
+| TF-D2 | Read from the `.csproj`: `AssemblyName`, `Version`, `LangVersion`, `Nullable`, `ImplicitUsings`, `<PackageReference>`, `<Reference HintPath>`, `<Compile Remove>`. The sources are the SDK's default: every `*.cs` in the folder and below, but `bin\` and `obj\`; what Visual Studio builds, the app compiles. | agreed 2026-11-24 |
+| TF-D3 | `//#r` lines are dropped: `<Reference>` and `<PackageReference>` of the `.csproj` take their place. | agreed 2026-11-24 |
+| TF-D4 | A `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Wpf` or `GeometryHelper` is the app's own and is not downloaded. Other packages are restored from nuget.org into `%LocalAppData%\OpenCAD2D\NuGet` (net8.0, else netstandard2.0; dependencies and native assets included) and loaded into the plugin's own load context, so two plugins may use two versions of one library. This reverses CS-D3's "no NuGet packages". | agreed 2026-11-24 |
+| TF-D5 | A Python tool is a folder with `requirements.txt` and `__init__.py`; a folder without `requirements.txt` stays a package the tools import, as today. | agreed 2026-11-24 |
+| TF-D6 | The app keeps a Python environment of its own (a venv in `%LocalAppData%\OpenCAD2D\python`, made from the Python found), never the user's Python. How tools that need different versions of one library are run is TF-D14. | agreed 2026-11-24 |
+| TF-D7 | Before installing, conflicts are found (`pip install --dry-run --report`); a tool whose requirements conflict is never installed over another tool's libraries. | agreed 2026-11-24 |
+| TF-D8 | Nothing is downloaded or installed without asking: the packages and versions are listed and the user says yes, asked again when the list changes. Offline: a clear error and the command to run by hand. | agreed 2026-11-24 |
+| TF-D9 | Exact versions are recommended (`==`, `Version="13.0.3"`); a range is taken with a warning. | agreed 2026-11-24 |
+| TF-D10 | PLUGINLOAD/NETLOAD/APPLOAD/PYLOAD take a tool's folder, or its `.csproj` / `requirements.txt`; a lone `.cs` is refused with a line saying how to make it a folder. PYRUN (run a script once, as SCRIPT) still takes a lone `.py`. | agreed 2026-11-24 |
+| TF-D11 | The build cache's key (CS-D4) also takes the `.csproj` and the resolved package list; an unchanged tool neither compiles nor installs again. | agreed 2026-11-24 |
+| TF-D12 | The samples take the new shape: `Plugins\Stairs.cs` becomes `Plugins\Stairs\` with `Stairs.csproj`, `Pythons\GH-DrawingInfo.py` becomes `Pythons\GH-DrawingInfo\`; `examples\` holds them so that Visual Studio opens and builds them. | agreed 2026-11-24 |
+| TF-D13 | **BREAKING** in the CHANGELOG: a one-file tool in `Plugins` or `Pythons` no longer loads; the log says why and the guide says how to convert it. | agreed 2026-11-24 |
+| TF-D14 | Two Python tools that need two versions of one library (numpy 1.26 and 2.1) both run. | asked by the maintainer 2026-11-24; the way to do it is being decided (one Python process cannot hold two numpy versions) |
+
+- [ ] TF1. Research and the spec: how Rhino 8 (`# r:`, `#r "nuget:"`), pyRevit, Blender extensions and dotnet-script
+      get a script's libraries; the NuGet client libraries (Apache-2.0) for a restore without the SDK; `pip --dry-run
+      --report` for conflicts; the way of TF-D14 measured; the spec with numbered decisions in `.claude/scratch/tf/spec.md`.
+      -> verify: the comparison and the spec written; TF-D14 settled with numbers.
+- [ ] TF2. C# plugins as folders with a `.csproj` (TF-D1 to D3, D10 to D13 for C#): the `.csproj` read, sources below
+      the folder, `<Reference HintPath>`, the lone `.cs` and `//#r` dropped, the Stairs sample moved.
+      -> verify: a sample that Visual Studio builds runs in the app with the same commands; a lone `.cs` is refused with
+         its line; the cache key changes with the `.csproj`.
+- [ ] TF3. NuGet (TF-D4, D8, D9): restore, dependencies, framework choice, native assets, the cache, asking first.
+      -> verify: tests against a local package source in a temporary folder (no network); two plugins with two versions
+         of one package both run; the host's own packages are never downloaded.
+- [ ] TF4. Python tools as folders (TF-D5, D10, D12, D13 for Python): the folder found, `__init__.py` run, the lone
+      `.py` in `Pythons` dropped, the GH-DrawingInfo sample moved.
+      -> verify: the sample loads from its folder with the same command and output; a lone `.py` there is not loaded and
+         the log says why.
+- [ ] TF5. The Python environment and pip (TF-D6 to D9, D14): the app's venv, conflicts found before installing,
+      installing after a yes, errors that say what to do.
+      -> verify: tests with a local package index (no network); a conflicting tool refused or run as TF-D14 decides.
+- [ ] TF6. The app (design first in the Design artifact): the question before installing, "Load folder…" in
+      Load/Unload Applications, a row's state (needs installing, conflict, installing).
+      -> verify: Wpf tests of the question and the rows; the screenshots match the design.
+- [ ] TF7. Docs, the CHANGELOG (BREAKING), the setup (its size with the NuGet client before and after).
+      -> verify: the guides' examples run in tests; the setup built and both samples load from the installed app.
+
 #### The website and Share (planned 2026-11-23)
 
 The opencad2d.com website is designed, not built: the Design artifact https://claude.ai/artifact/HzsdochEhENoSD3nzTRxMJ,
