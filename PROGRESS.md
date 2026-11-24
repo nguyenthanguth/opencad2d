@@ -687,9 +687,13 @@ Plugins\Stairs\                Pythons\StairsPy\
       C# half done 2026-11-24: Plugins\DrawingInfo\ as source (the .dll dropped), Plugins\HelloWorld\ new; the first start
       compiles the three in 1.09 to 1.34 s, a start from the cache 61 to 82 ms. Python half done 2026-11-25:
       Pythons\DrawingInfo\ (GHPYINFO, the same lines) and Pythons\HelloWorld\ (PYHELLOWORLD), in examples\Pythons\
-- [ ] TF8. Docs, the CHANGELOG (BREAKING), the setup (its size with the NuGet client and without the embedding, before
+- [x] TF8. Docs, the CHANGELOG (BREAKING), the setup (its size with the NuGet client and without the embedding, before
       and after).
       -> verify: the guides' examples run in tests; the setup built and both samples load from the installed app.
+      Done 2026-11-25: the guides and the CHANGELOG made one consistent set (BREAKING, NEW, CHANGED, FIXED); the setup
+      83,726,648 bytes (79.8 MB; +1.61 MB on CS5: NuGet client +3.06 MB, wheels +1.27 MB, the embedding -0.57 MB), with
+      THIRD-PARTY-NOTICES.md now installed; a probe install compiled and ran the three C# samples, the maintainer's install
+      unchanged. Left: screenshot mode cannot run a Python tool (the installed Python files were checked by import)
 
 #### The website and Share (planned 2026-11-23)
 

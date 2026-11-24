@@ -9,9 +9,11 @@ ribbon buttons the tool adds, so that the app shows them with no Python running;
 
 What loads at start: every folder directly in this folder that holds a requirements.txt, in the order
 of their names, ignoring case. Loading a tool starts no Python and installs nothing. The tool's own
-Python process starts the first time one of its commands is typed (about 0.4 s), after the app has
-asked to install the packages of its requirements.txt where there are any and they are not installed
-yet; each tool has an environment of its own, so two tools may use two versions of one package.
+Python process starts the first time one of its commands is typed (0.37 s; the next command takes
+16 ms), after the app has asked to install the packages of its requirements.txt where there are any
+and they are not installed yet; each tool has a venv of its own (made in under 0.1 s, and the packages
+are installed into it), so two tools may use two versions of one package. The Python is yours: the app
+needs a CPython 3.11 to 3.15, 64-bit, with pip, and brings none.
 
 A folder with no requirements.txt is not a tool: it is a package the tools import. A .py file
 directly in this folder is not loaded: put it in a folder of its own as __init__.py, with a

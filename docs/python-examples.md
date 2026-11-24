@@ -188,6 +188,11 @@ holds: MTEXT 1.` The DWG writer says nothing of what it leaves out: it logs it.
 
 ## Tools of the app
 
+The two tools that ship with the app, `DrawingInfo` (GHPYINFO) and `HelloWorld` (PYHELLOWORLD), are not among the thirteen: they
+are in the app's `Pythons` folder and in `examples\Pythons` of the repository, and [Python commands and
+tools](presenter/python.md#where-tools-load-from) shows what they write. Each tool below is run in a `python.exe` of its own, with a
+venv of its own that its `requirements.txt` fills (these need no package, so their files are empty).
+
 These are folders, each a Python tool with no `main`: the app loads one (PYLOAD of its `requirements.txt`, or the Pythons folder),
 shows the commands its `plugin.json` names, and starts its process at the first command typed. They use
 [`opencad2d.cad`](presenter/python.md) for the prompts and the `Drawing` API, and each command is one undo step, so one `U`

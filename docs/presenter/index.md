@@ -63,7 +63,7 @@ What each line does is on the page that follows.
 | [Editing as AutoCAD does](editing.md) | one edit, one undo step; the command line, its aliases and its commands; object snaps; grips; Properties; layers; saving |
 | [Plotting to PDF](plot.md) | the page setup a layout keeps, named page setups and the Page Setup Manager, the sheet a plot is laid on, the plot style tables, the PDF, printing on a printer of Windows, PLOT, -PLOT, PREVIEW and PAGESETUP |
 | [Owners](owners.md) | the entities a model drawing wrote, and how the presenter asks their owner before it changes one |
-| [Command plugins](plugins.md) | a command written in a .dll, loaded and unloaded while the app runs |
+| [Command plugins](plugins.md) | a command written in C#, as a .dll or as a folder of source with a `.csproj` (and NuGet packages), loaded and unloaded while the app runs; the three sample plugins |
 | [AutoLISP](lisp.md) | the interpreter of each drawing, typing AutoLISP at the command line, `(load)`, APPLOAD, `acad.lsp`, `acaddoc.lsp` and the Startup Suite, and the stages still to come |
 | [Python commands and tools](python.md) | the Pythons folder, tools as folders with a `plugin.json`, APPLOAD, PYLOAD and PYRUN, the venv of each tool, `@command`, the prompts and `cmd`, the `Drawing` API, one undo step for a run, finding Python, Esc and errors |
 | [Settings, autosave and the window](app.md) | global settings as JSON, autosave copies, closing a drawing, the keys, the mouse and the app's command line |

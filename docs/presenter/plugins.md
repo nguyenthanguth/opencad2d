@@ -1,10 +1,12 @@
 # Command plugins
 
-A command written in a .dll of its own, loaded into the presenter while it runs, as AutoCAD's NETLOAD loads one, and
-unloaded or loaded again without a restart where the runtime allows. A plugin is a class whose methods are marked as
-commands; it asks its prompts as the presenter's own commands do, edits through the document, and is held to the same gate
-and the same undo steps. Put the .dll, or a folder with its .dlls, in the app's `Plugins` folder and it is loaded at every
-start, as [below](#where-a-plugin-lives) says.
+A command written in C#, loaded into the presenter while it runs, as AutoCAD's NETLOAD loads one, and unloaded or loaded
+again without a restart where the runtime allows. A plugin is a class whose methods are marked as commands; it asks its
+prompts as the presenter's own commands do, edits through the document, and is held to the same gate and the same undo
+steps. It is given as a .dll, or as a folder of source with a `.csproj` that the app compiles itself ([a plugin as C#
+source](#a-plugin-as-c-source), which may name NuGet packages). Put it in the app's `Plugins` folder and it is loaded at
+every start, as [below](#where-a-plugin-lives) says. Three samples are there already, `HelloWorld`, `DrawingInfo` and
+`Stairs` ([the sample plugins](#the-sample-plugin)).
 
 ## A command
 
@@ -276,8 +278,7 @@ then the project's own `DefineConstants`. Warnings of the compiler are not shown
 folder, a `<ProjectReference>`, a `<PackageReference>` with no version, a `<Reference>` with no `HintPath`, and a
 `<Reference>` whose `HintPath` is outside the folder or not a .dll (`error OC0001: <Reference> takes a .dll inside the tool's folder: '..\x.dll'`);
 one whose .dll is missing is `error CS0006: Metadata file 'libs\x.dll' could not be found`. A file that is not an
-SDK-style project (`<Project Sdk="...">`) is refused too. The `//#r "Name.dll"` lines of the first form of source plugins
-are no longer read: a `<Reference>` takes their place.
+SDK-style project (`<Project Sdk="...">`) is refused too.
 
 **What the source can use.** The .NET 8 runtime the app runs on, WPF, `GeometryHelper`, `OpenCAD2D.Core` and
 `OpenCAD2D.Wpf`, as a .dll plugin can, the libraries the `.csproj` names and the NuGet packages it asks for.
@@ -315,8 +316,8 @@ it with no .NET SDK, as `dotnet restore` does, and compiles and runs the plugin 
 - **Offline.** A source that cannot be reached, or a download that fails, leaves the plugin not loaded:
   `Stairs was not loaded: nuget.org could not be reached (<why>). Connect and run PLUGINRELOAD Stairs.` A package cut short
   does not count: a package is in the cache once its `.sha512` file is written, after everything else.
-  A connection to the source is given up after 5 s, so the line comes within about 10 s even where a firewall drops the
-  packets and nothing answers.
+  A connection to the source is given up after 5 s, so the line comes after about 5 s even where a firewall drops the
+  packets and nothing answers (5 s in two runs, to an address no router carries; Windows alone waits 42.8 s over its two tries).
 - **Where.** The packages are extracted into `%LocalAppData%\OpenCAD2D\NuGet\packages` in the layout of NuGet's global-packages
   folder (`<id>\<version>\`), shared by every plugin, and their signatures are checked as `dotnet restore` checks them. The
   source is nuget.org only: no `nuget.config` is read. The list a plugin resolved to (ids, versions, the SHA-512 of each
@@ -337,7 +338,9 @@ it with no .NET SDK, as `dotnet restore` does, and compiles and runs the plugin 
   of Windows given the one name). So PLUGINRELOAD with a new native version loads the new file beside the old one, which
   stays in memory until the app is closed.
 - **Size.** The NuGet client in the app is `NuGet.Protocol` 7.9.0 (Apache-2.0), the last that targets `net8.0`, with its
-  libraries, `Newtonsoft.Json` and `System.Security.Cryptography.Pkcs`: 3 645 480 bytes in 9 files in the app's folder.
+  libraries and `Newtonsoft.Json` (the runtime of the app carries `System.Security.Cryptography.Pkcs` already): 7 files and
+  3 060 832 bytes (2.9 MB) more in the app's folder ([Installing with the setup](app.md#installing-with-the-setup) has
+  the whole setup). Its notice is in `THIRD-PARTY-NOTICES.md`, which the setup installs beside the app.
 
 **The cache.** The build is kept in `%LocalAppData%\OpenCAD2D\PluginCache\<plugin>`, named by the SHA-256 of the `.csproj`,
 each source's path from the folder and bytes, the referenced libraries, each package's id, version and SHA-512, the app's version and the runtime's version. A
@@ -360,10 +363,9 @@ There is no file watcher: after saving a change, `PLUGINRELOAD` takes it.
 **In the window.** [Load/Unload Applications](lisp.md#appload) lists a source plugin with the Kind `C# source`, in light
 purple, and counts it in a chip of its own, `C# source 1`, after `Plugins`, which counts the .dll plugins only. A
 `.csproj` loaded with Load… or dropped on the table loads its folder, and so does **Load folder…**, which asks for the
-folder with a folder dialog (a folder with a `requirements.txt` is a Python tool and is refused until Python tools load as
-folders: `Survey cannot be loaded: Python tools load in a later build.`). The Open dialog of Load… and of NETLOAD offers
-`C# plugin (*.csproj)`; a lone `.cs` has no file type of its own any more, and one chosen with All files is refused with
-the line that says how to make it a folder. A source that does not compile is not loaded (a
+folder with a folder dialog (a folder with a `requirements.txt` is a [Python tool](python.md#where-tools-load-from) and
+loads as one). The Open dialog of Load… and of NETLOAD offers `C# plugin (*.csproj)`; a lone `.cs` has no file type of its
+own, and one chosen with All files is refused with the line that says how to make it a folder. A source that does not compile is not loaded (a
 reload leaves its row unticked), and the red line under the table reads
 **Stairs.csproj** `did not compile: 2 errors. Stairs.cs(12,9): error CS0103: ...` with `Every error is on the command line`
 on the right; its tooltip holds the whole message.
@@ -474,7 +476,7 @@ the three plugins are loaded from the cache.
 
 The window has no ribbon tab of its own for plugins and no button per command: a plugin's commands are typed at the command
 line, or started by name. A plugin is loaded from the Applications panel of the Manage tab: Load Plugin runs NETLOAD, the
-Open dialog for a `.dll`, and Load Manager opens [Load/Unload Applications](lisp.md#appload) (APPLOAD: a table of the
+Open dialog for a `.dll` or a `.csproj`, and Load Manager opens [Load/Unload Applications](lisp.md#appload) (APPLOAD: a table of the
 plugins and the AutoLISP files, with On, Commands, File and At start, Load…, Reload, Unload and Remove), with a dialog before a load
 outside the trusted folders. The plugin's load
 lines go to the command history, and a plugin that fails to load is also told by the red [load-result line](lisp.md#the-load-result-line) of that window. A plugin's `CadSetting` attributes remain in the plugin API, but the window has no page
