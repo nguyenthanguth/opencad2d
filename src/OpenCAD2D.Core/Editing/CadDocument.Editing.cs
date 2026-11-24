@@ -1041,6 +1041,8 @@ namespace OpenCAD2D
             _ucs?.WriteTo(Database);
             _tiles?.WriteTo(Database);
             StampSaved(Database);
+            // A plotter of the presenter's named as the program was called before is written by its name now.
+            CadPlotSettings.RenameOldDevices(Database);
             var said = new List<string>();
             List<DxfEntity> hidden = ShowIsolated();
             UpdateFields(CadFieldContexts.Save);

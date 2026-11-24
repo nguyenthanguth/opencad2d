@@ -33,7 +33,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the file the hatch takes it from: null for the presenter's own set or a NAME.pat of the user's support folders, else a full path.</summary>
         public string File { get; }
 
-        /// <summary>Gets where it was found, for its tooltip: GeometryHelper.pat or the name of a file of the user's.</summary>
+        /// <summary>Gets where it was found, for its tooltip: OpenCAD2D.pat or the name of a file of the user's.</summary>
         public string Source { get; }
 
         /// <inheritdoc/>
@@ -79,11 +79,7 @@ namespace OpenCAD2D.Wpf
             Title = editing ? "Hatch Editor" : "Hatch Creation";
             CanPickOrigin = true;
             string own = Settings.PatternFile;
-            _patternFile =
-                string.IsNullOrWhiteSpace(own)
-                || string.Equals(own, CadPatternFile.BuiltInName, StringComparison.OrdinalIgnoreCase)
-                    ? null
-                    : own;
+            _patternFile = string.IsNullOrWhiteSpace(own) || CadPatternFile.IsBuiltInName(own) ? null : own;
             _patterns = Find(document, _patternFile, out _fromFile, out string fault);
             _message = fault ?? string.Empty;
             _pattern = Patterns.FirstOrDefault(p =>
@@ -147,7 +143,7 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>
         /// Gets or sets the .pat file chosen by Browse…, whose patterns are offered after the presenter's own and are read from
-        /// it when the hatch is made; null for none, the presenter's own set (GeometryHelper.pat) alone. Set, the patterns are
+        /// it when the hatch is made; null for none, the presenter's own set (OpenCAD2D.pat) alone. Set, the patterns are
         /// listed again and the pattern chosen is kept where it is still offered, else ANSI31 is chosen.
         /// </summary>
         public string PatternFile
@@ -156,10 +152,7 @@ namespace OpenCAD2D.Wpf
             set
             {
                 string file =
-                    string.IsNullOrWhiteSpace(value)
-                    || string.Equals(value.Trim(), CadPatternFile.BuiltInName, StringComparison.OrdinalIgnoreCase)
-                        ? null
-                        : value.Trim();
+                    string.IsNullOrWhiteSpace(value) || CadPatternFile.IsBuiltInName(value) ? null : value.Trim();
 
                 if (!Set(ref _patternFile, file))
                 {
@@ -196,7 +189,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets whether no pattern file is chosen: the presenter's own set alone.</summary>
         public bool IsBuiltInFile => _patternFile == null;
 
-        /// <summary>Gets the words of the Pattern file box: "Built-in (GeometryHelper.pat)", or the path of the file chosen.</summary>
+        /// <summary>Gets the words of the Pattern file box: "Built-in (OpenCAD2D.pat)", or the path of the file chosen.</summary>
         public string PatternFileText => _patternFile ?? "Built-in (" + CadPatternFile.BuiltInName + ")";
 
         /// <summary>

@@ -10,7 +10,7 @@ using Xunit;
 namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// The plot stamp and PDFSHX in GeometryHelper PDF: the stamp's lines written as text at the corner the stamp names and
+    /// The plot stamp and PDFSHX in OpenCAD2D PDF: the stamp's lines written as text at the corner the stamp names and
     /// added to its log, and the words of an SHX font written again over their strokes, found by a reader and not seen.
     /// </summary>
     public class PlotStampAndPdfShxTests : IDisposable

@@ -310,7 +310,7 @@ namespace OpenCAD2D.UnitTest
             Run(session, "Y");
             Assert.Equal("Enter a layout name or [?] <Model>:", session.PromptText);
             Run(session, Enter);
-            Assert.Equal("Enter an output device name or [?] <GeometryHelper PDF>:", session.PromptText);
+            Assert.Equal("Enter an output device name or [?] <OpenCAD2D PDF>:", session.PromptText);
             Run(session, "DWG To PDF.pc3");
             Assert.Contains("not found", session.History.Last());
             Run(session, Enter);
@@ -379,8 +379,8 @@ namespace OpenCAD2D.UnitTest
 
             Run(session, "-PLOT", "Y", Enter);
             Run(session, "?");
-            Assert.Contains("GeometryHelper PNG", session.History);
-            Assert.Contains("GeometryHelper JPG", session.History);
+            Assert.Contains("OpenCAD2D PNG", session.History);
+            Assert.Contains("OpenCAD2D JPG", session.History);
             Run(session, "geometryhelper png");
             Assert.Equal("Enter paper size or [?] <1920 x 1080 Pixels (Full HD)>:", session.PromptText);
             Run(session, "9000 x 10");

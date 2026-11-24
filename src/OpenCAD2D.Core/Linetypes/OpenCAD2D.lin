@@ -1,5 +1,5 @@
-;; GeometryHelper.lin - the 39 built-in linetypes of OpenCAD2D, in millimetres.
-;; A copy for reference and to start your own file from: the name GeometryHelper.lin always means the built-in set,
+;; OpenCAD2D.lin - the 39 built-in linetypes of OpenCAD2D, in millimetres.
+;; A copy for reference and to start your own file from: the name OpenCAD2D.lin always means the built-in set,
 ;; so changing this file changes nothing. Written from the built-in definitions; a test keeps the two equal.
 *DASHED,Dashed __ __ __ __ __ __ __ __
 A,12.7,-6.35

@@ -159,8 +159,24 @@ namespace OpenCAD2D
     /// </summary>
     public static class CadPatternFile
     {
-        /// <summary>The name the presenter's own set goes by: no file has it on disk.</summary>
-        public const string BuiltInName = "GeometryHelper.pat";
+        /// <summary>
+        /// The name the presenter's own set goes by: no file has it on disk. Its old name, GeometryHelper.pat, means it too.
+        /// </summary>
+        public const string BuiltInName = "OpenCAD2D.pat";
+
+        /// <summary>The name the presenter's own set went by before the program was called OpenCAD2D.</summary>
+        private const string OldBuiltInName = "GeometryHelper.pat";
+
+        /// <summary>
+        /// Gets whether a pattern file's name is that of the presenter's own set: <see cref="BuiltInName"/> or its old name,
+        /// GeometryHelper.pat, either case, the spaces around it left out.
+        /// </summary>
+        internal static bool IsBuiltInName(string name)
+        {
+            string trimmed = (name ?? string.Empty).Trim();
+            return string.Equals(trimmed, BuiltInName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(trimmed, OldBuiltInName, StringComparison.OrdinalIgnoreCase);
+        }
 
         // The presenter's own patterns, in millimetres: 3.175 apart for the ANSI ones, 3.175 times the square root of two
         // (4.490128) along the x axis between lines at 45 degrees that far apart.

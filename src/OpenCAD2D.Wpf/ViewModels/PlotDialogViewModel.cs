@@ -22,7 +22,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the printer of Windows this row is; null for a plotter of the presenter's own and None.</summary>
         public IPlotPrinter Printer { get; }
 
-        /// <summary>Gets the name: GeometryHelper PDF, None, or the name Windows gives a printer.</summary>
+        /// <summary>Gets the name: OpenCAD2D PDF, None, or the name Windows gives a printer.</summary>
         public string Name { get; }
 
         /// <summary>Gets what it is, shown after it: "built in", "Windows", "Windows · network".</summary>
@@ -206,7 +206,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Raised when Custom Image Size made a size of the user's own, so that the window keeps it between sessions (<see cref="GlobalSettings.CustomPixelSizes"/>).</summary>
         public event EventHandler<CadPaper> CustomSizeMade;
 
-        /// <summary>Gets whether the plotter is a raster device, GeometryHelper PNG or JPG: sizes in pixels, Plot to file always, the DPI grey.</summary>
+        /// <summary>Gets whether the plotter is a raster device, OpenCAD2D PNG or JPG: sizes in pixels, Plot to file always, the DPI grey.</summary>
         public bool IsRaster => _settings.IsRaster;
 
         /// <summary>Gets whether the plotter is a printer of Windows: the plot is printed on its paper, not written to a file.</summary>
@@ -567,13 +567,13 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
-        /// Gets the plotters of the Printer/plotter list: None greyed, GeometryHelper PDF, PNG and JPG, then the printers of
+        /// Gets the plotters of the Printer/plotter list: None greyed, OpenCAD2D PDF, PNG and JPG, then the printers of
         /// Windows, to choose from.
         /// </summary>
         public IReadOnlyList<PlotDeviceRow> Devices { get; }
 
         /// <summary>
-        /// Gets or sets the plotter chosen, GeometryHelper PDF, PNG or JPG, or a printer of Windows; None is greyed and not
+        /// Gets or sets the plotter chosen, OpenCAD2D PDF, PNG or JPG, or a printer of Windows; None is greyed and not
         /// taken. A raster device starts on 1920 by 1080 pixels, fitted and centred, with no plot style table; going back to the
         /// PDF one gives the sheet it had. A printer takes the sheets it lists, the one of the size the plot was on where it has
         /// it, else its first.
@@ -625,7 +625,7 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>Gets what the plotter is: "GeometryHelper PDF · vector, built in", "GeometryHelper PNG · raster, built in".</summary>
+        /// <summary>Gets what the plotter is: "OpenCAD2D PDF · vector, built in", "OpenCAD2D PNG · raster, built in".</summary>
         public string PlotterText => PlotDeviceText.Plotter(_settings.DeviceName, IsRaster, IsPrinter);
 
         /// <summary>
@@ -1288,7 +1288,7 @@ namespace OpenCAD2D.Wpf
             return Write(path, Document, Space, _settings, _job.Display);
         }
 
-        /// <summary>A plot written by the writer of its device: the image writer for GeometryHelper PNG and JPG, else the PDF writer.</summary>
+        /// <summary>A plot written by the writer of its device: the image writer for OpenCAD2D PNG and JPG, else the PDF writer.</summary>
         internal static CadPlotPage Write(
             string path,
             CadDocument document,

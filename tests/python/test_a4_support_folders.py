@@ -22,5 +22,5 @@ def test_each_support_kind_is_found_inside_the_wheel(lib_dir: Path, kind: str) -
 
 
 def test_the_hatch_and_linetype_folders_hold_the_patterns_the_library_ships(lib_dir: Path) -> None:
-    assert (lib_dir / "Hatches" / "GeometryHelper.pat").is_file()
-    assert (lib_dir / "Linetypes" / "GeometryHelper.lin").is_file()
+    assert (lib_dir / "Hatches" / "OpenCAD2D.pat").is_file()
+    assert (lib_dir / "Linetypes" / "OpenCAD2D.lin").is_file()

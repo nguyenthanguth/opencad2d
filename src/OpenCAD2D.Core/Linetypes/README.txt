@@ -4,9 +4,10 @@ OpenCAD2D - Linetypes folder
 Put linetype files (.lin) in this folder. LINETYPE and -LINETYPE find a file here by its name
 (mine.lin, or just mine), and so does the Load or Reload Linetypes dialog.
 
-GeometryHelper.lin is the built-in set of 39 linetypes, written out in the .lin format as a
+OpenCAD2D.lin is the built-in set of 39 linetypes, written out in the .lin format as a
 model for your own files. It is a copy: changing it changes nothing, because the name
-GeometryHelper.lin always means the built-in set. Copy it under another name to edit it.
+OpenCAD2D.lin always means the built-in set, as does its old name GeometryHelper.lin. Copy it
+under another name to edit it.
 
 Search order for a linetype file:
 

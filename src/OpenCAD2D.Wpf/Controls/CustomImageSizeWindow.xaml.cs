@@ -6,7 +6,7 @@ namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// Custom Image Size (design PlotRasterCustom): the width and the height of an image in pixels, each 16 to 8 000, from
-    /// Custom… of the Paper size list of GeometryHelper PNG or JPG. Its logic is <see cref="CustomImageSizeViewModel"/>.
+    /// Custom… of the Paper size list of OpenCAD2D PNG or JPG. Its logic is <see cref="CustomImageSizeViewModel"/>.
     /// </summary>
     public partial class CustomImageSizeWindow : Window
     {

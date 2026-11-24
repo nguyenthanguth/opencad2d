@@ -4,9 +4,10 @@ OpenCAD2D - Hatches folder
 Put hatch pattern files (.pat) in this folder. The patterns in them are listed by the Hatch
 dialog as files to take a pattern from.
 
-GeometryHelper.pat is the built-in set of 48 patterns, written out in the .pat format as a
+OpenCAD2D.pat is the built-in set of 48 patterns, written out in the .pat format as a
 model for your own files. It is a copy: changing it changes nothing, because the name
-GeometryHelper.pat always means the built-in set. Copy it under another name to edit it.
+OpenCAD2D.pat always means the built-in set, as does its old name GeometryHelper.pat. Copy it
+under another name to edit it.
 
 Search order for a pattern file:
 

@@ -698,10 +698,7 @@ namespace OpenCAD2D.UnitTest
                 Assert.Equal(5.0, t.Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).Max(), 9)
             );
             Assert.Equal(
-                new[]
-                {
-                    "Missing SHX files: romans.shx drawn in GeometryHelper Simplex; txt drawn in GeometryHelper Simplex.",
-                },
+                new[] { "Missing SHX files: romans.shx drawn in OpenCAD2D Simplex; txt drawn in OpenCAD2D Simplex." },
                 said
             );
         }
@@ -782,7 +779,7 @@ namespace OpenCAD2D.UnitTest
             document.GetDisplay(document.ModelSpace);
 
             Assert.Contains(
-                "isocp.shx drawn in GeometryHelper Simplex; romans.shx drawn in GeometryHelper Simplex",
+                "isocp.shx drawn in OpenCAD2D Simplex; romans.shx drawn in OpenCAD2D Simplex",
                 Assert.Single(said)
             );
             Assert.Equal(

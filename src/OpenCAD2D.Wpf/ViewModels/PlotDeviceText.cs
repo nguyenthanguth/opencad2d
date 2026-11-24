@@ -8,7 +8,7 @@ namespace OpenCAD2D.Wpf
     /// </summary>
     internal static class PlotDeviceText
     {
-        /// <summary>What a plotter is: "GeometryHelper PDF · vector, built in", "Office printer · printer of Windows".</summary>
+        /// <summary>What a plotter is: "OpenCAD2D PDF · vector, built in", "Office printer · printer of Windows".</summary>
         internal static string Plotter(string device, bool isRaster, bool isPrinter) =>
             device
             + (

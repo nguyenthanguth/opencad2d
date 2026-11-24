@@ -287,8 +287,25 @@ namespace OpenCAD2D
     /// </summary>
     public static class CadLinetypeFile
     {
-        /// <summary>The name the presenter's own set goes by in the dialogs and on the command line: no file has it on disk.</summary>
-        public const string BuiltInName = "GeometryHelper.lin";
+        /// <summary>
+        /// The name the presenter's own set goes by in the dialogs and on the command line: no file has it on disk. Its old
+        /// name, GeometryHelper.lin, means it too.
+        /// </summary>
+        public const string BuiltInName = "OpenCAD2D.lin";
+
+        /// <summary>The name the presenter's own set went by before the program was called OpenCAD2D.</summary>
+        private const string OldBuiltInName = "GeometryHelper.lin";
+
+        /// <summary>
+        /// Gets whether a linetype file's name is that of the presenter's own set: <see cref="BuiltInName"/> or its old name,
+        /// GeometryHelper.lin, either case, the spaces around it left out.
+        /// </summary>
+        internal static bool IsBuiltInName(string name)
+        {
+            string trimmed = (name ?? string.Empty).Trim();
+            return string.Equals(trimmed, BuiltInName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(trimmed, OldBuiltInName, StringComparison.OrdinalIgnoreCase);
+        }
 
         /// <summary>
         /// The presenter's own linetypes, in millimetres. The 24 that carry the names AutoCAD users type (DASHED, HIDDEN, CENTER,

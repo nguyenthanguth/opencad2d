@@ -57,7 +57,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
                 Assert.True(dialog.IsBuiltInFile);
                 Assert.Null(dialog.PatternFile);
-                Assert.Equal("Built-in (GeometryHelper.pat)", dialog.PatternFileText);
+                Assert.Equal("Built-in (OpenCAD2D.pat)", dialog.PatternFileText);
                 Assert.Equal("48 built-in patterns.", dialog.PatternFileHint);
                 Assert.False(dialog.BuiltInCommand.CanExecute(null));
                 Assert.Equal(48, dialog.Patterns.Count);
@@ -170,7 +170,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
                 Assert.True(load.IsBuiltIn);
                 Assert.Equal(LoadLinetypesViewModel.BuiltInText, load.FileText);
-                Assert.Equal("Built-in (GeometryHelper.lin)", load.FileText);
+                Assert.Equal("Built-in (OpenCAD2D.lin)", load.FileText);
                 Assert.False(load.BuiltInCommand.CanExecute(null));
                 Assert.Equal(39, load.Rows.Count);
 
@@ -270,7 +270,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                         dialog.Explanation
                     );
                     Assert.Equal(
-                        "Text stays in the FONTALT replacement, GeometryHelper Simplex; a big font's letters are drawn as question marks.",
+                        "Text stays in the FONTALT replacement, OpenCAD2D Simplex; a big font's letters are drawn as question marks.",
                         dialog.IgnoreDetail
                     );
 

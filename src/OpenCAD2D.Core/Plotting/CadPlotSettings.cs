@@ -146,24 +146,80 @@ namespace OpenCAD2D
     /// </remarks>
     public sealed class CadPlotSettings
     {
-        /// <summary>The name of the presenter's own plotter, which writes a PDF: "GeometryHelper PDF".</summary>
-        public const string PdfDevice = "GeometryHelper PDF";
+        /// <summary>
+        /// The name of the presenter's own plotter, which writes a PDF: "OpenCAD2D PDF". A drawing or page setup that names
+        /// it by its old name, "GeometryHelper PDF", plots to it too.
+        /// </summary>
+        public const string PdfDevice = "OpenCAD2D PDF";
 
-        /// <summary>The name of the presenter's raster device that writes a PNG, lossless: "GeometryHelper PNG".</summary>
-        public const string PngDevice = "GeometryHelper PNG";
+        /// <summary>The name of the presenter's raster device that writes a PNG, lossless: "OpenCAD2D PNG" ("GeometryHelper PNG" before).</summary>
+        public const string PngDevice = "OpenCAD2D PNG";
 
-        /// <summary>The name of the presenter's raster device that writes a JPEG at a quality of 90: "GeometryHelper JPG".</summary>
-        public const string JpgDevice = "GeometryHelper JPG";
+        /// <summary>The name of the presenter's raster device that writes a JPEG at a quality of 90: "OpenCAD2D JPG" ("GeometryHelper JPG" before).</summary>
+        public const string JpgDevice = "OpenCAD2D JPG";
 
-        /// <summary>Gets whether the plotter is one of the raster devices, GeometryHelper PNG or JPG, whose sheet is an image sized in pixels.</summary>
+        /// <summary>Gets whether the plotter is one of the raster devices, OpenCAD2D PNG or JPG, whose sheet is an image sized in pixels.</summary>
         public bool IsRaster => IsRasterDevice(DeviceName);
 
-        /// <summary>Gets whether a plotter's name is one of the raster devices, either case.</summary>
-        /// <param name="name">The name, as "GeometryHelper PNG".</param>
-        /// <returns>True for GeometryHelper PNG and GeometryHelper JPG.</returns>
-        public static bool IsRasterDevice(string name) =>
-            string.Equals(name, PngDevice, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(name, JpgDevice, StringComparison.OrdinalIgnoreCase);
+        /// <summary>Gets whether a plotter's name is one of the raster devices, either case, by its name or its old one.</summary>
+        /// <param name="name">The name, as "OpenCAD2D PNG".</param>
+        /// <returns>True for OpenCAD2D PNG and OpenCAD2D JPG, and for GeometryHelper PNG and GeometryHelper JPG.</returns>
+        public static bool IsRasterDevice(string name)
+        {
+            string current = CurrentDevice(name);
+            return string.Equals(current, PngDevice, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(current, JpgDevice, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// The name a plotter goes by now: the presenter's own plotters named as the program was called before, GeometryHelper
+        /// PDF, PNG and JPG (either case), give OpenCAD2D PDF, PNG and JPG; any other name, and null, is given back as it is.
+        /// </summary>
+        internal static string CurrentDevice(string name)
+        {
+            string trimmed = (name ?? string.Empty).Trim();
+            return string.Equals(trimmed, "GeometryHelper PDF", StringComparison.OrdinalIgnoreCase) ? PdfDevice
+                : string.Equals(trimmed, "GeometryHelper PNG", StringComparison.OrdinalIgnoreCase) ? PngDevice
+                : string.Equals(trimmed, "GeometryHelper JPG", StringComparison.OrdinalIgnoreCase) ? JpgDevice
+                : name;
+        }
+
+        /// <summary>
+        /// Gives every layout and page setup of a drawing that names a plotter by its old name (GeometryHelper PDF, PNG or
+        /// JPG) the name it goes by now, as a drawing is saved; the others are not touched.
+        /// </summary>
+        internal static void RenameOldDevices(DxfDatabase database)
+        {
+            var all = new List<DxfPlotSettings>();
+
+            try
+            {
+                foreach (DxfLayout layout in database.Layouts)
+                {
+                    all.Add(layout);
+                }
+
+                foreach (KeyValuePair<string, DxfPlotSettings> pageSetup in PageSetups(database))
+                {
+                    all.Add(pageSetup.Value);
+                }
+
+                foreach (DxfPlotSettings settings in all)
+                {
+                    string name = settings.PlotConfigurationName;
+                    string current = CurrentDevice(name);
+
+                    if (!ReferenceEquals(current, name))
+                    {
+                        settings.PlotConfigurationName = current;
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                GeometryHelperLog.Warn("CadPlotSettings: the old plotter names were not renamed.", exception);
+            }
+        }
 
         /// <summary>
         /// Chooses the plotter, as the Name list of the Plot dialog does. A raster device moving from the PDF one starts on
@@ -175,6 +231,7 @@ namespace OpenCAD2D
         /// <exception cref="ArgumentException">Thrown when the name is none of the three.</exception>
         public void UseDevice(string name)
         {
+            name = CurrentDevice(name);
             bool raster = IsRasterDevice(name);
 
             if (!raster && !string.Equals(name, PdfDevice, StringComparison.OrdinalIgnoreCase))
@@ -258,8 +315,17 @@ namespace OpenCAD2D
         private double _paperUnits = 1.0;
         private double _drawingUnits = 1.0;
 
-        /// <summary>Gets or sets the name of the plotter; <see cref="PdfDevice"/> by default, the one the presenter plots with.</summary>
-        public string DeviceName { get; set; } = PdfDevice;
+        /// <summary>
+        /// Gets or sets the name of the plotter; <see cref="PdfDevice"/> by default, the one the presenter plots with. One of
+        /// the presenter's plotters set by its old name, as "GeometryHelper PDF", is kept by its name now.
+        /// </summary>
+        public string DeviceName
+        {
+            get => _deviceName;
+            set => _deviceName = CurrentDevice(value);
+        }
+
+        private string _deviceName = PdfDevice;
 
         /// <summary>Gets or sets the sheet; ISO A3 by default.</summary>
         /// <exception cref="ArgumentNullException">Thrown when the sheet set is null.</exception>
@@ -1041,7 +1107,7 @@ namespace OpenCAD2D
 
             try
             {
-                string saved = (layout.PlotConfigurationName ?? string.Empty).Trim();
+                string saved = CurrentDevice((layout.PlotConfigurationName ?? string.Empty).Trim());
                 settings.SavedPlotter = string.Equals(saved, "none_device", StringComparison.OrdinalIgnoreCase)
                     ? string.Empty
                     : saved;
@@ -1064,11 +1130,7 @@ namespace OpenCAD2D
 
                 if (pixels)
                 {
-                    settings.DeviceName = string.Equals(
-                        layout.PlotConfigurationName,
-                        JpgDevice,
-                        StringComparison.OrdinalIgnoreCase
-                    )
+                    settings.DeviceName = string.Equals(saved, JpgDevice, StringComparison.OrdinalIgnoreCase)
                         ? JpgDevice
                         : PngDevice;
                 }

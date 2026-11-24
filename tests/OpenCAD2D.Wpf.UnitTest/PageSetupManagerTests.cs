@@ -75,7 +75,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal("Current page setup: <None>", manager.CurrentText);
             Assert.Equal(new[] { "*Model*", "A2 plan", "Small" }, manager.Items.Select(i => i.Name).ToArray());
             Assert.Equal(
-                "ISO A2 (594.00 x 420.00 MM) · GeometryHelper PDF · Window 1:20 · grayscale.ctb",
+                "ISO A2 (594.00 x 420.00 MM) · OpenCAD2D PDF · Window 1:20 · grayscale.ctb",
                 manager.Items[1].Details
             );
 

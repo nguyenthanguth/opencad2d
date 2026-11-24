@@ -213,10 +213,7 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void TheShippedLinFile_Parses_AndHasTheMillimetresOfAutoCadForCenterAndHidden()
         {
-            string path = Path.Combine(
-                CadSupportFolders.Default.FolderOf(CadSupportKind.Linetypes),
-                "GeometryHelper.lin"
-            );
+            string path = Path.Combine(CadSupportFolders.Default.FolderOf(CadSupportKind.Linetypes), "OpenCAD2D.lin");
 
             IReadOnlyList<CadLinetypeDefinition> shipped = CadLinetypeFile.Read(path);
 

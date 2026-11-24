@@ -27,10 +27,10 @@ namespace OpenCAD2D.Wpf
         internal static PageSetupInfo Empty { get; } =
             new PageSetupInfo(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
 
-        /// <summary>Gets the device name: the name of the plotter the page setup names, <c>GeometryHelper PDF</c>, <c>Office printer</c>, or None.</summary>
+        /// <summary>Gets the device name: the name of the plotter the page setup names, <c>OpenCAD2D PDF</c>, <c>Office printer</c>, or None.</summary>
         public string DeviceName { get; }
 
-        /// <summary>Gets what the plotter is: "GeometryHelper PDF · vector, built in", "Office printer · printer of Windows".</summary>
+        /// <summary>Gets what the plotter is: "OpenCAD2D PDF · vector, built in", "Office printer · printer of Windows".</summary>
         public string Plotter { get; }
 
         /// <summary>Gets the size of the sheet with its orientation: "594.00 x 420.00 mm (Landscape)", "1920 x 1080 pixels (Landscape)".</summary>
@@ -65,7 +65,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the name: <c>*Layout1*</c> for the layout's own setup, else the name of the page setup.</summary>
         public string Name { get; }
 
-        /// <summary>Gets how it plots, as "ISO A3 (420.00 x 297.00 MM) · GeometryHelper PDF · Window 1:20 · monochrome.ctb".</summary>
+        /// <summary>Gets how it plots, as "ISO A3 (420.00 x 297.00 MM) · OpenCAD2D PDF · Window 1:20 · monochrome.ctb".</summary>
         public string Details { get; }
 
         /// <summary>Gets whether the space the manager was opened on is set to it; true for the layout's own setup.</summary>
@@ -656,7 +656,7 @@ namespace OpenCAD2D.Wpf
                     device,
                     size,
                     "—",
-                    "No output device is named: the plot goes to GeometryHelper PDF."
+                    "No output device is named: the plot goes to OpenCAD2D PDF."
                 );
             }
 
@@ -696,7 +696,7 @@ namespace OpenCAD2D.Wpf
                 device + " · not on this computer",
                 size,
                 "—",
-                "This computer has no such printer: the page setup plots with GeometryHelper PDF."
+                "This computer has no such printer: the page setup plots with OpenCAD2D PDF."
             );
         }
     }

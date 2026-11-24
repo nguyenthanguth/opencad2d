@@ -424,13 +424,7 @@ namespace OpenCAD2D.Wpf
                 {
                     try
                     {
-                        if (
-                            string.Equals(
-                                row.PendingPath,
-                                CadLinetypeFile.BuiltInName,
-                                StringComparison.OrdinalIgnoreCase
-                            )
-                        )
+                        if (CadLinetypeFile.IsBuiltInName(row.PendingPath))
                         {
                             CadLinetypes.Add(s.Database, row.Pending);
                         }
@@ -539,13 +533,13 @@ namespace OpenCAD2D.Wpf
     }
 
     /// <summary>
-    /// AutoCAD's Load or Reload Linetypes dialog: the presenter's own linetypes (GeometryHelper.lin), several chosen at once,
+    /// AutoCAD's Load or Reload Linetypes dialog: the presenter's own linetypes (OpenCAD2D.lin), several chosen at once,
     /// and those of a .lin file the user chooses by Browse… after them, a name of the presenter's set winning; Built-in goes
     /// back to the presenter's set alone. A file of 4 linetypes, one of them DASHED, lists the 39 of the set and then 3.
     /// </summary>
     public sealed class LoadLinetypesViewModel : ObservableObject
     {
-        /// <summary>The words of the file box while no file is chosen: Built-in (GeometryHelper.lin).</summary>
+        /// <summary>The words of the file box while no file is chosen: Built-in (OpenCAD2D.lin).</summary>
         public const string BuiltInText = "Built-in (" + CadLinetypeFile.BuiltInName + ")";
 
         private string _file;
@@ -593,12 +587,7 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>Gets whether the presenter's own set is listed alone, no file chosen.</summary>
-        public bool IsBuiltIn =>
-            string.Equals(
-                (_file ?? string.Empty).Trim(),
-                CadLinetypeFile.BuiltInName,
-                StringComparison.OrdinalIgnoreCase
-            );
+        public bool IsBuiltIn => CadLinetypeFile.IsBuiltInName(_file);
 
         /// <summary>Gets the words of the file box: <see cref="BuiltInText"/>, or the path of the file chosen.</summary>
         public string FileText => IsBuiltIn ? BuiltInText : FilePath ?? _file;
@@ -658,7 +647,7 @@ namespace OpenCAD2D.Wpf
                 Rows.Add(new LoadLinetypeRowViewModel(linetype));
             }
 
-            if (string.Equals(name, CadLinetypeFile.BuiltInName, StringComparison.OrdinalIgnoreCase))
+            if (CadLinetypeFile.IsBuiltInName(name))
             {
                 FilePath = CadLinetypeFile.BuiltInName;
                 Message = string.Empty;

@@ -269,7 +269,7 @@ namespace OpenCAD2D.UnitTest
                 Assert.Equal(3.175 / Math.Sqrt(2.0), -OnlyHatch(document).GetPatternDefinitionAt(0).OffsetX, 9);
 
                 CadCommandSession session = Start(document, "-LINETYPE", "L", "DASHED");
-                Assert.Equal("Enter linetype file to search <GeometryHelper.lin>:", session.PromptText);
+                Assert.Equal("Enter linetype file to search <OpenCAD2D.lin>:", session.PromptText);
                 Run(session, Enter, Enter);
                 Assert.Equal(19.05, document.Database.LinetypeTable["DASHED"].PatternLength, 12);
             });
@@ -471,7 +471,7 @@ namespace OpenCAD2D.UnitTest
                 Assert.Equal("Current line type:  \"ByLayer\"", session.History.Last());
                 Assert.Equal("Enter an option [?/Create/Load/Set]:", session.PromptText);
                 Run(session, "L", "my*");
-                Assert.Equal("Enter linetype file to search <GeometryHelper.lin>:", session.PromptText);
+                Assert.Equal("Enter linetype file to search <OpenCAD2D.lin>:", session.PromptText);
                 Run(session, "mine");
                 Assert.Contains("Linetype MYDASH loaded.", session.History);
                 Assert.Contains("Linetype MYGAS loaded.", session.History);

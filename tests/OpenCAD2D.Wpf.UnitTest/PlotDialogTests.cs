@@ -42,14 +42,14 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             Assert.Equal("Plot - Model", dialog.Title);
             Assert.Equal("plan-level2.dxf · Model", dialog.Footer);
-            // The raster devices of design PlotRaster follow the PDF one: GeometryHelper PNG and JPG.
+            // The raster devices of design PlotRaster follow the PDF one: OpenCAD2D PNG and JPG.
             Assert.Equal(
                 new[]
                 {
                     "None",
-                    "GeometryHelper PDF",
-                    "GeometryHelper PNG",
-                    "GeometryHelper JPG",
+                    "OpenCAD2D PDF",
+                    "OpenCAD2D PNG",
+                    "OpenCAD2D JPG",
                     "Microsoft Print to PDF",
                     @"\\print\HP LaserJet M507",
                 },
@@ -75,7 +75,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Same(dialog.Devices[1], dialog.Device);
             dialog.Device = dialog.Devices[0];
             Assert.Same(dialog.Devices[1], dialog.Device);
-            Assert.Equal("GeometryHelper PDF · vector, built in", dialog.PlotterText);
+            Assert.Equal("OpenCAD2D PDF · vector, built in", dialog.PlotterText);
             Assert.Equal("<None>", dialog.PageSetup);
             Assert.Equal("Page Setup - Model", Dialog(PlotPdfTests.Plan(), isPageSetup: true).Title);
         }
@@ -221,7 +221,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 DisplayBox.Empty
             );
 
-            Assert.Equal("GeometryHelper PDF · ISO A3 landscape · 1:20 · Monochrome", preview.Summary);
+            Assert.Equal("OpenCAD2D PDF · ISO A3 landscape · 1:20 · Monochrome", preview.Summary);
             Assert.Equal("Paper 420 × 297 mm · printable area dashed", preview.PaperText);
             Assert.Equal("Press ESC or ENTER to exit, or right-click to display shortcut menu.", preview.HelpText);
             Assert.True(preview.IsPan);

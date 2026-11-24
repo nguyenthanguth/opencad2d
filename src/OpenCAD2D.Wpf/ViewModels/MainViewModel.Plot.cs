@@ -166,7 +166,7 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
-        /// -PLOT's request: the plot written to the file it named, by the PDF writer or, for GeometryHelper PNG and JPG, the
+        /// -PLOT's request: the plot written to the file it named, by the PDF writer or, for OpenCAD2D PNG and JPG, the
         /// image writer; plots of several layouts (<see cref="CadPlotBook"/>, EXPORTPDF's All layouts) as one PDF of a page each.
         /// </summary>
         private void OnPlotFileRequested(object sender, CadUiRequestEventArgs e)

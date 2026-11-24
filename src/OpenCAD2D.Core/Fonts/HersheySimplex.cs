@@ -5,7 +5,7 @@ using System.Text;
 namespace OpenCAD2D
 {
     /// <summary>
-    /// The presenter's own single-stroke font, GeometryHelper Simplex (<see cref="CadFonts.BuiltInName"/>): the Roman Simplex
+    /// The presenter's own single-stroke font, OpenCAD2D Simplex (<see cref="CadFonts.BuiltInName"/>): the Roman Simplex
     /// letters of the Hershey fonts, ASCII 32 to 126 and the degree sign, with a plus-minus and a diameter sign drawn here,
     /// made in code into the bytes of a compiled SHX unifont so that it is read and drawn as any SHX font is. Its capitals reach
     /// 21 units above the baseline and its descenders 7 below, as romans.shx's: a text 2.5 high draws its capitals 2.5 high.
@@ -152,10 +152,7 @@ namespace OpenCAD2D
             letters.Add(0xB1, PlusMinus);
             letters.Add(0x2205, Diameter);
             var bytes = new List<byte>(Encoding.ASCII.GetBytes("AutoCAD-86 unifont 1.0\r\n\x1A"));
-            byte[] info = Encoding
-                .ASCII.GetBytes("GeometryHelper Simplex\0")
-                .Concat(new byte[] { 21, 7, 0, 0 })
-                .ToArray();
+            byte[] info = Encoding.ASCII.GetBytes("OpenCAD2D Simplex\0").Concat(new byte[] { 21, 7, 0, 0 }).ToArray();
             Word(bytes, letters.Count + 1);
             Word(bytes, 0);
             Word(bytes, info.Length);

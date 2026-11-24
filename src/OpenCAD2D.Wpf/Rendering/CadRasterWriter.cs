@@ -51,7 +51,7 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
-        /// Writes a plot of a space to an image, as PLOT and -PLOT do with GeometryHelper PNG or JPG: the image as large as
+        /// Writes a plot of a space to an image, as PLOT and -PLOT do with OpenCAD2D PNG or JPG: the image as large as
         /// the settings' size in pixels, on white, the plot laid on it as on a sheet whose units are pixels, colours through
         /// the plot style table (colour 7 black), each line at its lineweight as at 96 dots an inch. A PNG is lossless, a JPEG
         /// of quality 90. Model space fitted to 1920 by 1080 pixels is a PNG of exactly that size. A plot stamp the settings
