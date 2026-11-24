@@ -80,6 +80,9 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets how many times a process has been started for the tool.</summary>
         public int Starts { get; private set; }
 
+        /// <summary>Gets how many runs of the tool's commands ended any way but well: with an error, cancelled, or never begun.</summary>
+        internal int RunsNotCompleted { get; private set; }
+
         /// <summary>The state of one process of the tool.</summary>
         private sealed class Live
         {
@@ -99,6 +102,14 @@ namespace OpenCAD2D.Wpf
             {
                 throw new InvalidOperationException("The tool " + Name + " is unloaded.");
             }
+
+            run.Ended += (sender, e) =>
+            {
+                if (run.Outcome != CadRemoteToolRunOutcome.Completed)
+                {
+                    RunsNotCompleted++;
+                }
+            };
 
             if (_live == null && _prepare != null)
             {

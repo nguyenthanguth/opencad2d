@@ -560,8 +560,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// The Python tool a screenshot loads and runs, given as a folder with a <c>requirements.txt</c> to <c>--plugin</c>: its venvs
         /// are made in a folder of the run's own under the temporary folder (never <c>%LocalAppData%\OpenCAD2D\python</c>), the
-        /// question of pip is answered no (a tool that needs packages is refused; one with an empty requirements.txt runs), and its
-        /// process ends with the run, the folder removed.
+        /// question of pip is answered no (X
         /// </summary>
         private sealed class ScreenshotPythonTool : IDisposable
         {
@@ -658,16 +657,18 @@ namespace OpenCAD2D.Wpf
                 return true;
             }
 
-            /// <summary>Writes the lines the run wrote to the command line: to the output, or, for a tool whose packages were not approved, to the error output.</summary>
-            /// <returns>False when the tool was refused.</returns>
+            /// <summary>Writes the lines the run wrote to the command line: to the output, or, for a tool refused or whose command did not end well, to the error output.</summary>
+            /// <returns>False when the tool was refused or a command of it ended with an error.</returns>
             internal bool Report()
             {
+                bool failed = _refused || _model.PythonRunsNotCompleted > 0;
+
                 foreach (string line in _model.History.Skip(_mark))
                 {
-                    (_refused ? Console.Error : Console.Out).WriteLine(line);
+                    (failed ? Console.Error : Console.Out).WriteLine(line);
                 }
 
-                return !_refused;
+                return !failed;
             }
 
             /// <summary>Ends the tool's process and removes the folder of the run's venvs.</summary>
