@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
-using OpenCAD2D.Python;
 
 namespace OpenCAD2D.Wpf
 {
@@ -1277,7 +1276,7 @@ namespace OpenCAD2D.Wpf
         public bool IsPythonUsed => _model.UsesPython;
 
         /// <summary>
-        /// Gets or sets the python.exe, or the folder holding it, that PYRUN, PYLOAD and the Pythons folder use: empty for the
+        /// Gets or sets the python.exe, or the folder holding it, that the Python tools and PYRUN use: empty for the
         /// Python found on the machine. Setting it finds the Python again, so that <see cref="PythonFound"/>,
         /// <see cref="PythonSource"/> and <see cref="PythonPassedOver"/> follow; it is applied with the other settings.
         /// </summary>
@@ -1300,7 +1299,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets whether the Python found can be used.</summary>
         public bool IsPythonUsable => PythonEnvironment.IsUsable;
 
-        /// <summary>Gets where the Python was looked for: Global settings, PYTHONNET_PYDLL, Registry (PEP 514), or Automatic: nothing usable.</summary>
+        /// <summary>Gets where the Python was looked for: Global settings, Registry (PEP 514), or Automatic: nothing usable.</summary>
         public string PythonSource => PythonEnvironment.Source ?? "Automatic: nothing usable";
 
         /// <summary>Gets the candidates the finder left out, each with its reason, in the order it looked at them.</summary>
@@ -1309,14 +1308,14 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets whether any candidate was passed over.</summary>
         public bool HasPythonPassedOver => PythonEnvironment.PassedOver.Count > 0;
 
-        /// <summary>Gets whether Python has started in this session: a path set now takes effect at the next start.</summary>
+        /// <summary>Gets whether a Python tool has a process running in this session: a path set now takes effect when a tool's process starts again.</summary>
         public bool HasPythonStarted => _model.HasPythonStarted;
 
-        private CadPythonEnvironment _python;
+        private PythonInstallation _python;
 
         // The environment the path in the box gives, found again whenever the text changes.
-        private CadPythonEnvironment PythonEnvironment =>
-            _python ?? (_python = CadPythonEnvironment.Find(_working.PythonPath));
+        private PythonInstallation PythonEnvironment =>
+            _python ?? (_python = PythonInstallation.Find(_working.PythonPath));
 
         private void RaisePython()
         {

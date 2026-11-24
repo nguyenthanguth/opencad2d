@@ -7,9 +7,10 @@ using Xunit;
 namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// A .py dropped on the window (D1622), with <see cref="FakePythonFiles"/> in place of the engine: it loads as APPLOAD's
-    /// Load does, through the Python files of the window, and with no typed echo; it is passed over without a word while a
-    /// command waits and with no drawing open, as a .lsp is. Driven at the view-model level, with no real drag, as
+    /// A Python tool dropped on the window (D1622), its folder with a requirements.txt, with <see cref="FakePythonFiles"/> in
+    /// place of the tools: it loads as APPLOAD's Load does, through the Python tools of the window, and with no typed echo; a
+    /// lone .py is refused with its line; it is passed over without a word while a command waits and with no drawing open, as
+    /// a .lsp is. Driven at the view-model level, with no real drag, as
     /// <see cref="FileDropTests"/> is.
     /// </summary>
     public sealed class FileDropPythonTests : IDisposable
@@ -31,31 +32,39 @@ namespace OpenCAD2D.Wpf.UnitTest
             return model;
         }
 
-        private string Py(string name) => _folder.WriteText(name, "pass\n");
+        /// <summary>A Python tool in a folder of its own: the folder, with a requirements.txt and an __init__.py.</summary>
+        private string Py(string name)
+        {
+            string folder = Path.Combine(_folder.FullPath, name);
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, "requirements.txt"), string.Empty);
+            File.WriteAllText(Path.Combine(folder, "__init__.py"), "pass\n");
+            return folder;
+        }
 
         private static string[] Since(MainViewModel model, int count) => model.History.Skip(count).ToArray();
 
         [Fact]
-        public void APyDropped_LoadsThroughThePythonFiles_AndTheCommandLineGetsTheHostsLineAlone()
+        public void AToolFolderDropped_LoadsThroughThePythonTools_AndTheCommandLineGetsTheToolsLineAlone()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string tools = Py("tools.py");
-            python.Defines["tools.py"] = new[] { "PYDROP" };
+            string tools = Py("tools");
+            python.Defines["tools"] = new[] { "PYDROP" };
             int before = model.History.Count;
 
             model.DropFiles(new[] { tools });
 
             Assert.Equal(new[] { tools }, python.Loads);
-            Assert.Equal(new[] { "tools.py loaded: PYDROP." }, Since(model, before));
+            Assert.Equal(new[] { "tools loaded: PYDROP." }, Since(model, before));
             Assert.DoesNotContain(model.History, l => l.StartsWith("Command:", StringComparison.Ordinal));
         }
 
         [Fact]
-        public void APyDropped_RaisesNoDragAndDropBox_AndIsAmongTheLoadedFiles()
+        public void AToolFolderDropped_RaisesNoDragAndDropBox_AndIsAmongTheLoadedTools()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string tools = Py("tools.py");
-            python.Defines["tools.py"] = new[] { "PYDROP" };
+            string tools = Py("tools");
+            python.Defines["tools"] = new[] { "PYDROP" };
             var boxes = new List<string>();
             model.ShowDropMessage = (title, text) => boxes.Add(text);
 
@@ -71,11 +80,44 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void TwoPyFilesDropped_LoadInTheOrderOfTheDrop()
+        public void TheRequirementsFileOfAToolDropped_LoadsTheToolOfItsFolder()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string b = Py("b.py");
-            string a = Py("a.py");
+            string tools = Py("tools");
+
+            model.DropFiles(new[] { Path.Combine(tools, "requirements.txt") });
+
+            Assert.Equal(new[] { tools }, python.Loads);
+        }
+
+        [Fact]
+        public void ALonePyDropped_IsRefusedWithTheLineThatSaysHowToMakeItATool_AndRaisesNoDragAndDropBox()
+        {
+            MainViewModel model = Opened(out FakePythonFiles python);
+            string lone = _folder.WriteText("GH-DrawingInfo.py", "pass\n");
+            var boxes = new List<string>();
+            model.ShowDropMessage = (title, text) => boxes.Add(text);
+            int before = model.History.Count;
+
+            model.DropFiles(new[] { lone });
+
+            Assert.Empty(python.Loads);
+            Assert.Empty(boxes);
+            Assert.Equal(
+                new[]
+                {
+                    "GH-DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\\GH-DrawingInfo\\ as __init__.py (see the Python guide).",
+                },
+                Since(model, before)
+            );
+        }
+
+        [Fact]
+        public void TwoToolFoldersDropped_LoadInTheOrderOfTheDrop()
+        {
+            MainViewModel model = Opened(out FakePythonFiles python);
+            string b = Py("b");
+            string a = Py("a");
 
             model.DropFiles(new[] { b, a });
 
@@ -83,11 +125,11 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void ALspAndAPyDroppedTogether_EachLoadTheirOwnWay()
+        public void ALspAndAToolDroppedTogether_EachLoadTheirOwnWay()
         {
             string lisp = _folder.WriteText("tools.lsp", "(defun c:dropped () (princ))\n");
             MainViewModel model = Opened(out FakePythonFiles python);
-            string tools = Py("tools.py");
+            string tools = Py("tools");
 
             model.DropFiles(new[] { lisp, tools });
 
@@ -96,10 +138,10 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void APyDroppedWhileACommandWaits_IsPassedOverWithoutAWord_AndTheCommandStillWaits()
+        public void AToolDroppedWhileACommandWaits_IsPassedOverWithoutAWord_AndTheCommandStillWaits()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string tools = Py("tools.py");
+            string tools = Py("tools");
             var boxes = new List<string>();
             model.ShowDropMessage = (title, text) => boxes.Add(text);
             model.StartCommand("LINE");
@@ -118,7 +160,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void APyDroppedWithNoDrawingOpen_IsPassedOverWithoutAWord()
+        public void AToolDroppedWithNoDrawingOpen_IsPassedOverWithoutAWord()
         {
             var model = new MainViewModel { SettingsPath = Path.Combine(_folder.FullPath, "settings.json") };
             var python = new FakePythonFiles();
@@ -127,7 +169,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             model.ShowDropMessage = (title, text) => boxes.Add(text);
             int before = model.History.Count;
 
-            model.DropFiles(new[] { Py("tools.py") });
+            model.DropFiles(new[] { Py("tools") });
 
             Assert.False(model.HasDocument);
             Assert.Empty(python.Loads);

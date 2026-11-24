@@ -905,7 +905,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void TheOpenDialogOffersApplicationsFirst_ThenLispPluginsAndAllFiles()
         {
             Assert.Equal(
-                "Applications (*.lsp;*.py;*.dll;*.csproj)|*.lsp;*.py;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*",
+                "Applications (*.lsp;requirements.txt;*.dll;*.csproj)|*.lsp;requirements.txt;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python tools (requirements.txt)|requirements.txt|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*",
                 AppLoadViewModel.OpenFilter
             );
         }

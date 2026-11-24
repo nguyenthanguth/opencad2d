@@ -4,7 +4,7 @@ namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The gate in front of the code the window loads: one <see cref="CadLoadSecurity"/> for the whole app, built from Global
-    /// settings and given to the session of every drawing and to the Python host, so that SETVAR of SECURELOAD in one drawing
+    /// settings and given to the session of every drawing and to the Python tools, so that SETVAR of SECURELOAD in one drawing
     /// holds in the others, and a file answered Load Once in one is not asked about in another.
     /// </summary>
     public sealed partial class MainViewModel

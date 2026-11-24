@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GeometryHelper.Dxf;
+using GeometryHelper.Geometry;
 
 namespace OpenCAD2D.Remote
 {
@@ -182,6 +183,26 @@ namespace OpenCAD2D.Remote
                 }
 
                 Ask(RemoteOps.CurrentLayout, request => request.Set("name", value));
+            }
+        }
+
+        /// <summary>
+        /// Gets the extents the header of the drawing holds (<c>EXTMIN</c> and <c>EXTMAX</c>), asked of the app each time. A drawing
+        /// with nothing drawn has the empty box a header starts with, whose least corner is above its greatest
+        /// (<see cref="CadRemoteExtents.IsEmpty"/>).
+        /// </summary>
+        /// <exception cref="CadRemoteException">Thrown when the drawing is closed.</exception>
+        public CadRemoteExtents Extents
+        {
+            get
+            {
+                JsonObject answer = Ask(RemoteOps.Extents);
+                JsonObject least = answer.GetObject("min");
+                JsonObject greatest = answer.GetObject("max");
+                return new CadRemoteExtents(
+                    new GeoPoint3(least.GetDouble("x"), least.GetDouble("y"), least.GetDouble("z")),
+                    new GeoPoint3(greatest.GetDouble("x"), greatest.GetDouble("y"), greatest.GetDouble("z"))
+                );
             }
         }
     }

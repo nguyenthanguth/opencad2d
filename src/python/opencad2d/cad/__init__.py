@@ -1,11 +1,11 @@
-"""Python in OpenCAD2D: commands, prompts, the drawing, and the window, as a C# plugin has them.
+"""Python in OpenCAD2D: commands, prompts, the drawing, and driving the app, from a Python tool or from outside.
 
-Import it anywhere. Inside the app a ``.py`` file loaded with APPLOAD, PYLOAD, the Pythons folder or a drop defines commands
-with ``@command`` and adds to the window with the ``add_*`` functions; PYRUN runs a file once. The functions that talk to
-the app (``get_point`` and the other prompts, ``cmd``, ``active_drawing``, ``documents``, the ``add_*`` functions) raise
-``RuntimeError`` outside it; ``open_file`` and ``new_file`` work on a drawing file with no app, and ``connect`` drives a running
-app from outside. Esc at a prompt raises ``Cancelled``, which a bare ``except Exception`` does not swallow. Units are the
-drawing's; nothing is converted.
+Import it anywhere. A Python tool is a folder with a ``requirements.txt``, an ``__init__.py`` that defines commands with
+``@command`` and a ``plugin.json`` that names them; the app starts the tool in a ``python.exe`` of its own at its first command, and
+the functions that talk to the app (``get_point`` and the other prompts, ``cmd``, ``write``, ``active_drawing``, ``documents``)
+are requests of the command that is running. They raise ``RuntimeError`` in any other process; ``open_file`` and ``new_file`` work
+on a drawing file with no app, and ``connect`` drives a running app from outside. Esc at a prompt raises ``Cancelled``, which a
+bare ``except Exception`` does not swallow. Units are the drawing's; nothing is converted.
 
     from opencad2d.cad import active_drawing, command, get_distance, get_point
 
@@ -23,49 +23,18 @@ from __future__ import annotations
 import decimal
 import importlib
 import math
-import re
-import sys
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
-from . import _tool, _ui
-from ._ui import (
-    Context as Context,
-    DrawingsRequest as DrawingsRequest,
-    add_canvas_menu as add_canvas_menu,
-    add_drawings_button as add_drawings_button,
-    add_drawings_menu as add_drawings_menu,
-    add_properties as add_properties,
-    add_ribbon_panel as add_ribbon_panel,
-    add_ribbon_tab as add_ribbon_tab,
-    icon_from_file as icon_from_file,
-    icon_from_image as icon_from_image,
-    icon_from_path_data as icon_from_path_data,
-    menu_item as menu_item,
-    ribbon_button as ribbon_button,
-    ribbon_panel as ribbon_panel,
-    ribbon_tab as ribbon_tab,
-    separator as separator,
-    show_command_buttons as show_command_buttons,
-    split_button as split_button,
-)
+from . import _tool
 
 if TYPE_CHECKING:
-    from OpenCAD2D import CadCommandSession
     from GeometryHelper.Geometry import GeoPoint2
-
-try:
-    _host: Any = importlib.import_module("OpenCAD2D.Python")
-except ImportError:
-    _host = None
 
 F = TypeVar("F", bound=Callable[..., object])
 
 _net: Any = importlib.import_module("System")
-_cad: Any = importlib.import_module("OpenCAD2D")
 _geo: Any = importlib.import_module("GeometryHelper.Geometry")
-_INTEGER = re.compile(r"[+-]?[0-9]+", re.ASCII)
-_REAL = re.compile(r"[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?", re.ASCII)
 
 PAUSE: str = "\\"
 """The answer that hands one prompt of a command fed by ``cmd`` to the user: ``cmd("CIRCLE", PAUSE, 50)`` lets the user pick
@@ -83,23 +52,10 @@ class Cancelled(KeyboardInterrupt):
     """
 
 
-def _script(name: str) -> Any:
-    """Returns the script of the run going on; raises ``RuntimeError`` naming the function where there is none."""
-    if _host is None:
+def _need(name: str) -> None:
+    """Raises ``RuntimeError`` naming the function where this process is no Python tool of OpenCAD2D."""
+    if not _tool.in_tool():
         raise RuntimeError(f"{name} works inside OpenCAD2D only")
-    script = _host.CadPythonScript.Current
-    if script is None:
-        raise RuntimeError(f"{name} works only while a script runs in OpenCAD2D.")
-    return script
-
-
-def session() -> CadCommandSession:
-    """Return the .NET command session of the drawing the run started in: the raw escape hatch under the Drawing API.
-
-    Example:
-        session().Document.EntityCount       # 0 in a blank drawing: the CadCommandSession's CadDocument, raw
-    """
-    return _script("session").Session
 
 
 def write(text: str) -> None:
@@ -108,32 +64,8 @@ def write(text: str) -> None:
     Example:
         write("12 circles drawn")            # one line on the command line, as AutoLISP's princ does
     """
-    if _tool.in_tool():
-        _tool.write(text)
-        return
-    _script("write").Write(text)
-
-
-def _strings(items: Sequence[str] | None) -> Any:
-    return None if items is None else _net.Array[_net.String](list(items))
-
-
-def _call(method: Callable[..., Any], *arguments: object) -> Any:
-    """Calls a method of the run's script, turning what it throws into what Python code expects."""
-    sys.stdout.flush()
-    sys.stderr.flush()
-    try:
-        return method(*arguments)
-    except _host.CadPythonCancelledException:
-        raise Cancelled("Function cancelled") from None
-    except _net.InvalidOperationException as error:
-        raise RuntimeError(str(error.Message)) from None
-    except _net.ArgumentException as error:
-        raise ValueError(str(error.Message)) from None
-
-
-def _ask(name: str, prompt: Any) -> Any:
-    return _call(_script(name).Ask, prompt)
+    _need("write")
+    _tool.write(text)
 
 
 def _kind(answer: Any) -> str:
@@ -163,15 +95,11 @@ def get_point(
         centre = get_point("Specify centre")                  # the user picks (10, 20): GeoPoint2, centre.X == 10.0
         corner = get_point("Other corner", base=centre, keywords=["Close", "Undo"])   # the user types c: 'Close'
     """
-    in_tool = _tool.in_tool()
-    answer = (
-        _tool.ask("get_point", "Point", message, base, keywords, default)
-        if in_tool
-        else _ask("get_point", _cad.CadPrompt.ForPoint(message, base, _strings(keywords), default))
-    )
+    _need("get_point")
+    answer = _tool.ask("get_point", "Point", message, base, keywords, default)
     kind = _kind(answer)
     if kind == "Point":
-        return _tool.point_of(answer) if in_tool else answer.Point
+        return _tool.point_of(answer)
     if kind == "Keyword":
         return str(answer.Text)
     return None if default is None else _as_point(default)
@@ -204,12 +132,8 @@ def get_distance(
     Example:
         radius = get_distance("Specify radius", base=centre)  # the user types 5: 5.0; a second point 5 away gives 5.0 too
     """
-    answer = (
-        _tool.ask("get_distance", "Distance", message, base, keywords, default)
-        if _tool.in_tool()
-        else _ask("get_distance", _cad.CadPrompt.ForDistance(message, base, _strings(keywords), default))
-    )
-    return _number_or(answer, default, float)
+    _need("get_distance")
+    return _number_or(_tool.ask("get_distance", "Distance", message, base, keywords, default), default, float)
 
 
 def get_angle(
@@ -225,43 +149,8 @@ def get_angle(
     Example:
         turn = get_angle("Specify rotation")                  # the user types 90: 1.5707963267948966 (radians)
     """
-    answer = (
-        _tool.ask("get_angle", "Angle", message, base, keywords, default)
-        if _tool.in_tool()
-        else _ask("get_angle", _cad.CadPrompt.ForAngle(message, base, _strings(keywords), default))
-    )
-    return _number_or(answer, default, math.radians)
-
-
-def _keyworded(message: str, keywords: Sequence[str] | None) -> tuple[str, Any]:
-    """Returns the message with the keywords bracketed, and a prompt that matches what is typed against them."""
-    if not keywords:
-        return message, None
-    return f"{message} [{'/'.join(keywords)}]", _cad.CadPrompt.ForKeyword(message, _strings(keywords))
-
-
-def _typed(
-    name: str,
-    message: str,
-    keywords: Sequence[str] | None,
-    default: object,
-    pattern: re.Pattern[str],
-    convert: Callable[[str], Any],
-    refusal: str,
-) -> Any:
-    _script(name)
-    shown, matcher = _keyworded(message, keywords)
-    while True:
-        answer = _ask(name, _cad.CadPrompt.ForString(shown, None if default is None else str(default)))
-        if _kind(answer) != "Text":
-            return default
-        text = str(answer.Text).strip()
-        keyword = None if matcher is None else matcher.MatchKeyword(text)
-        if keyword is not None:
-            return str(keyword)
-        if pattern.fullmatch(text):
-            return convert(text)
-        session().Write(refusal + (" or option keyword." if keywords else "."))
+    _need("get_angle")
+    return _number_or(_tool.ask("get_angle", "Angle", message, base, keywords, default), default, math.radians)
 
 
 def get_integer(
@@ -274,16 +163,12 @@ def get_integer(
     Example:
         count = get_integer("How many", default=3)            # the user types 7: 7; Enter gives the default, 3
     """
-    if _tool.in_tool():
-        answer = _tool.ask("get_integer", "Integer", message, None, keywords, None if default is None else str(default))
-        kind = _kind(answer)
-        if kind == "Number":
-            return int(answer.Number)
-        return str(answer.Text) if kind == "Keyword" else default
-    result: int | str | None = _typed(
-        "get_integer", message, keywords, default, _INTEGER, int, "Requires an integer value"
-    )
-    return result
+    _need("get_integer")
+    answer = _tool.ask("get_integer", "Integer", message, None, keywords, None if default is None else str(default))
+    kind = _kind(answer)
+    if kind == "Number":
+        return int(answer.Number)
+    return str(answer.Text) if kind == "Keyword" else default
 
 
 def get_real(
@@ -296,14 +181,12 @@ def get_real(
     Example:
         factor = get_real("Scale factor", ["Auto"], 1.0)      # the user types 12.5: 12.5; "Auto" gives 'Auto'; Enter gives 1.0
     """
-    if _tool.in_tool():
-        answer = _tool.ask("get_real", "Real", message, None, keywords, None if default is None else str(default))
-        kind = _kind(answer)
-        if kind == "Number":
-            return float(answer.Number)
-        return str(answer.Text) if kind == "Keyword" else default
-    result: float | str | None = _typed("get_real", message, keywords, default, _REAL, float, "Requires numeric value")
-    return result
+    _need("get_real")
+    answer = _tool.ask("get_real", "Real", message, None, keywords, None if default is None else str(default))
+    kind = _kind(answer)
+    if kind == "Number":
+        return float(answer.Number)
+    return str(answer.Text) if kind == "Keyword" else default
 
 
 def get_string(message: str = "Enter text", default: str | None = None, spaces: bool = True) -> str | None:
@@ -315,11 +198,8 @@ def get_string(message: str = "Enter text", default: str | None = None, spaces: 
         name = get_string("Name")                      # the user types two words: 'two words'; Enter gives None
         name = get_string("Name", "Anon")              # Enter gives 'Anon'
     """
-    answer = (
-        _tool.ask("get_string", "String", message, None, None, default)
-        if _tool.in_tool()
-        else _ask("get_string", _cad.CadPrompt.ForString(message, default))
-    )
+    _need("get_string")
+    answer = _tool.ask("get_string", "String", message, None, None, default)
     if _kind(answer) != "Text":
         return default
     text = str(answer.Text)
@@ -335,19 +215,9 @@ def get_keyword(message: str, keywords: Sequence[str], default: str | None = Non
         mode = get_keyword("Mode", ["Yes", "No"], "No")       # the user types n: 'No'; Enter gives the default, 'No'
         mode = get_keyword("Mode", ["Yes", "No"])             # Enter gives None
     """
-    answer = (
-        _tool.ask("get_keyword", "Keyword", message, None, keywords, default)
-        if _tool.in_tool()
-        else _ask("get_keyword", _cad.CadPrompt.ForKeyword(message, _strings(keywords), default))
-    )
+    _need("get_keyword")
+    answer = _tool.ask("get_keyword", "Keyword", message, None, keywords, default)
     return str(answer.Text) if _kind(answer) == "Keyword" else None
-
-
-def _entity(handle: str) -> Entity:
-    """The entity of the run's drawing with the handle, as the Drawing API gives it."""
-    from ._local import entity_of
-
-    return entity_of(_script("get_entity").Document, handle)
 
 
 def get_entity(message: str = "Select object", keywords: Sequence[str] | None = None) -> Entity | str | None:
@@ -362,15 +232,11 @@ def get_entity(message: str = "Select object", keywords: Sequence[str] | None = 
         if line is not None:                                   # Enter gives None
             line.layer = "Steel"
     """
-    in_tool = _tool.in_tool()
-    answer = (
-        _tool.ask("get_entity", "Entity", message, None, keywords, None)
-        if in_tool
-        else _ask("get_entity", _cad.CadPrompt.ForEntity(message, _strings(keywords)))
-    )
+    _need("get_entity")
+    answer = _tool.ask("get_entity", "Entity", message, None, keywords, None)
     kind = _kind(answer)
     if kind == "Selection" and answer.Handles.Count > 0:
-        return _tool.entity_of(str(answer.Handles[0])) if in_tool else _entity(str(answer.Handles[0]))
+        return _tool.entity_of(str(answer.Handles[0]))
     return str(answer.Text) if kind == "Keyword" else None
 
 
@@ -387,11 +253,9 @@ def get_selection() -> list[Entity]:
         entities = get_selection()                             # the user selects three objects and presses Enter
         write(f"{len(entities)} selected")                     # 3 selected
     """
-    if _tool.in_tool():
-        answer = _tool.ask("get_selection", "Selection", "Select objects", None, None, None)
-        return [_tool.entity_of(str(handle)) for handle in answer.Handles]
-    handles = _call(_script("get_selection").AskSelection)
-    return [_entity(str(handle)) for handle in handles]
+    _need("get_selection")
+    answer = _tool.ask("get_selection", "Selection", "Select objects", None, None, None)
+    return [_tool.entity_of(str(handle)) for handle in answer.Handles]
 
 
 def _number_text(value: float) -> str:
@@ -442,11 +306,8 @@ def cmd(*answers: object) -> None:
         cmd("CIRCLE", (10, 20), 50)           # a circle of radius 50 about (10, 20), inside the run's undo step
         cmd("CIRCLE", PAUSE, 50)              # the user picks the centre; the radius is 50
     """
-    if _tool.in_tool():
-        _tool.cmd([_answer(answer) for answer in answers])
-        return
-    fed = _net.Array[_net.Object]([_answer(answer) for answer in answers])
-    _call(_script("cmd").Command, fed)
+    _need("cmd")
+    _tool.cmd([_answer(answer) for answer in answers])
 
 
 def command(
@@ -456,10 +317,10 @@ def command(
     description: str | None = None,
     uses_selection: bool = False,
 ) -> Callable[[F], F]:
-    """Make the decorated function a command of every drawing when its file is loaded.
+    """Make the decorated function a command of the tool, which the tool's ``plugin.json`` names too.
 
     The command is typed at the command line (or started from a ribbon button) by ``name`` or by ``alias``; it runs as one
-    undo step named after it. ``uses_selection=True`` makes ``get_selection()`` return the objects selected before the
+    undo step named after it. Outside a tool process the decorator changes nothing, so the module can be imported and checked. ``uses_selection=True`` makes ``get_selection()`` return the objects selected before the
     command started, without asking.
 
         @command("RING", alias="RG", description="Draws a circle", uses_selection=False)
@@ -478,39 +339,27 @@ def command(
     def decorate(function: F) -> F:
         if _tool.runtime is not None:
             _tool.runtime.commands.append(_tool.Command(name, alias, description, function, uses_selection))
-        elif _ui.current is not None:
-            _ui.current.commands.append([name, alias, description, function, uses_selection])
         return function
 
     return decorate
 
 
 def on_unload(function: F) -> F:
-    """Run the decorated function when its file is unloaded, loaded again or the app closes: the twin of a plugin's
+    """Run the decorated function when the tool is unloaded, loaded again or the app closes: the twin of a plugin's
     ``Terminate``. An error in it is one line on the command line and the unload goes on.
 
         @on_unload
         def bye() -> None:
-            print("tools.py is gone")
+            print("the tool is gone")
 
     Example:
         @on_unload
         def bye() -> None:
-            write("tools.py is gone")       # written when the file is unloaded, loaded again, or the app closes
+            write("the tool is gone")       # written when the tool is unloaded, loaded again, or the app closes
     """
     if _tool.runtime is not None:
         _tool.runtime.unloaders.append(function)
-    elif _ui.current is not None:
-        _ui.current.unloaders.append(function)
     return function
-
-
-def _begin_load(host: Any, path: str) -> None:  # pyright: ignore[reportUnusedFunction]
-    _ui.begin_load(host, path)
-
-
-def _end_load() -> _ui.Load:  # pyright: ignore[reportUnusedFunction]
-    return _ui.end_load()
 
 
 # The Drawing API (D1655 to D1658).

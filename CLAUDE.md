@@ -66,7 +66,6 @@ program). It came out of the GeometryHelper repository in November 2026, with it
 | `src/OpenCAD2D.Core` | the engine (`OpenCAD2D.Core.dll`, namespace `OpenCAD2D`), netstandard2.0, no UI: documents, commands, display lists, LISP, plugins, Remote server |
 | `src/OpenCAD2D.Wpf` | the WPF presenter: canvas, ribbon, palettes, dialogs, the app host |
 | `src/OpenCAD2D.App` | the app, net8.0-windows (`OpenCAD2D.exe`, shown as OpenCAD2D) |
-| `src/OpenCAD2D.Python` | the embedded CPython (pythonnet) that runs `.py` commands inside the app |
 | `src/OpenCAD2D.Remote` | the client library other programs drive a running app with |
 | `src/python` | the Python package `opencad2d` (wheel), its examples |
 | `tests/` | the xUnit suites (net48; Python on net48 and net8.0), `tests/python` (pytest), `tests/Shared` |
@@ -99,7 +98,6 @@ dotnet test tests/OpenCAD2D.UnitTest/OpenCAD2D.UnitTest.csproj -c Release --no-b
 dotnet test tests/OpenCAD2D.Wpf.UnitTest/OpenCAD2D.Wpf.UnitTest.csproj -c Release --no-build
 dotnet test tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj -c Release --no-build
 dotnet test tests/OpenCAD2D.Remote.UnitTest/OpenCAD2D.Remote.UnitTest.csproj -c Release --no-build
-dotnet test tests/OpenCAD2D.Python.UnitTest/OpenCAD2D.Python.UnitTest.csproj -c Release --no-build
 dotnet test tests/OpenCAD2D.PyStubs.UnitTest/OpenCAD2D.PyStubs.UnitTest.csproj -c Release --no-build
 bash tools/python/verify-python.sh
 dotnet csharpier check .

@@ -206,6 +206,8 @@ namespace OpenCAD2D
                     return Layouts(Find(request));
                 case RemoteOps.CurrentLayout:
                     return CurrentLayout(Find(request), request.GetString("name"));
+                case RemoteOps.Extents:
+                    return Extents(Find(request));
                 default:
                     throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }

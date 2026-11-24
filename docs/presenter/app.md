@@ -39,7 +39,7 @@ width factor of drawing text. A file that holds them keeps them, and OK writes t
 | Canvas and cursor | the wheel zoom and its direction, the object snaps, the aperture, the polar increment, what F3 does | 1.5 a notch (1.01 to 4, ZOOMWHEEL turns it round; a file saved with 1.2 keeps 1.2), every snap but Nearest, 10 pixels (2 to 50), 90 degrees (above 0 to 360, POLARANG), F3 toggles them |
 | Units and rounding | decimals of coordinates and angles; the separators | 2 and 1 decimals; thousands parted by a space, decimals by a point |
 | Text and fonts | the UI font, chosen from the font families installed on Windows (each shown in its own face) or typed; what Esc in the MTEXT editor with changes does (Hidden messages); the replacement font of a font not found (FONTALT), whether the Missing Fonts dialog is shown on opening a drawing, the font mapping file (FONTMAP) and the fonts drawn in others | UI font Inter, Esc asks, `ghsimplex`, the dialog on, no mapping file, no substitutions |
-| Folder preference | the font search folders and the support file search folders (linetypes, hatch patterns and AutoLISP files), each in order, with the default Fonts, Hatches, Linetypes, Lisps and DrawingTemplates folders next to the dll shown read-only under them (a Plugins folder is beside them too, but it holds no search path: see [Command plugins](plugins.md#where-a-plugin-lives)); the Python that PYRUN, PYLOAD and the Pythons folder run scripts with (a `python.exe` or its folder, with the Python found beside it; see [Python commands and tools](python.md#finding-python)) | none; Python found automatically |
+| Folder preference | the font search folders and the support file search folders (linetypes, hatch patterns and AutoLISP files), each in order, with the default Fonts, Hatches, Linetypes, Lisps and DrawingTemplates folders next to the dll shown read-only under them (a Plugins folder is beside them too, but it holds no search path: see [Command plugins](plugins.md#where-a-plugin-lives)); the Python each Python tool and PYRUN make their environment from (a `python.exe` or its folder; see [Python commands and tools](python.md#finding-python)) | none; Python found automatically |
 | Security | where AutoLISP and Python code may be loaded from: SECURELOAD, the trusted folders (TRUSTEDPATHS), LEGACYCODESEARCH and the files answered Always Load (see [The Security page](#the-security-page)) | SECURELOAD 1, no trusted folder but the app's own, LEGACYCODESEARCH 0, none |
 | Shortcuts | the aliases and the keys | AutoCAD's (see [Editing](editing.md#aliases-and-keys)) |
 | Save and export | the save folder, autosave (how often, and its format, DXF or DWG); Template settings: the template folder and the default template for QNEW (see [Drawing templates](#drawing-templates)); Other programs: whether other programs may connect and drive the app (see [Driving the app from another program](remote.md#the-setting)) | empty, which is the user's Documents, 10 minutes, DXF; template folder empty, which is the `DrawingTemplates` folder next to the dll, no default template for QNEW, which is the built-in metric one; other programs allowed to connect |
@@ -154,8 +154,7 @@ settings file at once. They are kept under `security`:
 The warning a file outside the trusted folders brings at SECURELOAD 1 is AutoCAD's, **Security - Unsigned Executable
 File**, 616 pixels wide over the main window: the file's name, `Unknown Publisher`, its folder, `None` for the issuer and
 its date, then Always Load, Load Once and Do Not Load, the last the default. Its link `How do I decide what files to load?`
-opens [that section](lisp.md#trusted-folders-and-secureload). The same window asks for a Python file run by PYRUN, loaded
-by PYLOAD or picked with the palette's Run file and Load.
+opens [that section](lisp.md#trusted-folders-and-secureload). The same window asks for a Python file run by PYRUN and for the `__init__.py` of a Python tool loaded by PYLOAD.
 
 ## Autosave
 
@@ -638,8 +637,8 @@ Action Recorder panel is not here at all: it will not be built. **Customization*
 large, which runs APPLOAD and shows Load/Unload Applications, one table where an AutoLISP file or a plugin is loaded, unloaded
 and kept for every start (see [AutoLISP](lisp.md#appload)), and is greyed where the window cannot show that dialog
 (`ManageRibbonViewModel.CanLoadApplication`); then three small buttons with text, Load Lisp (LISPLOAD, the Windows Open dialog
-for `.lsp` files), Load Plugin (NETLOAD, the Open dialog for a plugin `.dll`) and Load Python (PYLOAD, the Open dialog for a
-`.py` file); then Run Script (SCRIPT), large. **Cleanup** has Purge (PURGE) and Find Non-Purgeable Items, both large (the second starts PURGE with its
+for `.lsp` files), Load Plugin (NETLOAD, the Open dialog for a plugin `.dll`) and Load Python (PYLOAD, the Open dialog for the `requirements.txt` of a Python
+tool); then Run Script (SCRIPT), large. **Cleanup** has Purge (PURGE) and Find Non-Purgeable Items, both large (the second starts PURGE with its
 window on the named items in use, the view the window's own list calls Find Non-Purgeable Items), then Overkill
 (OVERKILL), Audit (AUDIT) and Recover (RECOVER). CUI, ALIASEDIT, APPLOAD and LISPLOAD are commands of the window, not of
 `CadCommandRegistry.CreateDefault()`: APPLOAD says `Load/Unload Applications cannot be shown here.` where the
@@ -786,13 +785,16 @@ shown) are shown through functions the workspace sets, as the other dialogs are;
 
 ### Python in the window
 
-Python is a way to write commands: `.py` files load from the Pythons folder at start, from APPLOAD, PYLOAD, the Python Startup
-Suite and by dropping them on the window, and PYRUN runs one once. There is no console: the PYTHON palette and its commands
-PYTHON and PYTHONCLOSE were removed, and a script that asks the user asks on the command line, as a command does. A host that
+Python is a way to write commands: a tool, a folder with a `requirements.txt`, loads from the Pythons folder at start, from
+APPLOAD, PYLOAD, the Python Startup Suite and by dropping it on the window, and PYRUN runs a lone `.py` once. Python does not run
+inside the app: each tool runs in a `python.exe` of its own, with a venv of its own, started at its first command. There is no
+console: the PYTHON palette and its commands PYTHON and PYTHONCLOSE were removed, and a tool that asks the user asks on the
+command line, as a command does. A host that
 embeds the presenter in a program of its own gets no Python unless it sets `CadAppHost.EnablePython`, which OpenCAD2D
 itself does. Where no Python can be found the command line says what to install or set, and nothing else changes. The Python
 used is set in Global settings, Folder preference, **Python**. [Python commands and tools](python.md) has the rest: finding
-Python, `@command`, the prompts, the `Drawing` API, the undo step, Esc and the errors.
+Python, the tool folder and its `plugin.json`, the venv of each tool, `@command`, the prompts, the `Drawing` API, the undo step, Esc
+and the errors.
 
 ### The start screen
 
@@ -969,7 +971,7 @@ JRSoftware.InnoSetup -e --scope user`), which publishes the app self-contained f
 A second setup of the same or a newer version installs over the first, after closing a running OpenCAD2D. Uninstalling
 (Settings, Apps, or `unins000.exe` in the install folder) removes the files setup copied, its shortcuts and, through
 `--unregister`, the file association, but only where the association names this install: an OpenCAD2D registered from
-another folder keeps its own. What a user added stays: a `.lsp` in `Lisps`, a `.py` in `Pythons`, a plugin in
+another folder keeps its own. What a user added stays: a `.lsp` in `Lisps`, a tool in `Pythons`, a plugin in
 `Plugins`, a font in `Fonts` (their folders too, while they hold a file), and `%AppData%\OpenCAD2D` with the settings,
 the plot styles and the plugin list, as AutoCAD leaves its user folders. Silent installs take the same switches as any
 Inno Setup: `OpenCAD2D-Setup-1.0.0.exe /VERYSILENT /SUPPRESSMSGBOXES /DIR=D:\Apps\OpenCAD2D /TASKS=""` installs with no

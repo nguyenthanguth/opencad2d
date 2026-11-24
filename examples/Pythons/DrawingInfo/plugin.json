@@ -1,0 +1,7 @@
+{
+    "name": "DrawingInfo",
+    "version": "1.0.0",
+    "commands": [
+        { "name": "GHPYINFO", "description": "Write the name, objects, layers, blocks and extents of the drawing" }
+    ]
+}

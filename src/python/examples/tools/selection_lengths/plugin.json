@@ -1,0 +1,6 @@
+{
+    "name": "selection_lengths",
+    "commands": [
+        { "name": "SELECTIONLENGTHS", "description": "Total the length and closed area of the objects you select" }
+    ]
+}

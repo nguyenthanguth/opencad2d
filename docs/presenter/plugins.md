@@ -131,6 +131,10 @@ A plugin says what it is in a `plugin.json`, read without loading any code:
 ```
 
 Only the name is needed: the id is the name where none is given, the kind "command", the API version 1.0.
+A command is a name or an object, `{ "name": "NUMCIRCLES", "alias": "NC", "description": "Numbers the circles", "usesSelection": true }`
+(`CommandEntries`; `Commands` is the names), and a `"ribbon"` of tabs of panels of buttons that start a command (`Ribbon`) is
+what a [Python tool](python.md#pluginjson) declares for the window; a C# plugin adds to the window in code, as
+[below](#what-a-plugin-adds-to-the-window).
 [`CadPluginManifest.Parse(json)`](xref:OpenCAD2D.Plugins.CadPluginManifest) reads it, and `Refusal()` says
 why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.1
 (`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.1: it needs a

@@ -170,7 +170,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void TheOpenDialogOffersTheCsprojOfAPlugin_AndNoLongerALoneCs()
         {
             Assert.Equal(
-                "Applications (*.lsp;*.py;*.dll;*.csproj)|*.lsp;*.py;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*",
+                "Applications (*.lsp;requirements.txt;*.dll;*.csproj)|*.lsp;requirements.txt;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python tools (requirements.txt)|requirements.txt|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*",
                 AppLoadViewModel.OpenFilter
             );
             Assert.DoesNotContain("*.cs)", AppLoadViewModel.OpenFilter);
@@ -220,9 +220,11 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void LoadFolder_RefusesAFolderWithARequirementsTxt_WithTheLineThatPythonToolsComeLater()
+        public void LoadFolder_LoadsAFolderWithARequirementsTxt_AsAPythonTool_AndAsksNothingOfTheNuGetSource()
         {
             MainViewModel model = WithTool(Packages.None, out _);
+            var python = new FakePythonFiles();
+            model.PythonFiles = python;
             AppLoadViewModel dialog = Created(model);
             string survey = Path.Combine(_folder.FullPath, "dev", "Survey");
             Directory.CreateDirectory(survey);
@@ -231,12 +233,11 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             dialog.LoadFolder(survey);
 
-            string line = "Survey cannot be loaded: Python tools load in a later build.";
-            Assert.Contains(line, model.History);
-            Assert.True(dialog.HasLoadError);
-            Assert.Equal("Survey", dialog.LoadErrorName);
-            Assert.Equal(" cannot be loaded: Python tools load in a later build.", dialog.LoadErrorText);
-            Assert.Empty(dialog.Rows);
+            Assert.Equal(new[] { survey }, python.Loads);
+            Assert.False(dialog.HasLoadError);
+            AppLoadRow row = Assert.Single(dialog.Rows);
+            Assert.Equal("Python", row.Kind);
+            Assert.Equal("Survey", row.Name);
             Assert.Empty(_loader.Asked);
         }
 

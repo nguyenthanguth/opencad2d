@@ -84,12 +84,3 @@ jobs:
           GH_PYTHON: ${{ steps.python.outputs.python-path }}
         run: bash tools/python/verify-python.sh
 
-      - name: Build the Python host of OpenCAD2D and its tests
-        run: dotnet build tests/OpenCAD2D.Python.UnitTest/OpenCAD2D.Python.UnitTest.csproj -c Release -warnaserror
-
-      - name: Test the Python host on both runtimes
-        env:
-          GH_PYTHON: ${{ steps.python.outputs.python-path }}
-        run: |
-          dotnet test tests/OpenCAD2D.Python.UnitTest/OpenCAD2D.Python.UnitTest.csproj -c Release --no-build -f net8.0
-          dotnet test tests/OpenCAD2D.Python.UnitTest/OpenCAD2D.Python.UnitTest.csproj -c Release --no-build -f net48

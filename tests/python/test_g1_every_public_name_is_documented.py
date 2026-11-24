@@ -71,7 +71,7 @@ def _function(thing: Any) -> Any:
 def test_the_package_has_public_names_to_check() -> None:
     names = [name for name, _ in PUBLIC]
 
-    assert len(names) > 100
+    assert len(names) > 70
     assert {"command", "cmd", "active_drawing", "connect", "open_file", "Drawing", "Drawing.add_line"} <= set(names)
 
 

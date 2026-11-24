@@ -1,10 +1,11 @@
 """E0: no example without a row, a page section and a test, and every example in the shape D1002 gives (P5 D1001,
 D1002, D1007, D1008).
 
-The set of ``.py`` files under ``src/python/examples`` is the thirteen of D1002, three folders; it equals the files the
-README of the folder names in its table, equals the files the guide page ``python-examples.md`` includes with
-``[!code-python[...](...)]``, and each file name is in at least one test file. A new example without a test, a row or a
-page section fails here, and so does one left out.
+The set of ``.py`` files under ``src/python/examples`` is the thirteen of D1002, three folders; a Python tool of
+``tools`` is a folder (a ``requirements.txt``, an ``__init__.py`` and a ``plugin.json``), the example being its
+``__init__.py``. The set equals the examples the README of the folder names in its table, equals the files the guide page
+``python-examples.md`` includes with ``[!code-python[...](...)]``, and each example's name is in at least one test file.
+A new example without a test, a row or a page section fails here, and so does one left out.
 """
 
 import ast
@@ -16,7 +17,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES = ROOT / "src" / "python" / "examples"
 GUIDE = ROOT / "docs" / "python-examples.md"
-CSHARP_TESTS = ROOT / "tests" / "OpenCAD2D.Python.UnitTest" / "ExampleTests.cs"
+CSHARP_TESTS = ROOT / "tests" / "OpenCAD2D.Wpf.UnitTest" / "PythonToolExampleTests.cs"
 
 EXPECTED = {
     "library": [
@@ -28,7 +29,7 @@ EXPECTED = {
         "regions.py",
         "solids.py",
     ],
-    "in_app": ["drawing_tools.py", "number_points.py", "selection_lengths.py"],
+    "tools": ["drawing_tools", "number_points", "selection_lengths"],
     "remote": ["draw_and_read.py", "open_documents.py", "pick_and_mark.py"],
 }
 ON_DISK = sorted(EXAMPLES.rglob("*.py"))
@@ -36,7 +37,16 @@ GUARD = ast.unparse(ast.parse('if __name__ == "__main__":\n    sys.exit(main(sys
 
 
 def _expected_paths() -> list[Path]:
-    return sorted(EXAMPLES / place / name for place, names in EXPECTED.items() for name in names)
+    return sorted(
+        EXAMPLES / place / name / "__init__.py" if place == "tools" else EXAMPLES / place / name
+        for place, names in EXPECTED.items()
+        for name in names
+    )
+
+
+def _name_of(path: Path) -> str:
+    """The name an example goes by: its file, or for a tool the name of its folder."""
+    return path.parent.name if path.name == "__init__.py" else path.name
 
 
 def _tree(path: Path) -> ast.Module:
@@ -60,7 +70,9 @@ def test_the_readme_table_names_every_example_and_no_other_file() -> None:
     rows = [line for line in readme.read_text(encoding="utf-8").splitlines() if line.startswith("|")]
     named = {name for row in rows for name in re.findall(r"[A-Za-z0-9_]+\.py\b", row)}
 
-    assert sorted(named) == sorted(p.name for p in ON_DISK)
+    named |= {name for row in rows for name in re.findall(r"tools/([A-Za-z0-9_]+)/", row)}
+
+    assert sorted(named) == sorted(_name_of(p) for p in ON_DISK)
 
 
 def test_the_guide_page_includes_every_example_through_a_code_include_and_no_other_file() -> None:
@@ -70,19 +82,19 @@ def test_the_guide_page_includes_every_example_through_a_code_include_and_no_oth
     assert sorted((GUIDE.parent / path).resolve() for path in included) == [p.resolve() for p in ON_DISK]
 
 
-@pytest.mark.parametrize("path", _expected_paths(), ids=lambda p: p.name)
+@pytest.mark.parametrize("path", _expected_paths(), ids=_name_of)
 def test_every_example_file_name_is_in_a_test_file(path: Path) -> None:
     here = Path(__file__).resolve()
     tests = [p for p in (ROOT / "tests" / "python").rglob("*.py") if p.resolve() != here] + [CSHARP_TESTS]
     assert CSHARP_TESTS.is_file(), f"{CSHARP_TESTS} does not exist"
 
-    assert any(path.name in test.read_text(encoding="utf-8") for test in tests)
+    assert any(_name_of(path) in test.read_text(encoding="utf-8") for test in tests)
 
 
 # ---- the shape D1002 gives every example --------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("path", _expected_paths(), ids=lambda p: p.name)
+@pytest.mark.parametrize("path", _expected_paths(), ids=_name_of)
 def test_an_example_is_utf_8_without_a_bom_with_line_feeds_and_lines_of_at_most_120_columns(path: Path) -> None:
     assert path.is_file(), f"{path} does not exist: the example is not written"
     data = path.read_bytes()
@@ -93,7 +105,7 @@ def test_an_example_is_utf_8_without_a_bom_with_line_feeds_and_lines_of_at_most_
     assert [n for n, line in enumerate(data.decode("utf-8").splitlines(), 1) if len(line) > 120] == []
 
 
-@pytest.mark.parametrize("path", _expected_paths(), ids=lambda p: p.name)
+@pytest.mark.parametrize("path", _expected_paths(), ids=_name_of)
 def test_an_example_opens_with_a_docstring_of_two_to_five_lines(path: Path) -> None:
     docstring = ast.get_docstring(_tree(path), clean=True)
 
@@ -101,7 +113,7 @@ def test_an_example_opens_with_a_docstring_of_two_to_five_lines(path: Path) -> N
     assert 2 <= len(docstring.strip().splitlines()) <= 5
 
 
-@pytest.mark.parametrize("path", _expected_paths(), ids=lambda p: p.name)
+@pytest.mark.parametrize("path", _expected_paths(), ids=_name_of)
 def test_every_function_of_an_example_is_annotated(path: Path) -> None:
     unannotated = []
     for node in ast.walk(_tree(path)):
@@ -168,6 +180,14 @@ def test_the_pick_example_has_its_time_limit_at_module_level() -> None:
     )
 
 
-@pytest.mark.parametrize("name", EXPECTED["in_app"])
-def test_an_in_app_example_has_no_main(name: str) -> None:
-    assert _function(_tree(EXAMPLES / "in_app" / name), "main") is None
+@pytest.mark.parametrize("name", EXPECTED["tools"])
+def test_a_tool_example_has_no_main_and_is_a_folder_of_the_three_files_of_a_tool(name: str) -> None:
+    folder = EXAMPLES / "tools" / name
+
+    assert _function(_tree(folder / "__init__.py"), "main") is None
+    assert sorted(p.name for p in folder.iterdir() if p.name != "__pycache__") == [
+        "__init__.py",
+        "plugin.json",
+        "requirements.txt",
+    ]
+    assert (folder / "requirements.txt").read_text(encoding="utf-8").strip() == ""

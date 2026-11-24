@@ -256,6 +256,38 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        public void TheExtents_AreTheCornersTheHeaderHolds_AsTheyAreEachTimeTheyAreAsked()
+        {
+            var db = new DxfDatabase("AC1027");
+            db.Extmin = new GeoPoint3(-10, -10.5, 0);
+            db.Extmax = new GeoPoint3(120, 80.25, 3);
+            var (harness, _, document, remote) = Start(CadDocument.From(db, "extents.dxf"));
+            using (harness)
+            {
+                CadRemoteExtents extents = remote.Extents;
+
+                Assert.Equal(new GeoPoint3(-10, -10.5, 0), extents.Min);
+                Assert.Equal(new GeoPoint3(120, 80.25, 3), extents.Max);
+                Assert.False(extents.IsEmpty);
+
+                document.Database.Extmax = new GeoPoint3(200, 90, 0);
+
+                Assert.Equal(new GeoPoint3(200, 90, 0), remote.Extents.Max);
+            }
+        }
+
+        [Fact]
+        public void TheExtentsOfADrawingWithNothingDrawn_AreTheEmptyBoxAHeaderStartsWith()
+        {
+            var (harness, _, _, remote) = Start(CadDocument.From(new DxfDatabase("AC1027"), "empty.dxf"));
+            using (harness)
+            {
+                Assert.True(remote.Extents.IsEmpty);
+                Assert.True(remote.Extents.Min.X > remote.Extents.Max.X);
+            }
+        }
+
+        [Fact]
         public void ABlockDefinedByTheProgram_IsBroughtWithItsInsert_AndTheDrawingsOwnWins()
         {
             var (harness, _, document, remote) = Start(

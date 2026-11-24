@@ -1,0 +1,7 @@
+{
+    "name": "drawing_tools",
+    "commands": [
+        { "name": "RECTC", "alias": "RC", "description": "A rectangle about a centre" },
+        { "name": "LAYERCOUNT", "description": "Count the objects on each layer" }
+    ]
+}

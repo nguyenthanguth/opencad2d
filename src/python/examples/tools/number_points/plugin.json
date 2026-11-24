@@ -1,0 +1,4 @@
+{
+    "name": "number_points",
+    "commands": [{ "name": "NUMBERPOINTS", "description": "Number the points you pick" }]
+}

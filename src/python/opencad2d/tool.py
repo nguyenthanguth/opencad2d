@@ -1,6 +1,7 @@
 """The process of a Python tool: ``python -m opencad2d.tool <folder> <control in> <control out>``, as OpenCAD2D starts it.
 
-A tool is a folder with an ``__init__.py`` that defines commands with ``@command``. The app starts this module in a
+A tool is a folder with an ``__init__.py`` that defines commands with ``@command``. Where the first argument is a ``.py`` file
+instead of a folder, the process runs that file once as ``python file.py`` does, in the run the app began for PYRUN, and ends. The app starts this module in a
 ``python.exe`` of the tool's own, with the two ends of an anonymous pipe pair given as handles: the app writes lines of JSON
 on the first (``run``, ``cancel``, ``unload``) and the tool answers on the second (``ready``, ``ended``). Where the tool
 drives the app, it does so on the private channel of the tools (``OPENCAD2D_TOOL_PIPE`` and ``OPENCAD2D_TOOL_TOKEN``), through
@@ -147,6 +148,24 @@ def _execute(runtime: _tool.Runtime, interrupt: _Interrupt, control: _Control, m
     _shielded(lambda: control.send({"op": "ended", "run": run_id}))
 
 
+def _run_script(path: Path) -> None:
+    """Runs a file as ``python path`` does: ``__main__``, its folder first on ``sys.path``; ``sys.exit(0)`` ends it well."""
+    import runpy
+
+    saved = sys.argv
+    sys.argv = [str(path)]
+    sys.path.insert(0, str(path.parent))
+    try:
+        runpy.run_path(str(path), run_name="__main__")
+    except SystemExit as stop:
+        if stop.code not in (None, 0):
+            raise
+    finally:
+        sys.argv = saved
+        if str(path.parent) in sys.path:
+            sys.path.remove(str(path.parent))
+
+
 def _tool_flush() -> None:
     """Sends what the tool printed and left on a line without its end."""
     sys.stdout.flush()
@@ -185,7 +204,12 @@ def main(argv: list[str]) -> int:
     runtime = _tool.Runtime(app)
     _tool.runtime = runtime
     sys.stdout = _tool.RunOutput(sys.stdout)  # pyright: ignore[reportAttributeAccessIssue]
-    problem = _import_tool(folder)
+    script = folder.is_file()
+    if script:
+        runtime.commands.append(_tool.Command("PYRUN", None, None, lambda: _run_script(folder), False))
+        problem = None
+    else:
+        problem = _import_tool(folder)
     control.send({"op": "ready", "pid": os.getpid(), "commands": [command.name for command in runtime.commands]})
 
     interrupt = _Interrupt()
@@ -216,6 +240,8 @@ def main(argv: list[str]) -> int:
                 break
             if message.get("op") == "run":
                 _execute(runtime, interrupt, control, message, problem)
+                if script:
+                    break
         except KeyboardInterrupt:
             continue
     for unloader in runtime.unloaders:

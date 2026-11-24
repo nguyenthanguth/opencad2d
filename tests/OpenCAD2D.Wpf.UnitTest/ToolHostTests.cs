@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Plugins;
 using OpenCAD2D.Wpf;
 using Xunit;
 using Xunit.Abstractions;
@@ -132,25 +133,21 @@ def draw_it():
     print('printed after write')
 ";
 
-        [Fact]
-        public void Ghpyinfo_FromItsFolder_GivesTheSameLinesAsTheShippedFile()
-        {
-            // The shipped file as it is, but for the extents, which it reads from the header of the drawing with .net's CadDocument
-            // (drawing.net.Database): a tool has the drawing over the channel and cannot. The same numbers are given here.
-            string shipped = File.ReadAllText(
-                Path.Combine(_python.Root, "src", "OpenCAD2D.Core", "Pythons", "GH-DrawingInfo.py")
-            );
-            string source = shipped
-                .Replace(
-                    "drawing.net.Database.Extmin, drawing.net.Database.Extmax",
-                    "types.SimpleNamespace(X=-10.0, Y=-10.0), types.SimpleNamespace(X=120.0, Y=80.0)"
-                )
-                .Replace("import os\n", "import os\nimport types\n");
-            Assert.Contains("types.SimpleNamespace", source, StringComparison.Ordinal);
+        /// <summary>The sample tool folder the app ships, as it is in the repository: <c>examples\Pythons\&lt;name&gt;</c>.</summary>
+        private string Sample(string name) => Path.Combine(_python.Root, "examples", "Pythons", name);
 
+        [Fact]
+        public void Ghpyinfo_FromPythonsDrawingInfo_GivesTheSameLinesAsTheFileDid_ExtentsIncluded()
+        {
+            // The sample as it ships: the folder Pythons\DrawingInfo with a requirements.txt, an __init__.py and a plugin.json, whose
+            // command is GHPYINFO. Its Extents line reads the header of the drawing over the channel (CadRemoteDocument.Extents).
             using (var scene = new Scene(_python))
             {
-                scene.Add(_python, "GH-DrawingInfo", source, "GHPYINFO");
+                string folder = Sample("DrawingInfo");
+                CadPluginManifest manifest = CadPluginManifest.Read(Path.Combine(folder, "plugin.json"));
+                CadFolderTool tool = scene.Host.Add(folder, _python.Python, manifest.Commands, null);
+                scene.App.OnApp(() => scene.Host.AddCommandsTo(scene.Session.Registry));
+                Assert.Equal(new[] { "GHPYINFO" }, tool.Commands.Select(c => c.Name));
 
                 List<string> lines = scene.Run("GHPYINFO");
 
@@ -169,6 +166,37 @@ def draw_it():
                 );
                 Assert.False(scene.App.OnApp(() => scene.Document.CanUndo));
                 Assert.Equal(3, scene.Entities);
+            }
+        }
+
+        [Fact]
+        public void Pyhelloworld_FromPythonsHelloWorld_WritesHelloWorld_AndChangesNothing()
+        {
+            using (var scene = new Scene(_python))
+            {
+                string folder = Sample("HelloWorld");
+                CadPluginManifest manifest = CadPluginManifest.Read(Path.Combine(folder, "plugin.json"));
+                scene.Host.Add(folder, _python.Python, manifest.Commands, null);
+                scene.App.OnApp(() => scene.Host.AddCommandsTo(scene.Session.Registry));
+
+                List<string> lines = scene.Run("PYHELLOWORLD");
+
+                Assert.Equal(new[] { "Hello, World!" }, lines.Where(l => l == "Hello, World!"));
+                Assert.False(scene.App.OnApp(() => scene.Document.CanUndo));
+                Assert.Equal(3, scene.Entities);
+            }
+        }
+
+        [Fact]
+        public void TheSamples_ShipWithAnEmptyRequirementsFile_AnInitPy_AndAPluginJsonThatNamesTheirCommand()
+        {
+            foreach (string name in new[] { "DrawingInfo", "HelloWorld" })
+            {
+                string folder = Sample(name);
+
+                Assert.Empty(File.ReadAllText(Path.Combine(folder, "requirements.txt")).Trim());
+                Assert.True(File.Exists(Path.Combine(folder, "__init__.py")));
+                Assert.Single(CadPluginManifest.Read(Path.Combine(folder, "plugin.json")).CommandEntries);
             }
         }
 

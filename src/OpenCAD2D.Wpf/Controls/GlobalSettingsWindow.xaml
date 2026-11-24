@@ -812,7 +812,7 @@
                                 Text="{Binding LinetypeOrderText}"
                             />
 
-                            <!-- Python: the CPython that PYRUN, PYLOAD and the Pythons folder use, shown where the app uses Python. -->
+                            <!-- Python: the CPython the Python tools and PYRUN make their environments from, shown where the app uses Python. -->
                             <StackPanel Visibility="{Binding IsPythonUsed, Converter={StaticResource Shown}}">
                                 <StackPanel Orientation="Horizontal" Margin="0,16,0,2">
                                     <local:IconView
@@ -843,7 +843,7 @@
                                     Margin="18,0,0,4"
                                     Foreground="{StaticResource GhTextMuted}"
                                     TextWrapping="Wrap"
-                                    Text="The CPython 3.11 to 3.15 (64-bit) that PYRUN, PYLOAD and the Pythons folder use. Empty: found automatically (PYTHONNET_PYDLL, then the Python launcher’s registry, newest first). A venv’s python.exe brings its packages."
+                                    Text="The CPython 3.11 to 3.15 (64-bit) that each Python tool and PYRUN make their own environment from. Empty: found automatically (the Python launcher’s registry, newest first). Each tool has its own packages in an environment of its own, never those of this Python."
                                 />
                                 <Grid Margin="18,3,0,3">
                                     <Grid.ColumnDefinitions>
@@ -974,7 +974,7 @@
                                     <TextBlock
                                         Foreground="{StaticResource GhIcon}"
                                         TextWrapping="Wrap"
-                                        Text="Python has started in this session: a change takes effect at the next start."
+                                        Text="A Python tool is running in this session: a change takes effect when its process starts again (unload the tool, or restart the app)."
                                     />
                                 </Border>
                             </StackPanel>

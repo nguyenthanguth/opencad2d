@@ -161,9 +161,9 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Loads one application as the Load button of Load/Unload Applications does, and says what came of it on the command
         /// line: an AutoLISP file into the document's interpreter (what it wrote, then <c>name.lsp successfully loaded.</c>, or
-        /// the <c>; error:</c> line), a .py file into Python (see <see cref="LoadPythonApplication"/>), a .dll, a .csproj (its folder),
+        /// the <c>; error:</c> line), a Python tool, a folder with a requirements.txt or that file, into Python (see <see cref="LoadPythonApplication"/>; a lone .py is refused), a .dll, a .csproj (its folder),
         /// a folder (a plugin's, as PLUGINLOAD takes it) or a .cs (which the manager refuses, saying how to make it a folder) into the
-        /// plugin manager; a folder with a requirements.txt is a Python tool, which is refused until Python tools load as folders;
+        /// plugin manager;
         /// <c>.arx</c>, <c>.dbx</c>, <c>.dvb</c>, <c>.fas</c> and <c>.vlx</c> files are refused, and any other type is said to be
         /// neither an AutoLISP file, a Python file nor a plugin.
         /// </summary>
@@ -174,13 +174,6 @@ namespace OpenCAD2D.Wpf
             string name = System.IO.Path.GetFileName(path);
             string extension = System.IO.Path.GetExtension(path).ToLowerInvariant();
             bool isFolder = System.IO.Directory.Exists(path);
-
-            if (isFolder && System.IO.File.Exists(System.IO.Path.Combine(path, "requirements.txt")))
-            {
-                const string later = " cannot be loaded: Python tools load in a later build.";
-                Say(name + later);
-                return new AppLoadResult(AppLoadStatusKind.Refused, name + later, name, later);
-            }
 
             if (extension == ".lsp" && !isFolder)
             {
@@ -207,9 +200,9 @@ namespace OpenCAD2D.Wpf
                 );
             }
 
-            if (extension == ".py" && !isFolder)
+            if (extension == ".py" || PythonToolFolder.Resolve(path) != null)
             {
-                return LoadPythonApplication(path, name);
+                return LoadPythonApplication(path);
             }
 
             if (isFolder || extension == ".dll" || extension == ".csproj" || extension == ".cs")
@@ -239,12 +232,15 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
-        /// A <c>.py</c> file of <see cref="LoadApplication"/>: loaded into the drawing shown as PYLOAD does, which writes its own
-        /// line (<c>tools.py loaded: C1, DOT.</c>) to the command line; the footer says <c>tools.py successfully loaded.</c>, or
-        /// <c>tools.py failed to load:</c> and the last line the load wrote (the error, or why Python could not run it).
+        /// A Python tool of <see cref="LoadApplication"/>, a folder with a <c>requirements.txt</c> or that file: loaded into the
+        /// drawing shown as PYLOAD does, which writes its own line (<c>Stairs loaded: STAIRSPY.</c>) to the command line; the footer
+        /// says <c>Stairs successfully loaded.</c>, or <c>Stairs failed to load:</c> and the last line the load wrote. A <c>.py</c>
+        /// file alone is no tool: it is refused, with the line that says how to make it one.
         /// </summary>
-        private AppLoadResult LoadPythonApplication(string path, string name)
+        private AppLoadResult LoadPythonApplication(string path)
         {
+            string folder = PythonToolFolder.Resolve(path);
+            string name = System.IO.Path.GetFileName((folder ?? path).TrimEnd('\\', '/'));
             string reason;
 
             if (PythonFiles == null)
@@ -257,10 +253,16 @@ namespace OpenCAD2D.Wpf
                 reason = "Open a drawing to load " + name + ".";
                 Say(reason);
             }
+            else if (PythonToolFolder.IsLoneFile(path))
+            {
+                reason = PythonToolFolder.LoneFileLine(path);
+                Say(reason);
+                return new AppLoadResult(AppLoadStatusKind.Refused, reason, name, reason);
+            }
             else
             {
                 int before = _current.Session.History.Count;
-                bool loaded = PythonFiles.Load(_current.Session, path);
+                bool loaded = PythonFiles.Load(_current.Session, folder);
                 SyncHistory();
 
                 if (loaded)
@@ -268,13 +270,7 @@ namespace OpenCAD2D.Wpf
                     return new AppLoadResult(AppLoadStatusKind.Loaded, name + " successfully loaded.");
                 }
 
-                const string prefix = "Python error: ";
                 reason = _current.Session.History.Skip(before).LastOrDefault() ?? string.Empty;
-
-                if (reason.StartsWith(prefix, StringComparison.Ordinal))
-                {
-                    reason = reason.Substring(prefix.Length);
-                }
             }
 
             return new AppLoadResult(AppLoadStatusKind.Failed, name + " failed to load: " + reason, name, reason);
@@ -323,8 +319,9 @@ namespace OpenCAD2D.Wpf
 
             foreach (string file in LoadedPythonFiles)
             {
-                // The file is kept so that its row stays, unticked, after a restart; a Python row names its commands only while it is loaded.
-                changed |= Keep(known, AppLoadViewModel.Normal(file), string.Empty);
+                // The tool is kept with the commands its plugin.json names, so that its row stays, unticked and naming them, after a restart.
+                string full = AppLoadViewModel.Normal(file);
+                changed |= Keep(known, full, string.Join(", ", PythonCommandsOf(full)));
             }
 
             if (_plugins != null)

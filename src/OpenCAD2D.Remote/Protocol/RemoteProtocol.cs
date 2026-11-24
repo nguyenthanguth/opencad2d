@@ -105,6 +105,9 @@ namespace OpenCAD2D.Remote
 
         /// <summary>Reads or sets the layout a drawing shows.</summary>
         public const string CurrentLayout = "currentLayout";
+
+        /// <summary>Reads the extents the header of a drawing holds (<c>EXTMIN</c> and <c>EXTMAX</c>).</summary>
+        public const string Extents = "extents";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

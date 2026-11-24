@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using OpenCAD2D.Remote;
 
 namespace OpenCAD2D.Plugins
 {
@@ -21,7 +23,12 @@ namespace OpenCAD2D.Plugins
     ///   "icon": "icon.png"
     /// }
     /// </code>
-    /// Only the name is needed; the id is the name where not given, the kind "command", the API version 1.0.
+    /// Only the name is needed; the id is the name where not given, the kind "command", the API version 1.0. A command is a
+    /// name or an object, <c>{ "name": "NUMCIRCLES", "alias": "NC", "description": "Numbers the circles", "usesSelection": true }</c>
+    /// (<see cref="CommandEntries"/>); a Python tool, whose process the app starts only when a command is used, also declares
+    /// what it adds to the ribbon: <c>"ribbon": [ { "id": "tools", "title": "Tools", "panels": [ { "title": "Draw", "buttons": [
+    /// { "text": "Number", "command": "NUMCIRCLES", "icon": "number.png", "size": "large", "tooltip": "Numbers the circles" } ] } ] } ]</c>
+    /// (<see cref="Ribbon"/>).
     /// </summary>
     public sealed class CadPluginManifest
     {
@@ -31,7 +38,7 @@ namespace OpenCAD2D.Plugins
         /// <summary>The kind of a command plugin, the only kind this presenter loads: "command".</summary>
         public const string CommandKind = "command";
 
-        private CadPluginManifest(Data data)
+        private CadPluginManifest(Data data, JsonObject root)
         {
             Name = data.Name.Trim();
             Id = string.IsNullOrWhiteSpace(data.Id) ? Name : data.Id.Trim();
@@ -41,17 +48,23 @@ namespace OpenCAD2D.Plugins
             MinimumApiVersion = string.IsNullOrWhiteSpace(data.MinimumApiVersion)
                 ? new Version(1, 0)
                 : System.Version.Parse(data.MinimumApiVersion.Trim());
+            var entries = new List<CadPluginCommandEntry>();
             var commands = new List<string>();
 
-            foreach (string command in data.Commands ?? new List<string>())
+            foreach (object item in root.GetArray("commands"))
             {
-                if (!string.IsNullOrWhiteSpace(command))
+                CadPluginCommandEntry entry = CommandEntryOf(item);
+
+                if (entry != null)
                 {
-                    commands.Add(command.Trim().ToUpperInvariant());
+                    entries.Add(entry);
+                    commands.Add(entry.Name);
                 }
             }
 
             Commands = commands;
+            CommandEntries = entries;
+            Ribbon = RibbonOf(root.GetArray("ribbon"));
             Icon = string.IsNullOrWhiteSpace(data.Icon) ? null : data.Icon.Trim();
         }
 
@@ -75,6 +88,12 @@ namespace OpenCAD2D.Plugins
 
         /// <summary>Gets the names of the commands, in capitals, in the order written.</summary>
         public IReadOnlyList<string> Commands { get; }
+
+        /// <summary>Gets the commands as declared, in the order written: the names of <see cref="Commands"/> with the alias, the description and whether the command takes the selection, where the manifest gives them.</summary>
+        public IReadOnlyList<CadPluginCommandEntry> CommandEntries { get; }
+
+        /// <summary>Gets the tabs, panels and buttons the plugin declares for the ribbon, in the order written; none where it declares none.</summary>
+        public IReadOnlyList<CadPluginRibbonTabEntry> Ribbon { get; }
 
         /// <summary>Gets the path of the icon, relative to the manifest; null where not given.</summary>
         public string Icon { get; }
@@ -156,7 +175,107 @@ namespace OpenCAD2D.Plugins
                 );
             }
 
-            return new CadPluginManifest(data);
+            return new CadPluginManifest(data, Root(json));
+        }
+
+        /// <summary>The same text read as plain JSON, where the commands may be names or objects.</summary>
+        private static JsonObject Root(string json)
+        {
+            try
+            {
+                return RemoteJson.Parse(json) as JsonObject ?? new JsonObject();
+            }
+            catch (FormatException exception)
+            {
+                throw new FormatException(
+                    "The plugin's manifest is not JSON of the form plugin.json has: " + exception.Message,
+                    exception
+                );
+            }
+        }
+
+        private static CadPluginCommandEntry CommandEntryOf(object item)
+        {
+            if (item is string text)
+            {
+                return string.IsNullOrWhiteSpace(text)
+                    ? null
+                    : new CadPluginCommandEntry(text.Trim().ToUpperInvariant(), null, null, false);
+            }
+
+            if (!(item is JsonObject declared) || string.IsNullOrWhiteSpace(declared.GetString("name")))
+            {
+                return null;
+            }
+
+            return new CadPluginCommandEntry(
+                declared.GetString("name").Trim().ToUpperInvariant(),
+                string.IsNullOrWhiteSpace(declared.GetString("alias"))
+                    ? null
+                    : declared.GetString("alias").Trim().ToUpperInvariant(),
+                string.IsNullOrWhiteSpace(declared.GetString("description"))
+                    ? null
+                    : declared.GetString("description").Trim(),
+                declared.GetBool("usesSelection")
+            );
+        }
+
+        private static IReadOnlyList<CadPluginRibbonTabEntry> RibbonOf(JsonArray tabs)
+        {
+            var found = new List<CadPluginRibbonTabEntry>();
+
+            foreach (JsonObject tab in tabs.OfType<JsonObject>())
+            {
+                string title = tab.GetString("title")?.Trim();
+
+                if (string.IsNullOrEmpty(title))
+                {
+                    continue;
+                }
+
+                var panels = new List<CadPluginRibbonPanelEntry>();
+
+                foreach (JsonObject panel in tab.GetArray("panels").OfType<JsonObject>())
+                {
+                    var buttons = new List<CadPluginRibbonButtonEntry>();
+
+                    foreach (JsonObject button in panel.GetArray("buttons").OfType<JsonObject>())
+                    {
+                        string text = button.GetString("text")?.Trim();
+                        string command = button.GetString("command")?.Trim();
+
+                        if (!string.IsNullOrEmpty(text) && !string.IsNullOrEmpty(command))
+                        {
+                            buttons.Add(
+                                new CadPluginRibbonButtonEntry(
+                                    text,
+                                    command,
+                                    string.IsNullOrWhiteSpace(button.GetString("icon"))
+                                        ? null
+                                        : button.GetString("icon").Trim(),
+                                    string.Equals(
+                                        button.GetString("size")?.Trim(),
+                                        "large",
+                                        StringComparison.OrdinalIgnoreCase
+                                    ),
+                                    string.IsNullOrWhiteSpace(button.GetString("tooltip"))
+                                        ? null
+                                        : button.GetString("tooltip").Trim()
+                                )
+                            );
+                        }
+                    }
+
+                    panels.Add(
+                        new CadPluginRibbonPanelEntry(panel.GetString("title")?.Trim() ?? string.Empty, buttons)
+                    );
+                }
+
+                string id = tab.GetString("id")?.Trim();
+                found.Add(new CadPluginRibbonTabEntry(string.IsNullOrEmpty(id) ? title : id, title, panels));
+            }
+
+            return found;
         }
 
         /// <summary>Reads a manifest from a plugin.json file, without loading any code.</summary>
@@ -198,9 +317,6 @@ namespace OpenCAD2D.Plugins
 
             [DataMember(Name = "minimumApiVersion")]
             public string MinimumApiVersion { get; set; }
-
-            [DataMember(Name = "commands")]
-            public List<string> Commands { get; set; }
 
             [DataMember(Name = "icon")]
             public string Icon { get; set; }

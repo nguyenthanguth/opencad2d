@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using GeometryHelper;
+using OpenCAD2D.Plugins;
 using OpenCAD2D.Remote;
 
 namespace OpenCAD2D.Wpf
@@ -20,9 +22,11 @@ namespace OpenCAD2D.Wpf
         private const int ErrorLines = 5;
 
         private readonly CadToolHost _host;
-        private readonly string _python;
+        private readonly CadToolHost.Prepare _prepare;
+        private readonly bool _isScript;
         private readonly string _pythons;
         private readonly string _token;
+        private string _python;
 
         // Touched on the thread of the drawings only.
         private Live _live;
@@ -33,17 +37,23 @@ namespace OpenCAD2D.Wpf
             CadToolHost host,
             string folder,
             string python,
-            IReadOnlyList<string> commands,
+            CadToolHost.Prepare prepare,
+            bool isScript,
+            IReadOnlyList<CadPluginCommandEntry> commands,
             string pythons
         )
         {
             _host = host;
             Folder = folder;
             _python = python;
+            _prepare = prepare;
+            _isScript = isScript;
             _pythons = pythons;
             Name = System.IO.Path.GetFileName(folder.TrimEnd('\\', '/'));
             _token = host.Server.IssueToken();
-            Commands = commands.Select(c => host.Server.CreateRunCommand(c, false, _token, Started)).ToList();
+            Commands = commands
+                .Select(c => host.Server.CreateRunCommand(c.Name, c.UsesSelection, _token, Started))
+                .ToList();
         }
 
         /// <summary>Gets the name of the tool: the name of its folder.</summary>
@@ -90,7 +100,18 @@ namespace OpenCAD2D.Wpf
                 throw new InvalidOperationException("The tool " + Name + " is unloaded.");
             }
 
-            Live live = _live ?? Start();
+            if (_live == null && _prepare != null)
+            {
+                Preparing(run);
+                return;
+            }
+
+            Dispatch(_live ?? Start(), run);
+        }
+
+        /// <summary>Tells the process of a run: it is the run's, and the last one's session gets the lines the process prints.</summary>
+        private void Dispatch(Live live, CadRemoteToolRun run)
+        {
             live.Runs[run.Id] = run;
             live.Session = run.Session;
             run.Ended += (sender, e) => Ended(live, run);
@@ -103,6 +124,106 @@ namespace OpenCAD2D.Wpf
                         .Set("document", (long)run.DocumentId)
                 )
             );
+        }
+
+        /// <summary>
+        /// The tool has no process: its environment is made ready on a thread of its own (pip may ask a question of the run and
+        /// take seconds), while the run waits at its prompt, and the process is started where that ends, unless Esc ended the run
+        /// or the tool was unloaded meanwhile.
+        /// </summary>
+        private void Preparing(CadRemoteToolRun run)
+        {
+            Task.Run(() =>
+            {
+                PythonEnvironment environment;
+
+                try
+                {
+                    environment = _prepare(run, () => _host.Dispatcher.Invoke(StopForSwap));
+                }
+                catch (Exception ex) when (!(ex is OutOfMemoryException))
+                {
+                    GeometryHelperLog.Warn("CadFolderTool: the environment of " + Name + " could not be made.", ex);
+                    environment = PythonEnvironment.Failed(
+                        Folder,
+                        Name + " was not started: its environment could not be made (" + ex.Message + ")."
+                    );
+                }
+
+                try
+                {
+                    _host.Dispatcher.Invoke(() => Prepared(run, environment));
+                }
+                catch (Exception ex) when (!(ex is OutOfMemoryException))
+                {
+                    GeometryHelperLog.Warn("CadFolderTool: the start of " + Name + " failed.", ex);
+                }
+            });
+        }
+
+        private void Prepared(CadRemoteToolRun run, PythonEnvironment environment)
+        {
+            // Esc ended the run, or the tool was unloaded, while its environment was being made: nothing starts.
+            if (run.IsEnded || _unloaded)
+            {
+                return;
+            }
+
+            if (!environment.IsReady)
+            {
+                Failed(run, environment.Error);
+                return;
+            }
+
+            _python = environment.Python;
+
+            // A change of the tool's packages that failed leaves it on the venv it had: the lines say so, on the command line and in the log.
+            if (environment.Failure != null)
+            {
+                foreach (string line in environment.Failure.Replace("\r", string.Empty).Split('\n'))
+                {
+                    run.Session.Write(line);
+                    _host.Say(Name + ": " + line);
+                }
+            }
+
+            try
+            {
+                Dispatch(_live ?? Start(), run);
+            }
+            catch (Exception ex) when (!(ex is OutOfMemoryException))
+            {
+                Failed(run, ex.Message);
+            }
+        }
+
+        /// <summary>Ends a run the process never began: the lines are written, the changes (there are none) taken back.</summary>
+        private void Failed(CadRemoteToolRun run, string text)
+        {
+            foreach (string line in text.Replace("\r", string.Empty).Split('\n'))
+            {
+                run.Session.Write(line);
+            }
+
+            run.Error = text;
+            run.Finish(CadRemoteToolRunOutcome.Failed);
+
+            if (!run.Session.Resume(run.Command))
+            {
+                run.Session.Escape();
+            }
+        }
+
+        /// <summary>The venv is about to be replaced: the tool's process, which holds its files, is ended; the next command starts another.</summary>
+        private void StopForSwap()
+        {
+            Live live = _live;
+
+            if (live != null)
+            {
+                _live = null;
+                live.Process.Kill();
+            }
         }
 
         private Live Start()
@@ -132,7 +253,7 @@ namespace OpenCAD2D.Wpf
                         // -I: the tool is isolated from the user's Python settings; -X utf8 and -u are what PYTHONUTF8 and
                         // PYTHONUNBUFFERED say, which -I would ignore.
                         Arguments = new[] { "-I", "-X", "utf8", "-u", "-m", "opencad2d.tool", Folder },
-                        WorkingFolder = Folder,
+                        WorkingFolder = _isScript ? System.IO.Path.GetDirectoryName(Folder) : Folder,
                         Environment = environment,
                     },
                     line => Output(live, line),
@@ -157,6 +278,13 @@ namespace OpenCAD2D.Wpf
         private void Ended(Live live, CadRemoteToolRun run)
         {
             live.Runs.Remove(run.Id);
+
+            // A script ran once: its process is not kept for a next command.
+            if (_isScript && run.Outcome != CadRemoteToolRunOutcome.Cancelled)
+            {
+                Unload();
+                return;
+            }
 
             if (run.Outcome != CadRemoteToolRunOutcome.Cancelled || _live != live || live.Process.WasKilled)
             {
