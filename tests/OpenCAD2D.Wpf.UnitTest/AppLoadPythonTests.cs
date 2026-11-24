@@ -405,6 +405,48 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void AnUnloadedPythonFileOfThePythonsFolder_AndOneFromElsewhere_StayInANewWindow_Unticked()
+        {
+            MainViewModel model = Opened(out FakePythonFiles python);
+            string program = Path.Combine(_folder.FullPath, "program");
+            string pythons = Directory.CreateDirectory(Path.Combine(program, "Pythons")).FullName;
+            model.Document.SupportRoots = new CadSupportFolders(program);
+            string inside = Path.Combine(pythons, "gh-tools.py");
+            File.WriteAllText(inside, "pass\n");
+            string outside = Py("mine.py");
+            AppLoadViewModel dialog = Created(model);
+            dialog.Load(new[] { inside, outside });
+            dialog.ChooseRows(dialog.Rows);
+
+            dialog.Unload();
+
+            Assert.All(dialog.Rows, r => Assert.False(r.IsOn));
+
+            AppLoadViewModel again = Created(model);
+            Assert.Equal(2, again.Rows.Count);
+            Assert.False(Row(again, "gh-tools.py").IsOn);
+            Assert.False(Row(again, "mine.py").IsOn);
+
+            // A new run of the app over the settings file.
+            var second = new MainViewModel { SettingsPath = SettingsFile };
+            second.ApplySettings(GlobalSettings.Load(SettingsFile));
+            Assert.True(
+                second.Open(
+                    _folder.Write("room-" + Guid.NewGuid().ToString("N") + ".dxf", TestFiles.Room(out _, out _))
+                )
+            );
+            second.PythonFiles = new FakePythonFiles();
+            second.Document.SupportRoots = new CadSupportFolders(program);
+            AppLoadViewModel restarted = Created(second);
+            Assert.Equal(2, restarted.Rows.Count);
+            Assert.False(Row(restarted, "gh-tools.py").IsOn);
+            Assert.False(Row(restarted, "mine.py").IsOn);
+
+            Row(restarted, "gh-tools.py").IsOn = true;
+            Assert.True(Row(restarted, "gh-tools.py").IsOn);
+        }
+
+        [Fact]
         public void TickingAtStart_WritesThePythonStartupSuite_AndUntickingTakesItOut_WhileTheLispSuiteIsNotTouched()
         {
             MainViewModel model = Opened(out _);

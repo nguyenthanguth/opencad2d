@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **FIXED.** Load/Unload Applications (APPLOAD) dropped an unloaded file of the `Lisps` or `Pythons` folder beside the
+  app from the table once the window was closed: a table of 20 rows came back with 14, with the unticked Lisp and Python
+  rows gone. Only an unloaded file from elsewhere was kept in the known list. The files of those folders are now kept
+  there too, so an unticked row stays, with its commands, in a new window and after a restart, and ticking it loads it.
+  Remove still refuses these rows, since they load at every start.
+
 - **CHANGED.** The old name is gone where a user can see it. The window's title-bar name, when a host gives none, is
   `OpenCAD2D` (it was `GeometryHelper Drawing`); Paste Special names the source of copied objects `OpenCAD2D entities`; the
   PSOUT file's `%%Creator:` line says `OpenCAD2D PSOUT`; the plugin load contexts in a debugger or a crash dump are

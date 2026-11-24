@@ -311,6 +311,45 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void AnUnloadedFileOfTheLispsFolder_AndOneFromElsewhere_StayInANewWindowAndAfterARestart_Unticked()
+        {
+            MainViewModel model = Opened();
+            string program = Path.Combine(_folder.FullPath, "program");
+            string lisps = Directory.CreateDirectory(Path.Combine(program, "Lisps")).FullName;
+            model.Document.SupportRoots = new CadSupportFolders(program);
+            string inside = Path.Combine(lisps, "GH-Info.lsp");
+            File.WriteAllText(inside, "(defun c:GHI () 1)");
+            string outside = Lisp("mine.lsp", "(defun c:MINE () 1)");
+            AppLoadViewModel dialog = Shown(model);
+            dialog.Load(new[] { inside, outside });
+            dialog.ChooseRows(dialog.Rows);
+
+            dialog.Unload();
+
+            Assert.All(dialog.Rows, r => Assert.False(r.IsOn));
+
+            // A new window over the same drawing: both rows are still there, off, with the commands they defined.
+            AppLoadViewModel again = Created(model);
+            Assert.Equal(2, again.Rows.Count);
+            Assert.False(Row(again, "GH-Info.lsp").IsOn);
+            Assert.Equal("GHI", Row(again, "GH-Info.lsp").Commands);
+            Assert.False(Row(again, "mine.lsp").IsOn);
+
+            // A new run of the app over the settings file.
+            MainViewModel second = Restarted();
+            second.Document.SupportRoots = new CadSupportFolders(program);
+            AppLoadViewModel restarted = Created(second);
+            Assert.Equal(2, restarted.Rows.Count);
+            Assert.False(Row(restarted, "GH-Info.lsp").IsOn);
+            Assert.False(Row(restarted, "mine.lsp").IsOn);
+
+            // Ticking one loads it again.
+            Row(restarted, "GH-Info.lsp").IsOn = true;
+            Assert.True(Row(restarted, "GH-Info.lsp").IsOn);
+            Assert.Contains("GHI", second.Session.LispCommandNames);
+        }
+
+        [Fact]
         public void AFileLoadedWithTheLoadFunction_IsKnownWithItsCommands()
         {
             MainViewModel model = Opened();
@@ -431,7 +470,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.False(dialog.RemoveCommand.CanExecute(null));
             string idle = dialog.RemoveToolTip;
             Assert.Equal("Unload the chosen files and take them out of the list", idle);
-            Assert.DoesNotContain(model.Settings.KnownApplications.Keys, k => k == inside);
+            Assert.Contains(inside, model.Settings.KnownApplications.Keys);
 
             dialog.ChooseRows(new[] { Row(dialog, "GH-Info.lsp") });
 

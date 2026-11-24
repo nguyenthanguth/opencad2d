@@ -289,7 +289,8 @@ namespace OpenCAD2D.Wpf
         /// Keeps the applications in use in <see cref="GlobalSettings.KnownApplications"/>, so that Load/Unload Applications still
         /// lists them once unloaded: each AutoLISP file loaded or failed half way in the document shown, with the commands it
         /// defines now, and each plugin of the manager that is not of the plugin folder (loaded now, or unloaded with the
-        /// commands it last had). Files of the Lisps folder are left out, since the window lists them anyway. The settings are
+        /// commands it last had). A file of the Lisps or Pythons folder is kept too, so that it stays in the table, unticked, once
+        /// unloaded (it loads again at the next start). The settings are
         /// saved only where something changed. Called after the history grows (a <c>(load)</c> says something), after a plugin
         /// is loaded or unloaded, and when the window lists its rows.
         /// </summary>
@@ -303,31 +304,17 @@ namespace OpenCAD2D.Wpf
             }
 
             bool changed = false;
-            IReadOnlyList<string> lisps = _current?.Session.Document.SupportRoots.ExistingOf(CadSupportKind.Lisps)
-                ?? Array.Empty<string>();
 
             foreach (string file in LoadedLispFiles.Concat(FailedLispFiles))
             {
                 string full = AppLoadViewModel.Normal(file);
-
-                if (!lisps.Any(folder => AppLoadViewModel.IsUnder(full, folder)))
-                {
-                    changed |= Keep(known, full, string.Join(", ", LispCommandsOf(full)));
-                }
+                changed |= Keep(known, full, string.Join(", ", LispCommandsOf(full)));
             }
-
-            IReadOnlyList<string> pythons = _current?.Session.Document.SupportRoots.ExistingOf(CadSupportKind.Pythons)
-                ?? Array.Empty<string>();
 
             foreach (string file in LoadedPythonFiles)
             {
-                string full = AppLoadViewModel.Normal(file);
-
-                if (!pythons.Any(folder => AppLoadViewModel.IsDirectlyIn(full, folder)))
-                {
-                    // The file is kept so that its row stays, unticked, after a restart; a Python row names its commands only while it is loaded.
-                    changed |= Keep(known, full, string.Empty);
-                }
+                // The file is kept so that its row stays, unticked, after a restart; a Python row names its commands only while it is loaded.
+                changed |= Keep(known, AppLoadViewModel.Normal(file), string.Empty);
             }
 
             if (_plugins != null)
