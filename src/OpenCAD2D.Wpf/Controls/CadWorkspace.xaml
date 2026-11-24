@@ -1227,6 +1227,42 @@
                                 />
                                 <Button
                                     Style="{StaticResource BigButton}"
+                                    Tag="{StaticResource GhIconRuler}"
+                                    Content="Units"
+                                    IsEnabled="True"
+                                    Command="{Binding OpenCommand}"
+                                    CommandParameter="Units and rounding"
+                                    ToolTip="Global settings › Units and rounding"
+                                />
+                                <Button
+                                    Style="{StaticResource BigButton}"
+                                    Tag="{StaticResource GhIconTextFonts}"
+                                    Content="Text and fonts"
+                                    IsEnabled="True"
+                                    Command="{Binding OpenCommand}"
+                                    CommandParameter="Text and fonts"
+                                    ToolTip="Global settings › Text and fonts"
+                                />
+                                <Button
+                                    Style="{StaticResource BigButton}"
+                                    Tag="{StaticResource GhIconOpen}"
+                                    Content="Folders"
+                                    IsEnabled="True"
+                                    Command="{Binding OpenCommand}"
+                                    CommandParameter="Folder preference"
+                                    ToolTip="Global settings › Folder preference"
+                                />
+                                <Button
+                                    Style="{StaticResource BigButton}"
+                                    Tag="{StaticResource GhIconShield}"
+                                    Content="Security"
+                                    IsEnabled="True"
+                                    Command="{Binding OpenCommand}"
+                                    CommandParameter="Security"
+                                    ToolTip="Global settings › Security"
+                                />
+                                <Button
+                                    Style="{StaticResource BigButton}"
                                     Tag="{StaticResource GhIconKeyboard}"
                                     Content="Shortcuts"
                                     IsEnabled="True"
