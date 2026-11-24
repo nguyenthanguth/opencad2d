@@ -512,7 +512,7 @@ namespace OpenCAD2D.Wpf
         internal static string CommandLine(string program, IEnumerable<string> arguments) =>
             string.Join(" ", new[] { program }.Concat(arguments).Select(Quote));
 
-        private static string Quote(string argument)
+        internal static string Quote(string argument)
         {
             if (argument.Length > 0 && argument.IndexOfAny(new[] { ' ', '\t', '"' }) < 0)
             {

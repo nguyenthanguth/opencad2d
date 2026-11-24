@@ -449,6 +449,35 @@ It stays until the tool is unloaded or the app closes.
 `@on_unload` functions run when the app unloads the tool; a tool that has not left within 5 seconds is ended. `active_drawing()`
 is the drawing the command was typed in; `session()` and the `add_*` window functions do not exist in a tool.
 
+### A venv for each tool
+
+A tool has a venv of its own, `%LocalAppData%\OpenCAD2D\python\envs\<name>-<8 hex>` (the hex is the start of the SHA-256 of the
+tool folder's full path, so two tools of one name in two places have two), made from the Python of Global settings > Python, else
+the newest 64-bit 3.11 to 3.15 the registry lists, and never from your own Python environment. It holds the packages of the
+tool's `requirements.txt`, so a tool that pins `numpy==1.26.4` and another that pins `numpy==2.3.5` both install and both run.
+
+- **Nothing is installed without a yes.** The app asks `pip install --dry-run --report` what would be installed and shows the
+  list (the packages the file names first, then the ones they need, each with its version) before it downloads anything;
+  the venv is changed only after the yes, and asked again when `requirements.txt` or the Python changes. A tool with no
+  packages asks nothing. Where nothing can ask, the tool is not installed.
+- **A lower bound is a version.** `numpy>=1.26` is installed as `numpy==1.26`: quick, and the same on every computer. Where pip
+  has no `1.26` for the Python in use (no wheel for it), or `1.26` clashes with another line, the line is taken as written and
+  pip picks. Neither says anything. Any other form (`~=`, `<`, `*`, `>=1.26,<2`) goes to pip as written. `requirements.txt`
+  names packages only: a line that starts with `-` (`-r`, `-e`, `--index-url`) is refused, `requirements.txt line 3: options are not taken`.
+- **Errors say what to do.** A version that does not exist, two lines that clash, or no network give pip's own `ERROR:` lines,
+  then `Stairs was not installed. If this computer is offline, connect and try again, or run: "<python>" -m pip --python
+  "<venv>\Scripts\python.exe" install -r "<folder>\requirements.txt"`. The venv that was there is left as it was.
+- **A change is built beside and swapped in.** When `requirements.txt` changes, the new venv is built next to the old one and
+  replaces it once it works, with the tool's process stopped first; a failed install keeps the old venv working.
+- **`opencad2d` is not installed in each venv.** A `.pth` file in the venv puts the app's own copy of the package and a base
+  on the path, after the venv's own packages, so a tool may pin its own versions. The base, `python\base\cp314` for Python 3.14,
+  holds pythonnet, clr_loader, cffi and pycparser, installed once for each Python version from the wheels the app ships in
+  `python\wheels`, with no network and no question.
+
+Measured on Python 3.14 (net48 test host, local wheels): the base 1.7 s once and 2.7 MB in 138 files; a venv with its `.pth`
+75 to 98 ms and 0.54 MB in 19 files (`python -m venv` with pip: 4.0 s and 12 MB in 887 files); a tool with one package 2.1 s
+(0.9 s for the list, the rest for the install); a tool already installed 0 ms; `import pythonnet, clr_loader` in a venv 0.1 s.
+
 ## What is not there yet
 
 - `save()` inside a run makes two undo steps: the run's group ends at the save and opens again, so what was done before it is
