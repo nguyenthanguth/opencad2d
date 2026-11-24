@@ -121,7 +121,7 @@ namespace OpenCAD2D.Wpf
         /// <param name="toolFolder">The tool's folder, with its <c>requirements.txt</c>.</param>
         /// <param name="python">The Python the venv is made from.</param>
         /// <param name="beforeSwap">Called when a venv that exists is about to be replaced, to stop the tool's process, which holds its files; null for none.</param>
-        /// <returns>The venv, or the lines to show where it could not be made; the venv that was there is left as it was.</returns>
+        /// <returns>The venv; or the lines to show where it could not be made, and then, where a venv was there, that venv left as it was and ready, with <see cref="PythonEnvironment.Failure"/> holding the lines.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the folder or the Python is null.</exception>
         public PythonEnvironment Prepare(string toolFolder, PythonInstallation python, Action beforeSwap = null)
         {
@@ -161,7 +161,7 @@ namespace OpenCAD2D.Wpf
 
             if (refused != null)
             {
-                return PythonEnvironment.Failed(target, refused);
+                return KeepOld(PythonEnvironment.Failed(target, refused));
             }
 
             string key = Key(written, python);
@@ -175,7 +175,7 @@ namespace OpenCAD2D.Wpf
 
                 try
                 {
-                    return Build(tool, folder, target, key, requirements, python, beforeSwap);
+                    return KeepOld(Build(tool, folder, target, key, requirements, python, beforeSwap));
                 }
                 catch (Exception exception)
                     when (exception is IOException
@@ -183,13 +183,23 @@ namespace OpenCAD2D.Wpf
                         || exception is System.ComponentModel.Win32Exception
                     )
                 {
-                    return PythonEnvironment.Failed(
-                        target,
-                        tool + " was not installed: its environment could not be made (" + exception.Message + ")."
+                    return KeepOld(
+                        PythonEnvironment.Failed(
+                            target,
+                            tool + " was not installed: its environment could not be made (" + exception.Message + ")."
+                        )
                     );
                 }
             }
         }
+
+        /// <summary>Where a venv is there already, a change that failed leaves the tool on it: ready, with the failure to show. A first venv that failed stays failed.</summary>
+        private static PythonEnvironment KeepOld(PythonEnvironment failed) =>
+            failed.IsReady
+            || !File.Exists(Path.Combine(failed.Folder, KeyFile))
+            || !File.Exists(Path.Combine(failed.Folder, "Scripts", "python.exe"))
+                ? failed
+                : PythonEnvironment.Kept(failed.Folder, failed.Error);
 
         private PythonEnvironment Build(
             string tool,
@@ -341,6 +351,7 @@ namespace OpenCAD2D.Wpf
             // At most three dry runs: with the pins, with the pins pip named taken back, with all of them taken back.
             for (int attempt = 0; ; attempt++)
             {
+                List<PythonRequirement> pinned = requirements.Where(r => r.IsPinned).ToList();
                 File.WriteAllText(
                     file,
                     string.Join("\n", requirements.Select(r => r.Text)) + "\n",
@@ -360,7 +371,15 @@ namespace OpenCAD2D.Wpf
                         report,
                         "-r",
                         file,
-                    }.Concat(_pipOptions),
+                    }
+                        .Concat(_pipOptions)
+                        // A pin is wheels only: where its version has just a source archive, pip would build it (minutes, and
+                        // a build that may not work for this Python) and the dry run would not say so; failing takes the pin back.
+                        .Concat(
+                            pinned.Count > 0
+                                ? new[] { "--only-binary", string.Join(",", pinned.Select(r => r.Name)) }
+                                : new string[0]
+                        ),
                     PipMilliseconds
                 );
 
@@ -369,8 +388,6 @@ namespace OpenCAD2D.Wpf
                     error = null;
                     return ReadReport(report);
                 }
-
-                List<PythonRequirement> pinned = requirements.Where(r => r.IsPinned).ToList();
 
                 if (pinned.Count == 0 || attempt == 2)
                 {
@@ -604,6 +621,9 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets what to show where the venv is not ready: pip's own lines and the app's after them; null where it is.</summary>
         public string Error { get; private set; }
 
+        /// <summary>Gets the lines to show where a change of the tool's packages failed and the venv that was there is kept, ready as it was (<see cref="IsReady"/> is true and <see cref="Python"/> is its <c>python.exe</c>); null otherwise.</summary>
+        public string Failure { get; private set; }
+
         /// <summary>Gets whether the venv is ready: there is no <see cref="Error"/>.</summary>
         public bool IsReady => Error == null;
 
@@ -616,6 +636,14 @@ namespace OpenCAD2D.Wpf
                 Folder = folder,
                 Python = Path.Combine(folder, "Scripts", "python.exe"),
                 Installed = installed,
+            };
+
+        internal static PythonEnvironment Kept(string folder, string failure) =>
+            new PythonEnvironment
+            {
+                Folder = folder,
+                Python = Path.Combine(folder, "Scripts", "python.exe"),
+                Failure = failure,
             };
 
         internal static PythonEnvironment Failed(string folder, string error) =>

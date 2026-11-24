@@ -168,8 +168,10 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             PythonEnvironment missing = Prepare("Tool", "demo-pkg==9.9\n", () => swaps++);
 
-            Assert.False(missing.IsReady);
-            Assert.Contains("Could not find a version", missing.Error);
+            Assert.True(missing.IsReady, missing.Error);
+            Assert.Contains("Could not find a version", missing.Failure);
+            Assert.Contains("Tool was not installed.", missing.Failure);
+            Assert.Equal(before.Python, missing.Python);
             Assert.Equal(0, swaps);
             Assert.Equal(before.Folder, missing.Folder);
             Assert.Equal("1.0", Version(before));
@@ -216,13 +218,43 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             PythonEnvironment failed = Prepare("Tool", "demo-pkg==2.0\n", () => swaps++);
 
-            Assert.False(failed.IsReady);
-            Assert.Contains("ERROR:", failed.Error);
-            Assert.Contains("Tool was not installed.", failed.Error);
+            Assert.True(failed.IsReady, failed.Error);
+            Assert.Contains("ERROR:", failed.Failure);
+            Assert.Contains("Tool was not installed.", failed.Failure);
+            Assert.Equal(before.Python, failed.Python);
+            Assert.Equal("1.0", Version(failed));
             Assert.Equal(0, swaps);
             Assert.Equal("1.0", Version(before));
             Assert.False(Directory.Exists(before.Folder + ".new"));
             Assert.False(Directory.Exists(before.Folder + ".old"));
+        }
+
+        [Fact]
+        public void AChangeThatIsNotApproved_OrIsRefused_KeepsTheOldVenvRunning_WithTheLines()
+        {
+            PythonEnvironment before = Prepare("Tool", "demo-pkg==1.0\n");
+            _environments.Confirm = (tool, packages) => false;
+
+            PythonEnvironment declined = Prepare("Tool", "demo-pkg==2.0\n");
+            PythonEnvironment refused = Prepare("Tool", "-r other.txt\n");
+
+            Assert.True(declined.IsReady, declined.Error);
+            Assert.Contains("its packages were not approved", declined.Failure);
+            Assert.Equal(before.Python, declined.Python);
+            Assert.Equal("1.0", Version(declined));
+            Assert.True(refused.IsReady, refused.Error);
+            Assert.Equal("requirements.txt line 1: options are not taken", refused.Failure);
+            Assert.Equal(before.Python, refused.Python);
+        }
+
+        [Fact]
+        public void ATool_WithNoVenvYet_StaysFailed_WhenItsInstallFails()
+        {
+            PythonEnvironment missing = Prepare("Tool", "demo-pkg==9.9\n");
+
+            Assert.False(missing.IsReady);
+            Assert.Null(missing.Python);
+            Assert.Null(missing.Failure);
         }
 
         [Fact]
@@ -242,10 +274,10 @@ namespace OpenCAD2D.Wpf.UnitTest
             {
                 PythonEnvironment held = Prepare("Tool", "demo-pkg==2.0\n");
 
-                Assert.False(held.IsReady);
+                Assert.True(held.IsReady, held.Error);
                 Assert.Contains(
                     "Tool was not installed: its environment is in use and could not be replaced",
-                    held.Error
+                    held.Failure
                 );
             }
 
@@ -279,6 +311,26 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.True(environment.IsReady, environment.Error);
             Assert.Equal(new[] { "Tool: demo-pkg 1.5" }, _asked);
             Assert.Equal("1.5", Version(environment));
+        }
+
+        [Fact]
+        public void ALowerBoundWhoseLowestVersionHasOnlyASourceArchive_TakesTheWheel_AndBuildsNothing()
+        {
+            // 1.0 is a source archive only, as numpy 2.0.0 is on Python 3.14; 2.0 has a wheel. Pinned to 1.0, pip would build
+            // 1.0 from source (minutes for numpy) and the venv would be reported ready.
+            string wheelhouse = Path.Combine(_root, "source-first");
+            string built = Path.Combine(_root, "built.txt");
+            SourceArchive(wheelhouse, "demo-pkg", "1.0", built);
+            Wheel(wheelhouse, "demo-pkg", "2.0");
+            PythonEnvironments asking = Environments(_root, wheelhouse);
+            asking.Confirm = Yes;
+
+            PythonEnvironment environment = asking.Prepare(Tool(_root, "Tool", "demo-pkg>=1.0\n"), MachinePython);
+
+            Assert.True(environment.IsReady, environment.Error);
+            Assert.Equal(new[] { "Tool: demo-pkg 2.0" }, _asked);
+            Assert.Equal("2.0", Version(environment));
+            Assert.False(File.Exists(built));
         }
 
         [Fact]

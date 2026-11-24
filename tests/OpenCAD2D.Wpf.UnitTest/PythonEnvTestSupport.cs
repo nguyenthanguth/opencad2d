@@ -119,6 +119,70 @@ namespace OpenCAD2D.Wpf.UnitTest
             return path;
         }
 
+        /// <summary>
+        /// Writes a source archive of a made-up package into a wheelhouse: a <c>.zip</c> that pip takes for a source distribution
+        /// and builds with the backend inside it (no index, no setuptools), which creates a marker file whenever pip builds
+        /// metadata or a wheel, so a test can say that nothing was built. Its module says the version, as <see cref="Wheel"/>'s does.
+        /// </summary>
+        /// <param name="wheelhouse">The wheelhouse folder.</param>
+        /// <param name="name">The package's name, <c>demo-pkg</c>.</param>
+        /// <param name="version">Its version.</param>
+        /// <param name="marker">The file the backend creates when pip builds from the archive.</param>
+        /// <returns>The archive's path.</returns>
+        public static string SourceArchive(string wheelhouse, string name, string version, string marker)
+        {
+            Directory.CreateDirectory(wheelhouse);
+            string module = name.Replace('-', '_');
+            string backend = @"import os, zipfile
+MARKER = r'@MARKER@'
+INFO = '@MODULE@-@VERSION@.dist-info'
+METADATA = 'Metadata-Version: 2.1\nName: @NAME@\nVersion: @VERSION@\n'
+def get_requires_for_build_wheel(config_settings=None): return []
+def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
+    open(MARKER, 'a').close()
+    os.makedirs(os.path.join(metadata_directory, INFO))
+    with open(os.path.join(metadata_directory, INFO, 'METADATA'), 'w') as f: f.write(METADATA)
+    return INFO
+def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
+    open(MARKER, 'a').close()
+    file = '@MODULE@-@VERSION@-py3-none-any.whl'
+    with zipfile.ZipFile(os.path.join(wheel_directory, file), 'w') as z:
+        z.writestr('@MODULE@/__init__.py', 'VERSION = ""@VERSION@""\n')
+        z.writestr(INFO + '/METADATA', METADATA)
+        z.writestr(INFO + '/WHEEL', 'Wheel-Version: 1.0\nGenerator: tests\nRoot-Is-Purelib: true\nTag: py3-none-any\n')
+        z.writestr(INFO + '/RECORD', '')
+    return file
+".Replace("@MARKER@", marker).Replace("@MODULE@", module).Replace("@NAME@", name).Replace("@VERSION@", version);
+            var files = new[]
+            {
+                new KeyValuePair<string, string>(
+                    "PKG-INFO",
+                    "Metadata-Version: 2.1\nName: " + name + "\nVersion: " + version + "\n"
+                ),
+                new KeyValuePair<string, string>(
+                    "pyproject.toml",
+                    "[build-system]\nrequires = []\nbuild-backend = \"backend\"\nbackend-path = [\".\"]\n"
+                ),
+                new KeyValuePair<string, string>("backend.py", backend),
+            };
+            string path = Path.Combine(wheelhouse, module + "-" + version + ".zip");
+
+            using (ZipArchive zip = ZipFile.Open(path, ZipArchiveMode.Create))
+            {
+                foreach (KeyValuePair<string, string> file in files)
+                {
+                    string entry = module + "-" + version + "/" + file.Key;
+
+                    using (var writer = new StreamWriter(zip.CreateEntry(entry).Open(), new UTF8Encoding(false)))
+                    {
+                        writer.Write(file.Value);
+                    }
+                }
+            }
+
+            return path;
+        }
+
         /// <summary>Makes a tool's folder with the given <c>requirements.txt</c>.</summary>
         public static string Tool(string root, string name, string requirements)
         {

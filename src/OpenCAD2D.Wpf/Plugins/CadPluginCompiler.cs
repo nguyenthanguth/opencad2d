@@ -194,16 +194,25 @@ namespace OpenCAD2D.Wpf.Plugins
             }
         }
 
-        /// <summary>The assemblies of the packages to compile against: all but those of a name the app has itself, which the plugin is built against and runs on as they are.</summary>
+        /// <summary>
+        /// The assemblies to compile against for the packages: a package's own, except where the app has one of the name, and
+        /// then the app's copy (the one the plugin runs on), which the compiler leaves out where the framework references have it.
+        /// </summary>
         private static IReadOnlyList<string> References(CadPackageSet packages)
         {
             var references = new List<string>();
 
             foreach (string path in packages.CompilePaths)
             {
-                if (CadPluginAssemblyLoader.SharedVersion(AssemblyName.GetAssemblyName(path)) == null)
+                Assembly app = CadPluginAssemblyLoader.SharedAssembly(AssemblyName.GetAssemblyName(path));
+                string reference = app == null ? path : app.Location;
+
+                if (
+                    !string.IsNullOrEmpty(reference)
+                    && !references.Exists(r => string.Equals(r, reference, StringComparison.OrdinalIgnoreCase))
+                )
                 {
-                    references.Add(path);
+                    references.Add(reference);
                 }
             }
 
