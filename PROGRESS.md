@@ -554,6 +554,24 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
       -> verify: the guide's example compiles and runs in a test; the setup built and the sample `.cs` loaded from the
          installed app's Plugins folder.
 
+#### The website and Share (planned 2026-11-23)
+
+The opencad2d.com website is designed, not built: the Design artifact https://claude.ai/artifact/HzsdochEhENoSD3nzTRxMJ,
+page "Website (C, Atelier)" (Home, Share, a tool's page, Upload a tool, Download, Share admin, and the app's Download
+from Share window). Decided by the maintainer: the tool library is called Share; uploading needs sign-in with Google and
+a reviewer's approval before a tool is visible; Share shows tools large, small or as a list; an admin page reviews
+uploads and edits users' roles and the rules of each role. The uploader gives no version, command or licence: the
+commands are read from the file, Share numbers each approved version (1.0, 1.1, ...), every tool is MIT, Share takes source only (.lsp, .py, .cs or a .zip of them; no .dll or .fas, which a reviewer cannot read), and Share
+records each file's SHA-256 (shown on the tool's page and in its versions; an upload equal to the live one is turned
+back; the app compares it with the copy it has).
+
+- [ ] W1. Choose the stack: hosting, the database of tools and users, file storage, Google sign-in, the malware scan.
+- [ ] W2. Build the site from the design.
+- [ ] W3. The app: a Download from Share window (design in the artifact, page "Website", board "App: Download from
+      Share"). Paste a tool's link from its page, see its picture and details, download it into a Plugins or Lisps
+      folder and load it; it waits on W2 for the links to resolve. The app asks the server only when the user presses
+      Find or Download: no update checks, no background calls.
+
 ### Release
 
 - [ ] Review by the maintainer of everything above
