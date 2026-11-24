@@ -440,6 +440,16 @@ namespace OpenCAD2D.Wpf
             return true;
         }
 
+        /// <summary>Gets the settings file a screenshot of this process keeps in, in a folder of its own under the temporary folder.</summary>
+        internal static string ScreenshotSettingsPath =>
+            Path.Combine(
+                Path.GetTempPath(),
+                "OpenCAD2D",
+                "ScreenshotSettings",
+                Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture),
+                "settings.json"
+            );
+
         /// <summary>Draws the window with a drawing open into a PNG, with no window shown.</summary>
         private int Screenshot(string[] args)
         {
@@ -539,7 +549,10 @@ namespace OpenCAD2D.Wpf
             SynchronizationContext.SetSynchronizationContext(
                 new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher)
             );
-            var model = new MainViewModel();
+
+            // The settings, tool palettes, plot styles and LISP registry of this run are kept in a folder of its own under the
+            // temporary folder: a screenshot never reads or writes the user's (a plugin loaded is remembered in the settings).
+            var model = new MainViewModel { SettingsPath = ScreenshotSettingsPath };
 
             // A host's parts, its dialogs not hooked: a dialog asked for is drawn below, not shown.
             Attach(model, null);

@@ -150,6 +150,76 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void TheScreenshotOfAPlugin_KeepsWhatItRemembersInItsOwnFolder_NeverTheUsersSettings()
+        {
+            using (var folder = new TestFolder())
+            {
+                string room = folder.Write("room.dxf", TestFiles.Room(out _, out _));
+                string png = Path.Combine(folder.FullPath, "plugin.png");
+                string plugin = Path.Combine(folder.FullPath, "OpenCAD2D.SamplePlugin.dll");
+                File.Copy(
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SamplePlugin", "OpenCAD2D.SamplePlugin.dll"),
+                    plugin
+                );
+
+                // The screenshot makes the Application of its process and never closes it, so it runs in a domain of its own, which
+                // is unloaded after it; there the file a new view model keeps its settings in stands for the user's, a file of this
+                // test's own, so that nothing of the real user's is ever at risk.
+                string users = Path.Combine(folder.FullPath, "users", "settings.json");
+                string own = CadAppHost.ScreenshotSettingsPath;
+                int code = -1;
+
+                try
+                {
+                    OnSta(() =>
+                    {
+                        AppDomain domain = AppDomain.CreateDomain(
+                            "screenshot",
+                            null,
+                            new AppDomainSetup
+                            {
+                                ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
+                                ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile,
+                            }
+                        );
+
+                        try
+                        {
+                            domain.SetData("folder", folder.FullPath);
+                            domain.SetData("users", users);
+                            domain.SetData("args", new[] { "--screenshot", png, room, "--plugin", plugin });
+                            domain.DoCallBack(ScreenshotInThisDomain);
+                            code = (int)domain.GetData("code");
+                        }
+                        finally
+                        {
+                            AppDomain.Unload(domain);
+                        }
+                    });
+
+                    Assert.Equal(0, code);
+                    Assert.True(File.Exists(png));
+                    Assert.False(File.Exists(users), "The screenshot wrote the settings of the user: " + users);
+
+                    // The plugin is still remembered, in the file of the run's own.
+                    Assert.True(File.Exists(own), own);
+                    Assert.Equal(
+                        new[] { plugin },
+                        GlobalSettings.Load(own).KnownApplications.Keys,
+                        StringComparer.OrdinalIgnoreCase
+                    );
+                }
+                finally
+                {
+                    if (Directory.Exists(Path.GetDirectoryName(own)))
+                    {
+                        Directory.Delete(Path.GetDirectoryName(own), true);
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public void OnlyTheWindowCountsAsAStart_SoAScreenshotOrARegistrationLeavesTheUsersFoldersAlone()
         {
             Assert.True(CadAppHost.ShowsWindow(null));
@@ -159,6 +229,15 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.False(CadAppHost.ShowsWindow(new[] { "--SCREENSHOT", "out.png" }));
             Assert.False(CadAppHost.ShowsWindow(new[] { "--register" }));
             Assert.False(CadAppHost.ShowsWindow(new[] { "--unregister" }));
+        }
+
+        /// <summary>Runs the screenshot with the folders and the arguments the domain was given, and leaves its exit code in the domain.</summary>
+        private static void ScreenshotInThisDomain()
+        {
+            AppDomain domain = AppDomain.CurrentDomain;
+            MainViewModel.DefaultSettingsPath = (string)domain.GetData("users");
+            var host = new CadAppHost("OpenCAD2D", (string)domain.GetData("folder"));
+            domain.SetData("code", host.Run((string[])domain.GetData("args")));
         }
 
         /// <summary>Runs the app built beside this test's build, the same configuration, and gives its exit code and its output.</summary>

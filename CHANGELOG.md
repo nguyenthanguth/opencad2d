@@ -15,6 +15,15 @@
   drop on the table load a `.cs`; its row has the Kind `C# source` in light purple and a chip of its own, `C# source 1`
   (`Plugins` counts the .dll plugins only). A source that does not compile shows **Stairs.cs** `did not compile: 2 errors.`
   and the first error on the red line, with `Every error is on the command line` on the right and every error in its tooltip.
+- **FIXED.** `OpenCAD2D.exe --screenshot ... --plugin x.dll` (and `x.cs`) rewrote the user's `%AppData%\OpenCAD2D\settings.json`
+  with default settings plus the application it remembered. A screenshot now keeps its settings, tool palettes, plot
+  styles and LISP registry in a folder of its own, `%TEMP%\OpenCAD2D\ScreenshotSettings\<process id>`, and never reads
+  or writes the user's.
+- **CHANGED.** The setup carries the C# compiler for plugins given as source (Roslyn 4.14.0, with
+  System.Collections.Immutable and System.Reflection.Metadata 9.0.0 in place of the runtime's 8.0): 82,037,149 bytes
+  (78.2 MB) in place of 79,946,201 (76.2 MB), 2.6 % more, and the install folder holds 288 files in place of 286, 8.17 MB
+  more (setups built by `make-installer.ps1` at 4f4a83cc and at 3f059fb7). Installed from that setup, the guide's `Stairs.cs` and the
+  DrawingInfo sample as source compiled and ran.
 - **CHANGED.** PLUGINLOAD asks `Enter the path of a plugin (.dll, .cs or its folder)`, and a path that is no plugin is refused
   with `... a plugin is a .dll, a .cs, or the folder of one.`
 - **CHANGED.** A plugin whose assembly states no version (0.0.0.0) is shown with none: `Loaded Stairs: STAIRS.` in place of

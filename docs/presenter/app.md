@@ -935,12 +935,12 @@ the app registered last is the one that opens the files.
 
 ### Installing with the setup
 
-`OpenCAD2D-Setup-<version>.exe` (for 1.0.0, 78 MB) installs the app with the .NET 8 runtime inside it, so a machine with
-no .NET needs nothing else. It installs for the current user alone: no administrator is asked for, and the app goes to
-`%LocalAppData%\Programs\OpenCAD2D` unless another folder is chosen. The setup is built with
-`tools\installer\make-installer.ps1` (Inno Setup 6 needed; `winget install --id JRSoftware.InnoSetup -e --scope user`),
-which publishes the app self-contained for win-x64 and writes `artifacts\installer\OpenCAD2D-Setup-<version>.exe`. It is
-not signed, so Windows SmartScreen warns on the first run.
+`OpenCAD2D-Setup-<version>.exe` (78.2 MB for the next version, 2.0 MB more than without the C# compiler) installs the
+app with the .NET 8 runtime inside it, so a machine with no .NET needs nothing else. It installs for the current user
+alone: no administrator is asked for, and the app goes to `%LocalAppData%\Programs\OpenCAD2D` unless another folder is
+chosen. The setup is built with `tools\installer\make-installer.ps1` (Inno Setup 6 needed; `winget install --id
+JRSoftware.InnoSetup -e --scope user`), which publishes the app self-contained for win-x64 and writes
+`artifacts\installer\OpenCAD2D-Setup-<version>.exe`. It is not signed, so Windows SmartScreen warns on the first run.
 
 | Item | What setup does |
 |---|---|
@@ -948,6 +948,7 @@ not signed, so Windows SmartScreen warns on the first run.
 | Desktop shortcut | a task, not ticked |
 | Associate .dxf and .dwg files with OpenCAD2D | a task, ticked: runs `OpenCAD2D.exe --register` once the files are copied |
 | Python | not included: the app uses the Python of the machine or the one in Global settings |
+| C# compiler | included, for plugins given as source: Roslyn 4.14.0 (`Microsoft.CodeAnalysis.dll` and `Microsoft.CodeAnalysis.CSharp.dll`, 9.3 MB installed) |
 
 A second setup of the same or a newer version installs over the first, after closing a running OpenCAD2D. Uninstalling
 (Settings, Apps, or `unins000.exe` in the install folder) removes the files setup copied, its shortcuts and, through
@@ -988,7 +989,8 @@ OpenCAD2D.exe --screenshot out.png plan.dxf --size 1600 960
 ```
 
 draws the window with the drawing open into a PNG, with no window shown, and exits: 0 when written, 2 for arguments or a file
-it cannot read. Both apps take these options:
+it cannot read. It never reads or writes the user's files in `%AppData%\OpenCAD2D`: its settings, tool palettes, plot styles
+and LISP registry are kept in a folder of the run under the temporary folder. Both apps take these options:
 
 | Option | Does |
 |---|---|

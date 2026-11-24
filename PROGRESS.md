@@ -565,13 +565,22 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
       (7 failing with the 2 strings updated), green after; Wpf 2474, Plugins 96 + 18. Rendered at 900x700 offscreen, both
       states match the artboards but one: an unticked source row shows the commands it last had, where the csError
       artboard shows the Commands cell empty (kept as for a .dll row)
-- [ ] CS5. Docs and the sample: a section in `docs/presenter/plugins.md` (a plugin as source, its references, `//#r`,
+- [x] CS5. Docs and the sample: a section in `docs/presenter/plugins.md` (a plugin as source, its references, `//#r`,
       the cache, the errors), the sample plugin also shipped as source in `examples/`, the CHANGELOG, and the setup
       carrying Roslyn (its size before and after recorded).
       -> verify: the guide's example compiles and runs in a test; the setup built and the sample `.cs` loaded from the
          installed app's Plugins folder.
       Part A done 2026-11-24: the guide's example read from the guide and run in a test, the sample-as-source
-      paragraph, the screenshot mode's builds kept in its own temporary folder. Part B (setup size, installed run) next.
+      paragraph, the screenshot mode's builds kept in its own temporary folder (4f4a83cc).
+      Done 2026-11-24: Part B built the setup at 3f059fb7 and at 4f4a83cc and installed a probe setup (same files, its
+      own identity) into a scratch folder: with the installed exe, R1 the DrawingInfo sample as source (PNG identical
+      to the .dll's), R2 the guide's Stairs.cs (`Steps: 18`), R3 the broken one (`Stairs.cs(12,13): error CS0103`,
+      exit 2, as meant) and R4 a source using Linq, Text.Json, Xml.Linq and WPF; no CS0433 or CS1703. Setup 79,946,201
+      -> 82,037,149 bytes (+2.09 MB, +2.6 %), publish 286 -> 288 files (+8.17 MB). Part B found that a screenshot run
+      with --plugin rewrote the user's settings.json with defaults (in 1.0.0 too); fixed, a screenshot keeps its
+      settings in `%TEMP%\OpenCAD2D\ScreenshotSettings\<pid>`, with a test shown red first.
+      C1, decided by recommendation: the setup ships only the sample's .dll; its .cs is in `examples/` and the guide
+      and Plugins\README.txt say how to load it in place of the .dll.
 
 #### The website and Share (planned 2026-11-23)
 
