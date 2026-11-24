@@ -51,11 +51,7 @@ namespace OpenCAD2D
 
                     break;
                 case CadGripAction.ConvertToLine:
-                    foreach (CadPrompt prompt in GripConvertToLine(c, handle, gripIndex))
-                    {
-                        yield return prompt;
-                    }
-
+                    GripConvertToLine(c, handle, gripIndex);
                     break;
                 case CadGripAction.HatchScale:
                 case CadGripAction.HatchAngle:
@@ -457,19 +453,11 @@ namespace OpenCAD2D
         }
 
         /// <summary>
-        /// "** CONVERT TO LINE **" and "Pick to convert to line segment:", as AutoCAD 2021's string table words it: any point
-        /// picked makes the arc segment straight, and Enter or Esc leaves it as it was.
+        /// Makes the arc segment of the grip straight at once, asking nothing, as the Convert to Line item of AutoCAD 2021's
+        /// menu does: the bulge goes to 0 and the vertices stay, one undo step, the polyline staying selected.
         /// </summary>
-        private static IEnumerable<CadPrompt> GripConvertToLine(CadCommandContext c, string handle, int gripIndex)
+        private static void GripConvertToLine(CadCommandContext c, string handle, int gripIndex)
         {
-            c.Write("** CONVERT TO LINE **");
-            yield return CadPrompt.ForPoint("Pick to convert to line segment");
-
-            if (!c.Input.IsPoint)
-            {
-                yield break;
-            }
-
             c.OpenUndoStep();
             CadEditResult result = CadGrips.ConvertToLine(c.Document, handle, gripIndex);
 

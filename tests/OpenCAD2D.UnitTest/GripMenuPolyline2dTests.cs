@@ -333,6 +333,26 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void ConvertToLineChosenFromTheMenu_OfA2dPolyline_StraightensTheArcAtOnce_AsOneUndoStep()
+        {
+            CadDocument document = Blank();
+            string handle = Add(document, false, new[] { 1.0, 0.0, 0.0 }, 0, 0, 100, 0, 100, 100);
+            CadCommandSession session = Session(document);
+            session.Tolerance = Tolerance.Default;
+
+            // Three vertices, so the middle of the arc segment is grip 3.
+            Assert.True(session.StartGripAction(handle, 3, CadGripAction.ConvertToLine));
+
+            Assert.False(session.IsRunning);
+            Assert.Null(session.Prompt);
+            Assert.Equal(0.0, Vertices(document, handle)[0].Bulge);
+            Assert.Equal(3, Vertices(document, handle).Count);
+            Assert.Equal("GRIP", document.NextUndo.Name);
+            Assert.True(document.Undo());
+            Assert.Equal(1.0, Vertices(document, handle)[0].Bulge);
+        }
+
+        [Fact]
         public void TheMenuItems_RunOnA2dPolylineWithTheLightOnesPrompts()
         {
             CadDocument document = Blank();
@@ -349,8 +369,7 @@ namespace OpenCAD2D.UnitTest
 
             // The arc segment is the first, its middle grip 4 now (four vertices before it).
             Assert.True(session.StartGripAction(handle, 4, CadGripAction.ConvertToLine));
-            Assert.Equal("Pick to convert to line segment:", session.PromptText);
-            Run(session, P(0, 0));
+            Assert.False(session.IsRunning);
             Assert.Equal(0.0, Vertices(document, handle)[0].Bulge);
 
             Assert.True(session.StartGripAction(handle, 4, CadGripAction.ConvertToArc));

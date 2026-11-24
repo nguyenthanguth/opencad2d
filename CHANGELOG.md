@@ -5,6 +5,10 @@
 - **CHANGED.** The application menu button at the top left of the window shows the OpenCAD2D mark (the white tile with the
   O and the C, as the icon frames below 24 px) in place of the letter G. Under the pointer, pressed, or while the menu is
   open, it has a 2 px ring of light blue around it, where it used to turn lighter blue.
+- **FIXED.** Convert to Line in the hover menu of a polyline's arc-segment midpoint grip asked "Pick to convert to line
+  segment:" and waited for a point; as in AutoCAD 2021 it now makes the segment straight at once (bulge 0, vertices
+  unchanged, one undo step), for LWPOLYLINE and 2D POLYLINE alike. Convert to Arc still asks for the arc's midpoint, and
+  Remove Vertex still acts at once.
 - **NEW.** A command plugin can be given as C# source: a `.cs` file, or a folder of them, loads as a `.dll` does (the
   `Plugins` folder, PLUGINLOAD/NETLOAD, the startup list, PLUGINRELOAD), compiled by Roslyn when it loads, on .NET 8 only.
   Other libraries are named with `//#r "Name.dll"` lines. The build is cached in `%LocalAppData%\OpenCAD2D\PluginCache` by

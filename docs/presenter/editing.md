@@ -4609,8 +4609,9 @@ undo step named GRIP, and Esc at its prompt changes nothing:
 - Convert to Arc says `** CONVERT TO ARC **` and asks `Specify midpoint of arc segment:`, the polyline drawn bent through the
   cursor; a chord of 100 with the point 20 off its middle gets a bulge of 0.4 (the sagitta over half the chord), above
   nought where the point is to the right of the way the segment runs. A point on the line of the segment is refused.
-- Convert to Line says `** CONVERT TO LINE **` and asks `Pick to convert to line segment:`, as AutoCAD's string has it: any
-  point picked makes the arc segment straight (one undo step), Enter or Esc leaves it an arc.
+- Convert to Line asks nothing, as in AutoCAD 2021: choosing it makes the arc segment straight at once, the bulge 0 and
+  the vertices where they were (one undo step), and the polyline stays selected. (Convert to Arc, Add Vertex and Stretch
+  do ask for a point.)
 - Lengthen says `** LENGTHEN **` and asks `Specify end point or [Base point/Copy/Undo/eXit]:` (`Specify end point of arc` for an arc),
   the entity drawn with the end at the cursor. A line's end goes to where the point falls along the line's own way, the other
   end and the way kept: a line from (0, 0) to (100, 0) lengthened at its end by (150, 40) runs to (150, 0); a point behind the
