@@ -675,7 +675,8 @@ Plugins\Stairs\                Pythons\StairsPy\
       line form), Python rows with "needs packages", "installing…" and "install failed" (pip off the window's thread), a
       tool folder dropped on the table loads; screenshot mode runs a Python tool folder (venvs in the run's folder, pip
       answered No). Wpf 2623, Plugins 100 + 92. Parked: a No leaves the row ticked (its next command asks again); no live
-      pip progress; the NuGet FILEDIA 0 form
+      pip progress. The NuGet FILEDIA 0 form done 2026-11-25: PLUGINLOAD/PLUGINRELOAD list the packages and ask
+      "Download these packages? [Yes/No] <No>:" (a two-phase load in Core); Wpf 2633, Plugins 100 + 99
 - [x] TF7. The in-app Python retired (TF-D15): the pythonnet embedding and the in-app `opencad2d.cad` removed, PYRUN and
       the PYTHON console on a Python process, the tests and stubs that pinned the in-app Python moved or removed, the
       parked P/PW items it settles closed.

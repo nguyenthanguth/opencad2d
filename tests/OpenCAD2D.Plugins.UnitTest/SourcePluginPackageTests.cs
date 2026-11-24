@@ -737,6 +737,125 @@ namespace OpenCAD2D.Plugins.UnitTest
             Unreachable("http://127.0.0.1:9/index.json");
         }
 
+        // ---- The question on the command line (FILEDIA 0)
+
+        [Fact]
+        public void WithFiledia0_ThePackagesAreListedAndAsked_AndNothingIsDownloadedBeforeTheYes()
+        {
+            _feed.AddLibrary("Foo", "1.0.0", "f");
+            _feed.AddLibrary("Bar", "2.1.0", "b", needs: SourcePluginFeed.Dep("Foo", "1.0.0"));
+            string folder = Path.GetDirectoryName(Project("Stairs", new[] { Ref("Bar", "2.1.0") }));
+            CadPluginManager manager = Manager(answer: null);
+
+            string[] output = Run(manager, "FILEDIA", "0", "PLUGINLOAD", folder);
+
+            Assert.Equal(
+                new[]
+                {
+                    "Stairs needs these packages from nuget.org:",
+                    "  Bar 2.1.0",
+                    "  Foo 1.0.0 (needed by another)",
+                },
+                output.SkipWhile(l => !l.StartsWith("Stairs needs", StringComparison.Ordinal)).Take(3).ToArray()
+            );
+            Assert.Equal("  Foo 1.0.0 (needed by another)", output.Last());
+            Assert.Empty(Extracted());
+            Assert.False(Directory.Exists(Packages));
+            Assert.Null(manager.Find("Stairs"));
+        }
+
+        [Fact]
+        public void WithFiledia0_AYes_DownloadsThePackages_LoadsThePlugin_AndItsCommandRuns()
+        {
+            _feed.AddLibrary("Foo", "1.0.0", "f");
+            string folder = Path.GetDirectoryName(Project("Stairs", new[] { Ref("Foo", "1.0.0") }));
+            CadPluginManager manager = Manager(answer: null);
+
+            string[] output = Run(manager, "FILEDIA", "0", "PLUGINLOAD", folder, "Yes", "STAIRS");
+
+            Assert.Contains("Download these packages? [Yes/No] <No>: Yes", output);
+            Assert.Contains(output, l => l.StartsWith("Loaded Stairs", StringComparison.Ordinal));
+            Assert.Equal("ok", output.Last());
+            Assert.Equal(new[] { "foo 1.0.0" }, Extracted());
+            Assert.True(manager.Find("Stairs").IsLoaded);
+        }
+
+        [Theory]
+        [InlineData("No")]
+        [InlineData("")]
+        public void WithFiledia0_ANoOrEnter_DownloadsNothing_AndLeavesThePluginNotLoadedAsTheDialogsNoDoes(
+            string answer
+        )
+        {
+            _feed.AddLibrary("Foo", "1.0.0", "f");
+            string folder = Path.GetDirectoryName(Project("Stairs", new[] { Ref("Foo", "1.0.0") }));
+            CadPluginManager manager = Manager(answer: null);
+
+            string[] output = Run(manager, "FILEDIA", "0", "PLUGINLOAD", folder, answer);
+
+            Assert.Equal("Stairs was not loaded: its packages were not downloaded.", output.Last());
+            Assert.Empty(Extracted());
+            Assert.False(Directory.Exists(Packages));
+            Assert.Null(manager.Find("Stairs"));
+            Assert.Contains(manager.Log, e =>
+                !e.Succeeded && e.Plugin == "Stairs" && e.Result.EndsWith("its packages were not downloaded.")
+            );
+        }
+
+        [Fact]
+        public void WithFiledia0_PluginReload_AsksToo_AndOnlyThePackagesNotInTheCacheAreListed()
+        {
+            _feed.AddLibrary("Foo", "1.0.0", "f");
+            _feed.AddLibrary("Bar", "1.0.0", "b");
+            Compiler().Compile("Other", Project("Other", new[] { Ref("Foo", "1.0.0") }));
+            string folder = Path.GetDirectoryName(
+                Project("Stairs", new[] { Ref("Foo", "1.0.0"), Ref("Bar", "1.0.0") })
+            );
+            CadPluginManager manager = Manager(answer: true);
+            Assert.True(manager.Load(folder).Succeeded);
+            _asked.Clear();
+            Directory.Delete(Packages, true);
+
+            // The packages of Stairs are all gone from the cache; the hook is not asked where FILEDIA is 0.
+            string[] output = Run(manager, "FILEDIA", "0", "PLUGINRELOAD", "Stairs", "Yes");
+
+            Assert.Equal(
+                new[] { "Stairs needs these packages from nuget.org:", "  Bar 1.0.0", "  Foo 1.0.0" },
+                output.SkipWhile(l => !l.StartsWith("Stairs needs", StringComparison.Ordinal)).Take(3).ToArray()
+            );
+            Assert.Contains(output, l => l.StartsWith("Reloaded Stairs", StringComparison.Ordinal));
+            Assert.Empty(_asked);
+            Assert.Equal(new[] { "bar 1.0.0", "foo 1.0.0" }, Extracted());
+        }
+
+        [Fact]
+        public void WithFiledia0_WhereEveryPackageIsInTheCache_NothingIsAsked_AndThePluginLoads()
+        {
+            _feed.AddLibrary("Foo", "1.0.0", "f");
+            Compiler().Compile("Other", Project("Other", new[] { Ref("Foo", "1.0.0") }));
+            string folder = Path.GetDirectoryName(Project("Stairs", new[] { Ref("Foo", "1.0.0") }));
+            CadPluginManager manager = Manager(answer: null);
+
+            string[] output = Run(manager, "FILEDIA", "0", "PLUGINLOAD", folder);
+
+            Assert.Contains(output, l => l.StartsWith("Loaded Stairs", StringComparison.Ordinal));
+            Assert.DoesNotContain(output, l => l.Contains("Download these packages"));
+        }
+
+        [Fact]
+        public void WithFiledia1_TheHookIsAsked_AsBefore_AndNothingIsPutOnTheCommandLine()
+        {
+            _feed.AddLibrary("Foo", "1.0.0", "f");
+            string folder = Path.GetDirectoryName(Project("Stairs", new[] { Ref("Foo", "1.0.0") }));
+            CadPluginManager manager = Manager(answer: true);
+
+            string[] output = Run(manager, "FILEDIA", "1", "PLUGINLOAD", folder);
+
+            Assert.Single(_asked);
+            Assert.Contains(output, l => l.StartsWith("Loaded Stairs", StringComparison.Ordinal));
+            Assert.DoesNotContain(output, l => l.Contains("needs these packages"));
+        }
+
         [Fact]
         public void TheHandlerOfAnHttpSource_ConnectsWithinFiveSeconds_AndKeepsTheDecompressionOfNuGet()
         {

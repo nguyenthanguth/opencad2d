@@ -95,7 +95,7 @@ namespace OpenCAD2D.Plugins
             _commands = new[]
             {
                 new CadCommand(LoadCommand, LoadByPath),
-                new CadCommand(UnloadCommand, c => ByName(c, "unload", Unload)),
+                new CadCommand(UnloadCommand, c => ByName(c, "unload", (n, m) => Unload(n))),
                 new CadCommand(ReloadCommand, c => ByName(c, "reload", Reload)),
             };
             ReadSettings();
@@ -106,6 +106,9 @@ namespace OpenCAD2D.Plugins
 
         /// <summary>Raised when a line is added to <see cref="Log"/>.</summary>
         public event EventHandler LogChanged;
+
+        /// <summary>Called with the path and the result of a load or a reload a command made, once any question about its packages is answered, for the window to keep what stopped it.</summary>
+        internal Action<string, CadPluginResult> AfterCommandLoad { get; set; }
 
         /// <summary>Gets the plugin folder, always trusted, whose plugins are loaded at every start.</summary>
         public string PluginFolder { get; }
@@ -282,7 +285,7 @@ namespace OpenCAD2D.Plugins
                 throw new ArgumentNullException(nameof(path));
             }
 
-            return LoadFrom(Unquote(path), CadPluginAction.Load);
+            return LoadFrom(Unquote(path), CadPluginAction.Load, CadDownloadMode.Ask);
         }
 
         /// <summary>
@@ -325,7 +328,9 @@ namespace OpenCAD2D.Plugins
         /// </summary>
         /// <param name="name">The plugin's name, either case.</param>
         /// <returns>What came of it.</returns>
-        public CadPluginResult Reload(string name)
+        public CadPluginResult Reload(string name) => Reload(name, CadDownloadMode.Ask);
+
+        private CadPluginResult Reload(string name, CadDownloadMode mode)
         {
             CadLoadedPlugin plugin = Find(name);
 
@@ -357,7 +362,7 @@ namespace OpenCAD2D.Plugins
                 UnloadQuietly(plugin);
             }
 
-            return LoadFrom(plugin.Path, CadPluginAction.Reload);
+            return LoadFrom(plugin.Path, CadPluginAction.Reload, mode);
         }
 
         /// <summary>Puts a plugin on the startup list, or takes it off, and writes the list; a plugin of the plugin folder is loaded at every start anyway.</summary>
@@ -522,7 +527,7 @@ namespace OpenCAD2D.Plugins
             {
                 if (!IsLoaded(path))
                 {
-                    results.Add(LoadFrom(path, CadPluginAction.Load));
+                    results.Add(LoadFrom(path, CadPluginAction.Load, CadDownloadMode.Ask));
                 }
             }
 
@@ -530,7 +535,7 @@ namespace OpenCAD2D.Plugins
             {
                 if (!IsLoaded(path))
                 {
-                    results.Add(LoadFrom(path, CadPluginAction.Load));
+                    results.Add(LoadFrom(path, CadPluginAction.Load, CadDownloadMode.Ask));
                 }
             }
 
@@ -551,7 +556,7 @@ namespace OpenCAD2D.Plugins
             TryDelete(ShadowFolder);
         }
 
-        private CadPluginResult LoadFrom(string path, CadPluginAction action)
+        private CadPluginResult LoadFrom(string path, CadPluginAction action, CadDownloadMode mode)
         {
             string full;
 
@@ -736,12 +741,26 @@ namespace OpenCAD2D.Plugins
             try
             {
                 List<string> files =
-                    project != null ? Build(name, project, copies, buildWarnings) : Copy(full, isFolder, copies);
+                    project != null ? Build(name, project, copies, buildWarnings, mode) : Copy(full, isFolder, copies);
                 assemblies = _loader.Load(name, files, isFolder ? null : Path.GetDirectoryName(full));
 
                 // The folder files beside the plugin are read from: where it was loaded from.
                 plugin = CadPlugin.MakeFrom(name, assemblies, manifest?.Version, folderOf);
                 plugin.LeaveOutClashes(LoadedPlugins());
+            }
+            catch (CadPluginDownloadPending pending)
+            {
+                // The packages are to be downloaded and the question is the command line's: nothing is logged until it is answered.
+                TryDelete(copies);
+                const string notDownloaded = " was not loaded: its packages were not downloaded.";
+                return new CadPluginResult(false, name + notDownloaded, null, null)
+                {
+                    Download = pending.Lines,
+                    Answer = yes =>
+                        yes
+                            ? LoadFrom(full, action, CadDownloadMode.Yes)
+                            : Refuse(action, name, full, trusted, name + notDownloaded),
+                };
             }
             catch (Exception exception)
             {
@@ -831,9 +850,25 @@ namespace OpenCAD2D.Plugins
         /// line <c>Plugin Stairs was not loaded: 1 error</c> and a line per error; what the project holds that is not read is
         /// added to <paramref name="warnings"/>.
         /// </summary>
-        private List<string> Build(string name, string project, string copies, List<string> warnings)
+        private List<string> Build(
+            string name,
+            string project,
+            string copies,
+            List<string> warnings,
+            CadDownloadMode mode
+        )
         {
-            CadPluginBuild build = _loader.Compile(name, project);
+            CadPluginBuild build;
+            _loader.Download = mode;
+
+            try
+            {
+                build = _loader.Compile(name, project);
+            }
+            finally
+            {
+                _loader.Download = CadDownloadMode.Ask;
+            }
 
             if (!build.Succeeded)
             {
@@ -1221,7 +1256,8 @@ namespace OpenCAD2D.Plugins
 
         private void Changed() => PluginsChanged?.Invoke(this, EventArgs.Empty);
 
-        private IEnumerable<CadPrompt> LoadByPath(CadCommandContext c)
+        /// <summary>PLUGINLOAD on the command line: the path asked, then the load, with the question about its packages where file dialogs are off.</summary>
+        internal IEnumerable<CadPrompt> LoadByPath(CadCommandContext c)
         {
             yield return CadPrompt.ForString("Enter the path of a plugin (.dll, .csproj or its folder)");
 
@@ -1231,13 +1267,55 @@ namespace OpenCAD2D.Plugins
             }
 
             // A source plugin that did not compile is refused with a line per error.
-            foreach (string line in Load(c.Input.Text).ToString().Split('\n'))
+            string text = Unquote(c.Input.Text);
+
+            foreach (CadPrompt prompt in Settle(c, text, m => LoadFrom(text, CadPluginAction.Load, m)))
+            {
+                yield return prompt;
+            }
+        }
+
+        /// <summary>
+        /// Writes what came of a load a command makes. With file dialogs off (FILEDIA 0) a source plugin whose packages are not on
+        /// this computer stops first: the packages are written, one to a line, and <c>Download these packages? [Yes/No] &lt;No&gt;:</c>
+        /// is asked; Yes loads it, anything else leaves it not loaded, as the window's question answered No does. Nothing is
+        /// downloaded before the Yes. Esc ends the command with nothing said.
+        /// </summary>
+        private IEnumerable<CadPrompt> Settle(
+            CadCommandContext c,
+            string path,
+            Func<CadDownloadMode, CadPluginResult> load
+        )
+        {
+            CadPluginResult result = load(c.Session.FileDialogs ? CadDownloadMode.Ask : CadDownloadMode.Defer);
+
+            if (result.Download != null)
+            {
+                foreach (string line in result.Download)
+                {
+                    c.Write(line);
+                }
+
+                yield return CadPrompt.ForKeyword("Download these packages?", new[] { "Yes", "No" }, "No");
+                result = result.Answer(
+                    c.Input.Kind == CadInputKind.Keyword
+                        && string.Equals(c.Input.Text, "Yes", StringComparison.OrdinalIgnoreCase)
+                );
+            }
+
+            AfterCommandLoad?.Invoke(path, result);
+
+            foreach (string line in result.ToString().Split('\n'))
             {
                 c.Write(line);
             }
         }
 
-        private IEnumerable<CadPrompt> ByName(CadCommandContext c, string verb, Func<string, CadPluginResult> act)
+        private IEnumerable<CadPrompt> ByName(
+            CadCommandContext c,
+            string verb,
+            Func<string, CadDownloadMode, CadPluginResult> act
+        )
         {
             var names = new List<string>();
 
@@ -1270,7 +1348,16 @@ namespace OpenCAD2D.Plugins
                 yield break;
             }
 
-            c.Write(act(name).ToString());
+            if (verb != "reload")
+            {
+                c.Write(act(name, CadDownloadMode.Ask).ToString());
+                yield break;
+            }
+
+            foreach (CadPrompt prompt in Settle(c, Find(name)?.Path, m => act(name, m)))
+            {
+                yield return prompt;
+            }
         }
 
         private void ReadSettings()

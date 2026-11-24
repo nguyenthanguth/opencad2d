@@ -267,7 +267,7 @@ namespace OpenCAD2D.Wpf.Plugins
             restorer.Download(missing);
         }
 
-        /// <summary>Whether the question was answered yes; a question that throws is a no, as the manager takes one about an untrusted plugin.</summary>
+        /// <summary>Whether the question was answered yes; a question that throws is a no, as the manager takes one about an untrusted plugin, but for the stop of the command line's question (<see cref="CadPluginDownloadPending"/>), which goes on to the manager.</summary>
         private static bool Confirmed(
             Func<string, IReadOnlyList<CadPackage>, bool> confirm,
             string tool,
@@ -283,7 +283,7 @@ namespace OpenCAD2D.Wpf.Plugins
             {
                 return confirm(tool, question);
             }
-            catch (Exception exception)
+            catch (Exception exception) when (!(exception is CadPluginDownloadPending))
             {
                 GeometryHelperLog.Warn(
                     "CadPackageSet: asking whether to download the packages of "
