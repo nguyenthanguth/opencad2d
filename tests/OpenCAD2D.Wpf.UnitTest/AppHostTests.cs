@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Packaging;
+using System.Linq;
 using System.Threading;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -232,6 +233,65 @@ namespace OpenCAD2D.Wpf.UnitTest
                 }
             }
         }
+
+        [Fact]
+        public void TheScreenshotOfAPythonTool_RunsItsCommand_WithItsVenvsInTheRunsOwnFolder_NeverTheUsersPythonFolder()
+        {
+            // A Python on the machine, as the tool tests need one (the message says so where there is none).
+            _ = PythonEnvTestSupport.MachinePython;
+            string users = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "OpenCAD2D",
+                "python"
+            );
+            string before = Listing(users);
+
+            using (var folder = new TestFolder())
+            {
+                string room = folder.Write("room.dxf", TestFiles.Room(out _, out _));
+                string png = Path.Combine(folder.FullPath, "hello.png");
+
+                // A temporary copy of the sample tool: a folder with requirements.txt (empty), __init__.py and plugin.json.
+                string tool = Path.Combine(folder.FullPath, "HelloWorld");
+                Directory.CreateDirectory(tool);
+
+                foreach (
+                    string file in Directory.GetFiles(
+                        Path.Combine(PythonEnvTestSupport.Root, "examples", "Pythons", "HelloWorld")
+                    )
+                )
+                {
+                    File.Copy(file, Path.Combine(tool, Path.GetFileName(file)));
+                }
+
+                (int code, string output) = RunApp(
+                    "--screenshot",
+                    png,
+                    room,
+                    "--plugin",
+                    tool,
+                    "--run",
+                    "PYHELLOWORLD"
+                );
+                Assert.True(code == 0, output);
+                Assert.True(File.Exists(png));
+                Assert.Contains("Hello, World!", output);
+            }
+
+            Assert.Equal(before, Listing(users));
+        }
+
+        /// <summary>The names under a folder, two levels deep, as one text; empty for a folder that is not there.</summary>
+        private static string Listing(string folder) =>
+            Directory.Exists(folder)
+                ? string.Join(
+                    "\n",
+                    Directory
+                        .GetDirectories(folder)
+                        .SelectMany(d => new[] { d }.Concat(Directory.GetDirectories(d)))
+                        .OrderBy(d => d, StringComparer.OrdinalIgnoreCase)
+                )
+                : string.Empty;
 
         [Fact]
         public void OnlyTheWindowCountsAsAStart_SoAScreenshotOrARegistrationLeavesTheUsersFoldersAlone()

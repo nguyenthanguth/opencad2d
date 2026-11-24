@@ -1024,7 +1024,7 @@ and LISP registry are kept in a folder of the run under the temporary folder. Bo
 | `--cursor x,y` | puts the cursor on a point of the drawing, to show the snap and the rubber band of the prompt waiting |
 | `--toggle GRID,DYN` | switches status toggles |
 | `--tab Insert` | shows a ribbon tab: Home (the default), Insert, Annotate, View, Plugins, Settings, or a host's; another name exits with 2, `--tab Nowhere: no such tab.` |
-| `--plugin path.dll` | loads a command plugin, every file trusted, into a folder of the run under the temporary folder |
+| `--plugin path.dll` | loads a command plugin, every file trusted, into a folder of the run under the temporary folder; given a Python tool folder (one with a `requirements.txt`) it loads that tool instead, with its venvs in a folder of the run, the question of pip answered no (a tool that needs packages exits 2 with its not-approved line, one with an empty `requirements.txt` runs), the lines its command in `--run` wrote on the output, and its process ended with the run |
 | `--layers` | draws the Layer manager instead of the window, the lines of `--run` typed first: `--space Layout1 --run MS --layers` shows its VP columns |
 | `--dialog name` | draws a dialog or a menu instead of the window, the lines of `--run` typed first where it needs them |
 | `--recent "a.dxf\|*b.dxf"` | fills Recent Documents, the first the newest, a file written with `*` pinned |

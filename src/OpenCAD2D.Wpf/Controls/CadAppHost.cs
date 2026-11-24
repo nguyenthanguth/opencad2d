@@ -165,7 +165,15 @@ namespace OpenCAD2D.Wpf
 
             if (args.Length > 0 && string.Equals(args[0], "--screenshot", StringComparison.OrdinalIgnoreCase))
             {
-                return Screenshot(args);
+                try
+                {
+                    return Screenshot(args);
+                }
+                finally
+                {
+                    // The process of a Python tool a screenshot ran ends with the run, its venvs removed.
+                    _screenshotPython?.Dispose();
+                }
             }
 
             if (
@@ -545,6 +553,143 @@ namespace OpenCAD2D.Wpf
             return true;
         }
 
+        private ScreenshotPythonTool _screenshotPython;
+
+        /// <summary>
+        /// The Python tool a screenshot loads and runs, given as a folder with a <c>requirements.txt</c> to <c>--plugin</c>: its venvs
+        /// are made in a folder of the run's own under the temporary folder (never <c>%LocalAppData%\OpenCAD2D\python</c>), the
+        /// question of pip is answered no (a tool that needs packages is refused; one with an empty requirements.txt runs), and its
+        /// process ends with the run, the folder removed.
+        /// </summary>
+        private sealed class ScreenshotPythonTool : IDisposable
+        {
+            // The longest a command of the tool is waited for: a first run makes the tool's venv, which takes a few seconds.
+            private const int Seconds = 100;
+
+            private readonly MainViewModel _model;
+            private readonly string _folder;
+            private readonly string _root;
+            private IReadOnlyList<string> _commands = Array.Empty<string>();
+            private int _mark;
+            private bool _refused;
+
+            /// <summary>Makes the tool's venvs in a folder of this run's own and has the window use Python over them.</summary>
+            /// <param name="model">The window's view model, with a drawing open.</param>
+            /// <param name="folder">The full path of the tool's folder.</param>
+            internal ScreenshotPythonTool(MainViewModel model, string folder)
+            {
+                _model = model;
+                _folder = folder;
+                _root = Path.Combine(
+                    Path.GetTempPath(),
+                    "OpenCAD2D",
+                    "ScreenshotPython",
+                    Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture)
+                );
+                string app = AppDomain.CurrentDomain.BaseDirectory;
+
+                // The tool given is trusted, as every plugin file of a screenshot is: no warning is asked, which nobody could answer.
+                model.LoadSecurity.Ask = path => CadLoadAnswer.LoadOnce;
+                model.UsePython(
+                    Dispatcher.CurrentDispatcher,
+                    new PythonToolSetup
+                    {
+                        Environments = new PythonEnvironments(
+                            Path.Combine(_root, "envs"),
+                            Path.Combine(_root, "base"),
+                            Path.Combine(app, "python"),
+                            Path.Combine(app, "python", "wheels")
+                        )
+                        {
+                            Confirm = (tool, packages) =>
+                            {
+                                _refused = true;
+                                return false;
+                            },
+                        },
+                    }
+                );
+            }
+
+            /// <summary>Loads the tool into the drawing, as PYLOAD does; on a failure its reason is written to the error output.</summary>
+            /// <returns>True when the tool loaded.</returns>
+            internal bool Load()
+            {
+                AppLoadResult result = _model.LoadApplication(_folder);
+
+                if (result.Kind != AppLoadStatusKind.Loaded)
+                {
+                    Console.Error.WriteLine(result.Message);
+                    return false;
+                }
+
+                _commands = _model.PythonCommandsOf(_folder);
+                _mark = _model.History.Count;
+                return true;
+            }
+
+            /// <summary>Waits for a line of <c>--run</c> that is a command of the tool to end, the window's thread kept running meanwhile.</summary>
+            /// <param name="line">The line, as it was typed.</param>
+            /// <returns>False when the command did not end in time, the reason written to the error output.</returns>
+            internal bool Wait(string line)
+            {
+                if (!_commands.Contains(line.Trim(), StringComparer.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                var watch = Stopwatch.StartNew();
+
+                while (_model.IsCommandRunning)
+                {
+                    if (watch.Elapsed.TotalSeconds > Seconds)
+                    {
+                        Console.Error.WriteLine(line.Trim() + " did not end in " + Seconds + " seconds.");
+                        return false;
+                    }
+
+                    // The tool's requests and the end of its environment are run by the window's thread.
+                    Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.Background);
+                    Thread.Sleep(10);
+                }
+
+                return true;
+            }
+
+            /// <summary>Writes the lines the run wrote to the command line: to the output, or, for a tool whose packages were not approved, to the error output.</summary>
+            /// <returns>False when the tool was refused.</returns>
+            internal bool Report()
+            {
+                foreach (string line in _model.History.Skip(_mark))
+                {
+                    (_refused ? Console.Error : Console.Out).WriteLine(line);
+                }
+
+                return !_refused;
+            }
+
+            /// <summary>Ends the tool's process and removes the folder of the run's venvs.</summary>
+            public void Dispose()
+            {
+                _model.DisposePython();
+
+                try
+                {
+                    if (Directory.Exists(_root))
+                    {
+                        Directory.Delete(_root, true);
+                    }
+                }
+                catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
+                {
+                    GeometryHelperLog.Warn(
+                        "CadAppHost: the folder " + _root + " of a screenshot's Python was not removed.",
+                        exception
+                    );
+                }
+            }
+        }
+
         /// <summary>Gets the settings file a screenshot of this process keeps in, in a folder of its own under the temporary folder.</summary>
         internal static string ScreenshotSettingsPath =>
             Path.Combine(
@@ -650,6 +795,14 @@ namespace OpenCAD2D.Wpf
                 return 2;
             }
 
+            // A folder with a requirements.txt is a Python tool, loaded and run by the tools' host; any other path is a plugin.
+            string pythonTool = pluginPath == null ? null : PythonToolFolder.Resolve(pluginPath);
+
+            if (pythonTool != null)
+            {
+                pluginPath = null;
+            }
+
             _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             SynchronizationContext.SetSynchronizationContext(
                 new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher)
@@ -714,6 +867,17 @@ namespace OpenCAD2D.Wpf
             {
                 Console.Error.WriteLine(model.History.Last());
                 return 2;
+            }
+
+            // Python comes after the drawing opens, so that the tools of the app's Pythons folder do not load as at the start: only the one given.
+            if (pythonTool != null)
+            {
+                _screenshotPython = new ScreenshotPythonTool(model, pythonTool);
+
+                if (!_screenshotPython.Load())
+                {
+                    return 2;
+                }
             }
 
             if (spaceName != null)
@@ -1315,6 +1479,17 @@ namespace OpenCAD2D.Wpf
                 foreach (string line in run.Split(';'))
                 {
                     model.Execute(line);
+
+                    if (_screenshotPython != null && !_screenshotPython.Wait(line))
+                    {
+                        return 2;
+                    }
+                }
+
+                // What a Python tool wrote is on the output; a tool refused is on the error output, with exit code 2.
+                if (_screenshotPython != null && !_screenshotPython.Report())
+                {
+                    return 2;
                 }
 
                 Layout(root, width, height);
