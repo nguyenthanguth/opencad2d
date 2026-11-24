@@ -92,8 +92,8 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         /// <summary>
-        /// Takes away what would show a window: every hook the workspace gave the model (the Show and Ask delegates) and the
-        /// request of the style dialogs, then the four dialogs RibbonHomePanelsTests answers Cancel (BOUNDARY, SPELL, the viewports,
+        /// Takes away what would show a window: every hook the workspace gave the model (the Show and Ask delegates) and every
+        /// *Requested event (see <see cref="LetGoOfTheRequests"/>), then the four dialogs RibbonHomePanelsTests answers Cancel (BOUNDARY, SPELL, the viewports,
         /// the missing SHX) are answered so. A test that wants to see a dialog sets its own hook afterwards.
         /// </summary>
         public static void LetGoOfTheWindow(MainViewModel model)
@@ -107,13 +107,38 @@ namespace OpenCAD2D.Wpf.UnitTest
                 hook.SetValue(model, null);
             }
 
-            typeof(MainViewModel)
-                .GetField("StyleDialogRequested", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(model, null);
+            LetGoOfTheRequests(model);
             model.ShowBoundaryCreation = dialog => false;
             model.ShowCheckSpelling = dialog => { };
             model.ShowViewports = dialog => false;
             model.ShowMissingShx = dialog => false;
+        }
+
+        /// <summary>
+        /// Takes every handler off every *Requested event of the model (Open, Save As, the Layer manager, Load Application, Global
+        /// settings, Drafting Settings, the style dialogs, Close, Quit, Exit): the workspace subscribes to each and shows the real
+        /// dialog. An event is found by the field behind it, which is the event's name, or that with a leading underscore where
+        /// the event has accessors of its own; a model with an event whose field is not found fails here, so that a new one is not
+        /// missed quietly.
+        /// </summary>
+        public static void LetGoOfTheRequests(MainViewModel model)
+        {
+            FieldInfo[] fields = typeof(MainViewModel).GetFields(
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+            );
+
+            foreach (
+                EventInfo request in typeof(MainViewModel)
+                    .GetEvents(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Where(e => e.Name.EndsWith("Requested", StringComparison.Ordinal))
+            )
+            {
+                FieldInfo field = fields.Single(f =>
+                    typeof(Delegate).IsAssignableFrom(f.FieldType)
+                    && string.Equals(f.Name.TrimStart('_'), request.Name, StringComparison.OrdinalIgnoreCase)
+                );
+                field.SetValue(model, null);
+            }
         }
 
         public static RibbonStrip StripOf(CadWorkspace workspace, object content) =>
