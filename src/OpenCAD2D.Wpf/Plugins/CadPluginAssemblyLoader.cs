@@ -88,6 +88,13 @@ namespace OpenCAD2D.Wpf.Plugins
             set => _compiler.ConfirmDownload = value;
         }
 
+        /// <summary>
+        /// Gets the path of the .csproj being compiled while <see cref="Compile(string, string)"/> runs, which
+        /// <see cref="ConfirmDownload"/> is asked in the middle of, so that the question can name the plugin's file; null at any
+        /// other time.
+        /// </summary>
+        public string CompilingProject { get; private set; }
+
         /// <summary>Gets true: a plugin's load context is freed when it is unloaded.</summary>
         public override bool CanUnload => true;
 
@@ -97,7 +104,18 @@ namespace OpenCAD2D.Wpf.Plugins
         /// <inheritdoc/>
         public override CadPluginBuild Compile(string name, string projectPath)
         {
-            CadPluginBuild build = _compiler.Compile(name, projectPath, out CadPackageSet packages);
+            CadPluginBuild build;
+            CadPackageSet packages;
+            CompilingProject = projectPath;
+
+            try
+            {
+                build = _compiler.Compile(name, projectPath, out packages);
+            }
+            finally
+            {
+                CompilingProject = null;
+            }
 
             lock (_packages)
             {

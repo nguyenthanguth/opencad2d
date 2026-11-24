@@ -297,8 +297,15 @@ it with no .NET SDK, as `dotnet restore` does, and compiles and runs the plugin 
   The plugin compiles against `ref/` where a package has it, else `lib/`.
 - **Asking.** Nothing is downloaded without a yes. Before the first download of a plugin's packages, and again when its
   list changes, the app lists them (the plugin's own references first, then the rest, each in order of the id, those
-  already in the cache marked) and asks to download them from nuget.org; on the command line (`FILEDIA` 0) the question is
-  `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:`. A no leaves the plugin not loaded
+  already in the cache marked) and asks to download them from nuget.org. The app asks with a window, **Packages for
+  Stairs**, over the main window: one sentence that names the plugin and its `.csproj` and counts the packages still to
+  download, a table (Package, Version, State) with the plugin's own packages first, in bold, then what they need, each State
+  `download` (blue) or `in the cache`, the sentence that loading runs the plugin's code and its packages' code with your
+  rights and that the packages are kept in `%LocalAppData%\OpenCAD2D\NuGet`, and at the foot `From nuget.org` with the
+  buttons **Don't load** and **Download and load**. Esc and the close button are Don't load. The restore itself runs on the
+  window's thread, as the compile does, so the window waits for it as it waits for a compile. The command-line form of the
+  question, `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:` (`CadPackageQuestion.Prompt` and `Answer`), is
+  not asked by any command yet: a typed `PLUGINLOAD` with `FILEDIA` 0 asks with the window too. A no leaves the plugin not loaded
   (`Stairs was not loaded: its packages were not downloaded.`), and so does a host that has no way to ask. No question is put
   where every package is in the cache already.
 - **Offline.** A source that cannot be reached, or a download that fails, leaves the plugin not loaded:
@@ -345,10 +352,21 @@ There is no file watcher: after saving a change, `PLUGINRELOAD` takes it.
 
 **In the window.** [Load/Unload Applications](lisp.md#appload) lists a source plugin with the Kind `C# source`, in light
 purple, and counts it in a chip of its own, `C# source 1`, after `Plugins`, which counts the .dll plugins only. A
-`.csproj` loaded with Load… or dropped on the table loads its folder. A source that does not compile is not loaded (a
+`.csproj` loaded with Load… or dropped on the table loads its folder, and so does **Load folder…**, which asks for the
+folder with a folder dialog (a folder with a `requirements.txt` is a Python tool and is refused until Python tools load as
+folders: `Survey cannot be loaded: Python tools load in a later build.`). The Open dialog of Load… and of NETLOAD offers
+`C# plugin (*.csproj)`; a lone `.cs` has no file type of its own any more, and one chosen with All files is refused with
+the line that says how to make it a folder. A source that does not compile is not loaded (a
 reload leaves its row unticked), and the red line under the table reads
 **Stairs.csproj** `did not compile: 2 errors. Stairs.cs(12,9): error CS0103: ...` with `Every error is on the command line`
 on the right; its tooltip holds the whole message.
+
+A plugin held back by its packages keeps its row, unticked, with a badge after its name. **needs packages** (amber) is a
+plugin whose question was answered No: ticking its row asks again, and Yes loads it. **install failed** (red) is a plugin
+whose packages could not be restored (nuget.org could not be reached, or NU1101, NU1102, NU1107 and the like): the red line
+reads **Stairs** `was not installed: ` and the first error, with `Every line is on the command line` on the right, and the
+tooltip holds the whole message; ticking the row tries again. A plugin that loads has no badge, and Remove takes the row
+out. The badge is kept for the session; a row remembered from an earlier session has none, and ticking it asks as ever.
 
 ## Loading and unloading
 

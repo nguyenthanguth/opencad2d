@@ -116,9 +116,13 @@
   (`Version="13.0.3"` is 13.0.3), its dependencies for `net8.0-windows`, cousins at the higher of their lowest versions,
   every range checked (`Stairs.csproj(6,10): error NU1107: Stairs needs Foo [2.0.0, 3.0.0); Bar 1.0.0 needs Foo [1.0.0, 2.0.0); no version meets both.`,
   and NU1605 for a reference lower than another package needs); the nearest framework's assets (`lib/net6.0` over
-  `netstandard2.0`); the question `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:` before the first
-  download and when the list changes, a no or an unreachable nuget.org leaving the plugin not loaded with the line to
-  reconnect and PLUGINRELOAD; packages kept in `%LocalAppData%\OpenCAD2D\NuGet\packages`, the resolved list in
+  `netstandard2.0`); the question before the first download and when the list changes (the window asks with a dialog,
+  **Packages for Stairs**, that lists the packages, the plugin's own in bold and then what they need, each marked
+  `download` or `in the cache`, with the buttons `Don’t load` and `Download and load`; closing it is a no), a no or an
+  unreachable nuget.org leaving the plugin not loaded with the line to
+  reconnect and PLUGINRELOAD (the line of the command-line form of the question,
+  `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:`, is `CadPackageQuestion.Prompt`; no command asks it yet,
+  so a typed PLUGINLOAD asks with the dialog too); packages kept in `%LocalAppData%\OpenCAD2D\NuGet\packages`, the resolved list in
   `PluginCache` so that a start asks nothing of the network; two plugins with `Foo 1.0.0` and `Foo 2.0.0` both run (a
   library the app carries itself is shared, with a line when a package asks a higher version); a native file loaded by its
   full path, two of one name side by side; a package's library first used after a garbage collection still loads (the
@@ -144,7 +148,18 @@
 - **NEW.** Load/Unload Applications takes C# source: a `.csproj` loaded with Load… or dropped on the table loads its
   folder; the row has the Kind `C# source` in light purple and a chip of its own, `C# source 1` (`Plugins` counts the
   .dll plugins only). A source that does not compile shows **Stairs.csproj** `did not compile: 2 errors.` and the first
-  error on the red line, with `Every error is on the command line` on the right and every error in its tooltip.
+  error on the red line, with `Every error is on the command line` on the right and every error in its tooltip. A new
+  button, **Load folder…**, chooses a tool's folder: a folder with a `.csproj` loads as a C# plugin, and one with a
+  `requirements.txt` is refused with `Survey cannot be loaded: Python tools load in a later build.` The file types of
+  Load… (and of NETLOAD's Open dialog) offer **C# plugin (\*.csproj)** where they offered **C# source (\*.cs)**, the
+  button reads `Load… (.lsp, .dll)`, and the foot says `Each tool run is one undo step. A tool runs its code, and its
+  packages’ code, with your rights.` A plugin whose packages were not downloaded (the question answered No) stays in the
+  table, unticked, with the amber badge **needs packages** after its name, and ticking it asks again; one whose packages
+  could not be restored (nuget.org not reached, a package or version not found) has the red badge **install failed** and
+  the red line says `Stairs was not installed:` and the first error, with `Every line is on the command line` on the right.
+  `AppLoadViewModel.LoadFolder`, `AskFolder`, `LoadFolderCommand`, `AppLoadRow.Badge` and `AppLoadBadge`,
+  `CadPluginAssemblyLoader.CompilingProject` and `CadPackageQuestion.Question` are new; the question's window,
+  `PackageQuestionWindow`, takes its texts from `PackageQuestionViewModel`, so that the pip question of a Python tool can use it.
 - **FIXED.** `OpenCAD2D.exe --screenshot ... --plugin x.dll` (and a source plugin's folder) rewrote the user's `%AppData%\OpenCAD2D\settings.json`
   with default settings plus the application it remembered. A screenshot now keeps its settings, tool palettes, plot
   styles and LISP registry in a folder of its own, `%TEMP%\OpenCAD2D\ScreenshotSettings\<process id>`, and never reads

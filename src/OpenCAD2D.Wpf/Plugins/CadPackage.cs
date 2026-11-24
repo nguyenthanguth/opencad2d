@@ -89,6 +89,75 @@ namespace OpenCAD2D.Wpf.Plugins
         }
 
         /// <summary>
+        /// Gets what the window's question says for a plugin whose packages are listed, as the PackageQuestion board draws it:
+        /// the title <c>Packages for Stairs</c>, the sentence <c>The plugin Stairs (D:\Tools\Stairs\Stairs.csproj) uses 2
+        /// packages that are not on this computer yet.</c> (the packages not cached are the count), a table with the packages
+        /// the .csproj names first, in bold, then those they pull in, each group in ordinal order of the id, each marked
+        /// <c>download</c> or <c>in the cache</c>, and the buttons <c>Don't load</c> and <c>Download and load</c>.
+        /// </summary>
+        /// <param name="plugin">The plugin's name.</param>
+        /// <param name="project">The path of the plugin's .csproj; null leaves it out of the sentence.</param>
+        /// <param name="packages">The packages the plugin needs, cached ones too.</param>
+        /// <returns>The question for <see cref="PackageQuestionWindow"/>.</returns>
+        public static PackageQuestionViewModel Question(
+            string plugin,
+            string project,
+            IReadOnlyList<CadPackage> packages
+        )
+        {
+            if (plugin == null)
+            {
+                throw new ArgumentNullException(nameof(plugin));
+            }
+
+            if (packages == null)
+            {
+                throw new ArgumentNullException(nameof(packages));
+            }
+
+            var ordered = new List<CadPackage>(packages);
+            ordered.Sort(
+                (a, b) =>
+                    a.IsDirect != b.IsDirect ? (a.IsDirect ? -1 : 1)
+                    : string.CompareOrdinal(a.Id, b.Id) != 0 ? string.CompareOrdinal(a.Id, b.Id)
+                    : string.CompareOrdinal(a.Version, b.Version)
+            );
+            var rows = new List<PackageQuestionRow>();
+            int download = 0;
+
+            foreach (CadPackage package in ordered)
+            {
+                download += package.IsCached ? 0 : 1;
+                rows.Add(
+                    new PackageQuestionRow(
+                        package.Id,
+                        package.Version,
+                        package.IsDirect,
+                        package.IsCached ? "in the cache" : "download",
+                        !package.IsCached
+                    )
+                );
+            }
+
+            return new PackageQuestionViewModel(
+                "Packages for " + plugin,
+                "The plugin "
+                    + plugin
+                    + (project != null ? " (" + project + ")" : string.Empty)
+                    + " uses "
+                    + download.ToString(CultureInfo.InvariantCulture)
+                    + (download == 1 ? " package that is" : " packages that are")
+                    + " not on this computer yet.",
+                "State",
+                rows,
+                "Loading a plugin runs its code, and its packages’ code, with your rights. The packages are kept in %LocalAppData%\\OpenCAD2D\\NuGet and shared by every plugin.",
+                "From nuget.org",
+                "Don’t load",
+                "Download and load"
+            );
+        }
+
+        /// <summary>
         /// Reads the answer typed at <see cref="Prompt"/>: Y and Yes (in any case) are yes; N, No and nothing typed (Enter,
         /// the default) are no; anything else is not an answer.
         /// </summary>

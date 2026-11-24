@@ -13,6 +13,11 @@ namespace OpenCAD2D.Wpf
         private CadBuiltInTab _pluginsTab;
         private PluginRibbonViewModel _pluginRibbon;
 
+        // The plugins whose last load stopped on their packages, by the full path of the folder: what the badge of a row says.
+        private readonly Dictionary<string, ToolPackageState> _packageStates = new Dictionary<string, ToolPackageState>(
+            StringComparer.OrdinalIgnoreCase
+        );
+
         /// <summary>Raised by PLUGINLOAD (NETLOAD, and the Load Plugin button): the window shows its Open dialog for a .dll, then calls <see cref="LoadPlugin"/>.</summary>
         public event EventHandler PluginLoadRequested;
 
@@ -91,18 +96,87 @@ namespace OpenCAD2D.Wpf
         /// <summary>Loads a command plugin from a .dll or a plugin's folder, as PLUGINLOAD does, and says what came of it.</summary>
         /// <param name="path">The path.</param>
         /// <returns>What came of it; null without a manager.</returns>
-        public CadPluginResult LoadPlugin(string path) =>
-            Report(_plugins == null || string.IsNullOrWhiteSpace(path) ? null : _plugins.Load(path));
+        public CadPluginResult LoadPlugin(string path)
+        {
+            CadPluginResult result = Report(
+                _plugins == null || string.IsNullOrWhiteSpace(path) ? null : _plugins.Load(path)
+            );
+            NotePackages(path, result);
+            return result;
+        }
 
         /// <summary>Loads a plugin again from its file, as PLUGINRELOAD does, and says what came of it.</summary>
         /// <param name="name">The plugin's name.</param>
         /// <returns>What came of it; null without a manager.</returns>
-        public CadPluginResult ReloadPlugin(string name) => Report(_plugins?.Reload(name));
+        public CadPluginResult ReloadPlugin(string name)
+        {
+            CadPluginResult result = Report(_plugins?.Reload(name));
+            NotePackages(_plugins?.Find(name)?.Path, result);
+            return result;
+        }
 
         /// <summary>Unloads a plugin, as PLUGINUNLOAD does, and says what came of it.</summary>
         /// <param name="name">The plugin's name.</param>
         /// <returns>What came of it; null without a manager.</returns>
         public CadPluginResult UnloadPlugin(string name) => Report(_plugins?.Unload(name));
+
+        /// <summary>
+        /// What a load of the plugin at a path left on its packages: <see cref="ToolPackageState"/> where the question before
+        /// the download was answered No, or the restore failed, and the load has not succeeded since; null otherwise.
+        /// </summary>
+        /// <param name="path">The plugin's folder or its .csproj.</param>
+        internal ToolPackageState PackageStateOf(string path)
+        {
+            _packageStates.TryGetValue(PluginFolderOf(path), out ToolPackageState state);
+            return state;
+        }
+
+        /// <summary>Forgets what a plugin's packages left behind, as Remove takes the plugin out of the list.</summary>
+        internal void ForgetPackageState(string path) => _packageStates.Remove(PluginFolderOf(path));
+
+        /// <summary>
+        /// Keeps what a load said of the plugin's packages, or forgets it where the load went well or stopped for another
+        /// reason. A plugin held back by its packages is kept in the known applications, so that its row stays in the list,
+        /// unticked, with its badge.
+        /// </summary>
+        private void NotePackages(string path, CadPluginResult result)
+        {
+            if (string.IsNullOrWhiteSpace(path) || result == null)
+            {
+                return;
+            }
+
+            string folder = PluginFolderOf(path);
+            ToolPackageState state = ToolPackageState.From(result);
+
+            if (state == null)
+            {
+                _packageStates.Remove(folder);
+                return;
+            }
+
+            _packageStates[folder] = state;
+
+            if (!_settings.KnownApplications.ContainsKey(folder))
+            {
+                ChangeSettings(
+                    s =>
+                        s.SetKnownApplications(
+                            s.KnownApplications.Concat(new[] { new KeyValuePair<string, string>(folder, string.Empty) })
+                        ),
+                    "a plugin waiting for its packages was remembered"
+                );
+            }
+        }
+
+        /// <summary>The full path of a plugin's folder: a .csproj stands for the folder it lies in.</summary>
+        private static string PluginFolderOf(string path)
+        {
+            string full = AppLoadViewModel.Normal(path).TrimEnd('\\', '/');
+            return string.Equals(System.IO.Path.GetExtension(full), ".csproj", StringComparison.OrdinalIgnoreCase)
+                ? System.IO.Path.GetDirectoryName(full)
+                : full;
+        }
 
         /// <summary>Asks the window for the file dialog of PLUGINLOAD.</summary>
         internal void RequestPluginLoad() => PluginLoadRequested?.Invoke(this, EventArgs.Empty);

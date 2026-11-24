@@ -161,7 +161,9 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Loads one application as the Load button of Load/Unload Applications does, and says what came of it on the command
         /// line: an AutoLISP file into the document's interpreter (what it wrote, then <c>name.lsp successfully loaded.</c>, or
-        /// the <c>; error:</c> line), a .py file into Python (see <see cref="LoadPythonApplication"/>), a .dll, a .csproj (its folder) or a .cs (which the manager refuses, saying how to make it a folder) into the plugin manager;
+        /// the <c>; error:</c> line), a .py file into Python (see <see cref="LoadPythonApplication"/>), a .dll, a .csproj (its folder),
+        /// a folder (a plugin's, as PLUGINLOAD takes it) or a .cs (which the manager refuses, saying how to make it a folder) into the
+        /// plugin manager; a folder with a requirements.txt is a Python tool, which is refused until Python tools load as folders;
         /// <c>.arx</c>, <c>.dbx</c>, <c>.dvb</c>, <c>.fas</c> and <c>.vlx</c> files are refused, and any other type is said to be
         /// neither an AutoLISP file, a Python file nor a plugin.
         /// </summary>
@@ -171,8 +173,16 @@ namespace OpenCAD2D.Wpf
         {
             string name = System.IO.Path.GetFileName(path);
             string extension = System.IO.Path.GetExtension(path).ToLowerInvariant();
+            bool isFolder = System.IO.Directory.Exists(path);
 
-            if (extension == ".lsp")
+            if (isFolder && System.IO.File.Exists(System.IO.Path.Combine(path, "requirements.txt")))
+            {
+                const string later = " cannot be loaded: Python tools load in a later build.";
+                Say(name + later);
+                return new AppLoadResult(AppLoadStatusKind.Refused, name + later, name, later);
+            }
+
+            if (extension == ".lsp" && !isFolder)
             {
                 int before = _current.Session.History.Count;
                 bool loaded = _current.Session.LoadLisp(path);
@@ -197,12 +207,12 @@ namespace OpenCAD2D.Wpf
                 );
             }
 
-            if (extension == ".py")
+            if (extension == ".py" && !isFolder)
             {
                 return LoadPythonApplication(path, name);
             }
 
-            if (extension == ".dll" || extension == ".csproj" || extension == ".cs")
+            if (isFolder || extension == ".dll" || extension == ".csproj" || extension == ".cs")
             {
                 if (_plugins == null)
                 {

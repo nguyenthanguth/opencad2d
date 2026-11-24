@@ -905,7 +905,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void TheOpenDialogOffersApplicationsFirst_ThenLispPluginsAndAllFiles()
         {
             Assert.Equal(
-                "Applications (*.lsp;*.py;*.dll;*.cs)|*.lsp;*.py;*.dll;*.cs|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# source (*.cs)|*.cs|All files (*.*)|*.*",
+                "Applications (*.lsp;*.py;*.dll;*.csproj)|*.lsp;*.py;*.dll;*.csproj|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# plugin (*.csproj)|*.csproj|All files (*.*)|*.*",
                 AppLoadViewModel.OpenFilter
             );
         }
@@ -1009,7 +1009,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             });
 
             Assert.Equal("Load/Unload Applications", title);
-            Assert.Contains("Load… (.lsp, .dll, .cs)", texts);
+            Assert.Contains("Load… (.lsp, .dll)", texts);
             Assert.Contains("Reload", texts);
             Assert.Contains("Unload", texts);
             Assert.Contains("Remove", texts);
@@ -1241,7 +1241,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Contains("C# source", texts);
             Assert.Contains("C# source 1", texts);
             Assert.Contains(
-                "Each plugin run is one undo step. Loading a .dll or a .cs runs its code with your rights.",
+                "Each tool run is one undo step. A tool runs its code, and its packages\u2019 code, with your rights.",
                 texts
             );
             Assert.Equal(Color.FromRgb(0xD2, 0xA8, 0xFF), sourceKind);
