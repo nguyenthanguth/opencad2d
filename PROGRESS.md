@@ -584,7 +584,9 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
 
 #### Tools as folders (planned 2026-11-24)
 
-Asked for by the maintainer on 2026-11-24: a tool that needs libraries must be able to say so. Every tool of the
+Asked for by the maintainer on 2026-11-24: a tool that needs libraries must be able to say so, and two Python tools
+must be able to use two versions of one library, so Python leaves the app and every Python tool runs in a process and
+venv of its own (TF-D14). Every tool of the
 `Plugins` and `Pythons` folders becomes a folder of its own: a C# plugin a folder with a `.csproj` (its NuGet packages
 in `<PackageReference>`), a Python tool a folder with a `requirements.txt`. The one-file forms (a `.cs` or a `.py`
 directly in `Plugins` or `Pythons`) are dropped. A built `.dll` plugin, alone or as a folder (`dotnet publish`), stays as
@@ -605,15 +607,19 @@ Plugins\Stairs\                Pythons\StairsPy\
 | TF-D3 | `//#r` lines are dropped: `<Reference>` and `<PackageReference>` of the `.csproj` take their place. | agreed 2026-11-24 |
 | TF-D4 | A `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Wpf` or `GeometryHelper` is the app's own and is not downloaded. Other packages are restored from nuget.org into `%LocalAppData%\OpenCAD2D\NuGet` (net8.0, else netstandard2.0; dependencies and native assets included) and loaded into the plugin's own load context, so two plugins may use two versions of one library. This reverses CS-D3's "no NuGet packages". | agreed 2026-11-24 |
 | TF-D5 | A Python tool is a folder with `requirements.txt` and `__init__.py`; a folder without `requirements.txt` stays a package the tools import, as today. | agreed 2026-11-24 |
-| TF-D6 | The app keeps a Python environment of its own (a venv in `%LocalAppData%\OpenCAD2D\python`, made from the Python found), never the user's Python. How tools that need different versions of one library are run is TF-D14. | agreed 2026-11-24 |
-| TF-D7 | Before installing, conflicts are found (`pip install --dry-run --report`); a tool whose requirements conflict is never installed over another tool's libraries. | agreed 2026-11-24 |
+| TF-D6 | Each Python tool has a venv of its own, `%LocalAppData%\OpenCAD2D\python\envs\<tool>`, made from the Python set in Global settings (else the one found) and holding the tool's `requirements.txt` and the `opencad2d` wheel; never the user's own Python environment. | agreed 2026-11-24 (changed the same day from one shared venv) |
+| TF-D7 | No conflict check between tools is needed: each tool has its own venv, so numpy 1.26 for one and 2.1 for another both install and run. `pip` reports a tool whose own requirements cannot be met, before anything is changed. | agreed 2026-11-24 (changed the same day) |
 | TF-D8 | Nothing is downloaded or installed without asking: the packages and versions are listed and the user says yes, asked again when the list changes. Offline: a clear error and the command to run by hand. | agreed 2026-11-24 |
 | TF-D9 | Exact versions are recommended (`==`, `Version="13.0.3"`); a range is taken with a warning. | agreed 2026-11-24 |
 | TF-D10 | PLUGINLOAD/NETLOAD/APPLOAD/PYLOAD take a tool's folder, or its `.csproj` / `requirements.txt`; a lone `.cs` is refused with a line saying how to make it a folder. PYRUN (run a script once, as SCRIPT) still takes a lone `.py`. | agreed 2026-11-24 |
 | TF-D11 | The build cache's key (CS-D4) also takes the `.csproj` and the resolved package list; an unchanged tool neither compiles nor installs again. | agreed 2026-11-24 |
 | TF-D12 | The samples take the new shape: `Plugins\Stairs.cs` becomes `Plugins\Stairs\` with `Stairs.csproj`, `Pythons\GH-DrawingInfo.py` becomes `Pythons\GH-DrawingInfo\`; `examples\` holds them so that Visual Studio opens and builds them. | agreed 2026-11-24 |
 | TF-D13 | **BREAKING** in the CHANGELOG: a one-file tool in `Plugins` or `Pythons` no longer loads; the log says why and the guide says how to convert it. | agreed 2026-11-24 |
-| TF-D14 | Two Python tools that need two versions of one library (numpy 1.26 and 2.1) both run. | asked by the maintainer 2026-11-24; the way to do it is being decided (one Python process cannot hold two numpy versions) |
+| TF-D14 | Python no longer runs inside the app: every Python tool runs in a `python.exe` process of its own, from its venv, and drives the app through the Remote channel (`connect()` of the `opencad2d` wheel). A process starts at the tool's first command (0.2 to 0.3 s, the runtime and the connection, measured in `docs/presenter/remote.md`) and stays until the tool is unloaded or the app closes. One process cannot hold two versions of numpy, and numpy refuses sub-interpreters, so this is how two tools with two versions both run. | decided by the maintainer 2026-11-24 |
+| TF-D15 | The in-app Python is retired: the pythonnet embedding of `OpenCAD2D.Python` and the in-app `opencad2d.cad` (a script inside the app) go; the `opencad2d` wheel stays (a tool uses it in its process, also to read and write DXF there). PYRUN runs a lone `.py` in a process of the default venv; the PYTHON console palette talks to a Python process of its own. | recommended 2026-11-24 |
+| TF-D16 | What a Python tool adds to the window is declared in its `plugin.json` (commands, aliases, ribbon buttons, icons); the app shows them and starts the tool when one is used. A Python tool shows no WPF content of its own in the app (PW2's side panel stays out). | recommended 2026-11-24 |
+| TF-D17 | A command run of an out-of-process tool is one undo step and Esc stops it, as in the app today: the Remote channel gains a command scope (begin, end, cancel) that the run holds. A tool process that crashes or hangs never takes the app down; the app can stop it, and the run's changes are taken back. | recommended 2026-11-24 |
+| TF-D18 | The cost is accepted: 0.2 to 0.3 s at a tool's first command, and a round trip per call (about 17 ms for SendCommand, 0.15 s for 1 000 inserts queued and committed); a tool that makes many calls batches them (the array API). | accepted by the maintainer 2026-11-24 |
 
 - [ ] TF1. Research and the spec: how Rhino 8 (`# r:`, `#r "nuget:"`), pyRevit, Blender extensions and dotnet-script
       get a script's libraries; the NuGet client libraries (Apache-2.0) for a restore without the SDK; `pip --dry-run
@@ -626,17 +632,24 @@ Plugins\Stairs\                Pythons\StairsPy\
 - [ ] TF3. NuGet (TF-D4, D8, D9): restore, dependencies, framework choice, native assets, the cache, asking first.
       -> verify: tests against a local package source in a temporary folder (no network); two plugins with two versions
          of one package both run; the host's own packages are never downloaded.
-- [ ] TF4. Python tools as folders (TF-D5, D10, D12, D13 for Python): the folder found, `__init__.py` run, the lone
-      `.py` in `Pythons` dropped, the GH-DrawingInfo sample moved.
-      -> verify: the sample loads from its folder with the same command and output; a lone `.py` there is not loaded and
-         the log says why.
-- [ ] TF5. The Python environment and pip (TF-D6 to D9, D14): the app's venv, conflicts found before installing,
-      installing after a yes, errors that say what to do.
-      -> verify: tests with a local package index (no network); a conflicting tool refused or run as TF-D14 decides.
+- [ ] TF4. Python tools as folders, out of process (TF-D5, D10, D12 to D17): the folder found, the tool's process
+      started at its first command and kept, its commands from `plugin.json`, one undo step and Esc through the Remote
+      command scope, a crashed or hung tool stopped without the app; the lone `.py` in `Pythons` dropped, the
+      GH-DrawingInfo sample moved.
+      -> verify: the sample runs from its folder with the same command and output; Esc and undo of a run; a tool that
+         raises, hangs or exits leaves the app working; the first command's time measured.
+- [ ] TF5. A venv per tool and pip (TF-D6 to D9): the venv made, `requirements.txt` and the wheel installed after a
+      yes, errors that say what to do.
+      -> verify: tests with a local package index (no network); two tools with two versions of one package both run.
 - [ ] TF6. The app (design first in the Design artifact): the question before installing, "Load folder…" in
       Load/Unload Applications, a row's state (needs installing, conflict, installing).
       -> verify: Wpf tests of the question and the rows; the screenshots match the design.
-- [ ] TF7. Docs, the CHANGELOG (BREAKING), the setup (its size with the NuGet client before and after).
+- [ ] TF7. The in-app Python retired (TF-D15): the pythonnet embedding and the in-app `opencad2d.cad` removed, PYRUN and
+      the PYTHON console on a Python process, the tests and stubs that pinned the in-app Python moved or removed, the
+      parked P/PW items it settles closed.
+      -> verify: the app starts with no Python loaded; PYRUN and the console work; the Python suites green on what stays.
+- [ ] TF8. Docs, the CHANGELOG (BREAKING), the setup (its size with the NuGet client and without the embedding, before
+      and after).
       -> verify: the guides' examples run in tests; the setup built and both samples load from the installed app.
 
 #### The website and Share (planned 2026-11-23)
