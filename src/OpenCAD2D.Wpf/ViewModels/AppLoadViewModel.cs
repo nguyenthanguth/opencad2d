@@ -85,7 +85,7 @@ namespace OpenCAD2D.Wpf
             PluginName = pluginName;
         }
 
-        /// <summary>Gets the kind, <c>Lisp</c> (shown green), <c>Python</c> (shown amber) or <c>Plugin</c> (shown blue).</summary>
+        /// <summary>Gets the kind, <c>Lisp</c> (shown green), <c>Python</c> (shown amber), <c>Plugin</c> (shown blue) or <c>C# source</c> (shown light purple).</summary>
         public string Kind { get; }
 
         /// <summary>Gets whether it is a plugin.</summary>
@@ -150,7 +150,7 @@ namespace OpenCAD2D.Wpf
     /// <para>
     /// Load/Unload Applications, shown by APPLOAD and by the Plugin manager button: the AutoLISP files loaded into the
     /// document shown, those of the Startup Suite, and the plugins known in this session, in one table (On, Name, Kind,
-    /// Commands, File, At start) sorted by name and then by file, with chips that filter it by kind. Load takes .lsp, .py and .dll
+    /// Commands, File, At start) sorted by name and then by file, with chips that filter it by kind. Load takes .lsp, .py, .dll and .cs
     /// files (an AutoLISP file as <see cref="CadCommandSession.LoadLisp"/> does, a .dll through the plugin manager as NETLOAD
     /// does), Reload loads the rows chosen again and Unload unloads them: a plugin as the plugin manager does, an AutoLISP file
     /// by losing the <c>c:</c> commands it defined, which become unknown commands, its row staying in the table unticked;
@@ -174,9 +174,9 @@ namespace OpenCAD2D.Wpf
     /// </summary>
     public sealed class AppLoadViewModel : ObservableObject, IDisposable
     {
-        /// <summary>The filter of the file dialog Load… shows: applications (.lsp, .py and .dll), AutoLISP, Python, plugins, and all files.</summary>
+        /// <summary>The filter of the file dialog Load… shows: applications (.lsp, .py, .dll and .cs), AutoLISP, Python, plugins, C# source, and all files.</summary>
         public const string OpenFilter =
-            "Applications (*.lsp;*.py;*.dll)|*.lsp;*.py;*.dll|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|All files (*.*)|*.*";
+            "Applications (*.lsp;*.py;*.dll;*.cs)|*.lsp;*.py;*.dll;*.cs|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# source (*.cs)|*.cs|All files (*.*)|*.*";
 
         /// <summary>The filter of the file dialog LISPLOAD shows: AutoLISP files.</summary>
         public const string LispFilter = "Lisp files (*.lsp)|*.lsp";
@@ -187,6 +187,8 @@ namespace OpenCAD2D.Wpf
         private const string LispKind = "Lisp";
         private const string PythonKind = "Python";
         private const string PluginKind = "Plugin";
+        private const string SourceKind = "C# source";
+        private const string DidNotCompile = " did not compile: ";
 
         private readonly MainViewModel _model;
         private IReadOnlyList<AppLoadRow> _all = Array.Empty<AppLoadRow>();
@@ -198,6 +200,10 @@ namespace OpenCAD2D.Wpf
 
         // The failures of the load going on, in order: the file's name and what to say after it. The line is made from them when it ends.
         private List<KeyValuePair<string, string>> _failures;
+
+        // The whole message of each source plugin of the load going on that did not compile, by the file's name: the line's tooltip.
+        private Dictionary<string, string> _compileErrors;
+        private string _loadErrorTip;
 
         // The AutoLISP files unticked in this window, by full path: they stay in the table, off, until it closes; Unload keeps them too.
         private readonly HashSet<string> _off = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -228,7 +234,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the rows shown, as the chip chosen filters them, sorted by name and then by file.</summary>
         public IReadOnlyList<AppLoadRow> Rows => _rows;
 
-        /// <summary>Gets or sets the chip chosen: <c>All</c>, <c>Lisp</c>, <c>Python</c> or <c>Plugin</c>.</summary>
+        /// <summary>Gets or sets the chip chosen: <c>All</c>, <c>Lisp</c>, <c>Python</c>, <c>Plugin</c> or <c>C# source</c>.</summary>
         public string Filter
         {
             get => _filter;
@@ -251,8 +257,13 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the chip of the Python files, with their number: <c>Python 2</c>.</summary>
         public string PythonChipText => "Python " + _all.Count(r => r.IsPython).ToString(CultureInfo.InvariantCulture);
 
-        /// <summary>Gets the chip of the plugins, with their number: <c>Plugins 1</c>.</summary>
-        public string PluginChipText => "Plugins " + _all.Count(r => r.IsPlugin).ToString(CultureInfo.InvariantCulture);
+        /// <summary>Gets the chip of the plugins built as a .dll, with their number: <c>Plugins 1</c>.</summary>
+        public string PluginChipText =>
+            "Plugins " + _all.Count(r => r.Kind == PluginKind).ToString(CultureInfo.InvariantCulture);
+
+        /// <summary>Gets the chip of the plugins given as C# source, with their number: <c>C# source 1</c>.</summary>
+        public string SourceChipText =>
+            "C# source " + _all.Count(r => r.Kind == SourceKind).ToString(CultureInfo.InvariantCulture);
 
         /// <summary>Gets the rows chosen, in the order of the table.</summary>
         public IReadOnlyList<AppLoadRow> Chosen => _chosen;
@@ -274,8 +285,16 @@ namespace OpenCAD2D.Wpf
         /// </summary>
         public string LoadErrorText => _loadErrorText ?? string.Empty;
 
-        /// <summary>Gets the whole line, the name and then its text; empty while the line is hidden.</summary>
-        public string LoadError => LoadErrorName + LoadErrorText;
+        /// <summary>
+        /// Gets the line's tooltip: the whole line, the name and then its text; for a C# source that did not compile, every
+        /// error, as the command line writes them (<c>Plugin Stairs was not loaded: 1 error</c>, then
+        /// <c>Stairs.cs(12,9): error CS0103: ...</c>). Empty while the line is hidden.
+        /// </summary>
+        public string LoadError => _loadErrorTip ?? LoadErrorName + LoadErrorText;
+
+        /// <summary>Gets what the line says at its right: <c>Every error is on the command line</c> for a C# source that did not compile, else <c>Shown until the next load</c>.</summary>
+        public string LoadErrorHint =>
+            _loadErrorTip != null ? "Every error is on the command line" : "Shown until the next load";
 
         /// <summary>Gets the command of Load….</summary>
         public ICommand LoadCommand { get; }
@@ -603,8 +622,52 @@ namespace OpenCAD2D.Wpf
         private static bool IsPython(string path) =>
             string.Equals(Path.GetExtension(path), ".py", StringComparison.OrdinalIgnoreCase);
 
+        /// <summary>Whether a plugin known from an earlier run is given as C# source: a .cs, or a folder with a .cs directly in it.</summary>
+        private static bool IsSource(string path)
+        {
+            if (string.Equals(Path.GetExtension(path), ".cs", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            try
+            {
+                return Directory.Exists(path)
+                    && Directory
+                        .GetFiles(path)
+                        .Any(f => string.Equals(Path.GetExtension(f), ".cs", StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// What the red line says after the file's name for a plugin that failed: for a source that did not compile, the count and
+        /// the first error (<c> did not compile: 1 error. Stairs.cs(12,9): error CS0103: ...</c>), every error being on the command
+        /// line; for any other, <c> failed to load: </c> and what the plugin manager said.
+        /// </summary>
+        private static string PluginFailure(string message)
+        {
+            string[] lines = message.Split('\n');
+            const string NotLoaded = " was not loaded: ";
+            int at = lines[0].IndexOf(NotLoaded, StringComparison.Ordinal);
+
+            if (lines.Length > 1 && lines[0].StartsWith("Plugin ", StringComparison.Ordinal) && at > 0)
+            {
+                return DidNotCompile + lines[0].Substring(at + NotLoaded.Length) + ". " + lines[1];
+            }
+
+            return " failed to load: " + message;
+        }
+
         /// <summary>A load begins: the failures of the one before are forgotten, and the line stays as it was until this one ends.</summary>
-        private void BeginLoad() => _failures = new List<KeyValuePair<string, string>>();
+        private void BeginLoad()
+        {
+            _failures = new List<KeyValuePair<string, string>>();
+            _compileErrors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
 
         /// <summary>Keeps what a failed or refused load said, as the line will show it; a load that succeeded keeps nothing.</summary>
         private void Note(string path, AppLoadResult result)
@@ -615,7 +678,9 @@ namespace OpenCAD2D.Wpf
             }
             else if (result.Kind == AppLoadStatusKind.Failed)
             {
-                string text = " failed to load: " + result.Detail;
+                string text =
+                    IsLisp(path) || IsPython(path) ? " failed to load: " + result.Detail : PluginFailure(result.Detail);
+                KeepCompileErrors(result.Name, text, result.Detail);
 
                 if (IsLisp(path))
                 {
@@ -640,7 +705,9 @@ namespace OpenCAD2D.Wpf
         {
             if (result != null && !result.Succeeded)
             {
-                _failures.Add(new KeyValuePair<string, string>(Path.GetFileName(path), " failed to load: " + result));
+                string text = PluginFailure(result.ToString());
+                KeepCompileErrors(Path.GetFileName(path), text, result.ToString());
+                _failures.Add(new KeyValuePair<string, string>(Path.GetFileName(path), text));
             }
         }
 
@@ -649,6 +716,10 @@ namespace OpenCAD2D.Wpf
         {
             List<KeyValuePair<string, string>> failures = _failures;
             _failures = null;
+
+            Dictionary<string, string> compiled = _compileErrors;
+            _compileErrors = null;
+            _loadErrorTip = null;
 
             if (failures.Count == 0)
             {
@@ -659,6 +730,7 @@ namespace OpenCAD2D.Wpf
             {
                 KeyValuePair<string, string> last = failures[failures.Count - 1];
                 _loadErrorName = last.Key;
+                compiled.TryGetValue(last.Key, out _loadErrorTip);
                 _loadErrorText =
                     last.Value
                     + (
@@ -672,6 +744,16 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(LoadErrorName));
             Raise(nameof(LoadErrorText));
             Raise(nameof(LoadError));
+            Raise(nameof(LoadErrorHint));
+        }
+
+        /// <summary>Keeps the whole message of a source plugin that did not compile, for the line's tooltip.</summary>
+        private void KeepCompileErrors(string name, string text, string message)
+        {
+            if (text.StartsWith(DidNotCompile, StringComparison.Ordinal))
+            {
+                _compileErrors[name] = message;
+            }
         }
 
         private void UnloadRow(AppLoadRow row)
@@ -794,7 +876,7 @@ namespace OpenCAD2D.Wpf
                     rows.Add(
                         new AppLoadRow(
                             this,
-                            PluginKind,
+                            plugin.IsSource ? SourceKind : PluginKind,
                             plugin.Name,
                             names.Length == 0 && remembered.TryGetValue(Normal(plugin.Path), out string last)
                                 ? last
@@ -816,7 +898,8 @@ namespace OpenCAD2D.Wpf
 
                 if (seen.Add(Normal(pair.Key)))
                 {
-                    rows.Add(new AppLoadRow(this, PluginKind, name, pair.Value, pair.Key, false, false, false, name));
+                    string kind = IsSource(pair.Key) ? SourceKind : PluginKind;
+                    rows.Add(new AppLoadRow(this, kind, name, pair.Value, pair.Key, false, false, false, name));
                 }
             }
 
@@ -826,6 +909,7 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(LispChipText));
             Raise(nameof(PythonChipText));
             Raise(nameof(PluginChipText));
+            Raise(nameof(SourceChipText));
             ApplyFilter();
         }
 

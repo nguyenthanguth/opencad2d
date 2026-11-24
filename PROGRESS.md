@@ -556,9 +556,15 @@ the same `CadPlugin` API, the same load context, the same trusted folders.
       Done 2026-11-24: 7 loading tests on net8 (red without the manager's change) and the refusal on net48; DrawingInfo
       from source and from .dll give the same command and the same six lines (it has no ribbon tab to compare). Left for
       the maintainer: SECURELOAD governs no .dll plugin today (L6/L9), so a .cs does not obey it either
-- [ ] CS4. The app: the Load/Unload Applications window and the file pickers (design first in the Design artifact for
+- [x] CS4. The app: the Load/Unload Applications window and the file pickers (design first in the Design artifact for
       any new control or column), the error lines of CS-D6, drag and drop.
       -> verify: Wpf tests of the window's rows and of a dropped `.cs`; the screenshots of the window match the design.
+      Done 2026-11-24: Kind `C# source` (#D2A8FF), a chip `C# source N` (`Plugins N` counts .dll plugins only), Load…,
+      NETLOAD's picker and a drop take `.cs`, the red line `Stairs.cs did not compile: 2 errors. <first error>` with every
+      error in its tooltip (spec S17). 5 new Wpf tests (a fake loader, as net48 compiles nothing), red without the change
+      (7 failing with the 2 strings updated), green after; Wpf 2474, Plugins 96 + 18. Rendered at 900x700 offscreen, both
+      states match the artboards but one: an unticked source row shows the commands it last had, where the csError
+      artboard shows the Commands cell empty (kept as for a .dll row)
 - [ ] CS5. Docs and the sample: a section in `docs/presenter/plugins.md` (a plugin as source, its references, `//#r`,
       the cache, the errors), the sample plugin also shipped as source in `examples/`, the CHANGELOG, and the setup
       carrying Roslyn (its size before and after recorded).

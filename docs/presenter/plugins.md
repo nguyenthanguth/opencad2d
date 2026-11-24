@@ -236,6 +236,13 @@ Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current contex
 
 There is no file watcher: after saving a change, `PLUGINRELOAD` takes it.
 
+**In the window.** [Load/Unload Applications](lisp.md#appload) lists a source plugin with the Kind `C# source`, in light
+purple, and counts it in a chip of its own, `C# source 1`, after `Plugins`, which counts the .dll plugins only. Load…
+and NETLOAD's Open dialog offer "C# source (\*.cs)", and a `.cs` dropped on the table loads as one chosen with Load…. A
+source that does not compile is not loaded (a reload leaves its row unticked), and the red line under the table reads
+**Stairs.cs** `did not compile: 2 errors. Stairs.cs(12,9): error CS0103: ...` with `Every error is on the command line`
+on the right; its tooltip holds the whole message.
+
 ## Loading and unloading
 
 [`CadPluginManager`](xref:OpenCAD2D.Plugins.CadPluginManager) keeps the plugins of a presenter. Its commands

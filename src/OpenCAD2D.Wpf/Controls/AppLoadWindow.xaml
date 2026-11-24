@@ -47,6 +47,7 @@
             <SolidColorBrush x:Key="KindLisp" Color="#3FB950" />
             <SolidColorBrush x:Key="KindPython" Color="#E3B341" />
             <SolidColorBrush x:Key="KindPlugin" Color="#6CB6FF" />
+            <SolidColorBrush x:Key="KindSource" Color="#D2A8FF" />
         </ResourceDictionary>
     </Window.Resources>
 
@@ -98,8 +99,9 @@
                     <Button
                         x:Name="LoadButton"
                         Style="{StaticResource Primary}"
-                        Content="Load… (.lsp, .dll)"
+                        Content="Load… (.lsp, .dll, .cs)"
                         Command="{Binding LoadCommand}"
+                        ToolTip="Open .lsp, .py, .dll or .cs files; the file types offered include C# source (*.cs)"
                     />
                     <Rectangle Width="1" Fill="{StaticResource GhBorder}" Margin="4,0,10,0" />
                     <Button
@@ -107,6 +109,7 @@
                         Style="{StaticResource Secondary}"
                         Content="Reload"
                         Command="{Binding ReloadCommand}"
+                        ToolTip="Load the chosen rows again; a C# source is compiled again where it changed"
                     />
                     <Button
                         x:Name="UnloadButton"
@@ -143,7 +146,7 @@
                     <TextBlock
                         Foreground="{StaticResource GhTextMuted}"
                         VerticalAlignment="Center"
-                        Text="Each plugin run is one undo step. Loading a .dll runs its code with your rights."
+                        Text="Each plugin run is one undo step. Loading a .dll or a .cs runs its code with your rights."
                     />
                 </DockPanel>
             </Border>
@@ -187,6 +190,14 @@
                         Content="{Binding PluginChipText}"
                         Command="{Binding FilterCommand}"
                         CommandParameter="Plugin"
+                        Margin="0,0,6,0"
+                    />
+                    <RadioButton
+                        x:Name="SourceChip"
+                        Style="{StaticResource GhChip}"
+                        Content="{Binding SourceChipText}"
+                        Command="{Binding FilterCommand}"
+                        CommandParameter="C# source"
                     />
                 </StackPanel>
 
@@ -326,6 +337,13 @@
                                                 Value="{StaticResource KindPlugin}"
                                             />
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="C# source">
+                                            <Setter
+                                                TargetName="Kind"
+                                                Property="Foreground"
+                                                Value="{StaticResource KindSource}"
+                                            />
+                                        </DataTrigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -378,7 +396,7 @@
                                 Foreground="{StaticResource GhTextMuted}"
                                 Margin="8,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="Shown until the next load"
+                                Text="{Binding LoadErrorHint}"
                             />
                             <TextBlock
                                 x:Name="LoadErrorLine"

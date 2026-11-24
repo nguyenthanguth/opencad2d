@@ -161,7 +161,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Loads one application as the Load button of Load/Unload Applications does, and says what came of it on the command
         /// line: an AutoLISP file into the document's interpreter (what it wrote, then <c>name.lsp successfully loaded.</c>, or
-        /// the <c>; error:</c> line), a .py file into Python (see <see cref="LoadPythonApplication"/>), a .dll into the plugin manager;
+        /// the <c>; error:</c> line), a .py file into Python (see <see cref="LoadPythonApplication"/>), a .dll or a .cs into the plugin manager;
         /// <c>.arx</c>, <c>.dbx</c>, <c>.dvb</c>, <c>.fas</c> and <c>.vlx</c> files are refused, and any other type is said to be
         /// neither an AutoLISP file, a Python file nor a plugin.
         /// </summary>
@@ -202,7 +202,7 @@ namespace OpenCAD2D.Wpf
                 return LoadPythonApplication(path, name);
             }
 
-            if (extension == ".dll")
+            if (extension == ".dll" || extension == ".cs")
             {
                 if (_plugins == null)
                 {

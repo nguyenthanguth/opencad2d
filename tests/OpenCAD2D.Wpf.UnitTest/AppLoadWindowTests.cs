@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -62,10 +63,10 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         /// <summary>A manager over the loader of the runtime, with the sample plugin copied to a folder it trusts.</summary>
-        private CadPluginManager Manager(out string sample, string copies = "copies")
+        private CadPluginManager Manager(out string sample, string copies = "copies", CadPluginLoader loader = null)
         {
             var manager = new CadPluginManager(
-                new CadPluginAssemblyLoader(),
+                loader ?? new CadPluginAssemblyLoader(),
                 Path.Combine(_folder.FullPath, "plugins"),
                 Path.Combine(_folder.FullPath, "plugins.json"),
                 Path.Combine(_folder.FullPath, copies)
@@ -865,7 +866,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void TheOpenDialogOffersApplicationsFirst_ThenLispPluginsAndAllFiles()
         {
             Assert.Equal(
-                "Applications (*.lsp;*.py;*.dll)|*.lsp;*.py;*.dll|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|All files (*.*)|*.*",
+                "Applications (*.lsp;*.py;*.dll;*.cs)|*.lsp;*.py;*.dll;*.cs|Lisp files (*.lsp)|*.lsp|Python files (*.py)|*.py|Plugins (*.dll)|*.dll|C# source (*.cs)|*.cs|All files (*.*)|*.*",
                 AppLoadViewModel.OpenFilter
             );
         }
@@ -969,7 +970,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             });
 
             Assert.Equal("Load/Unload Applications", title);
-            Assert.Contains("Load… (.lsp, .dll)", texts);
+            Assert.Contains("Load… (.lsp, .dll, .cs)", texts);
             Assert.Contains("Reload", texts);
             Assert.Contains("Unload", texts);
             Assert.Contains("Remove", texts);
@@ -991,6 +992,199 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal(4, boxes);
             Assert.Equal(Color.FromRgb(0x3F, 0xB9, 0x50), lispKind);
             Assert.Equal(Color.FromRgb(0x6C, 0xB6, 0xFF), pluginKind);
+        }
+
+        // ---- C# source plugins (CS4)
+
+        /// <summary>
+        /// A loader that compiles as the app on .NET 8 does, without the compiler: a .cs with <c>x = 1</c> in it gives two
+        /// errors, any other gives the sample plugin's .dll. The window's tests run on .NET Framework, which compiles nothing;
+        /// the compiler itself is tested in OpenCAD2D.Plugins.UnitTest on .NET 8.
+        /// </summary>
+        private sealed class SourceLoader : CadPluginLoader
+        {
+            private readonly CadPluginLoader _inner = new CadPluginAssemblyLoader();
+            private readonly string _dll;
+            private readonly string _pdb;
+
+            public SourceLoader(string dll, string pdb)
+            {
+                _dll = dll;
+                _pdb = pdb;
+            }
+
+            public override bool CanUnload => _inner.CanUnload;
+
+            public override bool CanCompile => true;
+
+            public override IReadOnlyList<Assembly> Load(
+                string name,
+                IReadOnlyList<string> files,
+                string probeFolder
+            ) => _inner.Load(name, files, probeFolder);
+
+            public override void Unload(IReadOnlyList<Assembly> assemblies) => _inner.Unload(assemblies);
+
+            public override CadPluginBuild Compile(string name, IReadOnlyList<string> sources) =>
+                File.ReadAllText(sources[0]).Contains("x = 1")
+                    ? new CadPluginBuild(
+                        2,
+                        new[]
+                        {
+                            "Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context",
+                            "Stairs.cs(13,9): error CS0103: The name 'y' does not exist in the current context",
+                        }
+                    )
+                    : new CadPluginBuild(_dll, _pdb, false);
+        }
+
+        /// <summary>A drawing open with a manager over <see cref="SourceLoader"/>, and Stairs.cs written in a folder it trusts.</summary>
+        private MainViewModel WithSources(string source, out string stairs, out CadPluginManager manager)
+        {
+            string built = Path.Combine(_folder.FullPath, "built");
+            Directory.CreateDirectory(built);
+            string dll = Path.Combine(built, "Stairs.dll");
+            File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SamplePlugin", SampleName + ".dll"), dll);
+            File.WriteAllText(Path.ChangeExtension(dll, ".pdb"), string.Empty);
+            manager = Manager(out _, loader: new SourceLoader(dll, Path.ChangeExtension(dll, ".pdb")));
+            stairs = Path.Combine(_folder.FullPath, "dev", "Stairs.cs");
+            File.WriteAllText(stairs, source);
+            var model = new MainViewModel { SettingsPath = SettingsFile };
+            model.UsePlugins(manager, loadAtStart: false);
+            Assert.True(model.Open(_folder.Write("room.dxf", TestFiles.Room(out _, out _))));
+            model.LoadSecurity.SecureLoad = 0;
+            return model;
+        }
+
+        [Fact]
+        public void ACSharpSource_IsARowOfKindCSharpSource_WithAChipOfItsOwn()
+        {
+            MainViewModel model = WithSources("// Stairs", out string stairs, out _);
+            AppLoadViewModel dialog = Shown(model);
+
+            dialog.Load(new[] { stairs, Lisp("a.lsp", "(setq a 1)") });
+
+            AppLoadRow row = Row(dialog, "Stairs");
+            Assert.Equal("C# source", row.Kind);
+            Assert.True(row.IsPlugin);
+            Assert.True(row.IsOn);
+            Assert.Equal(stairs, row.File);
+            Assert.Equal("All 2", dialog.AllChipText);
+            Assert.Equal("Plugins 0", dialog.PluginChipText);
+            Assert.Equal("C# source 1", dialog.SourceChipText);
+            Assert.False(dialog.HasLoadError);
+
+            dialog.FilterCommand.Execute("C# source");
+            Assert.Equal(new[] { "Stairs" }, dialog.Rows.Select(r => r.Name));
+
+            dialog.FilterCommand.Execute("Plugin");
+            Assert.Empty(dialog.Rows);
+        }
+
+        [Fact]
+        public void ACSharpSourceDropped_LoadsAsOneLoadedWithLoad()
+        {
+            MainViewModel model = WithSources("// Stairs", out string stairs, out CadPluginManager manager);
+            AppLoadViewModel dialog = Shown(model);
+
+            dialog.LoadDropped(new[] { stairs });
+
+            Assert.Equal("C# source", Row(dialog, "Stairs").Kind);
+            Assert.True(manager.Find("Stairs").IsSource);
+        }
+
+        [Fact]
+        public void ACSharpSourceThatDoesNotCompile_ShowsTheCountAndTheFirstError_AndEveryErrorInTheTooltipAndOnTheCommandLine()
+        {
+            MainViewModel model = WithSources("        x = 1;", out string stairs, out _);
+            AppLoadViewModel dialog = Shown(model);
+
+            dialog.Load(new[] { stairs });
+
+            Assert.True(dialog.HasLoadError);
+            Assert.Equal("Stairs.cs", dialog.LoadErrorName);
+            Assert.Equal(
+                " did not compile: 2 errors. Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context",
+                dialog.LoadErrorText
+            );
+            Assert.Equal(
+                "Plugin Stairs was not loaded: 2 errors\n"
+                    + "Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context\n"
+                    + "Stairs.cs(13,9): error CS0103: The name 'y' does not exist in the current context",
+                dialog.LoadError
+            );
+            Assert.Equal("Every error is on the command line", dialog.LoadErrorHint);
+            Assert.Contains("Plugin Stairs was not loaded: 2 errors", model.History);
+            Assert.Contains(
+                "Stairs.cs(13,9): error CS0103: The name 'y' does not exist in the current context",
+                model.History
+            );
+            Assert.DoesNotContain(dialog.Rows, r => r.Name == "Stairs");
+
+            // A load that fails otherwise keeps the hint the line had.
+            dialog.Load(new[] { _folder.WriteText("notes.txt", "hello") });
+            Assert.Equal("Shown until the next load", dialog.LoadErrorHint);
+        }
+
+        [Fact]
+        public void ACSharpSourceChangedSoItNoLongerCompiles_StaysARowOff_AfterReload()
+        {
+            MainViewModel model = WithSources("// Stairs", out string stairs, out _);
+            AppLoadViewModel dialog = Shown(model);
+            dialog.Load(new[] { stairs });
+            File.WriteAllText(stairs, "        x = 1;");
+
+            dialog.ChooseRows(new[] { Row(dialog, "Stairs") });
+            dialog.ReloadCommand.Execute(null);
+
+            AppLoadRow row = Row(dialog, "Stairs");
+            Assert.Equal("C# source", row.Kind);
+            Assert.False(row.IsOn);
+            Assert.Equal("Stairs.cs", dialog.LoadErrorName);
+            Assert.Equal(
+                " did not compile: 2 errors. Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context",
+                dialog.LoadErrorText
+            );
+            Assert.Equal("Every error is on the command line", dialog.LoadErrorHint);
+        }
+
+        [Fact]
+        public void TheWindow_ShowsACSharpSourceRowInLightPurple_AndItsChip()
+        {
+            MainViewModel model = WithSources("// Stairs", out string stairs, out _);
+            AppLoadViewModel dialog = new AppLoadViewModel(model);
+            _disposables.Add(dialog);
+            dialog.Load(new[] { stairs });
+            string[] texts = null;
+            Color sourceKind = default;
+
+            OnSta(() =>
+            {
+                var window = new AppLoadWindow(dialog);
+                FrameworkElement root = window.Body;
+                window.Content = null;
+                root.DataContext = dialog;
+                root.Measure(new Size(900, 700));
+                root.Arrange(new Rect(0, 0, 900, 700));
+                root.UpdateLayout();
+                List<DependencyObject> all = Descendants(root).ToList();
+                texts = all.OfType<TextBlock>()
+                    .Select(t => t.Text)
+                    .Concat(all.OfType<Button>().Select(b => b.Content as string))
+                    .Concat(all.OfType<RadioButton>().Select(b => b.Content as string))
+                    .ToArray();
+                TextBlock kind = all.OfType<TextBlock>().Single(t => t.Name == "Kind");
+                sourceKind = ((SolidColorBrush)kind.Foreground).Color;
+                window.Close();
+            });
+
+            Assert.Contains("C# source", texts);
+            Assert.Contains("C# source 1", texts);
+            Assert.Contains(
+                "Each plugin run is one undo step. Loading a .dll or a .cs runs its code with your rights.",
+                texts
+            );
+            Assert.Equal(Color.FromRgb(0xD2, 0xA8, 0xFF), sourceKind);
         }
 
         private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)

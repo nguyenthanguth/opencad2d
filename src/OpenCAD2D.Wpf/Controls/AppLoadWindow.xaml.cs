@@ -46,7 +46,7 @@ namespace OpenCAD2D.Wpf
         public static bool Show(Window owner, AppLoadViewModel model) =>
             new AppLoadWindow(model) { Owner = owner }.ShowDialog() == true;
 
-        /// <summary>Shows the Open dialog for a plugin's .dll and loads the one chosen, as NETLOAD's window does.</summary>
+        /// <summary>Shows the Open dialog for a plugin (a .dll, or a .cs of C# source) and loads the one chosen, as NETLOAD's window does.</summary>
         /// <param name="owner">The window the dialog belongs to.</param>
         /// <param name="load">What is done with the path chosen.</param>
         public static void PickPlugin(Window owner, Action<string> load)
@@ -54,7 +54,7 @@ namespace OpenCAD2D.Wpf
             var dialog = new OpenFileDialog
             {
                 Title = "Load a plugin",
-                Filter = "Plugins (*.dll)|*.dll|All files (*.*)|*.*",
+                Filter = "Plugins (*.dll)|*.dll|C# source (*.cs)|*.cs|All files (*.*)|*.*",
             };
 
             if (dialog.ShowDialog(owner) == true)
@@ -63,7 +63,7 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>Load…: an Open dialog for .lsp and .dll files, several allowed, opened on the folder of the last Load.</summary>
+        /// <summary>Load…: an Open dialog for .lsp, .py, .dll and .cs files, several allowed, opened on the folder of the last Load.</summary>
         private static System.Collections.Generic.IReadOnlyList<string> AskFiles(Window owner, string folder) =>
             AskFiles(owner, "Load Applications", AppLoadViewModel.OpenFilter, folder);
 

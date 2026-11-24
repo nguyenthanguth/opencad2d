@@ -214,14 +214,16 @@ APPLOAD (Manage tab, Applications, Load Manager) shows Load/Unload Applications,
 the presenter until Close, so there is one place for AutoLISP files and plugins. What a file writes goes to the command line as it loads. The window has a toolbar, three chips and
 one table.
 
-**Load… (.lsp, .dll)** shows the Windows Open dialog, several files allowed, with the filters "Applications (\*.lsp;\*.dll)"
-(the first), "Lisp files (\*.lsp)", "Plugins (\*.dll)" and "All files (\*.\*)". It opens in the folder of the last Load, which
+**Load… (.lsp, .dll, .cs)** shows the Windows Open dialog, several files allowed, with the filters "Applications
+(\*.lsp;\*.py;\*.dll;\*.cs)" (the first), "Lisp files (\*.lsp)", "Python files (\*.py)", "Plugins (\*.dll)", "C# source
+(\*.cs)" and "All files (\*.\*)". It opens in the folder of the last Load, which
 the settings keep (`appLoadFolder` under `support`). Each file is loaded in the order chosen:
 
 | File | What Load does |
 |---|---|
 | `tools.lsp` | loads it into the drawing shown, as `CadCommandSession.LoadLisp` does: what the file wrote, then `tools.lsp successfully loaded.`; a file with an error runs up to the error and writes the `; error:` line; it is listed, with the `c:` commands it defined before the error, where it defined any (they stay bound, and Unload takes them away), and has no row where it defined none |
 | `CircleTools.dll` | goes to the [plugin manager](plugins.md), as NETLOAD does, which asks once about a file outside its trusted folders |
+| `Stairs.cs` | goes to the plugin manager as a .dll does, which compiles it ([a plugin as C# source](plugins.md#a-plugin-as-c-source)) |
 | `.arx`, `.dbx`, `.dvb`, `.fas`, `.vlx` | refused with `tools.fas cannot be loaded: .arx, .dbx, .dvb, .fas and .vlx files are not supported.` |
 | any other file | refused with `readme.txt is not an AutoLISP file or a plugin.` |
 
@@ -248,14 +250,15 @@ keep the rows chosen. A file loaded again drops the `c:` commands it no longer d
 and `c:GONE1`, edited to define `c:KEEP1` only and reloaded, leaves `GONE1` an unknown command, so that no command stays bound
 that no row lists.
 
-The chips, **All 4**, **Lisp 3** and **Plugins 1**, show the number of rows of each kind and filter the table. The table
+The chips, **All 4**, **Lisp 3**, **Python 0**, **Plugins 1** and **C# source 0**, show the number of rows of each kind and
+filter the table; **Plugins** counts the plugins built as a .dll, and **C# source** those given as source. The table
 has the columns:
 
 | Column | What it shows |
 |---|---|
 | On | whether the file is loaded; untick to unload it, tick to load it again |
 | Name | the file name of an AutoLISP file, the name of a plugin |
-| Kind | Lisp in green, Plugin in blue |
+| Kind | Lisp in green, Python in amber, Plugin in blue, C# source in light purple |
 | Commands | the commands it defines, separated by commas, in the order defined; the tooltip has the full list |
 | File | the full path, with an ellipsis where it is long, and the path as tooltip |
 | At start | whether it loads at every start |
@@ -296,7 +299,10 @@ error icon. It names the file in bold, then says `failed to load: ` and the erro
 that defined `c:` commands before the error it adds `(ERRONE was defined before the error)`, or `(AA, BB were defined before
 the error)` for two. On the right, in grey, it says `Shown until the next load`. It is shown for a .lsp or a .dll that fails
 from Load…, from a drop, from Reload or from the On box, for a file type that is refused (`old.arx cannot be loaded: ...`), and
-for Load… with no drawing open (`Open a drawing to load tools.lsp.`). Where several files fail in one Load…, it shows the last
+for Load… with no drawing open (`Open a drawing to load tools.lsp.`). A C# source that does not compile reads
+**Stairs.cs** `did not compile: 2 errors. Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current
+context`, the count and the first error, with `Every error is on the command line` on the right; its tooltip holds every
+error, as the command line has them. Where several files fail in one Load…, it shows the last
 one with `(and 1 more)`. A load with no failure hides it; a load that succeeds shows nothing, as no success banner is drawn.
 The history keeps every line as before. In code, `AppLoadViewModel.HasLoadError`, `LoadErrorName` and `LoadErrorText` carry it.
 
