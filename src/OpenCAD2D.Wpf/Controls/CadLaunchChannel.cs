@@ -115,6 +115,41 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
+        /// The full paths a start hands to the running app, in the order of the command line: each argument that does not start
+        /// with <c>--</c>, made full against the current folder, as <see cref="FileToForward"/> makes the first. Empty where that
+        /// gives none; a path that cannot be made full ends the list, as the start itself reports it.
+        /// </summary>
+        /// <param name="args">The command-line arguments of the start.</param>
+        internal static IReadOnlyList<string> FilesToForward(string[] args)
+        {
+            var files = new List<string>();
+
+            if (FileToForward(args) == null)
+            {
+                return files;
+            }
+
+            foreach (string arg in args)
+            {
+                if (arg == null || arg.StartsWith("--", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    files.Add(Path.GetFullPath(arg));
+                }
+                catch (Exception ex) when (ex is ArgumentException || ex is NotSupportedException || ex is IOException)
+                {
+                    break;
+                }
+            }
+
+            return files;
+        }
+
+        /// <summary>
         /// Claims the name and starts listening on it. Each path received is given to <paramref name="received"/> on a thread
         /// of the channel's, not the window's.
         /// </summary>

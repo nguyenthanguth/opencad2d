@@ -36,6 +36,17 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void AStartWithSeveralFiles_ForwardsEveryOne_InTheOrderOfTheCommandLine()
+        {
+            Assert.Empty(CadLaunchChannel.FilesToForward(null));
+            Assert.Empty(CadLaunchChannel.FilesToForward(new[] { "--register", "a.dxf" }));
+            Assert.Equal(
+                new[] { @"D:\p\a.dwg", @"D:\p\b.dwg", Path.GetFullPath("c.dxf") },
+                CadLaunchChannel.FilesToForward(new[] { @"D:\p\a.dwg", "--x", @"D:\p\b.dwg", "c.dxf" })
+            );
+        }
+
+        [Fact]
         public void TheChannelIsKeyedByAppAndSession()
         {
             Assert.Equal(

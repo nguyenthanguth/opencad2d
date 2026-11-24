@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -17,6 +18,7 @@ namespace OpenCAD2D.Wpf
     public sealed partial class MainViewModel
     {
         private Opening _opening;
+        private readonly Queue<Opening> _waiting = new Queue<Opening>();
         private DelegateCommand _cancelOpeningCommand;
 
         /// <summary>
@@ -62,10 +64,11 @@ namespace OpenCAD2D.Wpf
         /// far it has got (<see cref="OpeningText"/>), and the drawing is shown once drawn. The window answers meanwhile: the
         /// view shown pans and zooms, another drawing open is shown, and Esc stops the opening. A command typed or started
         /// meanwhile is not run, the command line saying why, so that none runs on a drawing half drawn. One drawing opens at
-        /// a time. Call it on the window's thread, whose dispatcher shows the drawing.
+        /// a time: a file asked for meanwhile waits and opens, one after another, once the one opening is shown (the command line
+        /// says so), and Esc stops those too. Call it on the window's thread, whose dispatcher shows the drawing.
         /// </summary>
         /// <param name="path">The path of the file.</param>
-        /// <returns>True once the file is shown; false where it could not be read, was stopped, or another was opening.</returns>
+        /// <returns>True once the file is shown; false where it could not be read or was stopped.</returns>
         public Task<bool> OpenAsync(string path)
         {
             bool shown = Open(path, true, out Opening opening);
@@ -86,6 +89,15 @@ namespace OpenCAD2D.Wpf
             }
 
             opening.Cancel.Cancel();
+
+            // The files that wait behind it are stopped with it: Esc is meant for the whole drop.
+            while (_waiting.Count > 0)
+            {
+                Opening next = _waiting.Dequeue();
+                Say("Opening " + System.IO.Path.GetFileName(next.Path) + " stopped.");
+                next.Done.SetResult(false);
+            }
+
             return true;
         }
 
@@ -115,35 +127,77 @@ namespace OpenCAD2D.Wpf
         /// Starts opening a file in the background: read on a worker thread, its extensions told and its fonts set back on this
         /// thread, its display drawn on a worker thread again, then shown here.
         /// </summary>
-        /// <returns>True where it has started, or the file was opening already; false, the command line saying why, where another is.</returns>
+        /// <returns>True where it has started, or the file was opening or waiting already, or now waits its turn behind the one opening.</returns>
         private bool StartOpening(string full, out Opening opening)
         {
             Opening running = _opening;
 
             if (running != null)
             {
-                if (SamePath(running.Path, full))
+                opening = SamePath(running.Path, full) ? running : _waiting.FirstOrDefault(w => SamePath(w.Path, full));
+
+                if (opening == null)
                 {
-                    opening = running;
-                    return true;
+                    // One drawing opens at a time: this one opens when the one opening is shown, so that a drop of several
+                    // opens every one of them.
+                    opening = new Opening(full, Dispatcher.CurrentDispatcher, RaiseOpening);
+                    _waiting.Enqueue(opening);
+
+                    if (FindOpen(full, out _) == null)
+                    {
+                        Say(
+                            System.IO.Path.GetFileName(full)
+                                + " will open once "
+                                + System.IO.Path.GetFileName(running.Path)
+                                + " is shown."
+                        );
+                    }
                 }
 
-                opening = null;
-                Say(
-                    "Cannot open "
-                        + System.IO.Path.GetFileName(full)
-                        + " yet: "
-                        + System.IO.Path.GetFileName(running.Path)
-                        + " is still opening."
-                );
-                return false;
+                return true;
             }
 
-            var started = new Opening(full, Dispatcher.CurrentDispatcher, RaiseOpening)
+            opening = new Opening(full, Dispatcher.CurrentDispatcher, RaiseOpening);
+            Begin(opening);
+            return true;
+        }
+
+        /// <summary>Ends an opening with its result, and starts the one that waited behind it.</summary>
+        private void Finish(Opening opening, bool shown)
+        {
+            opening.Done.SetResult(shown);
+            OpenNext();
+        }
+
+        /// <summary>
+        /// Starts the file that has waited longest, once none is opening; one already open by then is just shown, and the
+        /// next is taken.
+        /// </summary>
+        private void OpenNext()
+        {
+            while (_opening == null && _waiting.Count > 0)
             {
-                Meter = Progress.Start("Opening " + System.IO.Path.GetFileName(full)),
-            };
-            opening = started;
+                Opening next = _waiting.Dequeue();
+
+                KnownFile open = FindOpen(next.Path, out _);
+
+                if (open != null)
+                {
+                    Show(open);
+                    NoteRecentFile(next.Path);
+                    next.Done.SetResult(true);
+                    continue;
+                }
+
+                Begin(next);
+            }
+        }
+
+        /// <summary>Reads the file of an opening on a worker thread, as <see cref="StartOpening"/> says.</summary>
+        private void Begin(Opening started)
+        {
+            string full = started.Path;
+            started.Meter = Progress.Start("Opening " + System.IO.Path.GetFileName(full));
             _opening = started;
             RaiseOpening();
             CancellationToken stop = started.Cancel.Token;
@@ -155,7 +209,6 @@ namespace OpenCAD2D.Wpf
                     TaskContinuationOptions.None,
                     TaskScheduler.Default
                 );
-            return true;
         }
 
         /// <summary>The file read: stopped, not read (recovered, as Open does), or told to the extensions and drawn.</summary>
@@ -175,11 +228,11 @@ namespace OpenCAD2D.Wpf
                 if (why is OutOfMemoryException)
                 {
                     Say("Cannot open " + System.IO.Path.GetFileName(opening.Path) + ": " + why.Message);
-                    opening.Done.SetResult(false);
+                    Finish(opening, false);
                     return;
                 }
 
-                opening.Done.SetResult(OpenRecovered(opening.Path, why));
+                Finish(opening, OpenRecovered(opening.Path, why));
                 return;
             }
 
@@ -248,18 +301,18 @@ namespace OpenCAD2D.Wpf
             {
                 // Opened meanwhile at once, as a test or an extension may open it.
                 Show(known);
-                opening.Done.SetResult(true);
+                Finish(opening, true);
                 return;
             }
 
-            opening.Done.SetResult(ShowOpened(opening.Path, known, document, said));
+            Finish(opening, ShowOpened(opening.Path, known, document, said));
         }
 
         private void Stopped(Opening opening)
         {
             End(opening);
             Say("Opening " + System.IO.Path.GetFileName(opening.Path) + " stopped.");
-            opening.Done.SetResult(false);
+            Finish(opening, false);
         }
 
         private void End(Opening opening)

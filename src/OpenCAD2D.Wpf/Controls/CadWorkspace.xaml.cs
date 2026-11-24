@@ -237,7 +237,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the canvas, so that a host can draw it at once (<see cref="CadCanvas.RenderNow"/>) before a screenshot.</summary>
         public CadCanvas DrawingCanvas => CanvasView;
 
-        /// <summary>Shows the Select File dialog for drawings, DWG first as AutoCAD's, and opens the one chosen.</summary>
+        /// <summary>Shows the Select File dialog for drawings, DWG first as AutoCAD's, and opens each one chosen.</summary>
         public void ShowOpenDialog()
         {
             if (_model == null)
@@ -245,7 +245,12 @@ namespace OpenCAD2D.Wpf
                 return;
             }
 
-            var dialog = new OpenFileDialog { Filter = CadDrawingFile.OpenFilter, Title = "Select File" };
+            var dialog = new OpenFileDialog
+            {
+                Filter = CadDrawingFile.OpenFilter,
+                Title = "Select File",
+                Multiselect = true,
+            };
 
             if (_model.Document?.FileName != null && Path.IsPathRooted(_model.Document.FileName))
             {
@@ -254,7 +259,11 @@ namespace OpenCAD2D.Wpf
 
             if (dialog.ShowDialog(Window.GetWindow(this)) == true)
             {
-                _model.Open(dialog.FileName);
+                // Every file chosen opens, one after another, the last one shown.
+                foreach (string file in dialog.FileNames)
+                {
+                    _model.Open(file);
+                }
             }
         }
 

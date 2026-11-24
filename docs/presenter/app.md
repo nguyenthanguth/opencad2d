@@ -181,9 +181,12 @@ got, "Opening plan.dxf" and its bar, with a Stop button (`OpeningText` still say
 the window answers: the view shown pans and zooms, another drawing open is shown from the file
 list, and Esc or Stop stops the opening, the command line saying "Opening plan.dxf stopped." A command typed or started
 meanwhile is not run, so that none runs on a drawing half drawn: "LINE not run: plan.dxf is still opening. Run it again once
-it is shown, or press Esc to stop opening it." One drawing opens at a time; another asked for meanwhile is refused, and the
-same one asked again waits with it. The extensions are told of the drawing, and its fonts set, on the window's thread
-between the reading and the drawing, as before. A drawing of 1 000 000 entities that held the window for 15 s, its first
+it is shown, or press Esc to stop opening it." One drawing opens at a time; another asked for meanwhile (several
+dropped on the window, several chosen in Select File, several named on the command line) waits, the command line saying
+"b.dxf will open once a.dxf is shown.", and opens when the one before it is shown, so that every one opens, in order,
+and the last is the one shown. One that cannot be read is said and the rest still open, one open already is shown in its
+turn, and Esc stops the one opening and those that wait. The same one asked again waits with it. The extensions are told
+of the drawing, and its fonts set, on the window's thread between the reading and the drawing, as before. A drawing of 1 000 000 entities that held the window for 15 s, its first
 frame included, holds it now for 0.2 s at most while it opens, then 0.8 s for its first frame. A test or a screenshot opens
 the drawing before `Open` returns, as before.
 
@@ -247,7 +250,7 @@ using (CadProgressMeter meter = context.Progress.Start("Checking blocks"))   // 
 The presenter opens a DWG of AutoCAD 2000 to 2018 as it opens a DXF, read by the library's own
 [DWG reader](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md), and saves one as a DWG of AutoCAD 2018, the version AutoCAD 2021 saves in.
 
-- Ctrl+O shows Select File, its types Drawing (*.dwg) first, then DXF (*.dxf), as AutoCAD 2021's; a DWG or DXF dropped on the DRAWINGS list opens (dropped on the drawing area it is inserted as a block, as AutoCAD 2021 inserts it: `-INSERT` of the file, then the insertion point; with no drawing open it opens);
+- Ctrl+O shows Select File, its types Drawing (*.dwg) first, then DXF (*.dxf), as AutoCAD 2021's, with several files to choose (each opens as its own drawing, the last shown); several drawings dropped on the DRAWINGS list, or on the window with no drawing open, open the same way, as do several files on the command line; a DWG or DXF dropped on the DRAWINGS list opens (dropped on the drawing area it is inserted as a block, as AutoCAD 2021 inserts it: `-INSERT` of the file, then the insertion point; with no drawing open it opens);
   and other files go as on the window (a `.lsp`, `.fas` or `.vlx` loads as a typed `(LOAD "...")`, a `.scr` runs
   as SCRIPT, a `.arx`, `.dbx` or `.dvb` is refused, and any other file gets the Drag and Drop box, as
   [AutoLISP](lisp.md#dropping-a-file-on-the-window) says); the file list lists the DWG and DXF files of the folder. A file is read as a DWG where its first bytes

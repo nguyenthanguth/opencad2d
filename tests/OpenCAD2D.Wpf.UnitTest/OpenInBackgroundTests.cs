@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using GeometryHelper.Dwg;
+using GeometryHelper.Dxf;
 using Xunit;
 
 namespace OpenCAD2D.Wpf.UnitTest
@@ -106,15 +108,170 @@ namespace OpenCAD2D.Wpf.UnitTest
                     Assert.True(model.IsOpening);
                     Assert.Null(model.Document);
 
-                    // One drawing opens at a time; the same one asked again joins it.
-                    Assert.False(model.Open(other));
-                    Assert.Equal("Cannot open other.dxf yet: room.dxf is still opening.", model.History.Last());
+                    // One drawing opens at a time; the same one asked again joins it, another waits its turn.
                     Task<bool> same = model.OpenAsync(room);
+                    Assert.True(model.Open(other));
+                    Assert.Equal("other.dxf will open once room.dxf is shown.", model.History.Last());
 
                     Assert.True(Wait(same));
                     Assert.Equal("room.dxf", model.Title);
+                    WaitUntilIdle(model);
+                    Assert.Equal("other.dxf", model.Title);
                 }
             });
+        }
+
+        [Fact]
+        public void SeveralDrawingsDroppedOnTheDrawingsListWhileOpeningInTheBackground_AllOpenInOrder_TheLastShown()
+        {
+            OnWindowThread(() =>
+            {
+                using (var folder = new TestFolder())
+                {
+                    string[] paths = Rooms(folder, "a.dxf", "b.dwg", "c.dxf");
+                    var model = new MainViewModel { OpensInBackground = true };
+
+                    model.DropFiles(paths, onDrawingList: true);
+                    WaitUntilIdle(model);
+
+                    Assert.Equal(new[] { "a.dxf", "b.dwg", "c.dxf" }, Opened(model));
+                    Assert.Equal("c.dxf", model.Title);
+                }
+            });
+        }
+
+        [Fact]
+        public void SeveralDrawingsDroppedWithNoneOpen_AllOpenInBackground_AsEachOwnDrawing()
+        {
+            OnWindowThread(() =>
+            {
+                using (var folder = new TestFolder())
+                {
+                    string[] paths = Rooms(folder, "a.dxf", "b.dxf");
+                    var model = new MainViewModel { OpensInBackground = true };
+
+                    // Dropped on the drawing area, where no drawing is open to insert in: they open.
+                    model.DropFiles(paths);
+                    WaitUntilIdle(model);
+
+                    Assert.Equal(new[] { "a.dxf", "b.dxf" }, Opened(model));
+                    Assert.Equal("b.dxf", model.Title);
+                }
+            });
+        }
+
+        [Fact]
+        public void AFileThatCannotBeRead_AmongSeveralOpening_IsSaidAndTheRestStillOpen()
+        {
+            OnWindowThread(() =>
+            {
+                using (var folder = new TestFolder())
+                {
+                    string[] paths = Rooms(folder, "a.dxf", "c.dxf");
+                    string broken = folder.WriteText("b.dwg", "this is not a drawing");
+                    var model = new MainViewModel { OpensInBackground = true };
+
+                    model.DropFiles(new[] { paths[0], broken, paths[1] }, onDrawingList: true);
+                    WaitUntilIdle(model);
+
+                    Assert.Equal(new[] { "a.dxf", "c.dxf" }, Opened(model));
+                    Assert.Equal("c.dxf", model.Title);
+                    Assert.Contains(model.History, l => l.StartsWith("Cannot open b.dwg", StringComparison.Ordinal));
+                }
+            });
+        }
+
+        [Fact]
+        public void ADrawingOpenAlreadyAmongSeveralDropped_IsJustShown_NotOpenedAgain()
+        {
+            OnWindowThread(() =>
+            {
+                using (var folder = new TestFolder())
+                {
+                    string[] paths = Rooms(folder, "a.dxf", "b.dxf");
+                    var model = new MainViewModel { OpensInBackground = true };
+                    Assert.True(Wait(model.OpenAsync(paths[0])));
+
+                    model.DropFiles(new[] { paths[1], paths[0] }, onDrawingList: true);
+                    WaitUntilIdle(model);
+
+                    Assert.Equal(new[] { "a.dxf", "b.dxf" }, Opened(model));
+                    Assert.Single(model.History, l => l.StartsWith("Opened a.dxf", StringComparison.Ordinal));
+                    Assert.Equal("a.dxf", model.Title);
+                }
+            });
+        }
+
+        [Fact]
+        public void EscWhileSeveralFilesOpen_StopsTheOneOpeningAndTheOnesWaiting()
+        {
+            OnWindowThread(() =>
+            {
+                using (var folder = new TestFolder())
+                {
+                    string[] paths = Rooms(folder, "a.dxf", "b.dxf", "c.dxf");
+                    var model = new MainViewModel { OpensInBackground = true };
+
+                    model.DropFiles(paths, onDrawingList: true);
+                    Assert.True(model.IsOpening);
+                    model.Escape();
+                    WaitUntilIdle(model);
+
+                    Assert.Empty(Opened(model));
+                    Assert.False(model.HasDocument);
+                    Assert.Contains(model.History, l => l == "Opening a.dxf stopped.");
+                    Assert.Contains(model.History, l => l == "Opening b.dxf stopped.");
+                    Assert.Contains(model.History, l => l == "Opening c.dxf stopped.");
+                }
+            });
+        }
+
+        private static string[] Rooms(TestFolder folder, params string[] names)
+        {
+            var paths = new string[names.Length];
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                DxfDatabase room = TestFiles.Room(out _, out _);
+
+                if (names[i].EndsWith(".dwg", StringComparison.Ordinal))
+                {
+                    paths[i] = System.IO.Path.Combine(folder.FullPath, names[i]);
+                    DwgWriter.Write(room, paths[i]);
+                }
+                else
+                {
+                    paths[i] = folder.Write(names[i], room);
+                }
+            }
+
+            return paths;
+        }
+
+        /// <summary>The titles of the drawings opened, in the order they were opened.</summary>
+        private static string[] Opened(MainViewModel model) =>
+            model
+                .History.Where(l => l.StartsWith("Opened ", StringComparison.Ordinal))
+                .Select(l => l.Substring("Opened ".Length, l.IndexOf(':') - "Opened ".Length))
+                .ToArray();
+
+        /// <summary>Lets the window's dispatcher run until no drawing is opening, a minute at most.</summary>
+        private static void WaitUntilIdle(MainViewModel model)
+        {
+            DateTime end = DateTime.UtcNow.AddMinutes(1);
+
+            while (model.IsOpening && DateTime.UtcNow < end)
+            {
+                var frame = new DispatcherFrame();
+                Dispatcher.CurrentDispatcher.BeginInvoke(
+                    DispatcherPriority.Background,
+                    new Action(() => frame.Continue = false)
+                );
+                Dispatcher.PushFrame(frame);
+                Thread.Sleep(5);
+            }
+
+            Assert.False(model.IsOpening, "The openings did not end within a minute.");
         }
 
         /// <summary>Runs a test on an STA thread, as the window's.</summary>

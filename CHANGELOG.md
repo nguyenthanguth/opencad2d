@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **FIXED.** Two or more drawings dropped on the window opened only one of them: selecting `app.dwg` and `cad.dwg`
+  (about 4 MB each) in Explorer and dropping them on the DRAWINGS list opened the first of the drop and refused the
+  other, the command line saying "Cannot open app.dwg yet: cad.dwg is still opening." The app opens one drawing at a
+  time in the background and refused any other asked for meanwhile. A drawing asked for while another opens now waits
+  ("app.dwg will open once cad.dwg is shown.") and opens when the one before it is shown, so every drawing of the drop
+  opens as its own drawing, in order, the last shown. A file that cannot be read is said and the rest still open; one
+  open already is shown in its turn; Esc stops the one opening and those that wait. The same holds for the Select File
+  dialog (OPEN, Ctrl+O), which now lets several files be chosen, and for several files on the command line
+  (`OpenCAD2D.exe a.dwg b.dwg`, or files dropped on the exe's icon), of which only the first was opened or handed to the
+  running app. A drop on the drawing area of a window with a drawing open still inserts the first drawing, as before.
+
 - **CHANGED.** The Settings tab of the ribbon has a button for every page of Global settings. It had Options,
   Appearance, Canvas, Shortcuts and Save and export; it now has Options, Appearance, Canvas, Units, Text and fonts,
   Folders, Security, Shortcuts and Save and export, in the order of the dialog's list, each opening the dialog on its
