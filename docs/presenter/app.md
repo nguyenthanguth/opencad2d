@@ -904,7 +904,8 @@ options name. A host of its own does the same.
 OpenCAD2D has an icon of its own at 16, 24, 32, 48 and 256 pixels: on a white rounded tile, a blue O holds a C, and the
 C holds the letters AD, so it reads O, C, AD. Below 24 pixels the letters are left out and the O and the C stay. The exe
 carries it, and the window shows it on the taskbar and in Alt+Tab (`CadAppHost.WindowIcon`). A drawing file associated
-with the app shows a page with the same mark on it. Both are written from their vector drawing by
+with the app shows the same tile with its top right corner folded over like a page, the mark on it a little smaller; it is
+square, so the mark stays large in Explorer at 16 pixels. Both are written from their vector drawing by
 `src/OpenCAD2D.App/Icons/make-icons.ps1` into `app.ico` and `drawing-file.ico`; the second is copied beside the exe.
 
 ```

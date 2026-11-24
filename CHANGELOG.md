@@ -4,6 +4,8 @@
 
 - **CHANGED.** The app is built English only: the translations .NET ships of WPF and WinForms (13 folders, `cs`
   to `zh-Hant`, 16 MB) are no longer beside the exe, and the setup's install folder holds 286 files in place of 507.
+- **CHANGED.** The icon of a drawing file (.dwg, .dxf) is the app's tile with its corner folded over like a page, in place
+  of a tall page: at 16 pixels in Explorer the mark is now as large as the app's own.
 
 ## 1.0.0 (2026-11-23)
 

@@ -17,8 +17,8 @@ $blue = '#1F6FD6'
 $tile = '#FFFFFF'
 $tileEdge = '#D5DBE3'
 $paper = '#FFFFFF'
-$paperEdge = '#5B6573'
-$fold = '#DCE1E8'
+$paperEdge = '#C3CCD7'
+$fold = '#D5DBE3'
 
 # The mark, in units of 256: the tile, the O (a circle stroked), the C (an arc stroked) and the letters AD (filled).
 $tileRect = '18,18,220,220'
@@ -29,21 +29,23 @@ $cWidth = 20
 $letters = 'M114.05 145.5 123.25 110.5H134.75L143.95 145.5H137.15L135.25 137.8H122.75L120.85 145.5ZM124.3 131.7H133.7L129.45 114.65H128.55Z ' +
     'M145.15 145.5V139.7H149.75V116.3H145.15V110.5H159.55Q166.6 110.5 170.28 114.08Q173.95 117.65 173.95 124.7V131.3Q173.95 138.35 170.28 141.93Q166.6 145.5 159.55 145.5ZM156.35 139.5H159.65Q163.65 139.5 165.5 137.4Q167.35 135.3 167.35 131.5V124.5Q167.35 120.65 165.5 118.58Q163.65 116.5 159.65 116.5H156.35Z'
 
-# The file: a page with its corner folded, the mark on it without its tile, three quarters of its size.
-$page = 'M48,8 L168,8 L224,64 L224,248 L48,248 Z'
-$pageFold = 'M168,8 L168,64 L224,64 Z'
-$markOnPage = @(0.75, 40, 64)                             # scale, then x and y added after scaling
+# The file (option F1 of the design canvas, 2026-11-24): the app's tile with its top right corner folded over like a page,
+# the mark on it at 0.86 of its size, centred at 128 across and 134 down so it clears the fold. Square, so the mark stays
+# large in Explorer at 16 pixels; the O and the C are drawn thicker at small sizes (160 / size units more) to stay solid.
+$page = 'M60,18 L182,18 L238,74 L238,196 Q238,238 196,238 L60,238 Q18,238 18,196 L18,60 Q18,18 60,18 Z'
+$pageFold = 'M182,18 L182,58 Q182,74 198,74 L238,74 Z'
+$markOnPage = @(0.86, 17.92, 23.92)                       # scale, then x and y added after scaling
 
 function Get-Brush($hex) { [System.Windows.Media.BrushConverter]::new().ConvertFromString($hex) }
 
-function Write-Mark($dc, $size, $withTile) {
-    $pen = [System.Windows.Media.Pen]::new((Get-Brush $blue), $ring[3])
+function Write-Mark($dc, $size, $withTile, $thicken = 0) {
+    $pen = [System.Windows.Media.Pen]::new((Get-Brush $blue), $ring[3] + $thicken)
     if ($withTile) {
         $edge = [System.Windows.Media.Pen]::new((Get-Brush $tileEdge), 4)
         $dc.DrawRoundedRectangle((Get-Brush $tile), $edge, [System.Windows.Rect]::Parse($tileRect), $tileRadius, $tileRadius)
     }
     $dc.DrawEllipse($null, $pen, [System.Windows.Point]::new($ring[0], $ring[1]), $ring[2], $ring[2])
-    $cPen = [System.Windows.Media.Pen]::new((Get-Brush $blue), $cWidth)
+    $cPen = [System.Windows.Media.Pen]::new((Get-Brush $blue), $cWidth + $thicken)
     $dc.DrawGeometry($null, $cPen, [System.Windows.Media.Geometry]::Parse($cArc))
     if ($size -ge 24) {
         $dc.DrawGeometry((Get-Brush $blue), $null, [System.Windows.Media.Geometry]::Parse($letters))
@@ -65,7 +67,7 @@ function Get-Rendering($size, $isDocument) {
         $group.Children.Add([System.Windows.Media.ScaleTransform]::new($markOnPage[0], $markOnPage[0]))
         $group.Children.Add([System.Windows.Media.TranslateTransform]::new($markOnPage[1], $markOnPage[2]))
         $dc.PushTransform($group)
-        Write-Mark $dc ($size * $markOnPage[0]) $false
+        Write-Mark $dc $size $false (160 / $size)
         $dc.Pop()
     }
     else {
