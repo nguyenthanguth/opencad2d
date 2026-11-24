@@ -19,6 +19,9 @@ What loads at start, in this order:
      builds them; its .dll files are the libraries the .csproj names in <Reference HintPath>.
      A folder holds one .csproj; a .cs alone, or a folder of .cs files with no .csproj, is not a
      plugin, and is refused with the way to make it one.
+     A <PackageReference> in the .csproj to a NuGet package is restored from nuget.org, with no
+     .NET SDK, but only after the app has listed the packages and you have said yes; they are kept
+     in %LocalAppData%\OpenCAD2D\NuGet, and two plugins may use two versions of one package.
 
 A .dll that is not a plugin, or that cannot be loaded, is one line of the plugin load log (the
 Plugin manager shows it) and the next one loads. A plugin loaded already is not loaded twice.
@@ -35,8 +38,8 @@ Three folders here are sample C# source plugins that come with the app, each a .
   DrawingInfo   its command GHDWGINFO writes the name, objects, layers, blocks and extents of the drawing.
   Stairs        the example of the plugin guide; its command STAIRS writes "Steps: 18".
 
-The app compiles them at the first start after an install or an upgrade (about 1.1 s for the three)
-and keeps the builds, so later starts do not compile them again (about 0.07 s for the three, from the
+The app compiles them at the first start after an install or an upgrade (1.1 to 1.3 s for the three)
+and keeps the builds, so later starts do not compile them again (61 to 82 ms for the three, from the
 cache). Delete the folder of one if you do not want it, or copy one under another name to start a
 plugin of your own. The sources are also in examples\ of https://github.com/nguyenthanguth/opencad2d,
 where each opens in Visual Studio as a project.

@@ -2,97 +2,171 @@
 
 ## Unreleased
 
-- **BREAKING.** Python runs in a process per tool, and a `.py` file directly in `Pythons` or in the Python Startup Suite no
-  longer loads (Tools as folders, TF7). The app no longer embeds CPython: `OpenCAD2D.Python` (pythonnet) and its 22 test files
-  are gone, `Python.Runtime.dll` and `OpenCAD2D.Python.dll` are no longer in the setup, and nothing of Python is in the app's
-  process. A Python tool is a folder with a `requirements.txt` (it may be empty), an `__init__.py` and a `plugin.json`; the
-  app starts it in a `python.exe` of its own, with a venv of its own, at its first command. A lone `.py` in `Pythons`, in the
-  Startup Suite, given to APPLOAD or PYLOAD or dropped on the window is refused with `GH-DrawingInfo.py is a lone Python file:
-  a Python tool is a folder with requirements.txt. Put it in Pythons\GH-DrawingInfo\ as __init__.py (see the Python guide).`;
-  to convert one, move it into a folder as `__init__.py`, add an empty `requirements.txt` and a `plugin.json` that names its
-  commands. Gone with the embedding: `add_ribbon_tab` and the other functions that added to the window (`ribbon_button`,
-  `ribbon_panel`, `ribbon_tab`, `split_button`, `menu_item`, `separator`, `icon_from_*`, `add_ribbon_panel`,
-  `add_drawings_button`, `add_drawings_menu`, `add_canvas_menu`, `add_properties`, `show_command_buttons`, `Context`) of
-  `opencad2d.cad`, which a tool declares in its `plugin.json` instead (tabs of panels of buttons that start a command);
-  `session()`, the raw .NET command session, which has no meaning in another process; the `PYTHONNET_PYDLL` setting; and the
-  python3XY.dll checks of the finder (a process needs `python.exe` only). `@command`, the `get_*` prompts, `cmd`, `PAUSE`,
-  `write`, `active_drawing`, `documents`, `Cancelled`, `@on_unload`, `connect()`, `open_file` and `new_file` keep their names.
-  A tool that needs a ribbon callback, a menu, a Properties row, an object snap or a panel is a C# plugin.
-- **NEW.** Python tools in the app (Tools as folders, TF7). The Pythons folder, the Startup Suite, APPLOAD, PYLOAD and a drop
+- **BREAKING.** Python no longer runs inside the app: every Python tool runs in a `python.exe` process of its own, with a
+  venv of its own, and a `.py` file directly in `Pythons` or in the Python Startup Suite no longer loads (Tools as folders).
+  `OpenCAD2D.Python` (the pythonnet embedding) and its 22 test files are gone, `Python.Runtime.dll` and
+  `OpenCAD2D.Python.dll` are no longer in the setup, and nothing of Python is in the app's process; the app brings no Python,
+  and a tool runs on the CPython 3.11 to 3.15 (64-bit, with pip) of the machine or the one set in Global settings. A Python
+  tool is now a folder with a `requirements.txt` (it may be empty), an `__init__.py` and a `plugin.json`. A lone `.py` in
+  `Pythons`, in the Startup Suite, given to APPLOAD or PYLOAD or dropped on the window is refused with `Rings.py is a lone
+  Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\Rings\ as __init__.py (see the Python
+  guide).`; to convert one, move it into a folder as `__init__.py`, add an empty `requirements.txt` and a `plugin.json` that
+  names its commands. A `.py` entry left in the Startup Suite is refused at each start with the same line. Gone with the
+  embedding: `add_ribbon_tab` and the other functions that added to the window (`ribbon_button`, `ribbon_panel`,
+  `ribbon_tab`, `split_button`, `menu_item`, `separator`, `icon_from_*`, `add_ribbon_panel`, `add_drawings_button`,
+  `add_drawings_menu`, `add_canvas_menu`, `add_properties`, `show_command_buttons`, `Context`) of `opencad2d.cad`, which a
+  tool declares in its `plugin.json` instead (tabs of panels of buttons that start a command); `session()`, the raw .NET
+  command session, which has no meaning in another process; the `PYTHONNET_PYDLL` setting; and the python3XY.dll checks of
+  the finder (a process needs `python.exe` only). `@command`, the `get_*` prompts, `cmd`, `PAUSE`, `write`,
+  `active_drawing`, `documents`, `Cancelled`, `@on_unload`, `connect()`, `open_file` and `new_file` keep their names. A tool
+  that needs a ribbon callback, a menu, a Properties row, an object snap or a side panel is a C# plugin.
+
+- **NEW.** A C# plugin is a folder with a `.csproj`, compiled by the app (Tools as folders; C# source plugins). A folder with
+  a `.csproj` loads as a `.dll` does (the `Plugins` folder, PLUGINLOAD/NETLOAD of the folder or its `.csproj`, the startup
+  list, PLUGINRELOAD), compiled by Roslyn when it loads, on .NET 8 only, and Visual Studio builds the same folder. The app
+  reads the `.csproj` with no MSBuild: the sources are every `.cs` below the folder but `bin\` and `obj\`, less `<Compile
+  Remove>`; `AssemblyName`, `Version` (written into the assembly as the SDK does, 1.0.0 where there is none, so the plugin
+  loads as `Stairs 1.0.0`), `LangVersion`, `Nullable`, `ImplicitUsings`, `UseWPF`, `UseWindowsForms`, `<Using>` (`Remove`
+  too), `DefineConstants`, `AllowUnsafeBlocks` and `GenerateAssemblyInfo` are read, the symbols are the SDK's for
+  `net8.0-windows` Release, a `<Reference>` takes a `HintPath` to a `.dll` inside the folder (a name of the app's own is its
+  own, whatever its `HintPath`), and a `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Remote`, `OpenCAD2D.Wpf` or
+  `GeometryHelper` is the app's own and downloads nothing (a version above the app's gives a line and the compile goes on
+  against the app's), and so does one for the build alone (`PrivateAssets="all"`, or an `IncludeAssets` with no `compile` or
+  `runtime`). What is not read is a line of the load log, and the plugin loads: an element with a `Condition`
+  (`Stairs.csproj: <PropertyGroup Condition="..."> was not read (conditions are not evaluated).`), a `Directory.Build.props`
+  in the folder, a `$(...)` in a value, a target framework that is not .NET 8. What cannot be read is refused with a line
+  per error in the form of a compiler's (`Stairs.csproj(7,10): error OC0002: ...`): a `<ProjectReference>`, a package with
+  no version, `EnableDefaultCompileItems` false, a `<Compile Include>` or a `HintPath` outside the folder. A lone `.cs`, a
+  folder of `.cs` files with no `.csproj`, and a folder with two `.csproj` files are refused, saying how to make a plugin of
+  them. The build is cached in `%LocalAppData%\OpenCAD2D\PluginCache` by the SHA-256 of the `.csproj`, the sources, the
+  libraries and the packages, so a start with unchanged files compiles nothing; the first compile of a session takes about
+  0.9 s and a later one about 20 ms for a plugin of 220 lines. A source that does not compile is refused with a line per
+  error, `Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context`, the first 20.
+  `CadPluginLoader.CanCompile` and `Compile(name, projectPath)`, `CadPluginBuild` (with `Warnings`),
+  `CadLoadedPlugin.IsSource` and `CadPluginAssemblyLoader(cacheFolder)` are new. The screenshot mode
+  (`--screenshot ... --plugin Stairs`) keeps its builds in its own temporary folder, never
+  `%LocalAppData%\OpenCAD2D\PluginCache`.
+
+- **NEW.** A C# plugin may use NuGet packages (Tools as folders). Any `<PackageReference>` that is not the app's own is a
+  package of nuget.org, restored with no .NET SDK, as `dotnet restore` does: the lowest version that meets each reference
+  (`Version="13.0.3"` is 13.0.3), its dependencies for `net8.0-windows`, cousins at the higher of their lowest versions,
+  every range checked (`Stairs.csproj(6,10): error NU1107: Stairs needs Foo [2.0.0, 3.0.0); Bar 1.0.0 needs Foo [1.0.0,
+  2.0.0); no version meets both.`, and NU1605 for a reference lower than another package needs), a floating `1.*` taking
+  the highest once and keeping it until the `.csproj` changes, and the nearest framework's assets (`lib/net6.0` over
+  `netstandard2.0`). Nothing is downloaded without a yes: before the first download and when the list changes the app lists
+  the packages (the plugin's own first, each marked `download` or `in the cache`) in a window, **Packages for Stairs**, with
+  the buttons `Don’t load` and `Download and load` (closing it is a no); a no, or an unreachable nuget.org, leaves the plugin
+  not loaded with the line to reconnect and PLUGINRELOAD. A connection is given up after 5 s, so a source whose address
+  drops packets is reported in 5 s (two runs), where Windows alone waits 42.8 s over its two tries. The line of the command-line form of
+  the question, `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:`, is `CadPackageQuestion.Prompt`; no
+  command asks it yet, so a typed PLUGINLOAD asks with the window too. Packages are kept in
+  `%LocalAppData%\OpenCAD2D\NuGet\packages` and the resolved list in `PluginCache`, so a start asks nothing of the network;
+  two plugins with `Foo 1.0.0` and `Foo 2.0.0` both run, each in a load context of its own. A library the app carries itself
+  (the .NET runtime, WPF, Roslyn, NuGet's own, `Newtonsoft.Json` among them) is shared: the source is compiled against the
+  app's copy, as it runs on it, also where that copy lies in the app's folder and in no .NET folder, and a package that asks
+  a higher assembly version gets a line (`Stairs asks System.Text.Json 9.0.0; the app runs 8.0.0.`). A package's native
+  `.dll` is loaded by its full path, two of one name side by side. A package's library first used after a garbage
+  collection still loads. The app carries NuGet.Protocol 7.9.0 (Apache-2.0): 7 files, 3 060 832 bytes more in its folder.
+  `CadPluginAssemblyLoader.ConfirmDownload`, `CadPackage` and `CadPackageQuestion` are new.
+
+- **NEW.** Load/Unload Applications takes C# source and Python tools (Tools as folders). A `.csproj` loaded with Load… or
+  dropped on the table loads its folder; the row has the Kind `C# source` in light purple and a chip of its own, `C#
+  source 1` (`Plugins` counts the .dll plugins only). A source that does not compile shows **Stairs.csproj** `did not
+  compile: 2 errors.` and the first error on the red line, with `Every error is on the command line` on the right and every
+  error in its tooltip. A new button, **Load folder…**, chooses a tool's folder: a folder with a `.csproj` loads as a C#
+  plugin, and one with a `requirements.txt` as a Python tool. The file types of Load… (and of NETLOAD's Open dialog) offer
+  **C# plugin (\*.csproj)**, Load… offers **Python tools (requirements.txt)**, the button reads `Load… (.lsp, .dll)`, and the
+  foot says `Each tool run is one undo step. A tool runs its code, and its packages’ code, with your rights.` A plugin whose
+  packages were not downloaded (the question answered No) stays in the table, unticked, with the amber badge **needs
+  packages** after its name, and ticking it asks again; one whose packages could not be restored (nuget.org not reached, a
+  package or version not found) has the red badge **install failed** and the red line says `Stairs was not installed:` and
+  the first error, with `Every line is on the command line` on the right. `AppLoadViewModel.LoadFolder`, `AskFolder`,
+  `LoadFolderCommand`, `AppLoadRow.Badge` and `AppLoadBadge`, `CadPluginAssemblyLoader.CompilingProject` and
+  `CadPackageQuestion.Question` are new; the question's window, `PackageQuestionWindow`, takes its texts from
+  `PackageQuestionViewModel`, so that the pip question of a Python tool can use it. A Python tool's row shows the blue badge
+  **installing…** while pip installs its packages (the window stays free), **needs packages** after a No (the tool stays loaded
+  and its next command asks again) and **install failed** with the red line `Grid was not installed: ERROR: ...` (pip's first
+  error, every line on the command line); a change of `requirements.txt` that failed but left the tool on its old venv gives the
+  red line and no badge. A tool's folder dropped on the table loads (a `.csproj` or a `requirements.txt` in it); other folders
+  are still passed over. `MainViewModel.AskPythonPackages` and `AppLoadBadge.Installing` are new.
+
+- **NEW.** Python tools in the app (Tools as folders). The Pythons folder, the Startup Suite, APPLOAD, PYLOAD and a drop
   load a folder with a `requirements.txt`; its commands and ribbon buttons come from its `plugin.json` (`"commands"` take
   names or objects with an alias, a description and `usesSelection`; `"ribbon"` takes tabs of panels of buttons that start a
-  command), so they show at once with no Python running. The first use of a command makes the tool's venv ready off the
-  window's thread (the drawing waits at `NAME is working... (Esc to stop)`), asks on the command line `Install with pip
-  [Yes/No] <No>:` before anything is downloaded (a dialog comes later), and starts the process (0.37 s for the first
-  command, 16 ms for the next); where a change of `requirements.txt` cannot be installed, the tool starts on the venv it had and the failure lines are written on the command line and in the log. A command the `plugin.json` names and the tool does not define fails its run with `GHOST is
-  declared by the tool, but it has no @command of that name.` PYRUN runs a lone `.py` once in a new process of the default
-  venv, as a run named `PYRUN` (one undo step, Esc takes it back). Two sample tools ship in `Pythons` and in `examples\Pythons`:
-  `DrawingInfo` (`GHPYINFO`, the lines it wrote as a file, its `Extents` line read over the channel) and `HelloWorld`
-  (`PYHELLOWORLD` writes `Hello, World!`); the examples of `src/python/examples/in_app` are now tool folders in `tools`, still
-  run by tests.
+  command), so they show at once with no Python running. The tool's process starts at its first command: the drawing waits
+  at `NAME is working... (Esc to stop)`, the first command takes 0.37 s and the next 16 ms, and a process of about 66 MB stays
+  until the tool is unloaded or the app closes: the app starts it suspended, in a job object, reads its standard output and error
+  (what it `print`s goes to the command line of the run), and talks to it over two anonymous pipes of lines of JSON (`run`,
+  `cancel`, `unload`; `ready`, `ended`). A command the `plugin.json` names and the tool does not define fails its run
+  with `GHOST is declared by the tool, but it has no @command of that name.` PYRUN runs a lone `.py` once in a new process
+  of the default venv (0.65 to 0.94 s), as a run named `PYRUN` (one undo step, Esc takes it back). A tool that raises
+  (`STAIRSPY: ValueError: no stairs here`), exits (`... ended unexpectedly (exit code 3).`) or hangs (`... did not stop within
+  5 s and was ended.`) leaves the drawing as it was and the next command works; Esc in `while True: pass` stops the loop at
+  once, and the process is put in a job object that ends it, and every process it starts, even when the app is killed.
+  `cmd()` inside a run nests the command as AutoLISP's `command` does, with no "Resuming" line. The examples of
+  `src/python/examples/in_app` are now tool folders in `tools`, still run by tests.
+
+- **NEW.** A venv for each Python tool, and pip to fill it (Tools as folders). A tool's packages are installed into
+  `%LocalAppData%\OpenCAD2D\python\envs\<name>-<8 hex>`, made from the Python of Global settings or the newest 3.11 to 3.15
+  of the registry (the finder needs only `python.exe`), so two tools may pin two versions of one package and both run (numpy
+  1.26.4 and 2.3.5 side by side). The app lists what pip's dry run would install and asks before anything is downloaded, in
+  a dialog, `Packages for Python tool Survey` (a table of Package, Version and Asked as: the `requirements.txt` line, or `for
+  shapely` for a package another needs; the tool's own packages first, in bold; `Don’t install` and `Install`), or on the
+  command line, `Install with pip [Yes/No] <No>:`, with FILEDIA 0 (with no way to ask, nothing is installed and the tool is
+  refused with the line to run by hand). `numpy>=1.26` is installed as `numpy==1.26`, as written where pip has no
+  wheel of `1.26` for the Python in use (the pinned dry run takes wheels only, so a version that has just a source archive
+  fails in 1.2 s instead of being built in minutes), with no warning; an option line in `requirements.txt` is refused. A
+  missing version, a clash or no network gives pip's lines and the command to run by hand (where the venv is not made yet,
+  `"<python>" -m venv --without-pip "<venv>", then "<python>" -m pip --python "<venv>\Scripts\python.exe" install -r
+  "<folder>\requirements.txt"`) and changes nothing; a change of `requirements.txt` builds a new venv beside the old and
+  swaps it in, and a failed change keeps the old venv, which the tool goes on running on, with the failure lines given beside
+  it, on the command line and in the log. `opencad2d` is not installed in each venv: a `.pth` file puts the app's copy and a
+  shared base (pythonnet 3.2.1, clr_loader 0.3.1, cffi 2.1.1, pycparser 3.12, installed once for a Python version from the
+  wheels the app ships in `python\wheels`, 1 273 451 bytes) after the venv's own packages. A venv with its `.pth` takes 75 to
+  98 ms and 0.54 MB, the base 1.7 s once and 2.7 MB; a tool with one package, 2.1 s.
+
+- **NEW.** The run of a tool's command, for tools that run in a process of their own (Tools as folders). A program the app
+  starts reaches the app on a second pipe, `OpenCAD2D.<process id>.tools`, which is never announced in the instance folder,
+  stays open whatever "Allow other programs to connect" says, and takes a client only with the token of its tool (`hello`
+  carries it; 32 random bytes as 64 hex letters; a connection without or with a revoked one is refused and closed). The
+  command the user types is the run: the drawing waits at `STAIRSPY is working... (Esc to stop)`, which takes no typed text,
+  point or Enter, only Esc. The tool joins the run (`app.JoinRun(7)`) and every request of it is part of the command:
+  `run.Ask(CadAskKind.Point, "Specify the first step")` asks on the command line and waits for the user, with no lock held, so
+  another client is served meanwhile; `CommitChanges` goes into the command's one undo step named after it; `run.End()` keeps
+  the step, `run.Fail(line)` takes it back and writes the line; `RunCommand(name, answers)` runs a command inside the run and
+  `CadRemoteRun.Pause` leaves a prompt to the user (the `feed` request); Esc takes back everything the run committed, answers
+  a question open as cancelled (`IsCancelled`) and refuses every later request of the run. A request of an ended run is
+  refused, `The run 7 of STAIRSPY has ended.`; `pick` and `command` are refused inside a run. `python -m opencad2d.tool
+  <folder>` runs a folder's `@command` functions as commands of the app, and `OPENCAD2D_LIB` names the folder `import
+  opencad2d` loads the assemblies from. For the app's host: `CadRemoteServer.ForTools`, `IssueToken`, `RevokeToken`,
+  `CreateRunCommand` and `CadRemoteToolRun` (Core); `new CadApplication(pipe, token)`, `JoinRun`, `CadRemoteRun` and
+  `CadRemoteAnswer` (OpenCAD2D.Remote); `CadPrompt.ForWaiting` and `IsWaiting`.
+
 - **NEW.** `CadRemoteDocument.Extents` and the request `extents` of the channel read the extents a drawing's header holds
   (`EXTMIN`, `EXTMAX`) as a `CadRemoteExtents` with `Min`, `Max` and `IsEmpty`: a tool has no `drawing.net.Database`.
   `CadPluginManifest` gains `CommandEntries` and `Ribbon` (the commands as declared and the ribbon tabs, panels and buttons of
   `plugin.json`); its `commands` takes names or objects, and `Commands` stays the names.
-- **CHANGED.** A venv's by-hand line, where the venv is not made yet, makes it first: `Stairs was not installed. If this
-  computer is offline, connect and try again, or run: "<python>" -m venv --without-pip "<venv>", then "<python>" -m pip
-  --python "<venv>\Scripts\python.exe" install -r "<folder>\requirements.txt"`.
 
-- **NEW.** A venv for each Python tool, and pip to fill it (Tools as folders, TF5). A tool's packages are installed into
-  `%LocalAppData%\OpenCAD2D\python\envs\<name>-<8 hex>`, made from the Python of Global settings or the newest 3.11 to
-  3.15 of the registry (the finder of OpenCAD2D.Python, moved to the window's project without its DLL checks, since a tool needs
-  only `python.exe`), so two tools may pin two versions of one package and both run. The app lists what pip's dry run would
-  install and asks before anything is downloaded (a hook the window sets; with none, nothing is installed and the tool is
-  refused with the line to run by hand). `numpy>=1.26` is installed as `numpy==1.26`, as written where pip has no wheel of `1.26`
-  for the Python in use (the pinned dry run takes wheels only, so a version that has just a source archive fails in 1.2 s
-  instead of being built in minutes), with no warning; an option line in `requirements.txt` is refused. A missing version or a clash gives pip's
-  lines and changes nothing; a change of `requirements.txt` builds a new venv beside the old and swaps it in, and a failed
-  change keeps the old venv, which the tool goes on running on, with the failure lines given beside it. `opencad2d` is not installed in each venv: a `.pth` file puts the app's copy and a shared base
-  (pythonnet, clr_loader, cffi, pycparser, installed once for a Python version from the wheels the app ships in
-  `python\wheels`, 1.3 MB) after the venv's own packages. A venv with its `.pth` takes 75 to 98 ms and 0.54 MB, the base
-  1.7 s once and 2.7 MB.
+- **NEW.** Three sample plugins and two sample tools ship with the app, each a folder that opens as it is (Tools as folders).
+  The C# plugins are `Plugins\HelloWorld` (`HelloWorld.csproj` and `HelloWorldCommands.cs`: the command `HELLOWORLD` writes
+  `Hello, World!`, the smallest plugin there can be), `Plugins\DrawingInfo` (`GHDWGINFO`, the drawing's name, objects, layers,
+  blocks and extents) and `Plugins\Stairs` (`STAIRS`, the command of the plugin guide); Visual Studio opens each from
+  `examples/HelloWorld`, `examples/DrawingInfo` and `examples/Stairs`. The first start after an install or an upgrade
+  compiles the three once, 1.09 s to 1.34 s together on .NET 8 (four runs), and a start from the cache takes 61 ms to 82 ms.
+  The Python tools are `Pythons\HelloWorld` (`PYHELLOWORLD` writes `Hello, World!`) and `Pythons\DrawingInfo` (`GHPYINFO`,
+  the same lines as `GHDWGINFO`, its `Extents` line read over the channel), in `examples\Pythons`. Delete a folder to remove
+  its sample.
+
+- **CHANGED.** `Plugins\DrawingInfo` is the C# source of its plugin, and the built `OpenCAD2D.Plugins.DrawingInfo.dll` is no
+  longer in the app's `Plugins` folder; the project `examples/OpenCAD2D.Plugins.DrawingInfo` (a netstandard2.0 library, in
+  `OpenCAD2D.slnx`) is the folder `examples/DrawingInfo`, a plugin folder that Visual Studio opens, and is no longer built
+  with the solution. The command keeps its name, `GHDWGINFO`, and writes the same lines; the Python sample
+  `Pythons\GH-DrawingInfo.py` is the folder `Pythons\DrawingInfo`, with `GHPYINFO` as before.
 
 - **FIXED.** A .NET 8 plugin could fail with "AssemblyLoadContext is unloading or was already unloaded" when one of its
   commands first used a library of its folder after a garbage collection: the app held the plugin's collectible load
   context only weakly, so a collection began unloading it while the plugin still ran. The app now keeps every plugin's
   context until the plugin is unloaded. This was in 1.0.0 for a `.dll` plugin with a dependency it loads late.
-- **CHANGED.** The sample plugins ship as source (Tools as folders, TF9, the C# half). `Plugins\DrawingInfo` is now the
-  folder with `DrawingInfo.csproj` and `DrawingInfoCommands.cs`, as `Plugins\Stairs` is, and the built
-  `OpenCAD2D.Plugins.DrawingInfo.dll` is no longer in the app's `Plugins` folder; the project `examples/OpenCAD2D.Plugins.DrawingInfo`
-  (a netstandard2.0 library, in `OpenCAD2D.slnx`) is the folder `examples/DrawingInfo`, a plugin folder that Visual Studio
-  opens, and is no longer built with the solution. The command keeps its name, `GHDWGINFO`, and writes the same lines. The first
-  start after an install or an upgrade compiles the three samples once: 1.09 s to 1.34 s together on .NET 8 (four runs), and
-  61 ms to 82 ms at every start after it, from the cache.
-- **NEW.** The sample plugin `Plugins\HelloWorld`, with `HelloWorld.csproj` and `HelloWorldCommands.cs` (`examples/HelloWorld`):
-  the command `HELLOWORLD` writes `Hello, World!` on the command line. It is the smallest plugin there can be, and the
-  plugin guide documents it with the other samples.
-- **NEW.** The run of a tool's command, the base of tools that run in a process of their own (Tools as folders, TF4a). A
-  program the app starts reaches the app on a second pipe, `OpenCAD2D.<process id>.tools`, which is never announced in the
-  instance folder, stays open whatever "Allow other programs to connect" says, and takes a client only with the token of
-  its tool (`hello` carries it; 32 random bytes as 64 hex letters; a connection without or with a revoked one is refused
-  and closed). The command the user types is the run: the drawing waits at `STAIRSPY is working... (Esc to stop)`, which
-  takes no typed text, point or Enter, only Esc. The tool joins the run (`app.JoinRun(7)`) and every request of it is part
-  of the command: `run.Ask(CadAskKind.Point, "Specify the first step")` asks on the command line and waits for the user,
-  with no lock held, so another client is served meanwhile; `CommitChanges` goes into the command's one undo step named
-  after it; `run.End()` keeps the step, `run.Fail(line)` takes it back and writes the line; Esc takes back everything the run
-  committed, answers a question open as cancelled (`IsCancelled`) and refuses every later request of the run. A request of
-  an ended run is refused, `The run 7 of STAIRSPY has ended.`; `pick` and `command` are refused inside a run. For the app's
-  host: `CadRemoteServer.ForTools`, `IssueToken`, `RevokeToken`, `CreateRunCommand` and `CadRemoteToolRun` (Core);
-  `new CadApplication(pipe, token)`, `JoinRun`, `CadRemoteRun` and `CadRemoteAnswer` (OpenCAD2D.Remote);
-  `CadPrompt.ForWaiting` and `IsWaiting`. The app does not start a tool with it yet.
-
-- **NEW.** The process of a Python tool (Tools as folders, TF4b). `python -m opencad2d.tool <folder>` runs a folder's
-  `@command` functions as the commands of the app: the window side starts it (suspended, in a job object that ends it and
-  every process it starts when the app lets it go, so none is left even when the app is killed) at the tool's first
-  command, keeps it, reads its standard output and error, and gives it two anonymous pipes of lines of JSON (`run`,
-  `cancel`, `unload`; `ready`, `ended`). The tool's `get_point` and the other prompts, `write`, `print`, `cmd` and
-  `active_drawing()` are requests of the run on the channel of the tools, so a command is one undo step and Esc takes it
-  back. A tool that raises (`STAIRSPY: ValueError: no stairs here`), exits (`... ended unexpectedly (exit code 3).`) or
-  hangs (`... did not stop within 5 s and was ended.`) leaves the drawing as it was and the next command works; Esc in
-  `while True: pass` stops the loop at once. The first command of a tool took 0.37 s, the next 16 ms. `cmd()` inside a run
-  nests the command as AutoLISP's `command` does, with no "Resuming" line: `CadRemoteRun.RunCommand(name, answers)` and the
-  `feed` request (`CadRemoteRun.Pause` leaves a prompt to the user). `OPENCAD2D_LIB` names the folder `import opencad2d`
-  loads the assemblies from. The window does not start tools yet.
 
 - **FIXED.** Two or more drawings dropped on the window opened only one of them: selecting `app.dwg` and `cad.dwg`
   (about 4 MB each) in Explorer and dropping them on the DRAWINGS list opened the first of the drop and refused the
@@ -151,84 +225,23 @@
   exe). A drawing already open is shown; two opened at once, or one handed over while another opens or a dialog is up,
   wait and open one after the other. A start with no file, or one the running app does not answer within 4 s, still opens
   a window of its own. Nothing public changes.
-- **NEW.** A command plugin can be given as C# source: a folder with a `.csproj` loads as a `.dll` does (the `Plugins`
-  folder, PLUGINLOAD/NETLOAD of the folder or its `.csproj`, the startup list, PLUGINRELOAD), compiled by Roslyn when it
-  loads, on .NET 8 only, and Visual Studio builds the same folder. The app reads the `.csproj` with no MSBuild: the sources
-  are every `.cs` below the folder but `bin\` and `obj\`, less `<Compile Remove>`; `AssemblyName`, `Version` (written into
-  the assembly as the SDK does, 1.0.0 where there is none, so the plugin loads as `Stairs 1.0.0`), `LangVersion`, `Nullable`,
-  `ImplicitUsings`, `UseWPF`, `UseWindowsForms`, `<Using>`, `DefineConstants`, `AllowUnsafeBlocks` and
-  `GenerateAssemblyInfo` are read, the symbols are the SDK's for `net8.0-windows` Release, a `<Reference>` takes a
-  `HintPath` to a `.dll` inside the folder (a name of the app's own is its own, whatever its `HintPath`), and a
-  `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Remote`, `OpenCAD2D.Wpf` or `GeometryHelper` is the app's own and
-  downloads nothing (a version above the app's gives a line and the compile goes on against the app's), and so does one for the
-  build alone (`PrivateAssets="all"`, or an `IncludeAssets` with no `compile` or `runtime`). Any other `<PackageReference>`
-  is a NuGet package restored from nuget.org after asking, with no .NET SDK: the lowest version that meets each reference
-  (`Version="13.0.3"` is 13.0.3), its dependencies for `net8.0-windows`, cousins at the higher of their lowest versions,
-  every range checked (`Stairs.csproj(6,10): error NU1107: Stairs needs Foo [2.0.0, 3.0.0); Bar 1.0.0 needs Foo [1.0.0, 2.0.0); no version meets both.`,
-  and NU1605 for a reference lower than another package needs); the nearest framework's assets (`lib/net6.0` over
-  `netstandard2.0`); the question before the first download and when the list changes (the window asks with a dialog,
-  **Packages for Stairs**, that lists the packages, the plugin's own in bold and then what they need, each marked
-  `download` or `in the cache`, with the buttons `Don’t load` and `Download and load`; closing it is a no), a no or an
-  unreachable nuget.org (a connection is given up after 5 s: a source whose address drops packets is reported in 5 s, where Windows alone waits 42.8 s over the two tries) leaving the plugin not loaded with the line to
-  reconnect and PLUGINRELOAD (the line of the command-line form of the question,
-  `Download 3 packages for Stairs from nuget.org? [Yes/No] <No>:`, is `CadPackageQuestion.Prompt`; no command asks it yet,
-  so a typed PLUGINLOAD asks with the dialog too); packages kept in `%LocalAppData%\OpenCAD2D\NuGet\packages`, the resolved list in
-  `PluginCache` so that a start asks nothing of the network; two plugins with `Foo 1.0.0` and `Foo 2.0.0` both run (a
-  library the app carries itself is shared: the source is compiled against the app's copy, as it runs on it, also for a library that is in the app's folder and in no .NET folder, `Newtonsoft.Json` among them, with a line when a package asks a higher version); a native file loaded by its
-  full path, two of one name side by side; a package's library first used after a garbage collection still loads (the
-  loader holds each plugin's load context, which the runtime holds only weakly). `<Using Remove>` is read. The app carries NuGet.Protocol 7.9.0: 3 645 480 bytes
-  in 9 files more in its folder. What is not read is a line of the load log, and the plugin loads: an element with a `Condition`
-  (`Stairs.csproj: <PropertyGroup Condition="..."> was not read (conditions are not evaluated).`), a
-  `Directory.Build.props` in the folder, a `$(...)` in a value, a target framework that is not .NET 8. What cannot be
-  read is refused with a line per error in the form of a compiler's (`Stairs.csproj(7,10): error OC0002: ...`): a
-  `<ProjectReference>`, a package with no version, `EnableDefaultCompileItems`
-  false, a `<Compile Include>` or a `HintPath` outside the folder. A lone `.cs`, a folder of `.cs` files with no
-  `.csproj`, and a folder with two `.csproj` files are refused, saying how to make a plugin of them. The build is cached
-  in `%LocalAppData%\OpenCAD2D\PluginCache` by the SHA-256 of the `.csproj`, the sources and the libraries, so a start with
-  unchanged files compiles nothing; the first compile of a session takes about 0.9 s and a later one about 20 ms for a
-  plugin of 220 lines. A source that does not compile is refused with a line per error,
-  `Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context`, the first 20.
-  `CadPluginLoader.CanCompile` and `Compile(name, projectPath)`, `CadPluginBuild` (with `Warnings`),
-  `CadLoadedPlugin.IsSource`, `CadPluginAssemblyLoader(cacheFolder)`, `CadPluginAssemblyLoader.ConfirmDownload`, `CadPackage` and
-  `CadPackageQuestion` are new. The screenshot mode
-  (`--screenshot ... --plugin Stairs`) keeps its builds in its own temporary folder, never
-  `%LocalAppData%\OpenCAD2D\PluginCache`. The app ships a sample, the folder `Plugins\Stairs` (the command `STAIRS` of the
-  plugin guide, from `examples/Stairs`), compiled at the first start after an install or an upgrade and cached after;
-  delete the folder to remove it.
-- **NEW.** Load/Unload Applications takes C# source: a `.csproj` loaded with Load… or dropped on the table loads its
-  folder; the row has the Kind `C# source` in light purple and a chip of its own, `C# source 1` (`Plugins` counts the
-  .dll plugins only). A source that does not compile shows **Stairs.csproj** `did not compile: 2 errors.` and the first
-  error on the red line, with `Every error is on the command line` on the right and every error in its tooltip. A new
-  button, **Load folder…**, chooses a tool's folder: a folder with a `.csproj` loads as a C# plugin, and one with a
-  `requirements.txt` is refused with `Survey cannot be loaded: Python tools load in a later build.` The file types of
-  Load… (and of NETLOAD's Open dialog) offer **C# plugin (\*.csproj)** where they offered **C# source (\*.cs)**, the
-  button reads `Load… (.lsp, .dll)`, and the foot says `Each tool run is one undo step. A tool runs its code, and its
-  packages’ code, with your rights.` A plugin whose packages were not downloaded (the question answered No) stays in the
-  table, unticked, with the amber badge **needs packages** after its name, and ticking it asks again; one whose packages
-  could not be restored (nuget.org not reached, a package or version not found) has the red badge **install failed** and
-  the red line says `Stairs was not installed:` and the first error, with `Every line is on the command line` on the right.
-  `AppLoadViewModel.LoadFolder`, `AskFolder`, `LoadFolderCommand`, `AppLoadRow.Badge` and `AppLoadBadge`,
-  `CadPluginAssemblyLoader.CompilingProject` and `CadPackageQuestion.Question` are new; the question's window,
-  `PackageQuestionWindow`, takes its texts from `PackageQuestionViewModel`, so that the pip question of a Python tool can use it.
-- **NEW.** The question before pip installs a Python tool's packages is a dialog (Tools as folders, TF6b): `Packages for Python
-  tool Survey`, a table of Package, Version and Asked as (`shapely>=2.0`, or `for shapely` for a package another needs), the
-  tool's own packages first in bold, and the buttons `Don’t install` and `Install`; with FILEDIA 0 it stays the line `Install with
-  pip [Yes/No] <No>:`. In Load/Unload Applications a Python tool's row shows the blue badge **installing…** while pip works (the
-  window stays free), **needs packages** after a No (the tool stays loaded and its next command asks again) and **install failed**
-  with the red line `Grid was not installed: ERROR: ...` (pip's first error, every line on the command line); a change of
-  `requirements.txt` that failed but left the tool on its old venv gives the red line and no badge. `MainViewModel.AskPythonPackages` and
-  `AppLoadBadge.Installing` are new.
 - **FIXED.** `OpenCAD2D.exe --screenshot ... --plugin x.dll` (and a source plugin's folder) rewrote the user's `%AppData%\OpenCAD2D\settings.json`
   with default settings plus the application it remembered. A screenshot now keeps its settings, tool palettes, plot
   styles and LISP registry in a folder of its own, `%TEMP%\OpenCAD2D\ScreenshotSettings\<process id>`, and never reads
   or writes the user's.
-- **CHANGED.** The setup carries the C# compiler for plugins given as source (Roslyn 4.14.0, with
-  System.Collections.Immutable and System.Reflection.Metadata 9.0.0 in place of the runtime's 8.0): 82,037,149 bytes
-  (78.2 MB) in place of 79,946,201 (76.2 MB), 2.6 % more, and the install folder holds 288 files in place of 286, 8.17 MB
-  more (setups built by `make-installer.ps1` at 4f4a83cc and at 3f059fb7). Installed from that setup, the guide's `Stairs.cs` and the
-  DrawingInfo sample as source compiled and ran.
-- **CHANGED.** PLUGINLOAD asks `Enter the path of a plugin (.dll, .cs or its folder)`, and a path that is no plugin is refused
-  with `... a plugin is a .dll, a .cs, or the folder of one.`
+- **CHANGED.** The setup carries what tools as folders need, and no longer the Python embedding: the C# compiler (Roslyn
+  4.14.0, with System.Collections.Immutable and System.Reflection.Metadata 9.0.0 in place of the runtime's 8.0), the NuGet
+  client (`NuGet.Protocol` 7.9.0 with its five libraries and `Newtonsoft.Json`: 7 files, 3 060 832 bytes), the wheels of
+  pythonnet, clr_loader, cffi and pycparser in `python\wheels` (8 files, 1 273 451 bytes) and `THIRD-PARTY-NOTICES.md` beside
+  the exe, with the notices of the NuGet client (Apache-2.0), `Newtonsoft.Json` and the four wheels; `Python.Runtime.dll`
+  and `OpenCAD2D.Python.dll` (4 files with their `.pdb` and `.xml`, 567 453 bytes) are gone. The setup is 83 726 648 bytes
+  (79.8 MB) in place of 79 946 201 (76.2 MB) before the compiler, 4.7 % more, and the install folder holds 311 files in
+  place of 286, 12.1 MB more (setups built by `make-installer.ps1` at 3f059fb7 and at f7475ff2 with the notices added).
+  Installed from a probe setup of the same files, the three sample plugins (`HELLOWORLD`, `GHDWGINFO`, `STAIRS`) compiled
+  and ran in the installed app, and the installed Python wheels installed offline into a venv of Python 3.14, where the
+  installed `opencad2d` package and both sample tools imported.
+- **CHANGED.** PLUGINLOAD asks `Enter the path of a plugin (.dll, .csproj or its folder)`, and a path that is no plugin is
+  refused with `... a plugin is a .dll, a .csproj, or the folder of one.`
 - **CHANGED.** A plugin whose assembly states no version (0.0.0.0) is shown with none: `Loaded Stairs: STAIRS.` in place of
   `Loaded Stairs 0.0.0.0: STAIRS.`
 - **CHANGED.** The app is built English only: the translations .NET ships of WPF and WinForms (13 folders, `cs`

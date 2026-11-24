@@ -45,15 +45,15 @@ python -m venv .venv
 .venv\Scripts\python -m pip install "artifacts\python\opencad2d-1.0.0-py3-none-win_amd64.whl[numpy]"
 ```
 
-The wheel is 10 200 681 bytes. It holds the three assemblies (`GeometryHelper.dll`, `OpenCAD2D.Core.dll` and
-`OpenCAD2D.Remote.dll`) with the `Fonts`, `Hatches` and `Linetypes` folders the presenter finds beside them (8
-files, 15 723 467 bytes unpacked), the Python module (6 files, 30 652 bytes), and the stubs (18 files, 4 449 463 bytes
-for `GeometryHelper`, 8 files, 8 930 bytes for `System`). It holds no XML documentation and no PDB: the XML is read once,
+The wheel is 10 332 832 bytes. It holds the three assemblies (`GeometryHelper.dll`, `OpenCAD2D.Core.dll` and
+`OpenCAD2D.Remote.dll`) with the `Fonts`, `Hatches` and `Linetypes` folders the presenter finds beside them (9
+files, 15 965 074 bytes unpacked), the Python module (10 files, 117 906 bytes), and the stubs (14 files, 3 475 779 bytes
+for `GeometryHelper`, 4 files, 1 032 316 bytes for `OpenCAD2D`, 8 files, 9 162 bytes for `System`). It holds no XML documentation and no PDB: the XML is read once,
 when the stubs are written.
 
 `bash tools/python/verify-python.sh` does all of it, then makes a fresh virtual environment, installs the wheel there and
 runs `tests/python` against it, once on each runtime; the `python` job of `.github/workflows/build.yml` runs the same
-script on Python 3.11 and 3.14, and nothing else of Python: the app no longer embeds it. On the test machine, 390 tests pass on .NET 8 (73.2 s) and 390 on .NET Framework 4.8 (77.2 s).
+script on Python 3.11 and 3.14, and nothing else of Python: the app no longer embeds it. On the test machine, 656 tests pass on .NET 8 (93.4 s), and 643 on .NET Framework 4.8 (88.3 s) with 13 skipped: the tests of a tool's process, which always runs on .NET 8.
 
 ## A first script
 
@@ -438,9 +438,9 @@ not installed there, as the app brings its own copy of the package. [Python comm
 ## Stubs and an editor
 
 The wheel carries the stubs of the library, so an editor completes the .NET names and checks a script that uses them. They
-are a PEP 561 stub package per namespace, `GeometryHelper-stubs` (an `__init__.pyi` for each of the 18 namespaces), and
-`System-stubs`, the few BCL classes the library's signatures name, as pythonnet spells them: `System.Array[T]`,
-`System.Collections.Generic.List[T]`, `System.Action[...]`. They hold 808 types and 18 581 members (a member is one stub
+are a PEP 561 stub package per top-level namespace, `GeometryHelper-stubs` and `OpenCAD2D-stubs` (an `__init__.pyi` for each
+of the 18 namespaces of the two libraries), and `System-stubs`, the few BCL classes the library's signatures name, as pythonnet spells them: `System.Array[T]`,
+`System.Collections.Generic.List[T]`, `System.Action[...]`. They hold 820 types and 18 663 members (a member is one stub
 entry, each overload once), and the summary of each type and member as its docstring, so hovering `GeoPoint3(` in Pylance
 shows its overloads and what each does. A class written in several files shows all its summaries joined in the hover.
 The same text is on the docs site as the [Python API](../docfx/python-api/index.md), a page for each type with

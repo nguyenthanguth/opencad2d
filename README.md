@@ -11,8 +11,9 @@ A free 2D CAD app for Windows that works like AutoCAD 2021.
 - **The app:** ribbon, command line, Properties, palettes and dialogs; AutoCAD's shortcuts and `acad.pgp` aliases.
 - **Scripting:**
   - AutoLISP (`.lsp` files loaded with APPLOAD or from the `Lisps` folder);
-  - Python (`@command` functions in `.py` files, the `opencad2d` package);
-  - C# plugins (the `Plugins` folder);
+  - Python tools (a folder in `Pythons` with a `requirements.txt`; each runs in a process and a venv of its own), and the
+    `opencad2d` package for scripts outside the app;
+  - C# plugins (a `.dll`, or a folder of source with a `.csproj` that may name NuGet packages, in the `Plugins` folder);
   - Remote: other programs drive a running app through a named pipe.
 
 ## Packages

@@ -215,9 +215,10 @@ the presenter until Close, so there is one place for AutoLISP files and plugins.
 one table.
 
 **Load… (.lsp, .dll)** shows the Windows Open dialog, several files allowed, with the filters "Applications
-(\*.lsp;\*.py;\*.dll;\*.csproj)" (the first), "Lisp files (\*.lsp)", "Python files (\*.py)", "Plugins (\*.dll)", "C# plugin
-(\*.csproj)" and "All files (\*.\*)". **Load folder…** beside it asks for a tool's folder instead ([a plugin as C#
-source](plugins.md#a-plugin-as-c-source)). Load… opens in the folder of the last Load, which
+(\*.lsp;requirements.txt;\*.dll;\*.csproj)" (the first), "Lisp files (\*.lsp)", "Python tools (requirements.txt)", "Plugins
+(\*.dll)", "C# plugin (\*.csproj)" and "All files (\*.\*)". **Load folder…** beside it asks for a tool's folder instead: a
+folder with a `.csproj` loads as a [C# plugin](plugins.md#a-plugin-as-c-source), one with a `requirements.txt` as a
+[Python tool](python.md#where-tools-load-from). Load… opens in the folder of the last Load, which
 the settings keep (`appLoadFolder` under `support`). Each file is loaded in the order chosen:
 
 | File | What Load does |
@@ -225,6 +226,8 @@ the settings keep (`appLoadFolder` under `support`). Each file is loaded in the 
 | `tools.lsp` | loads it into the drawing shown, as `CadCommandSession.LoadLisp` does: what the file wrote, then `tools.lsp successfully loaded.`; a file with an error runs up to the error and writes the `; error:` line; it is listed, with the `c:` commands it defined before the error, where it defined any (they stay bound, and Unload takes them away), and has no row where it defined none |
 | `CircleTools.dll` | goes to the [plugin manager](plugins.md), as NETLOAD does, which asks once about a file outside its trusted folders |
 | `Stairs.csproj` | goes to the plugin manager as a .dll does, which compiles the plugin of its folder ([a plugin as C# source](plugins.md#a-plugin-as-c-source)), asking first whether to download the NuGet packages it names |
+| `requirements.txt` | loads the Python tool of its folder as PYLOAD does: its commands and ribbon buttons come from its `plugin.json` and no Python starts ([Python commands and tools](python.md#where-tools-load-from)); the line is `Stairs loaded: STAIRSPY.` |
+| `Rings.py` | refused: a lone `.py` is not a tool, and the line says to put it in `Pythons\Rings\` as `__init__.py` ([a lone `.py`](python.md#a-lone-py)) |
 | `.arx`, `.dbx`, `.dvb`, `.fas`, `.vlx` | refused with `tools.fas cannot be loaded: .arx, .dbx, .dvb, .fas and .vlx files are not supported.` |
 | any other file | refused with `readme.txt is not an AutoLISP file or a plugin.` |
 
@@ -290,7 +293,7 @@ loads the files chosen in the order chosen, as Load… does, with the same lines
 file is kept for the next time. Cancelling the dialog loads nothing. A window with no Open dialog
 (`MainViewModel.AskLispFiles` null) says `LISPLOAD needs a file dialog, which the window cannot show here.` The Shortcuts page of
 Global settings lists it as "Choose AutoLISP files to load". The Applications panel of the Manage tab has Load Plugin (NETLOAD,
-the Open dialog for a plugin `.dll`) and Load Python (PYLOAD, the Open dialog for the `requirements.txt` of a Python tool).
+the Open dialog for a plugin `.dll` or `.csproj`) and Load Python (PYLOAD, the Open dialog for the `requirements.txt` of a Python tool).
 
 #### The load-result line
 
@@ -330,7 +333,9 @@ nothing to insert into, and the drawing opens, as AutoCAD opens it then. Dropped
 drawing opens, and several dropped together all open. While a command or a routine waits for an answer, the files that
 load, run or show the box, and a drawing dropped on the drawing area, are ignored with no word, as AutoCAD ignores them:
 nothing is loaded or inserted, the command is not cancelled and nothing is queued; with no drawing open the files that load,
-run or show the box are passed over too. The `.py` files of the Python console's transcript are still its own.
+run or show the box are passed over too. A folder with a `requirements.txt` (a Python tool), or that file, loads as Load… of this
+window loads it, with no typed line: the tool writes `Stairs loaded: STAIRSPY.`, or the reason it was not loaded. A `.py` is
+refused with the line that says how to make it a tool.
 
 ### When a drawing opens
 

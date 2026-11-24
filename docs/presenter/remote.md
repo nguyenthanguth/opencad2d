@@ -334,8 +334,8 @@ public static class BeamsToCad
 ## From Python
 
 A Python script drives the app with `connect()` of `opencad2d.cad`, which wraps the same client,
-[`CadApplication`](xref:OpenCAD2D.Remote.CadApplication), in the `Drawing` that a command written in Python inside the
-app uses ([Python commands and tools](python.md#the-drawing)): a script written for one runs in the other with only `connect()`
+[`CadApplication`](xref:OpenCAD2D.Remote.CadApplication), in the `Drawing` that a [Python tool](python.md#the-drawing) of the
+app uses, which drives the app through the same client: a script written for one runs in the other with only `connect()`
 or `active_drawing()` changed. It needs the `opencad2d` wheel ([Installing](../python.md#installing)), Windows, the Windows
 user who runs the app (the pipe admits nobody else), and [the setting](#the-setting) on.
 

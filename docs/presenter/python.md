@@ -6,8 +6,8 @@ function marked `@command("C1")` becomes a command of the command line, talks to
 the drawing as one undo step. Python does not run inside the app: each tool runs in a `python.exe` of its own, with a venv of
 its own, that the app starts at the tool's first command, so two tools may use two versions of one library, and a tool that
 raises, loops for ever or exits takes nothing of the app with it. A program outside the app drives the running app and any drawing
-in its list of open drawings with the same names ([Driving the app from another program](remote.md)). The old PYTHON palette is
-gone: Python is a way to write commands, not a console.
+in its list of open drawings with the same names ([Driving the app from another program](remote.md)). Python here is a way to
+write commands: the app has no Python console.
 
 The Python is yours: the app does not bring one. It needs a CPython 3.11 to 3.15, 64-bit, with pip, on the machine, and finds
 it as [Finding Python](#finding-python) says. With none the app works as it did, and says what to install where a tool is
@@ -97,7 +97,7 @@ A `.py` file directly in Pythons, in the Startup Suite, given to APPLOAD or PYLO
 the line that says how to make it one:
 
 ```text
-GH-DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\GH-DrawingInfo\ as __init__.py (see the Python guide).
+Rings.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\Rings\ as __init__.py (see the Python guide).
 ```
 
 To convert one, make the folder, move the file in as `__init__.py`, add an empty `requirements.txt` and a `plugin.json` that
@@ -150,8 +150,7 @@ is set:
 2. The Python launcher's registry entries (PEP 514), `HKCU` then `HKLM`, under `Software\Python\PythonCore\<tag>`: the newest
    64-bit 3.11 to 3.15 whose files are there, `HKCU` before `HKLM` at one version.
 
-A process needs the `python.exe` alone, so nothing else of an install is checked (the app no longer reads `python3XY.dll`, and
-`PYTHONNET_PYDLL` is gone). The registry holds more than what is installed: it may list 3.10 with no install path, 3.13 whose
+A process needs the `python.exe` alone, so nothing else of an install is checked. The registry holds more than what is installed: it may list 3.10 with no install path, 3.13 whose
 `python.exe` is gone from the disk, and 3.14 (3.14.4, 64-bit). The finder checks the files, so it takes 3.14 and keeps the
 others, each with its reason: `3.10: no InstallPath`, `3.13: ...\Python313\python.exe is missing`. The reasons are what
 Global settings lists as "Passed over". What is wrong is written where a tool is used, on the command line, in one of these
@@ -347,9 +346,7 @@ command: `STAIRSPY is working... (Esc to stop)`, and no other command runs in it
 
 A tool adds to the window through its `plugin.json` (see [`plugin.json`](#pluginjson)): ribbon tabs, panels and buttons that
 start its commands. The app shows them when the tool loads, with no Python running, and takes them away when the tool is
-unloaded. The functions that built them in a script (`add_ribbon_tab`, `ribbon_button`, `menu_item`, `add_properties` and the
-rest of the `add_*` family), `session()` and the PYTHONNET_PYDLL setting are gone with the Python that ran inside the app. What a
-command plugin written in C# can add and a tool cannot:
+unloaded. What a command plugin written in C# can add and a tool cannot:
 
 | C# | A Python tool |
 |---|---|
@@ -484,8 +481,7 @@ Measured on Python 3.14 (net48 test host, local wheels): the base 1.7 s once and
 - `Entity.dxf_type` is read from the text of the object (`str(net)`): a public DXF name on `DxfEntity` would touch the core
   library.
 - Custom object snaps, plugin settings, a side panel, Properties rows and menus for a tool (the **not there** rows above).
-- A script editor, completion (Ctrl+Space) and a debugger; a console for typing Python an entry at a time, which the PYTHON
-  palette was and no longer is.
+- A script editor, completion (Ctrl+Space) and a debugger; a console for typing Python an entry at a time.
 - A Python of the app's own: the app does not bundle one.
 - Systems other than Windows: the app is Windows only.
 
