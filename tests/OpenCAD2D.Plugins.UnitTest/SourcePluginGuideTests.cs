@@ -11,7 +11,7 @@ namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>
     /// The example of the plugin guide, "A plugin as C# source", read out of the guide itself and loaded with the real
-    /// compiler, so that the guide cannot drift from what the app does.
+    /// compiler, and the sample the app ships as Plugins\Stairs, so that neither drifts from what the app does.
     /// </summary>
     public sealed class SourcePluginGuideTests : IDisposable
     {
@@ -19,8 +19,8 @@ namespace OpenCAD2D.Plugins.UnitTest
 
         public void Dispose() => _files.Dispose();
 
-        /// <summary>The first csharp block after the heading of the section, as the guide writes it (LF line ends).</summary>
-        private static string GuidesExample()
+        /// <summary>The first block of a language after the heading of the section, as the guide writes it (LF line ends).</summary>
+        private static string GuidesBlock(string language)
         {
             string guide = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Guide", "plugins.md");
             Assert.True(File.Exists(guide), guide);
@@ -29,37 +29,65 @@ namespace OpenCAD2D.Plugins.UnitTest
             int heading = Array.FindIndex(lines, l => l == "## A plugin as C# source");
             Assert.True(heading >= 0, "The guide has no section '## A plugin as C# source'.");
 
-            int open = Array.FindIndex(lines, heading + 1, l => l == "```csharp");
-            Assert.True(open >= 0, "The section 'A plugin as C# source' has no csharp block.");
+            int open = Array.FindIndex(lines, heading + 1, l => l == "```" + language);
+            Assert.True(open >= 0, "The section 'A plugin as C# source' has no " + language + " block.");
 
             int close = Array.FindIndex(lines, open + 1, l => l == "```");
-            Assert.True(close >= 0, "The csharp block of the section 'A plugin as C# source' is not closed.");
+            Assert.True(close >= 0, "The " + language + " block of the section 'A plugin as C# source' is not closed.");
 
             return string.Join("\n", lines.Skip(open + 1).Take(close - open - 1)) + "\n";
         }
 
-        [Fact]
-        public void TheGuidesExample_IsTheSampleTheAppShipsAsPluginsStairsCs_ByteForByte()
-        {
-            // examples/Stairs.cs, which the build of OpenCAD2D.App copies to Plugins\Stairs.cs.
-            string sample = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Stairs", "Stairs.cs.txt");
-            Assert.True(File.Exists(sample), sample);
+        /// <summary>A file of the sample as the build of the tests left it beside them.</summary>
+        private static string Sample(string file) =>
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Stairs", file);
 
-            Assert.Equal(new UTF8Encoding(false).GetBytes(GuidesExample()), File.ReadAllBytes(sample));
+        [Fact]
+        public void TheGuidesExample_IsTheSampleTheAppShipsAsPluginsStairs_ByteForByte()
+        {
+            // examples/Stairs, which the build of OpenCAD2D.App copies to Plugins\Stairs.
+            Assert.True(File.Exists(Sample("StairsCommands.cs.txt")), Sample("StairsCommands.cs.txt"));
+            Assert.True(File.Exists(Sample("Stairs.csproj.txt")), Sample("Stairs.csproj.txt"));
+
+            Assert.Equal(
+                new UTF8Encoding(false).GetBytes(GuidesBlock("csharp")),
+                File.ReadAllBytes(Sample("StairsCommands.cs.txt"))
+            );
+            Assert.Equal(
+                new UTF8Encoding(false).GetBytes(GuidesBlock("xml")),
+                File.ReadAllBytes(Sample("Stairs.csproj.txt"))
+            );
         }
 
         [Fact]
-        public void TheGuidesExample_SavedAsPluginsStairsCs_LoadsAtStartAndWritesSteps18()
+        public void TheGuidesExample_SavedAsPluginsStairs_LoadsAtStartAndWritesSteps18()
         {
-            string path = Path.Combine(_files.PluginFolder, "Stairs.cs");
-            Directory.CreateDirectory(_files.PluginFolder);
-            File.WriteAllText(path, GuidesExample(), new UTF8Encoding(false));
+            string folder = Path.Combine(_files.PluginFolder, "Stairs");
+            SourceProject.Write(folder, "StairsCommands.cs", GuidesBlock("csharp"));
+            SourceProject.Write(folder, "Stairs.csproj", GuidesBlock("xml"));
 
+            Assert.Equal(new[] { "Steps: 18" }, LoadAtStartAndRun());
+        }
+
+        [Fact]
+        public void TheSampleOfTheApp_FromItsFolder_LoadsAtStartAndWritesSteps18_WithTheCommandsItHadAsOneFile()
+        {
+            string folder = Path.Combine(_files.PluginFolder, "Stairs");
+            Directory.CreateDirectory(folder);
+            File.Copy(Sample("StairsCommands.cs.txt"), Path.Combine(folder, "StairsCommands.cs"));
+            File.Copy(Sample("Stairs.csproj.txt"), Path.Combine(folder, "Stairs.csproj"));
+
+            Assert.Equal(new[] { "Steps: 18" }, LoadAtStartAndRun());
+        }
+
+        private string[] LoadAtStartAndRun()
+        {
             using (CadPluginManager manager = _files.Manager())
             {
                 CadPluginResult loaded = Assert.Single(manager.LoadAtStart());
                 Assert.True(loaded.Succeeded, loaded.ToString());
-                Assert.Equal("Loaded Stairs: STAIRS.", loaded.Message);
+                Assert.Equal("Loaded Stairs 1.0.0: STAIRS.", loaded.Message);
+                Assert.Empty(loaded.Warnings);
 
                 var registry = CadCommandRegistry.CreateDefault();
                 manager.Attach(registry);
@@ -70,7 +98,7 @@ namespace OpenCAD2D.Plugins.UnitTest
                     session.Feed("STAIRS");
 
                     Assert.Equal(CadCommandOutcome.Completed, session.LastOutcome);
-                    Assert.Equal(new[] { "Steps: 18" }, session.History.Skip(1).Select(l => l.TrimEnd()));
+                    return session.History.Skip(1).Select(l => l.TrimEnd()).ToArray();
                 }
                 finally
                 {

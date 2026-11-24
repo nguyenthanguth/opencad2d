@@ -11,23 +11,23 @@ using OpenCAD2D.Plugins;
 namespace OpenCAD2D.Wpf.Plugins
 {
     /// <summary>
-    /// Compiles a plugin given as C# source, one .cs file or the .cs files of one folder compiled together, into an assembly
-    /// and its PDB, and keeps the build in a cache keyed by the SHA-256 of the sources, so that a start with unchanged
-    /// sources compiles nothing. A plugin of two files, 220 lines in all, compiles in about 0.9 s the first time in a
-    /// session (the compiler's own start) and in about 20 ms after that; taken from the cache it does not load the compiler.
+    /// Compiles a plugin given as a folder with a .csproj into an assembly and its PDB, and keeps the build in a cache keyed
+    /// by the SHA-256 of the project and its files, so that a start with unchanged files compiles nothing. A plugin of two
+    /// files, 220 lines in all, compiles in about 0.9 s the first time in a session (the compiler's own start) and in about
+    /// 20 ms after that; taken from the cache it does not load the compiler.
     /// </summary>
     /// <remarks>
-    /// The sources are compiled against the .NET 8 runtime the app runs on (its own assemblies and WPF's), GeometryHelper,
-    /// OpenCAD2D.Core and OpenCAD2D.Wpf, and the .dll files a <c>//#r "Name.dll"</c> line at the top of a file names beside
-    /// it. C# is the latest the compiler knows, nullable off, no implicit usings; warnings are dropped. The cache key takes
-    /// the app's version, the runtime's version, each source's name and bytes, and each <c>//#r</c> file's name and bytes.
+    /// What the .csproj says is read by <see cref="CadPluginProject"/>, and the sources are compiled against the .NET 8
+    /// runtime the app runs on (its own assemblies and WPF's), GeometryHelper, OpenCAD2D.Core and OpenCAD2D.Wpf, and the .dll
+    /// files its references name inside the plugin's folder. Where the .csproj is silent, C# is the latest the compiler knows,
+    /// nullable off and no implicit usings; warnings of the compiler are dropped. The cache key takes the app's version, the
+    /// runtime's version, the .csproj, each source's path from the folder and bytes, and each referenced .dll's name and
+    /// bytes.
     /// </remarks>
     public sealed class CadPluginCompiler
     {
         /// <summary>The most error lines a failed build gives; <see cref="CadPluginBuild.ErrorCount"/> counts them all.</summary>
         public const int MaxErrors = 20;
-
-        private const string Directive = "//#r";
 
         private readonly string _appVersion;
 
@@ -60,44 +60,38 @@ namespace OpenCAD2D.Wpf.Plugins
         public string CacheFolder { get; }
 
         /// <summary>
-        /// Compiles a plugin's sources, or takes the build from the cache where they are unchanged since the last compile.
-        /// A plugin Stairs of one file Stairs.cs gives <c>&lt;cache&gt;\Stairs\&lt;key&gt;.dll</c> and its .pdb; a reference to
-        /// an unknown name on line 12, column 9 gives a failed build with the error
-        /// <c>Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context</c>.
+        /// Compiles a plugin, or takes the build from the cache where its .csproj, sources and libraries are unchanged since the
+        /// last compile. A plugin Stairs whose folder holds Stairs.csproj gives <c>&lt;cache&gt;\Stairs\&lt;key&gt;.dll</c> and
+        /// its .pdb; a reference to an unknown name on line 12, column 9 of Stairs.cs gives a failed build with the error
+        /// <c>Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current context</c>, and a .csproj with a
+        /// <c>ProjectReference</c> on line 6 one with <c>Stairs.csproj(6,10): error OC0002: ...</c>.
         /// </summary>
-        /// <param name="name">The plugin's name, which names the assembly and its folder in the cache.</param>
-        /// <param name="sources">The full paths of the .cs files, all in one folder.</param>
-        /// <returns>The assembly built or found in the cache, or the errors that kept it from being built.</returns>
-        /// <exception cref="ArgumentException">There is no name or no source.</exception>
-        public CadPluginBuild Compile(string name, IReadOnlyList<string> sources)
+        /// <param name="name">The plugin's name, which names its folder in the cache.</param>
+        /// <param name="projectPath">The path of the plugin's .csproj; its folder holds the sources.</param>
+        /// <returns>The assembly built or found in the cache, with the warnings about the project, or the errors that kept it from being built.</returns>
+        /// <exception cref="ArgumentException">There is no name or no project.</exception>
+        public CadPluginBuild Compile(string name, string projectPath)
         {
             if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentException("A plugin's name is needed.", nameof(name));
             }
 
-            if (sources == null || sources.Count == 0)
+            if (string.IsNullOrEmpty(projectPath))
             {
-                throw new ArgumentException("A source plugin has a .cs file at least.", nameof(sources));
+                throw new ArgumentException("A source plugin has a .csproj.", nameof(projectPath));
             }
 
-            var files = new List<SourceFile>();
-
-            foreach (string path in sources)
-            {
-                files.Add(new SourceFile(Path.GetFullPath(path), File.ReadAllBytes(path)));
-            }
-
-            files.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
             var errors = new List<CadPluginError>();
-            List<string> references = ReadReferences(files, errors);
+            var warnings = new List<string>();
+            CadPluginProject project = CadPluginProject.Read(Path.GetFullPath(projectPath), errors, warnings);
 
             if (errors.Count > 0)
             {
                 return Failed(errors);
             }
 
-            string key = Key(files, references);
+            string key = Key(project);
             string folder = Path.Combine(CacheFolder, Safe(name));
             string dll = Path.Combine(folder, key + ".dll");
             string pdb = Path.Combine(folder, key + ".pdb");
@@ -105,10 +99,10 @@ namespace OpenCAD2D.Wpf.Plugins
             // The .pdb is written first and the .dll last, so a .dll in the cache always has its .pdb.
             if (File.Exists(dll) && File.Exists(pdb))
             {
-                return new CadPluginBuild(dll, pdb, true);
+                return new CadPluginBuild(dll, pdb, true, warnings);
             }
 
-            CadPluginEmit emit = CadPluginRoslyn.Compile(name, files, references);
+            CadPluginEmit emit = CadPluginRoslyn.Compile(project);
 
             if (emit.Errors.Count > 0)
             {
@@ -119,125 +113,37 @@ namespace OpenCAD2D.Wpf.Plugins
             Write(pdb, emit.Pdb);
             Write(dll, emit.Assembly);
             Prune(folder, key);
-            return new CadPluginBuild(dll, pdb, false);
+            return new CadPluginBuild(dll, pdb, false, warnings);
         }
 
         /// <summary>
-        /// The cache key, 64 hex digits: the SHA-256 of a format tag, the app's version, the runtime's version, then each
-        /// source (its name, its length, its bytes) in ordinal order of the names, then each <c>//#r</c> file (its name, its
-        /// bytes) in ordinal order of the paths.
+        /// The cache key, 64 hex digits: the SHA-256 of a format tag, the app's version, the runtime's version, the .csproj's
+        /// bytes, then each source (its path from the folder, its length, its bytes) in ordinal order of the paths, then each
+        /// referenced .dll (its name, its length, its bytes) in order of the paths.
         /// </summary>
-        internal string Key(IReadOnlyList<SourceFile> files, IReadOnlyList<string> references)
+        internal string Key(CadPluginProject project)
         {
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
             {
-                AppendText(hash, "cs1");
+                AppendText(hash, "tf1");
                 AppendText(hash, _appVersion);
                 AppendText(hash, Environment.Version.ToString());
+                AppendBytes(hash, project.Bytes);
 
-                foreach (SourceFile file in files)
+                foreach (SourceFile file in project.Sources)
                 {
                     AppendText(hash, file.Name);
-                    AppendText(hash, file.Bytes.Length.ToString(CultureInfo.InvariantCulture));
-                    hash.AppendData(file.Bytes);
+                    AppendBytes(hash, file.Bytes);
                 }
 
-                foreach (string reference in references)
+                foreach (string library in project.Libraries)
                 {
-                    byte[] bytes = File.ReadAllBytes(reference);
-                    AppendText(hash, Path.GetFileName(reference));
-                    AppendText(hash, bytes.Length.ToString(CultureInfo.InvariantCulture));
-                    hash.AppendData(bytes);
+                    AppendText(hash, Path.GetFileName(library));
+                    AppendBytes(hash, File.ReadAllBytes(library));
                 }
 
                 return Convert.ToHexString(hash.GetHashAndReset());
             }
-        }
-
-        /// <summary>
-        /// The .dll files the <c>//#r</c> lines at the top of the sources name, full paths sorted ordinal and each once. A line
-        /// counts while no line but an empty one, a <c>//</c> comment or a <c>using</c> has come before it; a path that leaves
-        /// the source's folder, is not a .dll or is missing is an error of the line.
-        /// </summary>
-        private static List<string> ReadReferences(List<SourceFile> files, List<CadPluginError> errors)
-        {
-            var references = new List<string>();
-
-            foreach (SourceFile file in files)
-            {
-                string folder = Path.GetDirectoryName(file.Path);
-                string[] lines = Encoding.UTF8.GetString(file.Bytes).Split('\n');
-
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    string line = lines[i].Trim().TrimStart('﻿');
-
-                    if (line.StartsWith(Directive, StringComparison.Ordinal))
-                    {
-                        string target = line.Substring(Directive.Length).Trim().Trim('"');
-                        string path = Reference(folder, target);
-
-                        if (path == null)
-                        {
-                            errors.Add(
-                                new CadPluginError(
-                                    file.Name,
-                                    i + 1,
-                                    1,
-                                    "OC0001",
-                                    "//#r takes a .dll beside the source: '" + target + "'"
-                                )
-                            );
-                        }
-                        else if (!File.Exists(path))
-                        {
-                            errors.Add(
-                                new CadPluginError(
-                                    file.Name,
-                                    i + 1,
-                                    1,
-                                    "CS0006",
-                                    "Metadata file '" + target + "' could not be found"
-                                )
-                            );
-                        }
-                        else if (!references.Exists(r => string.Equals(r, path, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            references.Add(path);
-                        }
-                    }
-                    else if (
-                        line.Length > 0
-                        && !line.StartsWith("//", StringComparison.Ordinal)
-                        && !line.StartsWith("using ", StringComparison.Ordinal)
-                    )
-                    {
-                        break;
-                    }
-                }
-            }
-
-            references.Sort(StringComparer.OrdinalIgnoreCase);
-            return references;
-        }
-
-        /// <summary>The full path a <c>//#r</c> names in a source's folder; null for one that is rooted, leaves the folder or is not a .dll.</summary>
-        private static string Reference(string folder, string target)
-        {
-            if (
-                target.Length == 0
-                || Path.IsPathRooted(target)
-                || target.IndexOfAny(Path.GetInvalidPathChars()) >= 0
-                || !string.Equals(Path.GetExtension(target), ".dll", StringComparison.OrdinalIgnoreCase)
-            )
-            {
-                return null;
-            }
-
-            string path = Path.GetFullPath(Path.Combine(folder, target));
-            return path.StartsWith(folder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
-                ? path
-                : null;
         }
 
         private static CadPluginBuild Failed(List<CadPluginError> errors)
@@ -282,6 +188,13 @@ namespace OpenCAD2D.Wpf.Plugins
             }
         }
 
+        /// <summary>Takes the length of a file and then the file, so that where one ends and the next begins is part of the key.</summary>
+        private static void AppendBytes(IncrementalHash hash, byte[] bytes)
+        {
+            AppendText(hash, bytes.Length.ToString(CultureInfo.InvariantCulture));
+            hash.AppendData(bytes);
+        }
+
         private static void AppendText(IncrementalHash hash, string text)
         {
             hash.AppendData(Encoding.UTF8.GetBytes(text));
@@ -309,18 +222,19 @@ namespace OpenCAD2D.Wpf.Plugins
         }
     }
 
-    /// <summary>One source of a plugin: its full path, its name and its bytes as read once.</summary>
+    /// <summary>One source of a plugin: its full path, its name (the path from the plugin's folder) and its bytes as read once.</summary>
     internal sealed class SourceFile
     {
-        internal SourceFile(string path, byte[] bytes)
+        internal SourceFile(string path, string name, byte[] bytes)
         {
             Path = path;
-            Name = System.IO.Path.GetFileName(path);
+            Name = name;
             Bytes = bytes;
         }
 
         internal string Path { get; }
 
+        /// <summary>Gets the path from the plugin's folder, with / for separators: Geometry/Steps.cs.</summary>
         internal string Name { get; }
 
         internal byte[] Bytes { get; }

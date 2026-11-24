@@ -58,8 +58,7 @@ namespace OpenCAD2D.Wpf.Plugins
         public override bool CanCompile => true;
 
         /// <inheritdoc/>
-        public override CadPluginBuild Compile(string name, IReadOnlyList<string> sources) =>
-            _compiler.Compile(name, sources);
+        public override CadPluginBuild Compile(string name, string projectPath) => _compiler.Compile(name, projectPath);
 
         /// <inheritdoc/>
         public override IReadOnlyList<Assembly> Load(string name, IReadOnlyList<string> files, string probeFolder)

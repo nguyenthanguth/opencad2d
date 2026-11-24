@@ -28,11 +28,20 @@
     </ItemGroup>
 
     <!--
-    The sample source plugin, Plugins\Stairs.cs beside the exe: the example of the plugin guide, which a test of the
+    The sample source plugin, the folder Plugins\Stairs beside the exe: the example of the plugin guide, which a test of the
     Plugins suite holds byte for byte to the guide. A plugin of its own, never inside Plugins\DrawingInfo.
   -->
     <ItemGroup>
-        <None Include="..\..\examples\Stairs.cs" Link="Plugins\Stairs.cs" CopyToOutputDirectory="PreserveNewest" />
+        <None
+            Include="..\..\examples\Stairs\Stairs.csproj"
+            Link="Plugins\Stairs\Stairs.csproj"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
+            Include="..\..\examples\Stairs\StairsCommands.cs"
+            Link="Plugins\Stairs\StairsCommands.cs"
+            CopyToOutputDirectory="PreserveNewest"
+        />
     </ItemGroup>
 
     <ItemGroup>

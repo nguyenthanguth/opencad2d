@@ -16,7 +16,7 @@ using OpenCAD2D.Plugins;
 namespace OpenCAD2D.Wpf.Plugins
 {
     /// <summary>
-    /// The one place that touches the compiler (Roslyn), reached only when a plugin's sources are not in the cache, so
+    /// The one place that touches the compiler (Roslyn), reached only when a plugin's build is not in the cache, so
     /// that a start whose plugins are all cached never loads it.
     /// </summary>
     internal static class CadPluginRoslyn
@@ -28,45 +28,69 @@ namespace OpenCAD2D.Wpf.Plugins
             FrameworkReferences
         );
 
-        /// <summary>Compiles the sources, each a syntax tree of its own path, into an assembly named after the plugin and a portable PDB that embeds them.</summary>
-        internal static CadPluginEmit Compile(string name, List<SourceFile> files, List<string> references)
+        /// <summary>
+        /// Compiles a project's sources, each a syntax tree of its own path, into an assembly named as the project says and a
+        /// portable PDB that embeds them. The project's global usings and the assembly attributes the SDK would generate are
+        /// two more trees of their own, put first.
+        /// </summary>
+        internal static CadPluginEmit Compile(CadPluginProject project)
         {
-            var parse = new CSharpParseOptions(LanguageVersion.Latest);
+            var emit = new CadPluginEmit();
+            LanguageVersion language = LanguageVersion.Latest;
+
+            if (project.LangVersion != null && !LanguageVersionFacts.TryParse(project.LangVersion, out language))
+            {
+                emit.Errors.Add(
+                    new CadPluginError(
+                        project.FileName,
+                        project.LangVersionLine,
+                        project.LangVersionColumn,
+                        "CS1617",
+                        "Invalid option '"
+                            + project.LangVersion
+                            + "' for /langversion. Use '/langversion:?' to list supported values."
+                    )
+                );
+                return emit;
+            }
+
+            var parse = new CSharpParseOptions(language, preprocessorSymbols: project.Symbols);
             var trees = new List<SyntaxTree>();
 
-            foreach (SourceFile file in files)
+            if (project.Usings.Count > 0)
             {
-                SourceText text = SourceText.From(
-                    file.Bytes,
-                    file.Bytes.Length,
-                    Encoding.UTF8,
-                    SourceHashAlgorithm.Sha256,
-                    false,
-                    true
-                );
-                trees.Add(CSharpSyntaxTree.ParseText(text, parse, file.Path));
+                trees.Add(Generated(project, ".GlobalUsings.g.cs", string.Join("\n", project.Usings) + "\n", parse));
+            }
+
+            if (project.AssemblyInfo != null)
+            {
+                trees.Add(Generated(project, ".AssemblyInfo.g.cs", project.AssemblyInfo, parse));
+            }
+
+            foreach (SourceFile file in project.Sources)
+            {
+                trees.Add(CSharpSyntaxTree.ParseText(Text(file.Bytes), parse, file.Path));
             }
 
             var all = new List<MetadataReference>(Framework.Value);
 
-            foreach (string reference in references)
+            foreach (string library in project.Libraries)
             {
-                all.Add(MetadataReference.CreateFromFile(reference));
+                all.Add(MetadataReference.CreateFromFile(library));
             }
 
             var options = new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 optimizationLevel: OptimizationLevel.Release,
-                nullableContextOptions: NullableContextOptions.Disable,
+                nullableContextOptions: Nullable(project.Nullable),
                 deterministic: true,
-                allowUnsafe: false,
+                allowUnsafe: project.AllowUnsafe,
                 specificDiagnosticOptions: Suppressed.Select(id => new KeyValuePair<string, ReportDiagnostic>(
                     id,
                     ReportDiagnostic.Suppress
                 ))
             );
-            CSharpCompilation compilation = CSharpCompilation.Create(name, trees, all, options);
-            var emit = new CadPluginEmit();
+            CSharpCompilation compilation = CSharpCompilation.Create(project.AssemblyName, trees, all, options);
 
             using (var assembly = new MemoryStream())
             using (var pdb = new MemoryStream())
@@ -76,7 +100,7 @@ namespace OpenCAD2D.Wpf.Plugins
                     pdb,
                     options: new EmitOptions(
                         debugInformationFormat: DebugInformationFormat.PortablePdb,
-                        pdbFilePath: name + ".pdb"
+                        pdbFilePath: project.AssemblyName + ".pdb"
                     ),
                     embeddedTexts: trees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText()))
                 );
@@ -85,7 +109,7 @@ namespace OpenCAD2D.Wpf.Plugins
                 {
                     if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
-                        emit.Errors.Add(Error(diagnostic));
+                        emit.Errors.Add(Error(diagnostic, project.Folder));
                     }
                 }
 
@@ -99,7 +123,38 @@ namespace OpenCAD2D.Wpf.Plugins
             return emit;
         }
 
-        private static CadPluginError Error(Diagnostic diagnostic)
+        private static NullableContextOptions Nullable(string value)
+        {
+            switch (value)
+            {
+                case "enable":
+                    return NullableContextOptions.Enable;
+                case "warnings":
+                    return NullableContextOptions.Warnings;
+                case "annotations":
+                    return NullableContextOptions.Annotations;
+                default:
+                    return NullableContextOptions.Disable;
+            }
+        }
+
+        /// <summary>A source the project generates, as a tree of a path in the plugin's folder named after the project and not on disk.</summary>
+        private static SyntaxTree Generated(
+            CadPluginProject project,
+            string suffix,
+            string text,
+            CSharpParseOptions parse
+        ) =>
+            CSharpSyntaxTree.ParseText(
+                Text(Encoding.UTF8.GetBytes(text)),
+                parse,
+                Path.Combine(project.Folder, Path.GetFileNameWithoutExtension(project.FileName) + suffix)
+            );
+
+        private static SourceText Text(byte[] bytes) =>
+            SourceText.From(bytes, bytes.Length, Encoding.UTF8, SourceHashAlgorithm.Sha256, false, true);
+
+        private static CadPluginError Error(Diagnostic diagnostic, string folder)
         {
             string message = diagnostic.GetMessage(CultureInfo.InvariantCulture);
 
@@ -110,7 +165,9 @@ namespace OpenCAD2D.Wpf.Plugins
 
             FileLinePositionSpan span = diagnostic.Location.GetLineSpan();
             return new CadPluginError(
-                Path.GetFileName(span.Path),
+                span.Path.StartsWith(folder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                    ? Path.GetRelativePath(folder, span.Path)
+                    : Path.GetFileName(span.Path),
                 span.StartLinePosition.Line + 1,
                 span.StartLinePosition.Character + 1,
                 diagnostic.Id,

@@ -150,7 +150,9 @@ output of every project that uses the presenter. To install a plugin, put it the
 - **A folder** in `Plugins`, at any depth, that holds .dll files directly: one plugin made of those .dll files, its own and
   the libraries it needs, and the walk does not go below it. Where the folder has a `plugin.json`, that gives the plugin its
   name, version and API, as above; where it has none, the plugin is named after the folder.
-- **A folder with no .dll and no `plugin.json`** is walked into: `Plugins\Company\ToolA\ToolA.dll` is the plugin `ToolA`,
+- **A folder with a `.csproj`** is one plugin given as C# source ([below](#a-plugin-as-c-source)), the walk not going below
+  it either; a folder that holds only `.cs` files is refused, and says it needs a `.csproj`.
+- **A folder with no .dll, no `.csproj` and no `plugin.json`** is walked into: `Plugins\Company\ToolA\ToolA.dll` is the plugin `ToolA`,
   and `Plugins\Company\ToolB\ToolB.dll` the plugin `ToolB`. A subfolder of a plugin's own folder is not looked at, since the
   plugin is the folder above it. A subfolder that is a junction or a symbolic link, or is hidden or a system folder, is not
   entered, and one that cannot be read is passed over.
@@ -170,17 +172,29 @@ the startup list below.
 
 ## A plugin as C# source
 
-A command plugin can be given as its C# source, with no project and no build: the app compiles the `.cs` files when it
-loads them, and the plugin then goes the way a .dll goes. This is the app on .NET 8 only; hosted in Tekla on .NET
-Framework, a `.cs` is refused with `C# source plugins need the .NET 8 app; ...\Stairs.cs was not loaded.`
+A command plugin can be given as a folder of C# source with a `.csproj`, and no build: the app reads the `.csproj`, compiles
+the `.cs` files when it loads the folder, and the plugin then goes the way a .dll goes. This is the app on .NET 8 only;
+hosted in Tekla on .NET Framework, such a folder is refused with `C# source plugins need the .NET 8 app; ...\Stairs was not loaded.`
 
-- **A .cs file** is one plugin, named as the file without its extension: `Stairs.cs` is the plugin `Stairs`, and its
-  assembly is named `Stairs`.
-- **A folder** that holds .cs files directly is one plugin, the files compiled together and named after the folder (or its
-  `plugin.json`). Its subfolders are not read. The .dll files in it are the libraries its `//#r` lines may name.
+```
+Plugins\Stairs\
+    Stairs.csproj
+    StairsCommands.cs
+    Geometry\Steps.cs          (any depth)
+    plugin.json                (optional, as for a .dll)
+```
 
-They load as a .dll does: from the `Plugins` folder at every start (each .cs directly in it after the .dll files, by name,
-then the folders with a .cs, a .dll or a `plugin.json`), with `PLUGINLOAD`, from the startup list, and again with
+- **The folder** holds exactly one `.csproj` directly in it, and the plugin is named after the folder (or its `plugin.json`).
+  Two `.csproj` files are refused with `<folder> holds 2 .csproj files: a plugin folder holds one.` Whatever `.dll` files lie
+  in the folder, it is a source plugin: they are only the libraries the `.csproj` names.
+- **The sources** are every `.cs` below the folder, as the SDK takes them: but `bin\` and `obj\` of the folder, and what
+  `<Compile Remove="...">` takes out (`*`, `**` and `?` globs, relative to the folder).
+- **A lone `.cs`** (in `Plugins`, or given to `PLUGINLOAD`) is not a plugin: it is refused with
+  `Stairs.cs is a lone source file: a C# plugin is a folder with a .csproj. Put it in Plugins\Stairs\ with Stairs.csproj (see the plugin guide).`
+  A folder of `.cs` files with no `.csproj` is refused the same way.
+
+They load as a .dll does: from the `Plugins` folder at every start (the folders with a `.csproj`, a .dll or a `plugin.json`,
+after the .dll files), with `PLUGINLOAD` (a folder, or its `.csproj`), from the startup list, and again with
 `PLUGINRELOAD`, which compiles the edited source. The trusted folders and the question about a folder that is not trusted
 are the same, and the question comes before anything is compiled.
 
@@ -203,32 +217,76 @@ namespace Stairs
 }
 ```
 
-Saved as `Plugins\Stairs.cs`, it loads at the next start with `Loaded Stairs: STAIRS.`, and `STAIRS` writes `Steps: 18`.
-The app ships it there, as the file `examples/Stairs.cs` of the repository (see [the sample plugin](#the-sample-plugin)).
-A plugin that states no version (no `[assembly: AssemblyVersion]` and no `plugin.json`) is loaded without one.
+The `.csproj` is the smallest a Visual Studio user writes, and Visual Studio builds the same folder:
 
-**What the source can use.** The .NET 8 runtime the app runs on, WPF, `GeometryHelper`, `OpenCAD2D.Core` and
-`OpenCAD2D.Wpf`, as a .dll plugin can. C# is the latest the compiler knows (C# 13), with nullable off and no implicit usings,
-so each file writes its own `using` lines. Another library is named by a line at the top of a file, before its first
-line that is not empty, a `//` comment or a `using`:
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <UseWPF>false</UseWPF>
+    </PropertyGroup>
 
-```csharp
-//#r "StairsMath.dll"
-using StairsMath;
+    <ItemGroup>
+        <PackageReference Include="OpenCAD2D.Core" Version="1.0.0" />
+    </ItemGroup>
+</Project>
 ```
 
-The path is the .dll's within the source's folder; one that is missing is an error of that line
-(`Stairs.cs(1,1): error CS0006: Metadata file 'StairsMath.dll' could not be found`), and one outside the folder too
-(`error OC0001: //#r takes a .dll beside the source: '../StairsMath.dll'`). There are no NuGet packages.
+Saved as `Plugins\Stairs\Stairs.csproj` and `Plugins\Stairs\StairsCommands.cs`, it loads at the next start with
+`Loaded Stairs 1.0.0: STAIRS.`, and `STAIRS` writes `Steps: 18`. The app ships it there, as the folder `examples/Stairs` of
+the repository (see [the sample plugin](#the-sample-plugin)). The version is the `.csproj`'s `Version` (1.0.0 where it has
+none), written into the assembly as the SDK writes it.
 
-**The cache.** The build is kept in `%LocalAppData%\OpenCAD2D\PluginCache\<plugin>`, named by the SHA-256 of the sources,
-the `//#r` libraries, the app's version and the runtime's version. A start with unchanged sources takes it from there and
-does not load the compiler at all; a change of one byte compiles again, and the build it replaces is deleted. The first
-compile of a session takes about 0.9 s (the compiler's own start: a plugin of two files, 220 lines, measured on .NET 8.0.28),
-a compile after that about 20 ms. The PDB holds the sources, so a stack trace names the file and the line.
+**What the `.csproj` says.** It is read with no MSBuild, and these are honoured:
+
+| In the `.csproj` | What the app does |
+|---|---|
+| `AssemblyName` | the assembly's name; the name of the `.csproj` without its extension where there is none |
+| `Version` | the assembly version, file version and informational version (`1.2.3-beta.1` gives `1.2.3.0` and `1.2.3-beta.1`); `GenerateAssemblyInfo` false leaves them out, and a source with its own `[assembly: AssemblyVersion]` then does not clash |
+| `LangVersion` | `latest` (the default), `default`, `preview`, `13.0`, `7.3`...; one the compiler does not know is an error of its line |
+| `Nullable` | `enable`, `disable` (the default), `warnings` or `annotations` |
+| `ImplicitUsings`, `UseWPF`, `UseWindowsForms` | the SDK's global usings: `System`, `System.Collections.Generic`, `System.IO`, `System.Linq`, `System.Net.Http`, `System.Threading` and `System.Threading.Tasks`, less `System.IO` and `System.Net.Http` for `UseWPF`, plus `System.Drawing` and `System.Windows.Forms` for `UseWindowsForms` |
+| `<Using Include="...">` | a global using; `Static="true"` and `Alias="..."` as in the SDK |
+| `DefineConstants`, `AllowUnsafeBlocks` | as in the SDK |
+| `<PackageReference>` to `OpenCAD2D.Core`, `OpenCAD2D.Remote`, `OpenCAD2D.Wpf` or `GeometryHelper` | the app's own: the plugin is built against the app's copy and nothing is downloaded. Any other package is refused for now (`<PackageReference Include="Newtonsoft.Json"> is refused: NuGet comes with TF3.`) |
+| `<Reference Include="...">` | a name of the app's own (the four above, or an assembly of .NET or WPF) is the app's, and its `HintPath` is ignored, so a project that points at `C:\Program Files\OpenCAD2D\OpenCAD2D.Core.dll` loads unchanged; any other needs a `HintPath` to a .dll inside the plugin's folder |
+| `<Compile Remove="...">` | takes files out of the sources |
+
+The preprocessor symbols are the SDK's for `net8.0-windows` in Release (`TRACE`, `RELEASE`, `NET`, `NET8_0`, `NETCOREAPP`,
+`WINDOWS`, `WINDOWS7_0`, and every `NETx_OR_GREATER`, `NETCOREAPPx_OR_GREATER` and `WINDOWS7_0_OR_GREATER` up to .NET 8),
+then the project's own `DefineConstants`. Warnings of the compiler are not shown.
+
+**What it does not say.** Each of these is a line of the load log, and the plugin loads:
+
+- an element with a `Condition` (a property, an item, or a whole group) is skipped:
+  `Stairs.csproj: <PropertyGroup Condition="'$(Configuration)' == 'Debug'"> was not read (conditions are not evaluated).`
+  (only where it holds something above; one that holds only a `Description` is passed over without a word);
+- `Directory.Build.props`, `Directory.Build.targets` and `Directory.Packages.props` in the plugin's folder are not read:
+  `Stairs.csproj: Directory.Build.props is not read.`;
+- a value with `$(...)` in it is taken as written: `Stairs.csproj: <AssemblyName> holds $(...), which is not expanded; '$(MSBuildProjectName)Tool' is taken as written.`;
+- a `TargetFramework` that is not `net8.0`, `net8.0-windows...` or `netstandard2.x`: `Stairs.csproj: TargetFramework net6.0 is not net8.0 or netstandard2.x; the app compiles for its own .NET 8.`
+
+**What it cannot take.** The plugin is not loaded, and each is one error line in the form of a compiler's,
+`Stairs.csproj(7,10): error OC0002: ...`: `EnableDefaultCompileItems` false, a `<Compile Include>` naming a file outside the
+folder, a `<ProjectReference>`, a `<PackageReference>` with no version, a `<Reference>` with no `HintPath`, and a
+`<Reference>` whose `HintPath` is outside the folder or not a .dll (`error OC0001: <Reference> takes a .dll inside the tool's folder: '..\x.dll'`);
+one whose .dll is missing is `error CS0006: Metadata file 'libs\x.dll' could not be found`. A file that is not an
+SDK-style project (`<Project Sdk="...">`) is refused too. The `//#r "Name.dll"` lines of the first form of source plugins
+are no longer read: a `<Reference>` takes their place.
+
+**What the source can use.** The .NET 8 runtime the app runs on, WPF, `GeometryHelper`, `OpenCAD2D.Core` and
+`OpenCAD2D.Wpf`, as a .dll plugin can, and the libraries the `.csproj` names. There are no NuGet packages yet.
+
+**The cache.** The build is kept in `%LocalAppData%\OpenCAD2D\PluginCache\<plugin>`, named by the SHA-256 of the `.csproj`,
+each source's path from the folder and bytes, the referenced libraries, the app's version and the runtime's version. A
+start with unchanged files takes it from there and does not load the compiler at all; a change of one byte, even in the
+`.csproj`, compiles again, and the build it replaces is deleted. The first compile of a session takes about 0.9 s (the
+compiler's own start: a plugin of two files, 220 lines, measured on .NET 8.0.28), a compile after that about 20 ms. The PDB
+holds the sources, so a stack trace names the file and the line.
 
 **Errors.** A source that does not compile is not loaded, and the command line says why, a line per error, the first 20
-by file, line and column; warnings are not shown:
+by file, line and column, a file below the folder by its path from it (`Geometry\Steps.cs(5,81)`); warnings of the compiler
+are not shown:
 
 ```
 Plugin Stairs was not loaded: 1 error
@@ -238,10 +296,10 @@ Stairs.cs(12,9): error CS0103: The name 'x' does not exist in the current contex
 There is no file watcher: after saving a change, `PLUGINRELOAD` takes it.
 
 **In the window.** [Load/Unload Applications](lisp.md#appload) lists a source plugin with the Kind `C# source`, in light
-purple, and counts it in a chip of its own, `C# source 1`, after `Plugins`, which counts the .dll plugins only. Load…
-and NETLOAD's Open dialog offer "C# source (\*.cs)", and a `.cs` dropped on the table loads as one chosen with Load…. A
-source that does not compile is not loaded (a reload leaves its row unticked), and the red line under the table reads
-**Stairs.cs** `did not compile: 2 errors. Stairs.cs(12,9): error CS0103: ...` with `Every error is on the command line`
+purple, and counts it in a chip of its own, `C# source 1`, after `Plugins`, which counts the .dll plugins only. A
+`.csproj` loaded with Load… or dropped on the table loads its folder. A source that does not compile is not loaded (a
+reload leaves its row unticked), and the red line under the table reads
+**Stairs.csproj** `did not compile: 2 errors. Stairs.cs(12,9): error CS0103: ...` with `Every error is on the command line`
 on the right; its tooltip holds the whole message.
 
 ## Loading and unloading
@@ -251,7 +309,7 @@ are the ones AutoCAD users know:
 
 | Command | Alias | Does |
 |---|---|---|
-| `PLUGINLOAD` | `NETLOAD` | loads a .dll, a .cs or the folder of a plugin, for this session |
+| `PLUGINLOAD` | `NETLOAD` | loads a .dll, a .csproj or the folder of a plugin, for this session |
 | `PLUGINUNLOAD` | | unloads a plugin by name: its commands go from every drawing |
 | `PLUGINRELOAD` | | loads it again from its file: change the code, build, reload, without restarting |
 
@@ -291,7 +349,7 @@ into `%AppData%\OpenCAD2D.Core\Plugins` is not loaded now: move its folder to `P
 
 ## The sample plugin
 
-Two sample plugins ship in the `Plugins` folder: `Plugins\DrawingInfo`, a .dll, and `Plugins\Stairs.cs`, the C# source of
+Two sample plugins ship in the `Plugins` folder: `Plugins\DrawingInfo`, a .dll, and `Plugins\Stairs`, the C# source of
 [the guide's example](#a-plugin-as-c-source), the command `STAIRS`, which writes `Steps: 18`.
 
 `Plugins\DrawingInfo` holds the command `GHDWGINFO`, which reads the drawing and writes what it holds on
@@ -317,21 +375,25 @@ DrawingInfo, and the assembly its version, and the app gives a plugin its own `O
 `Plugins\DrawingInfo`; to start a plugin of your own, copy its project.
 
 **The sample as C# source.** The plugin is one file, `DrawingInfoCommands.cs` in `examples/OpenCAD2D.Plugins.DrawingInfo`
-of the repository. Put it in `Plugins\DrawingInfo` in place of the .dll and the app compiles it at its next start (about
-0.9 s, once: [the cache](#a-plugin-as-c-source) keeps the build) as the plugin `DrawingInfo`, with the same command
-and the same output as the .dll. A .cs left beside the .dll makes the folder a source plugin, and its .dll is then only a
-library that a `//#r` line could name, so the folder holds one or the other.
+of the repository. Put it in `Plugins\DrawingInfo` in place of the .dll, with a `DrawingInfo.csproj` of the smallest shape
+(the one of [the guide's example](#a-plugin-as-c-source); the project of the repository's sample is a netstandard2.0 library
+with a `ProjectReference`, which a plugin folder cannot take), and the app compiles it at its next start (about 0.9 s, once:
+[the cache](#a-plugin-as-c-source) keeps the build) as the plugin `DrawingInfo`, with the same command and the same output
+as the .dll. A `.csproj` in the folder makes it a source plugin whatever .dll lies beside it, so the folder holds one or
+the other.
 
-**The sample in source, Stairs.cs.** It is compiled at the first start after an install or an upgrade (about 0.9 s, the
-compiler's own start), and the cache keeps the build, so later starts compile nothing: the cache key holds the app's
-version, which an upgrade changes. To remove the sample, delete `Plugins\Stairs.cs`; to start a source plugin of your own,
-copy it under another name.
+**The sample in source, Stairs.** The folder `Plugins\Stairs` holds `Stairs.csproj` and `StairsCommands.cs`, the files of
+the guide's example. It is compiled at the first start after an install or an upgrade (about 0.9 s, the compiler's own
+start), and the cache keeps the build, so later starts compile nothing: the cache key holds the app's version, which an
+upgrade changes. To remove the sample, delete the folder `Plugins\Stairs`; to start a source plugin of your own, copy it
+under another name. The folder is also what Visual Studio opens: its `.csproj` asks for the `OpenCAD2D.Core` package, which
+builds it there, and the app builds it by itself.
 
 ## What the window adds
 
 The window has no ribbon tab of its own for plugins and no button per command: a plugin's commands are typed at the command
 line, or started by name. A plugin is loaded from the Applications panel of the Manage tab: Load Plugin runs NETLOAD, the
-Open dialog for a `.dll` or a `.cs`, and Load Manager opens [Load/Unload Applications](lisp.md#appload) (APPLOAD: a table of the
+Open dialog for a `.dll`, and Load Manager opens [Load/Unload Applications](lisp.md#appload) (APPLOAD: a table of the
 plugins and the AutoLISP files, with On, Commands, File and At start, Load…, Reload, Unload and Remove), with a dialog before a load
 outside the trusted folders. The plugin's load
 lines go to the command history, and a plugin that fails to load is also told by the red [load-result line](lisp.md#the-load-result-line) of that window. A plugin's `CadSetting` attributes remain in the plugin API, but the window has no page
