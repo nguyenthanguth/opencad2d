@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **NEW.** The run of a tool's command, the base of tools that run in a process of their own (Tools as folders, TF4a). A
+  program the app starts reaches the app on a second pipe, `OpenCAD2D.<process id>.tools`, which is never announced in the
+  instance folder, stays open whatever "Allow other programs to connect" says, and takes a client only with the token of
+  its tool (`hello` carries it; 32 random bytes as 64 hex letters; a connection without or with a revoked one is refused
+  and closed). The command the user types is the run: the drawing waits at `STAIRSPY is working... (Esc to stop)`, which
+  takes no typed text, point or Enter, only Esc. The tool joins the run (`app.JoinRun(7)`) and every request of it is part
+  of the command: `run.Ask(CadAskKind.Point, "Specify the first step")` asks on the command line and waits for the user,
+  with no lock held, so another client is served meanwhile; `CommitChanges` goes into the command's one undo step named
+  after it; `run.End()` keeps the step, `run.Fail(line)` takes it back and writes the line; Esc takes back everything the run
+  committed, answers a question open as cancelled (`IsCancelled`) and refuses every later request of the run. A request of
+  an ended run is refused, `The run 7 of STAIRSPY has ended.`; `pick` and `command` are refused inside a run. For the app's
+  host: `CadRemoteServer.ForTools`, `IssueToken`, `RevokeToken`, `CreateRunCommand` and `CadRemoteToolRun` (Core);
+  `new CadApplication(pipe, token)`, `JoinRun`, `CadRemoteRun` and `CadRemoteAnswer` (OpenCAD2D.Remote);
+  `CadPrompt.ForWaiting` and `IsWaiting`. The app does not start a tool with it yet.
+
 - **FIXED.** Two or more drawings dropped on the window opened only one of them: selecting `app.dwg` and `cad.dwg`
   (about 4 MB each) in Explorer and dropping them on the DRAWINGS list opened the first of the drop and refused the
   other, the command line saying "Cannot open app.dwg yet: cad.dwg is still opening." The app opens one drawing at a

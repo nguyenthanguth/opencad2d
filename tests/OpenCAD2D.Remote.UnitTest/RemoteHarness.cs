@@ -168,6 +168,26 @@ namespace OpenCAD2D.Remote.UnitTest
             return server;
         }
 
+        /// <summary>Starts the server of the tools for a host under a pipe name of its own, so that two tests never meet.</summary>
+        public CadRemoteServer ServeTools(TestHost host) => ServeTools(host, new InlineDispatcher(host.Gate));
+
+        /// <summary>Starts the server of the tools for a host, its work run by a dispatcher of the test's.</summary>
+        public CadRemoteServer ServeTools(TestHost host, ICadRemoteDispatcher dispatcher)
+        {
+            var server = new CadRemoteServer(host, dispatcher, Guid.NewGuid().ToString("N").Substring(0, 8), true);
+            server.Start();
+            _servers.Add(server);
+            return server;
+        }
+
+        /// <summary>Connects to the pipe of a tools server with a token, as a tool's process does.</summary>
+        public CadApplication ConnectTool(CadRemoteServer tools, string token)
+        {
+            var app = new CadApplication(tools.PipeName, token);
+            _clients.Add(app);
+            return app;
+        }
+
         /// <summary>Connects to the app activated last.</summary>
         public CadApplication Connect()
         {

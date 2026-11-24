@@ -588,6 +588,21 @@ namespace OpenCAD2D
             };
 
         /// <summary>
+        /// Gets whether the prompt only waits: a command that works for a program outside the app (a run of a tool) shows it
+        /// while the work goes on, and it takes no text, point, selection or Enter, only Esc, which ends the command.
+        /// </summary>
+        public bool IsWaiting { get; private set; }
+
+        /// <summary>
+        /// Shows a command at work: the message is the whole text, as <c>STAIRSPY is working... (Esc to stop)</c>, with no
+        /// colon, and nothing but Esc answers it. The host that holds the command ends the wait from code.
+        /// </summary>
+        /// <param name="message">The words shown.</param>
+        /// <returns>The prompt.</returns>
+        public static CadPrompt ForWaiting(string message) =>
+            new CadPrompt(CadPromptKind.String, message, null, null, null) { IsWaiting = true }.AsRaw();
+
+        /// <summary>
         /// Whether the prompt is <c>grread</c>'s: it shows no words, the window answers it with every key and click as it comes
         /// (<see cref="CadCommandSession.FeedKey"/>, <see cref="CadCommandSession.FeedRightClick"/>), and it has no rubber band,
         /// no dynamic input and no snap. False for every other prompt.

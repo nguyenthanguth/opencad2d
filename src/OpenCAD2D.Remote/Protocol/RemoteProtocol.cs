@@ -79,6 +79,21 @@ namespace OpenCAD2D.Remote
         /// <summary>Reads or sets the current layer of a drawing.</summary>
         public const string CurrentLayer = "currentLayer";
 
+        /// <summary>
+        /// Asks the user a question inside a run of a tool (a point, a distance, an angle, a number, a text, a keyword, an
+        /// object or objects) and waits for the answer without holding up any other client. Only on the channel of the tools.
+        /// </summary>
+        public const string Ask = "ask";
+
+        /// <summary>Writes a line on the command line of the drawing a run works in.</summary>
+        public const string Write = "write";
+
+        /// <summary>Ends a run well: the changes it made stay, as one undo step named after the command.</summary>
+        public const string End = "end";
+
+        /// <summary>Ends a run that failed: the changes it made are taken back and the line it gives is written.</summary>
+        public const string Fail = "fail";
+
         /// <summary>The names of the model tab and the layouts of a drawing, in the order of the tabs.</summary>
         public const string Layouts = "layouts";
 

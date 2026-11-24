@@ -30,7 +30,7 @@ namespace OpenCAD2D
             public JsonObject Layer;
         }
 
-        private JsonObject Commit(CadDocument document, JsonObject request)
+        private JsonObject Commit(CadDocument document, JsonObject request, CadRemoteToolRun run = null)
         {
             string text = request.GetString("fragment");
             DxfDatabase fragment = string.IsNullOrEmpty(text) ? null : DxfDatabase.Parse(text);
@@ -50,7 +50,24 @@ namespace OpenCAD2D
             // A command running holds the drawing's undo group open: an edit now would be taken back with the command's Esc.
             CadCommandSession session = _host.SessionOf(document);
 
-            if (document.IsInGroup || (session != null && session.IsRunning))
+            // A run's commits are made in its own command's undo step, which is the one group open, so they are taken back with
+            // its Esc: only in the drawing it works in.
+            if (run != null && !ReferenceEquals(document, run.Document))
+            {
+                throw new Refusal(
+                    "The run "
+                        + run.Id
+                        + " of "
+                        + run.Name
+                        + " works in the drawing "
+                        + run.Document.Title
+                        + ": a commit into "
+                        + document.Title
+                        + " would not be part of its undo step."
+                );
+            }
+
+            if (run == null && (document.IsInGroup || (session != null && session.IsRunning)))
             {
                 throw new Refusal(
                     "The drawing "
