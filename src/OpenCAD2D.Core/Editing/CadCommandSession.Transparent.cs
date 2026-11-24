@@ -177,8 +177,16 @@ namespace OpenCAD2D
 
             // A form of AutoLISP typed at a prompt that waited for the user ends by answering the prompt with its value, as
             // L1's decision 9 says; the command it interrupted does not end with it, nor does it say it is resuming.
-            string result = outer.ForLisp ? LispAnswer(_lispValue) : _context?.TransparentResult;
+            string result =
+                outer.Nested ? null
+                : outer.ForLisp ? LispAnswer(_lispValue)
+                : _context?.TransparentResult;
             _lispValue = null;
+
+            if (outer.Nested)
+            {
+                NestedOutcome = outcome;
+            }
 
             if (_grouped && !outer.Grouped)
             {
@@ -198,15 +206,23 @@ namespace OpenCAD2D
             }
 
             outer.Restore(this);
+
+            if (outer.Nested)
+            {
+                ClearGathering();
+            }
+
             RaiseCommandEnds(ended, outcome);
 
-            if (outcome == CadCommandOutcome.Cancelled && !outer.ForLisp)
+            // Esc ends the commands a transparent one interrupted; Esc at a command a host nested ends the host's command too, unless
+            // the host itself ended the nested one (EndNested).
+            if (outcome == CadCommandOutcome.Cancelled && (!outer.Silent || (outer.Nested && !outer.Abandoned)))
             {
                 Finish(CadCommandOutcome.Cancelled);
                 return;
             }
 
-            if (!outer.ForLisp)
+            if (!outer.Silent)
             {
                 Write("Resuming " + Current.Name + " command.");
             }
@@ -307,6 +323,15 @@ namespace OpenCAD2D
 
             /// <summary>Gets or sets whether what interrupted the command is a form of AutoLISP that waits for the user, not a transparent command.</summary>
             internal bool ForLisp { get; set; }
+
+            /// <summary>Gets or sets whether what interrupted the command is a command its host nested in it (<see cref="BeginNested"/>).</summary>
+            internal bool Nested { get; set; }
+
+            /// <summary>Gets or sets whether the host ended the nested command itself, so that its Esc is not the user's.</summary>
+            internal bool Abandoned { get; set; }
+
+            /// <summary>Gets whether the command it interrupted gives its prompt back with no <c>&gt;&gt;</c> and no "Resuming" line.</summary>
+            internal bool Silent => ForLisp || Nested;
 
             /// <summary>Puts the command and its prompt back, the last point (LASTPOINT) as it was before the transparent command.</summary>
             internal void Restore(CadCommandSession session)

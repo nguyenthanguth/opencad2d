@@ -28,7 +28,7 @@ import sys
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
-from . import _ui
+from . import _tool, _ui
 from ._ui import (
     Context as Context,
     DrawingsRequest as DrawingsRequest,
@@ -108,6 +108,9 @@ def write(text: str) -> None:
     Example:
         write("12 circles drawn")            # one line on the command line, as AutoLISP's princ does
     """
+    if _tool.in_tool():
+        _tool.write(text)
+        return
     _script("write").Write(text)
 
 
@@ -160,10 +163,15 @@ def get_point(
         centre = get_point("Specify centre")                  # the user picks (10, 20): GeoPoint2, centre.X == 10.0
         corner = get_point("Other corner", base=centre, keywords=["Close", "Undo"])   # the user types c: 'Close'
     """
-    answer = _ask("get_point", _cad.CadPrompt.ForPoint(message, base, _strings(keywords), default))
+    in_tool = _tool.in_tool()
+    answer = (
+        _tool.ask("get_point", "Point", message, base, keywords, default)
+        if in_tool
+        else _ask("get_point", _cad.CadPrompt.ForPoint(message, base, _strings(keywords), default))
+    )
     kind = _kind(answer)
     if kind == "Point":
-        return answer.Point
+        return _tool.point_of(answer) if in_tool else answer.Point
     if kind == "Keyword":
         return str(answer.Text)
     return None if default is None else _as_point(default)
@@ -196,9 +204,12 @@ def get_distance(
     Example:
         radius = get_distance("Specify radius", base=centre)  # the user types 5: 5.0; a second point 5 away gives 5.0 too
     """
-    return _number_or(
-        _ask("get_distance", _cad.CadPrompt.ForDistance(message, base, _strings(keywords), default)), default, float
+    answer = (
+        _tool.ask("get_distance", "Distance", message, base, keywords, default)
+        if _tool.in_tool()
+        else _ask("get_distance", _cad.CadPrompt.ForDistance(message, base, _strings(keywords), default))
     )
+    return _number_or(answer, default, float)
 
 
 def get_angle(
@@ -214,11 +225,12 @@ def get_angle(
     Example:
         turn = get_angle("Specify rotation")                  # the user types 90: 1.5707963267948966 (radians)
     """
-    return _number_or(
-        _ask("get_angle", _cad.CadPrompt.ForAngle(message, base, _strings(keywords), default)),
-        default,
-        math.radians,
+    answer = (
+        _tool.ask("get_angle", "Angle", message, base, keywords, default)
+        if _tool.in_tool()
+        else _ask("get_angle", _cad.CadPrompt.ForAngle(message, base, _strings(keywords), default))
     )
+    return _number_or(answer, default, math.radians)
 
 
 def _keyworded(message: str, keywords: Sequence[str] | None) -> tuple[str, Any]:
@@ -262,6 +274,12 @@ def get_integer(
     Example:
         count = get_integer("How many", default=3)            # the user types 7: 7; Enter gives the default, 3
     """
+    if _tool.in_tool():
+        answer = _tool.ask("get_integer", "Integer", message, None, keywords, None if default is None else str(default))
+        kind = _kind(answer)
+        if kind == "Number":
+            return int(answer.Number)
+        return str(answer.Text) if kind == "Keyword" else default
     result: int | str | None = _typed(
         "get_integer", message, keywords, default, _INTEGER, int, "Requires an integer value"
     )
@@ -278,6 +296,12 @@ def get_real(
     Example:
         factor = get_real("Scale factor", ["Auto"], 1.0)      # the user types 12.5: 12.5; "Auto" gives 'Auto'; Enter gives 1.0
     """
+    if _tool.in_tool():
+        answer = _tool.ask("get_real", "Real", message, None, keywords, None if default is None else str(default))
+        kind = _kind(answer)
+        if kind == "Number":
+            return float(answer.Number)
+        return str(answer.Text) if kind == "Keyword" else default
     result: float | str | None = _typed("get_real", message, keywords, default, _REAL, float, "Requires numeric value")
     return result
 
@@ -291,7 +315,11 @@ def get_string(message: str = "Enter text", default: str | None = None, spaces: 
         name = get_string("Name")                      # the user types two words: 'two words'; Enter gives None
         name = get_string("Name", "Anon")              # Enter gives 'Anon'
     """
-    answer = _ask("get_string", _cad.CadPrompt.ForString(message, default))
+    answer = (
+        _tool.ask("get_string", "String", message, None, None, default)
+        if _tool.in_tool()
+        else _ask("get_string", _cad.CadPrompt.ForString(message, default))
+    )
     if _kind(answer) != "Text":
         return default
     text = str(answer.Text)
@@ -307,7 +335,11 @@ def get_keyword(message: str, keywords: Sequence[str], default: str | None = Non
         mode = get_keyword("Mode", ["Yes", "No"], "No")       # the user types n: 'No'; Enter gives the default, 'No'
         mode = get_keyword("Mode", ["Yes", "No"])             # Enter gives None
     """
-    answer = _ask("get_keyword", _cad.CadPrompt.ForKeyword(message, _strings(keywords), default))
+    answer = (
+        _tool.ask("get_keyword", "Keyword", message, None, keywords, default)
+        if _tool.in_tool()
+        else _ask("get_keyword", _cad.CadPrompt.ForKeyword(message, _strings(keywords), default))
+    )
     return str(answer.Text) if _kind(answer) == "Keyword" else None
 
 
@@ -330,10 +362,15 @@ def get_entity(message: str = "Select object", keywords: Sequence[str] | None = 
         if line is not None:                                   # Enter gives None
             line.layer = "Steel"
     """
-    answer = _ask("get_entity", _cad.CadPrompt.ForEntity(message, _strings(keywords)))
+    in_tool = _tool.in_tool()
+    answer = (
+        _tool.ask("get_entity", "Entity", message, None, keywords, None)
+        if in_tool
+        else _ask("get_entity", _cad.CadPrompt.ForEntity(message, _strings(keywords)))
+    )
     kind = _kind(answer)
     if kind == "Selection" and answer.Handles.Count > 0:
-        return _entity(str(answer.Handles[0]))
+        return _tool.entity_of(str(answer.Handles[0])) if in_tool else _entity(str(answer.Handles[0]))
     return str(answer.Text) if kind == "Keyword" else None
 
 
@@ -350,6 +387,9 @@ def get_selection() -> list[Entity]:
         entities = get_selection()                             # the user selects three objects and presses Enter
         write(f"{len(entities)} selected")                     # 3 selected
     """
+    if _tool.in_tool():
+        answer = _tool.ask("get_selection", "Selection", "Select objects", None, None, None)
+        return [_tool.entity_of(str(handle)) for handle in answer.Handles]
     handles = _call(_script("get_selection").AskSelection)
     return [_entity(str(handle)) for handle in handles]
 
@@ -402,6 +442,9 @@ def cmd(*answers: object) -> None:
         cmd("CIRCLE", (10, 20), 50)           # a circle of radius 50 about (10, 20), inside the run's undo step
         cmd("CIRCLE", PAUSE, 50)              # the user picks the centre; the radius is 50
     """
+    if _tool.in_tool():
+        _tool.cmd([_answer(answer) for answer in answers])
+        return
     fed = _net.Array[_net.Object]([_answer(answer) for answer in answers])
     _call(_script("cmd").Command, fed)
 
@@ -433,7 +476,9 @@ def command(
         raise ValueError(f"A command name is one word, not {name!r}.")
 
     def decorate(function: F) -> F:
-        if _ui.current is not None:
+        if _tool.runtime is not None:
+            _tool.runtime.commands.append(_tool.Command(name, alias, description, function, uses_selection))
+        elif _ui.current is not None:
             _ui.current.commands.append([name, alias, description, function, uses_selection])
         return function
 
@@ -453,7 +498,9 @@ def on_unload(function: F) -> F:
         def bye() -> None:
             write("tools.py is gone")       # written when the file is unloaded, loaded again, or the app closes
     """
-    if _ui.current is not None:
+    if _tool.runtime is not None:
+        _tool.runtime.unloaders.append(function)
+    elif _ui.current is not None:
         _ui.current.unloaders.append(function)
     return function
 

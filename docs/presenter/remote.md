@@ -195,6 +195,12 @@ belongs to the command:
 - `CommitChanges` and the reads of the drawing work as outside a run; the commits are applied in the command's one undo step, and a
   commit into a drawing other than the one the command was typed in is refused.
 - `Write(line)` writes on the command line. `End()` keeps the step. `Fail(line)` writes the line and takes the step back.
+- `RunCommand("LINE", "0,0", new GeoPoint2(50, 0), "")` runs a command inside the run, as AutoLISP's `command` does: the answers go
+  to its prompts in turn (text is typed, `""` is Enter, a `GeoPoint2` is a point picked, a list of handles answers "Select
+  objects:"), its changes join the run's one undo step, and nothing is written about the run resuming. `CadRemoteRun.Pause`
+  (one backslash) leaves a prompt to the user and the call waits for them, holding no lock; Esc then ends the run. A name that is no
+  command, a command of a tool, an answer the command refuses and a command still asking after the last answer are refused
+  with the prompt in the words, the command ended and the run going on.
 - **Esc** at the waiting prompt (or at a question) ends the run and takes back every change it committed: a drawing of 2 lines
   that had a third committed by a run is a drawing of 2 lines again, with no undo step left. A question open is answered as
   cancelled (`IsCancelled` true), and every later request of the run is refused the same way.

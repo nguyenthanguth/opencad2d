@@ -1,7 +1,8 @@
 """GeometryHelper for Python: the .NET library and the CAD presenter, on pythonnet.
 
 Importing this package starts a .NET runtime (unless one is already running) and loads GeometryHelper,
-OpenCAD2D.Remote and OpenCAD2D from the ``lib`` folder beside this file. After that the .NET names
+OpenCAD2D.Remote and OpenCAD2D from the ``lib`` folder beside this file, or from the folder the environment variable
+``OPENCAD2D_LIB`` names (the app's own folder, for the Python tools it starts). After that the .NET names
 import as they are written in C#::
 
     from GeometryHelper.Geometry import GeoPoint3
@@ -65,13 +66,15 @@ def _start_runtime() -> None:
 
 
 def _load_assemblies() -> None:
-    """Adds each of our assemblies from ``lib``, unless one of that name is already loaded in the AppDomain."""
+    """Adds each of our assemblies from ``OPENCAD2D_LIB`` where it is set, else from ``lib``, unless one of that name is
+    already loaded in the AppDomain."""
     clr = importlib.import_module("clr")
+    lib = Path(os.environ.get("OPENCAD2D_LIB", "").strip() or _FOLDER / "lib")
     app_domain = importlib.import_module("System").AppDomain
     loaded = {assembly.GetName().Name for assembly in app_domain.CurrentDomain.GetAssemblies()}
     for name in _ASSEMBLIES:
         if name not in loaded:
-            clr.AddReference(str(_FOLDER / "lib" / (name + ".dll")))
+            clr.AddReference(str(lib / (name + ".dll")))
 
 
 def _version() -> str:

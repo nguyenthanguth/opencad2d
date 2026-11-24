@@ -61,6 +61,10 @@ namespace OpenCAD2D
                 {
                     answer = RunAsk(request, token);
                 }
+                else if (op == RemoteOps.Feed)
+                {
+                    answer = RunFeed(request, token);
+                }
                 else if (IsRunOp(op) || request.Get("run") != null)
                 {
                     answer = RunRequest(op, request, token);

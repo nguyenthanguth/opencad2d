@@ -12,6 +12,7 @@ import os
 from collections.abc import Callable
 from typing import Any
 
+from . import _tool
 from ._drawing import Backend, Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color, point3
 
 _net: Any = importlib.import_module("System")
@@ -541,6 +542,8 @@ def active_drawing() -> Drawing:
         drawing.add_line((0, 0), (10, 0))
         drawing.commit()                      # ['2B'] in a drawing whose last handle was 2A: one undo step
     """
+    if _tool.in_tool():
+        return _tool.active_drawing()
     return drawing_of(_run("active_drawing").Document)
 
 
@@ -550,6 +553,8 @@ def documents() -> Documents:
     Example:
         [d.name for d in documents()]         # ['plan.dxf', 'Drawing2.dxf'] in the order the app lists them
     """
+    if _tool.in_tool():
+        return _tool.documents()
     script = _run("documents")
 
     def listed() -> list[Drawing]:
@@ -567,6 +572,8 @@ def open_drawing(path: str) -> Drawing:
     Example:
         drawing = open_drawing(r"C:\\plans\\plan.dxf")   # shown in the app; open_drawing again gives the same one
     """
+    if _tool.in_tool():
+        return _tool.open_drawing(os.path.abspath(path))
     host = _app_host("open_drawing")
     if host is None:
         raise RuntimeError("open_drawing needs the list of drawings of the app's window, and there is none.")
@@ -579,6 +586,8 @@ def new_drawing(template: str | None = None) -> Drawing:
     Example:
         drawing = new_drawing()               # a blank drawing, shown; drawing.name == "Drawing1.dxf" in a fresh app
     """
+    if _tool.in_tool():
+        return _tool.new_drawing(None if template is None else os.path.abspath(template))
     host = _app_host("new_drawing")
     if host is None:
         raise RuntimeError("new_drawing needs the list of drawings of the app's window, and there is none.")

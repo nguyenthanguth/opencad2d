@@ -72,9 +72,11 @@ def test_the_wheel_holds_the_files_of_the_list_and_nothing_else() -> None:
         "opencad2d/cad/_drawing.py",
         "opencad2d/cad/_local.py",
         "opencad2d/cad/_remote.py",
+        "opencad2d/cad/_tool.py",
         "opencad2d/cad/_ui.py",
         "opencad2d/opencad2d.runtimeconfig.json",
         "opencad2d/py.typed",
+        "opencad2d/tool.py",
     ]
     assert [f for f in files if not f.startswith(("opencad2d/", "GeometryHelper-stubs/", "OpenCAD2D-stubs/", "System-stubs/"))
             and ".dist-info/" not in f] == []

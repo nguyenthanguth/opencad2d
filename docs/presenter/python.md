@@ -413,6 +413,42 @@ script holds, so it would wait for itself. Such a connection is refused before a
 [`CadRemoteException`](xref:OpenCAD2D.Remote.CadRemoteException): `A script inside OpenCAD2D cannot drive
 the same app through CadApplication: use opencad2d.cad, which reaches the drawing directly.`
 
+## A tool in a process of its own
+
+Python is moving out of the app (Tools as folders). A **tool** is a folder with an `__init__.py` that defines commands with
+`@command`; the app runs it in a `python.exe` of its own, never inside the window, so a tool that raises, loops for ever or
+exits cannot take the app down. This part is the process: the window does not start tools yet, and the in-app Python above is
+still what loads a file today.
+
+The app starts the process at the tool's first command, as
+`python -I -X utf8 -u -m opencad2d.tool <folder> <control in> <control out>`, with `OPENCAD2D_RUNTIME=coreclr`,
+`OPENCAD2D_LIB` (the folder the app's own `OpenCAD2D.Core.dll`, `OpenCAD2D.Remote.dll` and `GeometryHelper.dll` are in, with
+`Fonts`, `Hatches` and `Linetypes`), and the pipe and token of the private channel of the tools
+([Driving the app from another program](remote.md#the-channel-of-the-tools-and-runs)). The process is put in a job object that
+ends it, and the launcher of a venv and the interpreter it starts, whenever the app lets it go, even when the app is killed.
+It stays until the tool is unloaded or the app closes.
+
+- **The command is a run.** Typing `STAIRSPY` makes the drawing wait at `STAIRSPY is working... (Esc to stop)`; the tool's
+  `get_point` and the other prompts are asked on the command line, `write` and `print` write lines there, in order, and what
+  `commit()` applies is one undo step named `STAIRSPY`. `cmd("LINE", (0, 0), (50, 0), "")` runs a command inside the run, as
+  AutoLISP's `command` does: it joins the run's undo step and writes no "Resuming" line, `PAUSE` leaves a prompt to the
+  user, and Esc takes everything back.
+- **Esc.** The app tells the tool, whose main thread gets `KeyboardInterrupt` (`Cancelled` at a prompt), so a
+  `while True: pass` stops at once (Esc to the next command done: 0.03 s in the test). Code Python cannot interrupt
+  (`threading.Event().wait()`, a long call of a C library) is ended by the app after 5 seconds, with the line
+  `STAIRSPY: the tool Stairs did not stop within 5 s and was ended.`, and starts again at the next command.
+- **Errors.** A tool that raises writes `STAIRSPY: ValueError: no stairs here` and the traceback goes to the log; the
+  changes are taken back. A tool that exits during a run writes `STAIRSPY: the tool Stairs ended unexpectedly (exit code 3).`
+  and the last five lines of its standard error, and the run is cancelled. In both the drawing is as it was and the next
+  command works.
+- **Output.** What the tool writes on its standard error goes to the log. A line it writes on its standard output outside a run
+  (or from a thread after one) goes to the command line of its last run.
+- **Cost.** The first command of a tool took 0.37 s (the process started, `opencad2d` imported, the connection made, one
+  run); the next, in the same process, 16 ms. A kept process is about 66 MB.
+
+`@on_unload` functions run when the app unloads the tool; a tool that has not left within 5 seconds is ended. `active_drawing()`
+is the drawing the command was typed in; `session()` and the `add_*` window functions do not exist in a tool.
+
 ## What is not there yet
 
 - `save()` inside a run makes two undo steps: the run's group ends at the save and opens again, so what was done before it is

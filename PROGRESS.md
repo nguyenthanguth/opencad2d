@@ -652,6 +652,9 @@ Plugins\Stairs\                Pythons\StairsPy\
       a run's commit in its own undo step, Esc takes it back; the tools pipe `OpenCAD2D.<pid>.tools` with a token);
       Remote 140, Core 13896, Wpf 2511, pytest 697 x2. Decided: `cmd()` inside a run nests the command as AutoLISP's
       `(command ...)` does, with no "Resuming" line (TF4b)
+      Part TF4b done 2026-11-24: a tool's python.exe started suspended into a job (killed with the app), control pipes,
+      stdout/stderr, Esc then 5 s stop, a crash or hang leaves the app working; `cmd()` nests in the run (one undo step);
+      first command 0.37-0.39 s, next 16 ms; Remote 157, Wpf 2527, pytest 710. The window starts no tool yet (TF7)
 - [ ] TF5. A venv per tool and pip (TF-D6 to D9): the venv made, `requirements.txt` and the wheel installed after a
       yes, errors that say what to do.
       -> verify: tests with a local package index (no network); two tools with two versions of one package both run.

@@ -1752,7 +1752,7 @@ namespace OpenCAD2D
             _repeatAsked = true;
 
             // A transparent command's prompts are written after ">>", as AutoCAD's; a form of AutoLISP typed at a prompt asks without them.
-            if (_suspended.Count > 0 && !_suspended.Peek().ForLisp)
+            if (_suspended.Count > 0 && !_suspended.Peek().Silent)
             {
                 Prompt.Transparently();
             }

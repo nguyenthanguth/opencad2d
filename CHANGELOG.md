@@ -31,6 +31,19 @@
   `new CadApplication(pipe, token)`, `JoinRun`, `CadRemoteRun` and `CadRemoteAnswer` (OpenCAD2D.Remote);
   `CadPrompt.ForWaiting` and `IsWaiting`. The app does not start a tool with it yet.
 
+- **NEW.** The process of a Python tool (Tools as folders, TF4b). `python -m opencad2d.tool <folder>` runs a folder's
+  `@command` functions as the commands of the app: the window side starts it (suspended, in a job object that ends it and
+  every process it starts when the app lets it go, so none is left even when the app is killed) at the tool's first
+  command, keeps it, reads its standard output and error, and gives it two anonymous pipes of lines of JSON (`run`,
+  `cancel`, `unload`; `ready`, `ended`). The tool's `get_point` and the other prompts, `write`, `print`, `cmd` and
+  `active_drawing()` are requests of the run on the channel of the tools, so a command is one undo step and Esc takes it
+  back. A tool that raises (`STAIRSPY: ValueError: no stairs here`), exits (`... ended unexpectedly (exit code 3).`) or
+  hangs (`... did not stop within 5 s and was ended.`) leaves the drawing as it was and the next command works; Esc in
+  `while True: pass` stops the loop at once. The first command of a tool took 0.37 s, the next 16 ms. `cmd()` inside a run
+  nests the command as AutoLISP's `command` does, with no "Resuming" line: `CadRemoteRun.RunCommand(name, answers)` and the
+  `feed` request (`CadRemoteRun.Pause` leaves a prompt to the user). `OPENCAD2D_LIB` names the folder `import opencad2d`
+  loads the assemblies from. The window does not start tools yet.
+
 - **FIXED.** Two or more drawings dropped on the window opened only one of them: selecting `app.dwg` and `cad.dwg`
   (about 4 MB each) in Explorer and dropping them on the DRAWINGS list opened the first of the drop and refused the
   other, the command line saying "Cannot open app.dwg yet: cad.dwg is still opening." The app opens one drawing at a

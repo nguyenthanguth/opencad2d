@@ -327,7 +327,9 @@ namespace OpenCAD2D.Plugins.Net8Runner
             )
             {
                 manager.ConfirmUntrusted = p => true;
-                var model = new MainViewModel();
+                // A settings file of its own: the default is the user's %AppData%\OpenCAD2D\settings.json, which opening a
+                // drawing and loading a plugin write (recent files, known applications).
+                var model = new MainViewModel { SettingsPath = Path.Combine(dev, "settings.json") };
                 model.UsePlugins(manager, loadAtStart: false);
                 Check(label + ": the drawing opens", model.Open(drawing));
 
