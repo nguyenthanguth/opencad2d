@@ -5388,7 +5388,7 @@ Annotation Scaling, Leaders and Dimensions collapse; Text and Centerlines never 
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <!-- The G button: the application menu dropped under it (design AppMenu). -->
+                <!-- The application menu button: the OpenCAD2D mark (the small one, without the letters AD, as the icon frames below 24 px), the application menu dropped under it (design AppMenu). Hovered, pressed or with the menu open, a ring of 2 px #6CB6FF around it. -->
                 <Button
                     x:Name="AppMenuButton"
                     Width="22"
@@ -5398,22 +5398,46 @@ Annotation Scaling, Leaders and Dimensions collapse; Text and Centerlines never 
                     ToolTip="Application menu"
                     AutomationProperties.Name="Application menu"
                     Focusable="False"
+                    Tag="{Binding IsOpen, ElementName=AppMenuPopup}"
                 >
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="Mark" CornerRadius="4" Background="{StaticResource GhAccent}">
-                                <TextBlock
-                                    Text="G"
-                                    FontWeight="Bold"
-                                    FontSize="12"
-                                    Foreground="{StaticResource GhAccentInk}"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
+                            <Grid Background="Transparent">
+                                <Viewbox Stretch="Uniform">
+                                    <Canvas Width="256" Height="256">
+                                        <Path Stroke="#D5DBE3" StrokeThickness="4" Fill="#FFFFFF">
+                                            <Path.Data>
+                                                <RectangleGeometry Rect="18,18,220,220" RadiusX="42" RadiusY="42" />
+                                            </Path.Data>
+                                        </Path>
+                                        <Path Stroke="#1F6FD6" StrokeThickness="24">
+                                            <Path.Data>
+                                                <EllipseGeometry Center="128,128" RadiusX="84" RadiusY="84" />
+                                            </Path.Data>
+                                        </Path>
+                                        <Path
+                                            Stroke="#1F6FD6"
+                                            StrokeThickness="20"
+                                            Data="M165.2,94.5 A50,50 0 1 0 165.2,161.5"
+                                        />
+                                    </Canvas>
+                                </Viewbox>
+                                <Border
+                                    x:Name="Ring"
+                                    Margin="-2"
+                                    CornerRadius="7"
+                                    BorderThickness="2"
+                                    BorderBrush="#6CB6FF"
+                                    IsHitTestVisible="False"
+                                    Visibility="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource Shown}}"
                                 />
-                            </Border>
+                            </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Mark" Property="Background" Value="#6CB6FF" />
+                                    <Setter TargetName="Ring" Property="Visibility" Value="Visible" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Ring" Property="Visibility" Value="Visible" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

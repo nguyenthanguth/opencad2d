@@ -589,7 +589,7 @@ refused with `Requires an integer between 0 and 31.`
 
 ### The application menu and Recent Documents
 
-The G button at the top left drops the application menu, as AutoCAD's: a search box for the commands (by name, then by description), then New, Open,
+The OpenCAD2D mark at the top left (the application menu button) drops the application menu, as AutoCAD's: a search box for the commands (by name, then by description), then New, Open,
 Save, Save As, Import, Export, Print and Close, and Options and Exit at the foot. Resting the pointer on an item with ▸
 shows its list at the right; a click on the item runs the first entry of its list, and a click on Export runs EXPORTPDF.
 

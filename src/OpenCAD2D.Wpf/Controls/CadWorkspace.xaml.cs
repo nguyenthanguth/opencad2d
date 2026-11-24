@@ -1725,7 +1725,7 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>The G button: the application menu dropped under it, the keyboard in its search box.</summary>
+        /// <summary>The application menu button: the application menu dropped under it, the keyboard in its search box.</summary>
         private void OnAppMenuButton(object sender, RoutedEventArgs e)
         {
             if (_model == null)
