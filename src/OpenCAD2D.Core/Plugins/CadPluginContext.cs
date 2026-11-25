@@ -18,10 +18,12 @@ namespace OpenCAD2D.Plugins
             IReadOnlyList<string> selected,
             bool isCommandRunning,
             Action<string> write,
-            Action<string> runCommand
+            Action<string> runCommand,
+            CadEditor editor = null
         )
         {
             Document = document;
+            Editor = editor;
             Selected = selected ?? Array.Empty<string>();
             IsCommandRunning = isCommandRunning;
             _write = write;
@@ -30,6 +32,13 @@ namespace OpenCAD2D.Plugins
 
         /// <summary>Gets the drawing the window shows; null where none is open.</summary>
         public CadDocument Document { get; }
+
+        /// <summary>
+        /// Gets the editor of the drawing the window shows (<see cref="CadCommandSession.Editor"/>): its view, the selection by
+        /// area, the system variables and the named views; null where no drawing is open. A plugin that uses it states
+        /// <c>[assembly: CadPluginApi("1.3")]</c>.
+        /// </summary>
+        public CadEditor Editor { get; }
 
         /// <summary>Gets the handles of the objects selected, in ordinal order; empty for none.</summary>
         public IReadOnlyList<string> Selected { get; }

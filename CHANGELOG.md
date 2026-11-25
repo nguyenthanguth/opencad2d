@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **NEW.** `CadEditor`, reached as `CadCommandSession.Editor`, `CadCommandContext.Editor` and `CadPluginContext.Editor`
+  (A6): zoom extents, window, objects, center, scaled and previous, pan, regen, the current view, named views, selection of
+  all, by window and by crossing window, and system variables. Each call does what the command does, through the same
+  code, as one undo step or inside the running command's step. Plugin API 1.3.
+- **NEW.** Remote: `ZoomExtents`, `ZoomWindow`, `ZoomObjects`, `ZoomCenter`, `ZoomScaled`, `ZoomPrevious`, `Pan`, `Regen`,
+  `CurrentView`, `SetCurrentView`, `HasWindow`, `NamedViews`, `SaveView`, `RestoreView`, `DeleteView`, `GetVariable`,
+  `SetVariable`, `SelectAll`, `SelectWindow` and `SelectCrossingWindow` on `CadRemoteDocument`; the view requests are
+  refused for a drawing not shown.
+- **FIXED.** A typed -VIEW Restore in a session with no window now shows the view it restores.
 - **FIXED.** Global settings > Folder preference: the kind of a default folder ("Drawing templates") was cut at 96 pixels and ran into its path; the kind column is now as wide as the longest kind of the page, with a gap of 16 pixels before the path, and the paths of Fonts, Hatch patterns, Linetypes, Lisps and Drawing templates start at one place. The Python block's "Passed over" list showed `3.10: no InstallPath` twice when HKCU and HKLM both register 3.10; where a tag is registered in both hives each line now names its hive (`3.10 (HKCU): no InstallPath`, `3.10 (HKLM): no InstallPath`, `3.13 (HKLM): 3.13 (HKCU) was chosen instead`).
 
 - **NEW.** UCSMAN (UC, DDUCS) opens the UCS dialog as AutoCAD 2021's: Named UCSs (Unnamed, World, Previous and the named systems, with Set Current, Rename in place, Delete and Details to four decimals relative to World, Unnamed or another system), Orthographic UCSs (Top, Bottom, Front, Back, Left and Right with their depth) and Settings (the UCS icon, Allow Selecting UCS icon, Save UCS with viewport, Update view to Plan). Nothing reaches the drawing until OK, and OK is one undo step named UCSMAN; Cancel changes nothing. Names are refused with AutoCAD's three messages, and World, Previous and Unnamed as taken. UCSMAN with no window now says the window shows it, in place of listing the named systems.

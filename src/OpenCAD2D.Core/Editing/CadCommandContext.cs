@@ -30,6 +30,12 @@ namespace OpenCAD2D
         /// <summary>Gets the command.</summary>
         public CadCommand Command { get; }
 
+        /// <summary>
+        /// Gets the editor of the session: the view, the selection by area, the system variables and the named views. A view call
+        /// made while the command runs is part of the command's undo step.
+        /// </summary>
+        public CadEditor Editor => Session.Editor;
+
         /// <summary>Gets the document.</summary>
         public CadDocument Document => Session.Document;
 

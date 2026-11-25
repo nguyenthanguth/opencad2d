@@ -117,6 +117,55 @@ a command running in it refuses it. `GetObjects(new CadObjectFilter { Layout = "
 greatest. It is the request `extents` of the channel, and what the `DrawingInfo` tool of the Pythons folder writes on its
 `Extents:` line (`drawing.net.Extents` in Python).
 
+## The view, selection and variables
+
+A program can move the drawing's view, keep named views, take objects by an area and read and set system variables as the app's
+own plugins do through [`CadEditor`](plugins.md#the-editor-the-view-selection-and-variables): each call is the command of its
+name run in the app, and the app answers as the command would. The view calls work on the drawing the app shows (`Activate()`
+it first), since only its session holds the canvas's view: asked of another drawing they are refused with
+`The drawing B.dxf is not the drawing shown: activate it first.` The rest (`Regen`, `NamedViews`, `DeleteView`, the variables
+and the selections by area) work on any open drawing.
+
+```csharp
+drawing.Activate();
+drawing.ZoomExtents();                                           // ZOOM Extents
+drawing.ZoomWindow(new GeoPoint2(0, 0), new GeoPoint2(10, 10));  // ZOOM Window, no margin
+drawing.Pan(new GeoVector2(10, 0));                              // -PAN: the drawing moves 10 to the right
+drawing.ZoomCenter(new GeoPoint2(50, 50), 20);                   // ZOOM Center, a height of 20
+drawing.ZoomScaled(2);                                           // ZOOM 2X
+bool back = drawing.ZoomPrevious();                              // false where none is saved
+CadRemoteExtents shown = drawing.CurrentView;                    // the part of the space the canvas shows
+
+drawing.SaveView("Plan");                                        // -VIEW Save
+drawing.RestoreView("plan");                                     // -VIEW Restore, letters of either case alike
+IReadOnlyList<string> views = drawing.NamedViews;                // -VIEW ?'s order
+
+IReadOnlyList<DxfEntity> inside = drawing.SelectWindow(new GeoPoint2(-1, 5), new GeoPoint2(101, 35));
+IReadOnlyList<DxfEntity> across = drawing.SelectCrossingWindow(new GeoPoint2(50, 15), new GeoPoint2(60, 25));
+IReadOnlyList<DxfEntity> all = drawing.SelectAll();
+
+drawing.SetVariable("LTSCALE", 2.5);                             // setvar
+double scale = (double)drawing.GetVariable("LTSCALE");           // getvar: an int, a double, a string or a double[]
+```
+
+The points and vectors are 2D, in the world and the units of the drawing. In a drawing with a line from (0, 0) to (100, 0) and a
+circle about (50, 50) of radius 25 that the app shows with no window (942 by 534 pixels, 10 units high about the origin: the
+Remote test server and the tests of the app), `ZoomExtents()` makes `CurrentView` (-23.502, -4.167) to (123.502, 79.167) and
+`ZoomWindow((0, 0), (10, 10))` (-3.820, 0) to (13.820, 10). `HasWindow` says whether the app shows the drawing in a window
+(the `view` answer's `window`): false there, true in the app, where the canvas has its own shape and so a view of its own.
+
+- **Undo.** Each view call is a step of the app named `ZOOM`, `PAN` or `VIEW`, a variable the drawing keeps `SETVAR`; inside a
+  [run](#the-channel-of-the-tools-and-runs) they join the run's step, which U takes back whole.
+- **Selection** gives copies as `GetObjects` does, with `HandleOf` and `Modify` working on them, in the order the space lists its
+  objects, and leaves the objects the user selected selected: `Select(handles)` changes them. `SelectWindow` and
+  `SelectCrossingWindow` are held to the view where the app has a window, as the Window and Crossing options are.
+- **Refusals** come in the words of the editor: `The window has no width or no height.`, `The system variable NOSUCH is not
+  known.`, `The value 7 is refused for LUNITS.`, `The drawing has no view named Corner.`
+- **The requests** are `zoom` (`how`: `extents`, `window`, `objects`, `center`, `scaled`, `previous`), `pan`, `regen`, `view` (reads;
+  sets where `min` and `max` are given), `namedViews`, `saveView`, `restoreView`, `deleteView`, `variable` and `selectArea`
+  (`how`: `all`, `window`, `crossing`). They are new words of protocol version 1: an older app answers `OpenCAD2D does not
+  know the request zoom: it is of an older version.`
+
 ## Commands
 
 `drawing.SendCommand("ZOOM E ")` types on the drawing's command line as the user does, words parted by spaces going in one by

@@ -208,6 +208,24 @@ namespace OpenCAD2D
                     return CurrentLayout(Find(request), request.GetString("name"));
                 case RemoteOps.Extents:
                     return Extents(Find(request));
+                case RemoteOps.Zoom:
+                    return Zoom(Find(request), request);
+                case RemoteOps.Pan:
+                    return Pan(Find(request), request);
+                case RemoteOps.Regen:
+                    return Regen(Find(request));
+                case RemoteOps.View:
+                    return View(Find(request), request);
+                case RemoteOps.NamedViews:
+                    return NamedViews(Find(request));
+                case RemoteOps.SaveView:
+                case RemoteOps.RestoreView:
+                case RemoteOps.DeleteView:
+                    return NamedView(Find(request), op, request.GetString("name"));
+                case RemoteOps.Variable:
+                    return Variable(Find(request), request);
+                case RemoteOps.SelectArea:
+                    return SelectArea(Find(request), request);
                 default:
                     throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }

@@ -134,6 +134,22 @@ namespace OpenCAD2D
             return ordered;
         }
 
+        /// <summary>The handles of every object of the working space, in the order the space lists them, the first viewport of a layout left out: what ALL selects.</summary>
+        internal List<string> WorkingSpaceHandles()
+        {
+            var all = new List<string>();
+
+            foreach (DxfEntity entity in Document.WorkingSpace.Block)
+            {
+                if (!string.IsNullOrEmpty(entity.Handle) && !(entity is DxfViewport viewport && viewport.Number == 1))
+                {
+                    all.Add(entity.Handle);
+                }
+            }
+
+            return all;
+        }
+
         /// <summary>An option typed at "Select objects:", by its capital letters or whole.</summary>
         private bool SelectOption(string option, string echo)
         {
@@ -142,21 +158,8 @@ namespace OpenCAD2D
             switch (option)
             {
                 case "ALL":
-                    var all = new List<string>();
-
-                    foreach (DxfEntity entity in Document.WorkingSpace.Block)
-                    {
-                        if (
-                            !string.IsNullOrEmpty(entity.Handle)
-                            && !(entity is DxfViewport viewport && viewport.Number == 1)
-                        )
-                        {
-                            all.Add(entity.Handle);
-                        }
-                    }
-
                     // The object made last comes first in the set, as AutoCAD counts the set of ALL (runs/hhh, runs/nnn).
-                    all = NewestFirst(all);
+                    List<string> all = NewestFirst(WorkingSpaceHandles());
 
                     if (!_removing)
                     {
