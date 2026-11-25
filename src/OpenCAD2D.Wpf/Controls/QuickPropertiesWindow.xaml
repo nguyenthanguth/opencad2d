@@ -74,6 +74,7 @@
                                 VerticalAlignment="Center"
                             />
                             <ComboBox
+                                x:Name="Choice"
                                 Grid.Column="1"
                                 Style="{StaticResource GhComboBox}"
                                 Margin="0,1,1,1"
@@ -89,6 +90,15 @@
                                 Visibility="{Binding IsReadOnly, Converter={StaticResource Shown}}"
                             />
                         </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsColor}" Value="True">
+                                <Setter
+                                    TargetName="Choice"
+                                    Property="ItemTemplate"
+                                    Value="{StaticResource ColorItem}"
+                                />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

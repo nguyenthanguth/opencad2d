@@ -28,6 +28,16 @@
 - **CHANGED.** The Block Editor works in the World UCS, as AutoCAD 2021's does: UCS and UCSMAN there say
   `** UCS command not allowed in block editor. **`. BCLOSE (Save, Discard, or with no change) puts the model's UCS back,
   unnamed; UCS Previous then gives the World UCS, then that UCS.
+- **NEW.** A plugin's ribbon panels shrink as the window narrows (right-most first, each to icons, then each collapsed to
+  one button with its title and its first item's icon) and may have a slide-out (`CadRibbonPanel.SlideOutItems`, opened
+  by "Title ▾"), a dialog launcher (`DialogLauncher`) and macro buttons (`CadRibbonButton.FromMacro`, AutoCAD's
+  `^C^C_CIRCLE;0,0;\` form). Plugin API 1.2: a plugin using them states `[assembly: CadPluginApi("1.2")]`.
+- **NEW.** The coordinate rows of a point a plugin gives (`CadPropertyRow.Point` with a setter) show a pick-point button on
+  the row being edited: `Pick a point in the drawing:`, a rubber band from the point, the setter called once.
+- **CHANGED.** Color rows in Properties and Quick Properties draw a swatch before the value, as AutoCAD 2021: the layer's
+  colour for ByLayer, white for ByBlock, White (7) split black and white, none for *VARIES*; the list draws one before each
+  colour and a wheel before Select Color.... The drop-down of a collapsed ribbon panel with a slide-out also shows the
+  slide-out, after a line.
 - **NEW.** A C# plugin is a folder with a `.csproj`, compiled by the app (Tools as folders; C# source plugins). A folder with
   a `.csproj` loads as a `.dll` does (the `Plugins` folder, PLUGINLOAD/NETLOAD of the folder or its `.csproj`, the startup
   list, PLUGINRELOAD), compiled by Roslyn when it loads, on .NET 8 only, and Visual Studio builds the same folder. The app

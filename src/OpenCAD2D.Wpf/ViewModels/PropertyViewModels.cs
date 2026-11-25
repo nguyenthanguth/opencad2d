@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Input;
 
 namespace OpenCAD2D.Wpf
 {
@@ -11,24 +12,40 @@ namespace OpenCAD2D.Wpf
     public sealed class PropertyRowViewModel : ObservableObject
     {
         private readonly Func<PropertyRowViewModel, string, bool> _commit;
+        private readonly int _byLayerRgb;
+        private readonly DelegateCommand _pick;
         private string _value;
 
         internal PropertyRowViewModel(
             CadPropertyRow row,
             IReadOnlyList<string> options,
-            Func<PropertyRowViewModel, string, bool> commit
+            Func<PropertyRowViewModel, string, bool> commit,
+            bool isColor = false,
+            int byLayerRgb = 0xFFFFFF,
+            Action<CadPropertyRow> pick = null,
+            Func<bool> canPick = null
         )
         {
             Label = row.Label;
             _value = row.Value;
             IsReadOnly = row.IsReadOnly;
             IsCheck = row.IsCheck && !row.IsReadOnly;
+            IsColor = isColor;
+            _byLayerRgb = byLayerRgb;
 
-            // The drop-down shows the value the row has, one of its list or not.
+            // A point an extension or a plugin gave a setter is picked on the drawing, X, Y and Z alike.
+            if (pick != null && row.PointSetter != null && !row.IsReadOnly)
+            {
+                _pick = new DelegateCommand(_ => pick(row), _ => canPick == null || canPick());
+            }
+
+            // The drop-down shows the value the row has, one of its list or not; a colour not in the list (a true colour,
+            // *Varies*) stands before Select Color..., which is last.
             if (options != null && !System.Linq.Enumerable.Contains(options, _value))
             {
-                var all = new List<string> { _value };
-                all.AddRange(options);
+                var all = new List<string>(options);
+                int last = isColor ? all.IndexOf(MainViewModel.SelectColorOption) : -1;
+                all.Insert(last < 0 ? 0 : last, _value);
                 options = all;
             }
 
@@ -63,8 +80,35 @@ namespace OpenCAD2D.Wpf
                 Raise(nameof(Value));
                 Raise(nameof(Varies));
                 Raise(nameof(IsOn));
+                Raise(nameof(SwatchRgb));
             }
         }
+
+        /// <summary>Gets whether the row holds a colour: the presenter's Color row, or a row of kind <see cref="CadPropertyKind.Color"/> a plugin or an extension gave.</summary>
+        public bool IsColor { get; }
+
+        /// <summary>
+        /// Gets the swatch drawn before the value of a colour row as 0xRRGGBB: the colour of the value, that of the layer of the
+        /// objects for ByLayer, white for ByBlock; null for none, where the row holds no colour, or *Varies*, or text that is no
+        /// colour. White (7) is drawn split black and white all the same, its value here 0xFFFFFF.
+        /// </summary>
+        public int? SwatchRgb => IsColor ? ColorTextSwatch.Rgb(_value, _byLayerRgb) : null;
+
+        /// <summary>Gets the colour of the layer of the objects, which a colour of ByLayer is drawn in: that of the one layer they are on, white where they differ.</summary>
+        internal int ByLayerRgb => _byLayerRgb;
+
+        /// <summary>Gets whether the row is a coordinate of a point a plugin or an extension can change, which shows a button to pick the point on the drawing while it is edited.</summary>
+        public bool CanPickPoint => _pick != null;
+
+        /// <summary>
+        /// Gets what the pick-point button does: asks "Pick a point in the drawing:" on the command line, with a rubber band from the
+        /// point, and gives the setter the point picked, its X and Y the picked ones and its Z as it was. It cannot run while a command
+        /// runs. Null for a row that is not a coordinate of a point.
+        /// </summary>
+        public ICommand PickPointCommand => _pick;
+
+        /// <summary>Asks again whether the pick-point button can run, as a command starts or ends.</summary>
+        internal void RefreshPick() => _pick?.RaiseCanExecuteChanged();
 
         /// <summary>Gets whether the row is a check box an extension gave, which the window draws as a box to tick.</summary>
         public bool IsCheck { get; }

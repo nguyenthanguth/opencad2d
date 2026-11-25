@@ -36,11 +36,12 @@ namespace OpenCAD2D.Plugins
         }
 
         /// <summary>
-        /// Gets the version of the plugin API this build of the presenter has: 1.1, which added what
-        /// <see cref="ICadPluginApplication"/> and <see cref="CadPluginHost"/> give the window; a plugin that uses them
-        /// states <c>[assembly: CadPluginApi("1.1")]</c>.
+        /// Gets the version of the plugin API this build of the presenter has: 1.2. Version 1.1 added what
+        /// <see cref="ICadPluginApplication"/> and <see cref="CadPluginHost"/> give the window; 1.2 added the slide-outs and
+        /// dialog launchers of <see cref="CadRibbonPanel"/> and the macro buttons of <see cref="CadRibbonButton"/>. A plugin
+        /// that uses the first states <c>[assembly: CadPluginApi("1.1")]</c>, one that uses the second <c>"1.2"</c>.
         /// </summary>
-        public static Version ApiVersion { get; } = new Version(1, 1);
+        public static Version ApiVersion { get; } = new Version(1, 2);
 
         /// <summary>Gets the plugin's name: the name of its manifest, or of its assembly.</summary>
         public string Name { get; }

@@ -307,5 +307,32 @@ namespace OpenCAD2D.UnitTest
             Assert.Empty(context.Selected);
             Assert.False(context.IsCommandRunning);
         }
+
+        [Fact]
+        public void APanelsSlideOutItems_AreKeptInTheOrderGiven_AndEmptyUntilFilled()
+        {
+            var panel = new CadRibbonPanel("Number");
+            Assert.Empty(panel.SlideOutItems);
+
+            var first = new CadRibbonButton("Start value", "NUMSTART");
+            var second = new CadRibbonButton("Prefix", "NUMPREFIX");
+            panel.SlideOutItems.Add(first);
+            panel.SlideOutItems.Add(second);
+
+            Assert.Equal(new CadRibbonItem[] { first, second }, panel.SlideOutItems);
+            Assert.Empty(panel.Items);
+        }
+
+        [Fact]
+        public void APanelsDialogLauncher_IsNullUntilSet()
+        {
+            var panel = new CadRibbonPanel("Number");
+            Assert.Null(panel.DialogLauncher);
+
+            var launcher = new CadRibbonButton("Settings", "NUMSETTINGS");
+            panel.DialogLauncher = launcher;
+
+            Assert.Same(launcher, panel.DialogLauncher);
+        }
     }
 }

@@ -138,9 +138,10 @@ A command is a name or an object, `{ "name": "NUMCIRCLES", "alias": "NC", "descr
 what a [Python tool](python.md#pluginjson) declares for the window; a C# plugin adds to the window in code, as
 [below](#what-a-plugin-adds-to-the-window).
 [`CadPluginManifest.Parse(json)`](xref:OpenCAD2D.Plugins.CadPluginManifest) reads it, and `Refusal()` says
-why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.1
-(`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.1: it needs a
-newer presenter.` A plugin that adds to the window, as [below](#what-a-plugin-adds-to-the-window), states 1.1.
+why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.2
+(`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.2: it needs a
+newer presenter.` A plugin that adds to the window, as [below](#what-a-plugin-adds-to-the-window), states 1.1; one that
+uses slide-outs, dialog launchers, macro buttons or `CadSnapRequest.BlockReferences` states 1.2.
 
 A plugin targets netstandard2.0 and references `OpenCAD2D` only, without copying it: the presenter gives a
 plugin its own, so that the `CadCommandContext` it is handed is of the type it was built against.
@@ -497,6 +498,17 @@ A plugin may add to the window what AutoCAD's plugins add to theirs: ribbon tabs
 and items of the DRAWINGS list, items of the canvas's right-click menu, and object snaps of its own. It describes them
 with the types of `OpenCAD2D.Plugins`, none of them WPF's, so the same .dll runs on .NET 8 and .NET Framework;
 the window draws them in its own look and takes them away when the plugin is unloaded.
+
+A plugin tab's panels shrink as the window narrows, as the built-in ones do: right-most first, each panel to its standard
+items' icons alone (large items keep their text), then each collapsed to one button with its title and the icon of its
+first item, whose drop-down runs its buttons and closes after a click unless pinned. A panel may hold
+`SlideOutItems` (laid out as its `Items`, opened by its title "Number ▾"), a `DialogLauncher` (the small arrow at the
+right of its title; its tooltip is the button's, grey when `CanRun` is false) and macro buttons made with
+`CadRibbonButton.FromMacro("Circle R10", @"^C^C_CIRCLE;\10;")`, which run as AutoCAD's CUI macros: `^C` cancels, `;`, a
+space and `^M` are Enter, `\` waits for the user, `_` and `.` as typed, `(...)` is AutoLISP; `*`, `$M=` and the other
+`^` pairs are refused with a line saying so. The coordinate rows of a point made with `CadPropertyRow.Point` and a setter
+show a pick button on the row being edited: `Pick a point in the drawing:`, a rubber band from the point, the setter
+called once with the point picked and the row's Z.
 
 A public class that implements [`ICadPluginApplication`](xref:OpenCAD2D.Plugins.ICadPluginApplication), as
 AutoCAD's `IExtensionApplication`, is made once when the plugin is loaded and given a

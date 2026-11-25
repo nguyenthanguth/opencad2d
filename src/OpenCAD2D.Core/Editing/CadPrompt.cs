@@ -383,6 +383,16 @@ namespace OpenCAD2D
             return this;
         }
 
+        /// <summary>Whether the answer to the prompt is left out of the history, as AutoCAD's pick-point button of Properties leaves it: the prompt shows on the command line and the point picked writes no line.</summary>
+        internal bool WithoutHistoryLine { get; private set; }
+
+        /// <summary>Makes the prompt one whose answer is not written (<see cref="WithoutHistoryLine"/>).</summary>
+        internal CadPrompt WithoutHistory()
+        {
+            WithoutHistoryLine = true;
+            return this;
+        }
+
         /// <summary>Makes the prompt take any text where it is not a point or a number, as <c>(initget 128)</c> does.</summary>
         internal CadPrompt AcceptingText()
         {

@@ -63,6 +63,22 @@ namespace OpenCAD2D.Plugins
         /// another stack in columns of three, top down, as AutoCAD's row panels do.
         /// </summary>
         public IList<CadRibbonItem> Items { get; } = new List<CadRibbonItem>();
+
+        /// <summary>
+        /// Gets the items under the panel's title with a small arrow, as AutoCAD's items after a <c>RibbonPanelBreak</c>: laid
+        /// out as <see cref="Items"/> are, shown in a drop-down that the title opens, which closes after a button runs unless it
+        /// is pinned. Empty, until filled, for a panel with none. A plugin that uses it states
+        /// <c>[assembly: CadPluginApi("1.2")]</c>.
+        /// </summary>
+        public IList<CadRibbonItem> SlideOutItems { get; } = new List<CadRibbonItem>();
+
+        /// <summary>
+        /// Gets or sets the arrow at the right of the panel's title that opens the panel's dialog, as AutoCAD's
+        /// <c>RibbonPanelSource.DialogLauncher</c>: its command, callback or macro runs on a click, its tooltip is the button's
+        /// and it is grey where its <see cref="CadRibbonButton.CanRun"/> says no. Its icon, size and text are not drawn. Null,
+        /// until set, for a panel with none. A plugin that uses it states <c>[assembly: CadPluginApi("1.2")]</c>.
+        /// </summary>
+        public CadRibbonButton DialogLauncher { get; set; }
     }
 
     /// <summary>How big an item of a panel is drawn.</summary>
@@ -134,16 +150,49 @@ namespace OpenCAD2D.Plugins
             Run = run ?? throw new ArgumentNullException(nameof(run));
         }
 
-        /// <summary>Gets the command the button starts; null for a button that runs a callback.</summary>
+        private CadRibbonButton(string text)
+            : base(text) { }
+
+        /// <summary>
+        /// Makes a button that runs a macro as AutoCAD's CUI buttons do: <c>^C</c> cancels the command running, <c>;</c>, a
+        /// space and <c>^M</c> are Enter, <c>\</c> waits for the user's answer, <c>_</c> and <c>.</c> are as typed, and an
+        /// expression in parentheses is AutoLISP. "^C^C_CIRCLE;0,0;\" starts CIRCLE at 0,0 and waits for the radius. A macro
+        /// that uses <c>*</c> to repeat, <c>$M=</c> or another <c>^</c> pair than C, M and P is refused where the button is
+        /// pressed, with a line that says so. A plugin that uses it states <c>[assembly: CadPluginApi("1.2")]</c>.
+        /// </summary>
+        /// <param name="text">The text of the button.</param>
+        /// <param name="macro">The macro.</param>
+        /// <returns>The button; its <see cref="Command"/> and <see cref="Run"/> are null.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the text or the macro is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the macro is empty.</exception>
+        public static CadRibbonButton FromMacro(string text, string macro)
+        {
+            if (macro == null)
+            {
+                throw new ArgumentNullException(nameof(macro));
+            }
+
+            if (macro.Trim().Length == 0)
+            {
+                throw new ArgumentException("A button's macro is not empty.", nameof(macro));
+            }
+
+            return new CadRibbonButton(text) { Macro = macro };
+        }
+
+        /// <summary>Gets the command the button starts; null for a button that runs a callback or a macro.</summary>
         public string Command { get; }
 
-        /// <summary>Gets the callback the button runs; null for a button that starts a command.</summary>
+        /// <summary>Gets the macro the button runs; null for a button that starts a command or runs a callback.</summary>
+        public string Macro { get; private set; }
+
+        /// <summary>Gets the callback the button runs; null for a button that starts a command or runs a macro.</summary>
         public Action<CadPluginContext> Run { get; }
 
         /// <summary>
         /// Gets or sets whether the button is on, asked when the window asks its commands again (the selection, the drawing
-        /// or a command changes). Null, until set: a button that starts a command is on while a drawing is open, one that
-        /// runs a callback always. A predicate that throws gives false.
+        /// or a command changes). Null, until set: a button that starts a command or runs a macro is on while a drawing is
+        /// open, one that runs a callback always. A predicate that throws gives false.
         /// </summary>
         public Func<CadPluginContext, bool> CanRun { get; set; }
     }
