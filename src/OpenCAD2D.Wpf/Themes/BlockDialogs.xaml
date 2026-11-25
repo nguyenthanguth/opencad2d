@@ -40,6 +40,36 @@
         </Setter>
     </Style>
 
+    <!-- A group of the UCS dialogs: as BlockGroup, with the dialog's own ground (GhBg) behind the legend, which is muted. -->
+    <Style x:Key="UcsGroup" TargetType="HeaderedContentControl" BasedOn="{StaticResource BlockGroup}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="HeaderedContentControl">
+                    <Grid>
+                        <Border
+                            Margin="0,8,0,0"
+                            BorderBrush="{StaticResource GhBorder}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="10,12,10,10"
+                        >
+                            <ContentPresenter />
+                        </Border>
+                        <TextBlock
+                            Text="{TemplateBinding Header}"
+                            Foreground="{StaticResource GhTextMuted}"
+                            Background="{StaticResource GhBg}"
+                            Padding="4,0"
+                            Margin="8,0,0,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                        />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- A round button with its words: a ring, the accent dot inside when chosen. -->
     <Style x:Key="BlockRadio" TargetType="RadioButton">
         <Setter Property="Foreground" Value="{StaticResource GhText}" />

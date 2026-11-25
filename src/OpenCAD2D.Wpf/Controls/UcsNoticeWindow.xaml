@@ -1,0 +1,80 @@
+<Window
+    x:Class="OpenCAD2D.Wpf.UcsNoticeWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="UCS"
+    Width="380"
+    SizeToContent="Height"
+    WindowStyle="None"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    Background="#262B33"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- The message AutoCAD shows for a name its UCS dialog refuses: the title, the line in bold, the line under it, Close. -->
+    <Border
+        x:Name="Root"
+        Background="{StaticResource GhBg}"
+        BorderBrush="{StaticResource GhBorder}"
+        BorderThickness="1"
+        TextElement.FontFamily="{StaticResource GhFont}"
+        TextElement.FontSize="12"
+        TextElement.Foreground="{StaticResource GhText}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+    >
+        <DockPanel>
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhPanel}"
+                BorderBrush="{StaticResource GhBorder}"
+                BorderThickness="0,0,0,1"
+                Padding="12,8"
+            >
+                <TextBlock x:Name="TitleText" FontWeight="SemiBold" />
+            </Border>
+            <Border
+                DockPanel.Dock="Bottom"
+                Background="{StaticResource GhPanel}"
+                BorderBrush="{StaticResource GhBorder}"
+                BorderThickness="0,1,0,0"
+                Padding="12,8"
+            >
+                <Button
+                    Style="{StaticResource GhDialogButton}"
+                    Content="Close"
+                    Width="75"
+                    Padding="0,4"
+                    HorizontalAlignment="Right"
+                    Click="OnClose"
+                    IsDefault="True"
+                    IsCancel="True"
+                />
+            </Border>
+            <StackPanel Margin="12">
+                <TextBlock
+                    x:Name="MessageText"
+                    Foreground="{StaticResource GhAccentHover}"
+                    FontSize="13"
+                    FontWeight="SemiBold"
+                    TextWrapping="Wrap"
+                />
+                <TextBlock
+                    x:Name="DetailText"
+                    Foreground="{StaticResource GhIcon}"
+                    TextWrapping="Wrap"
+                    Margin="0,6,0,0"
+                />
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

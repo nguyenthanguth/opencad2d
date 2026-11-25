@@ -51,7 +51,7 @@ namespace OpenCAD2D
             "E",
         };
 
-        private const string NotInPlan =
+        internal const string NotInPlan =
             "The presenter shows the drawing from above: a UCS that leaves the plan is not available here.";
 
         /// <summary>
@@ -512,7 +512,11 @@ namespace OpenCAD2D
             }
         }
 
-        /// <summary>UCSMAN: the UCS dialog of a window that has one; else the named systems listed on the command line.</summary>
+        /// <summary>
+        /// UCSMAN (UC, DDUCS): the window's UCS dialog, shown again after each new origin picked for the depth of an
+        /// orthographic system; OK gives the drawing everything the dialog changed as one undo step named UCSMAN, Cancel
+        /// nothing. AutoCAD has no typed form of it, so with no window the command says so. Refused in the Block Editor.
+        /// </summary>
         private static IEnumerable<CadPrompt> UcsManager(CadCommandContext c)
         {
             if (c.Document.BlockEditor != null)
@@ -521,15 +525,46 @@ namespace OpenCAD2D
                 yield break;
             }
 
-            if (!c.Session.Request("UCSMAN"))
+            var request = new CadUcsDialogRequest(c.Document);
+            request.Tab = c.Session.Remembered.TryGetValue("ucsman.tab", out double tab) ? (int)tab : 0;
+
+            while (true)
             {
-                c.Write(
-                    "There is no UCS dialog here: the named systems are listed below, and UCS NAmed restores, saves and deletes them."
-                );
-                ListUcs(c, "*");
+                request.Action = CadDialogAction.Cancel;
+
+                if (!c.Session.Request("UCSMAN", c.Document, request))
+                {
+                    c.Write(
+                        "UCSMAN is shown by the window: UCS NAmed restores, saves and deletes the named systems on the command line."
+                    );
+                    yield break;
+                }
+
+                c.Session.Remembered["ucsman.tab"] = request.Tab;
+
+                if (request.Action == CadDialogAction.PickPoint && request.PickRow != null)
+                {
+                    yield return CadPrompt.ForPoint("Specify new origin point");
+
+                    if (c.Input.IsPoint)
+                    {
+                        request.TakeDepthPoint(P3(c.Input.Point));
+                    }
+
+                    request.PickRow = null;
+                }
+                else
+                {
+                    break;
+                }
             }
 
-            yield break;
+            if (request.Action == CadDialogAction.Ok)
+            {
+                // Everything the dialog changed, the systems and the names, is one undo step.
+                c.OpenUndoStep();
+                request.Apply();
+            }
         }
 
         /// <summary>The list of UCS ?, as AutoCAD writes it: each named system matching, its origin and axes in the coordinates of the current UCS.</summary>
