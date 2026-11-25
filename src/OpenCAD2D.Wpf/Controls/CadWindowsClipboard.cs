@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -13,10 +14,38 @@ namespace OpenCAD2D.Wpf
     /// <see cref="CadClipboardData.Format"/>, so that any copy of the app reads them, and their words as Unicode text, which
     /// every other app reads; text another app put there comes back as text, and a picture as the bytes of a PNG. Windows may hold the clipboard for a moment for
     /// another app: each call tries a few times before it gives up, and a call that gives up is logged and reads as empty.
+    /// A program that watches the clipboard asks the app that set it for the text, and the app answers only while its
+    /// thread takes messages, so every wait between tries answers them.
     /// </summary>
     public sealed class CadWindowsClipboard : ICadClipboard
     {
         private const int Tries = 5;
+
+        /// <summary>The wait between the tries of the flush, as the clipboard of WPF has it.</summary>
+        private const int FlushWait = 100;
+
+        private const int FlushTries = 10;
+
+        /// <summary>PM_NOREMOVE | PM_QS_SENDMESSAGE: look at no queue but the messages other threads and programs send.</summary>
+        private const uint SentMessagesOnly = 0x00200000;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Message
+        {
+            public IntPtr Window;
+            public uint Id;
+            public IntPtr WParam;
+            public IntPtr LParam;
+            public uint Time;
+            public int X;
+            public int Y;
+        }
+
+        [DllImport("ole32.dll")]
+        private static extern int OleFlushClipboard();
+
+        [DllImport("user32.dll")]
+        private static extern bool PeekMessage(out Message message, IntPtr window, uint min, uint max, uint remove);
 
         /// <inheritdoc/>
         public void SetData(CadClipboardData data)
@@ -39,7 +68,7 @@ namespace OpenCAD2D.Wpf
                 dataObject.SetData(DataFormats.UnicodeText, data.Text);
             }
 
-            Retry(() => Clipboard.SetDataObject(dataObject, true));
+            Retry(() => SetAndFlush(dataObject));
         }
 
         /// <inheritdoc/>
@@ -121,7 +150,7 @@ namespace OpenCAD2D.Wpf
         /// clipboard; false, logged, where it stayed busy. Null is taken as empty text.
         /// </summary>
         internal static bool TrySetText(string text) =>
-            Retry(() => Clipboard.SetDataObject(new DataObject(DataFormats.UnicodeText, text ?? string.Empty), true));
+            Retry(() => SetAndFlush(new DataObject(DataFormats.UnicodeText, text ?? string.Empty)));
 
         /// <summary>The text on the clipboard, trying again while another app holds it; null where there is none or it stayed busy.</summary>
         internal static string TryGetText()
@@ -129,6 +158,47 @@ namespace OpenCAD2D.Wpf
             string text = null;
             Retry(() => text = Clipboard.ContainsText() ? Clipboard.GetText() : null);
             return text;
+        }
+
+        /// <summary>
+        /// <c>Clipboard.SetDataObject(data, true)</c>, written out so that the waits answer the messages sent to this thread:
+        /// the clipboard is set, then flushed (the data leaves the app, so that it stays on the clipboard after the app is
+        /// closed) until Windows lets the flush open the clipboard. A program that watches the clipboard holds it open while
+        /// it asks this thread for the text, so a flush that only slept never got in, where one that answers does at the
+        /// second try, about 100 ms later.
+        /// </summary>
+        private static void SetAndFlush(DataObject data)
+        {
+            Clipboard.SetDataObject(data, false);
+
+            for (int i = 1; ; i++)
+            {
+                int result = OleFlushClipboard();
+
+                if (result >= 0)
+                {
+                    return;
+                }
+
+                if (i == FlushTries)
+                {
+                    Marshal.ThrowExceptionForHR(result);
+                }
+
+                Wait(FlushWait);
+            }
+        }
+
+        /// <summary>Waits the given milliseconds, answering what other programs send to this thread while it does.</summary>
+        private static void Wait(int milliseconds)
+        {
+            var clock = Stopwatch.StartNew();
+
+            do
+            {
+                PeekMessage(out _, IntPtr.Zero, 0, 0, SentMessagesOnly);
+                Thread.Sleep(2);
+            } while (clock.ElapsedMilliseconds < milliseconds);
         }
 
         /// <summary>
@@ -149,7 +219,7 @@ namespace OpenCAD2D.Wpf
                     GeometryHelperLog.Debug(
                         "CadWindowsClipboard: the clipboard was busy (" + exception.Message + "), tried again."
                     );
-                    Thread.Sleep(20);
+                    Wait(20);
                 }
                 catch (COMException exception)
                 {
