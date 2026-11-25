@@ -4,12 +4,22 @@
 
 - **BREAKING.** The built-in font is now OpenCAD2D ISO (`opencad2d.shx`; `CadFonts.BuiltInName` is `"opencad2d"`,
   `CadFonts.BuiltInTitle` is `"OpenCAD2D ISO"`), our own single-stroke upright lettering in the proportions of ISO 3098
-  type B (TCVN 7284), with the Vietnamese letters, replacing OpenCAD2D Simplex (`ghsimplex`, the Hershey Roman Simplex).
+  type B (TCVN 7284), 242 glyphs including the 134 Vietnamese letters, in a compiled file of 8 685 bytes, replacing OpenCAD2D
+  Simplex (`ghsimplex`, the Hershey Roman Simplex).
   `ghsimplex` and `ghsimplex.shx` are removed, with no alias: `CadFonts.IsBuiltIn("ghsimplex")` is false, and a text style
   naming `ghsimplex.shx` is a missing font, drawn in the FONTALT replacement. A settings file that saved the FONTALT
   replacement as exactly `ghsimplex` or `ghsimplex.shx` is read as `opencad2d` when the settings load (any other saved
   value, a list with a big font among them, is read as it was). The sample template `OpenCAD2D-mm.dwt` has its styles in
-  `opencad2d.shx`. A plugin compiled against `CadFonts.BuiltInName` has the old name inlined and must be rebuilt.
+  `opencad2d.shx`. A plugin compiled against `CadFonts.BuiltInName` has the old name inlined and must be rebuilt. Text
+  set in the new font has other widths than in the old one (ABC123 10 high is 42.5 wide), so the row heights of a table,
+  the lines an MTEXT wraps to and the words of a dimension that were measured in the old one come out different, as
+  AutoCAD 2021 gives them with `opencad2d.shx`; and a stacked fraction (`\SH/H;H`) in the built-in font moves the pen on
+  by 0.1 of the text height past its ink, as AutoCAD does with `opencad2d.shx`, where other SHX fonts keep a seventh.
+- **FIXED.** The ink of a half circle drawn by a bulge arc of exactly 180 degrees (code 12, bulge 127 or -127) in an SHX
+  font was measured by the square about its circle when it started above the X axis, as an octant arc is; AutoCAD
+  measures it by the rectangle of its chord, bulging to the arc's side. A one-glyph unifont `1 12 40 -30 127 0` has its
+  box (-15, -50) to (40, 0), not (-5, -40) to (45, 10), and the `&` of `opencad2d.shx` 100 high (0, -10) to (70,
+  103.685), not (10, 0) to (70, ...): text boxes, justification and wrapping of any SHX text with such an arc follow.
 - **CHANGED.** Python `Entity` is generic and `Entity.net` is typed: `drawing.entities(DxfCircle)` and the `add_*` calls
   give an `Entity[DxfCircle]` (a class asks for its subclasses too, and a class that is no `DxfEntity` raises `TypeError`),
   while an entity read by name, handle, selection or pick has a `DxfEntity` for `net`. A type checker now asks for

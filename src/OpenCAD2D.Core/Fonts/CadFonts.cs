@@ -59,7 +59,7 @@ namespace OpenCAD2D
             StringComparer.OrdinalIgnoreCase
         );
         private static readonly HashSet<string> Unread = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Lazy<ShxFont> Own = new Lazy<ShxFont>(() => ShxFont.Read(HersheySimplex.Unifont()));
+        private static readonly Lazy<ShxFont> Own = new Lazy<ShxFont>(() => ShxFont.Read(OpenCad2dIso.Unifont()));
         private static long _clock;
 
         private readonly Func<string, bool> _familyExists;
@@ -116,7 +116,8 @@ namespace OpenCAD2D
         /// Gets the presenter's own single-stroke font, OpenCAD2D ISO (<see cref="BuiltInName"/>), drawn as an SHX font is:
         /// upright lettering in the proportions of ISO 3098 type B (TCVN 7284), ASCII 32 to 126 with the degree, plus-minus,
         /// square, diameter and dash signs and the Vietnamese letters, 242 letters. Its capitals reach <see cref="ShxFont.Above"/>
-        /// 100 units above the baseline and its descenders 30 below: "ABC123" 10 high is 10 high and about 42 wide.
+        /// 100 units above the baseline and its descenders 30 below: "ABC123" 10 high is 10 high and its advances add to 42.5
+        /// (A 8, B 7, C 6.5, each digit 7); the compiled file is 8 685 bytes.
         /// </summary>
         public static ShxFont BuiltIn => Own.Value;
 

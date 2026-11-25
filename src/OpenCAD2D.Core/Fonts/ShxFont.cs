@@ -726,8 +726,8 @@ namespace OpenCAD2D
             /// <summary>A move by a vector of the font's units, scaled and stretched.</summary>
             internal void Line(double dx, double dy) => To(X + (dx * Scale * Across), Y + (dy * Scale * Upward));
 
-            /// <summary>An arc from where the pen stands, of a radius already scaled, from the angle it stands at on its circle round by a sweep, counter-clockwise above nought.</summary>
-            internal void Arc(double r, double start, double sweep)
+            /// <summary>An arc from where the pen stands, of a radius already scaled, from the angle it stands at on its circle round by a sweep, counter-clockwise above nought; <paramref name="byOctants"/> false for an arc drawn by a bulge, whose half circle is measured by its chord's rectangle wherever it starts.</summary>
+            internal void Arc(double r, double start, double sweep, bool byOctants = true)
             {
                 int n = Math.Max(1, (int)Math.Ceiling(Math.Abs(sweep) / ChordAngle - 1E-9));
                 double x0 = X;
@@ -737,7 +737,7 @@ namespace OpenCAD2D
 
                 if (Down)
                 {
-                    Reaches(r, start, sweep);
+                    Reaches(r, start, sweep, byOctants);
                 }
 
                 for (int k = 1; k <= n; k++)
@@ -752,14 +752,18 @@ namespace OpenCAD2D
             /// the rectangle of its chord and of the line along it touching the arc's middle where it turns less than a half
             /// circle, the corners of the square about its circle where it turns more. A half circle is measured by its
             /// rectangle where, taken counter-clockwise, it starts on the X axis or below it, and by its square where it starts
-            /// above, as AutoCAD measures the 16 half circles of octant arcs.
+            /// above, as AutoCAD measures the 16 half circles of octant arcs. A half circle drawn by a bulge of 127 (code 12) is
+            /// measured by its rectangle wherever it starts: the one-glyph unifont <c>1 12 40 -30 127 0</c> reaches (-15, -50) to
+            /// (40, 0), where the square would reach (-5, -40) to (45, 10).
             /// </summary>
-            private void Reaches(double r, double start, double sweep)
+            private void Reaches(double r, double start, double sweep, bool byOctants)
             {
                 double turn = Math.Abs(sweep);
                 double first = sweep >= 0.0 ? start : start + sweep;
                 double from = first - (2.0 * Math.PI * Math.Floor(first / (2.0 * Math.PI)));
-                bool whole = turn > Math.PI + 1E-9 || (turn > Math.PI - 1E-9 && from > 1E-9 && from < Math.PI - 1E-9);
+                bool whole =
+                    turn > Math.PI + 1E-9
+                    || (byOctants && turn > Math.PI - 1E-9 && from > 1E-9 && from < Math.PI - 1E-9);
                 double cx = X - (r * Math.Cos(start) * Across);
                 double cy = Y - (r * Math.Sin(start) * Upward);
 
@@ -803,7 +807,7 @@ namespace OpenCAD2D
                 // The centre from the chord's middle, along its left normal for an arc counter-clockwise.
                 double cx = (ux / 2.0) - (uy / chord * h);
                 double cy = (uy / 2.0) + (ux / chord * h);
-                Arc(r, Math.Atan2(-cy, -cx), sweep);
+                Arc(r, Math.Atan2(-cy, -cx), sweep, false);
             }
         }
     }

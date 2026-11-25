@@ -679,7 +679,7 @@ fields is one line a field.
 PDFSHX is 0 or 1, kept for the session and set by `PDFSHX` or its alias `EPDFSHX`. A text drawn in an SHX font is its
 strokes in the PDF, which no reader's search finds. With PDFSHX 1 the writer writes its words again over the strokes,
 in the canvas's own font and a letter opaque by 1 part in 255, which a PDF reader's search and copy find and no eye sees on a
-sheet (a plot of ROOM 1 in ghsimplex differs from one without by no more than one level in a pixel). AutoCAD writes the
+sheet (a plot of ROOM 1 in opencad2d differs from one without by no more than one level in a pixel). AutoCAD writes the
 text as comments of the PDF; the presenter writes it as the page's text. AutoCAD's initial value is 0, as here; its console
 here had 1, a profile that had set it. Only the PDF writer reads PDFSHX, and a drawing keeps it nowhere.
 [`CadPlotSettings.PdfShx`](xref:OpenCAD2D.CadPlotSettings) carries it.

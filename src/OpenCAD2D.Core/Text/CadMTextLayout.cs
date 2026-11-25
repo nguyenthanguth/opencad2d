@@ -49,7 +49,11 @@ namespace OpenCAD2D
     /// </remarks>
     internal sealed class CadMTextLayout
     {
-        /// <summary>How far past its ink a stack moves the pen, over its height: a seventh in an SHX font, a fifteenth in a TrueType one, as AutoCAD 2021 sets ghsimplex and Arial.</summary>
+        // How far past its ink a stack moves the pen, over its height. A tenth in the built-in font, as AutoCAD 2021 sets
+        // opencad2d.shx (\SH/H;H 10 high is 12.0 wide). A seventh in any other SHX font: the gap is one number a font, and the
+        // seventh is what AutoCAD gave the presenter's first font, the only other one measured; a font of the user's has not been
+        // measured. A fifteenth in a TrueType one, as AutoCAD sets Arial.
+        private const double StackGapBuiltIn = 1.0 / 10.0;
         private const double StackGapShx = 1.0 / 7.0;
         private const double StackGapTrueType = 1.0 / 15.0;
 
@@ -1005,7 +1009,16 @@ namespace OpenCAD2D
                 atom.Left = 0.0;
                 atom.Right = end;
                 atom.HasInk = uInked || lInked;
-                atom.Advance = end + (h * (atom.Ink.IsShx ? StackGapShx : StackGapTrueType));
+                atom.Advance =
+                    end
+                    + (
+                        h
+                        * (
+                            atom.Ink.IsBuiltIn ? StackGapBuiltIn
+                            : atom.Ink.IsShx ? StackGapShx
+                            : StackGapTrueType
+                        )
+                    );
                 atom.Top = atom.StackHigh;
                 atom.Bottom = 0.0;
                 return atom;
@@ -1128,7 +1141,7 @@ namespace OpenCAD2D
                             : stop.Key - inkLeft;
                     }
 
-                    // A word that ends on the width fits, as "with end" 27 wide in ghsimplex 4.5 high stays one line in AutoCAD 2021.
+                    // A word that ends on the width fits, as "with end" 21.62 wide in opencad2d 4.5 high stays one line in AutoCAD 2021 (21.615 gives two).
                     if (wraps && any && !((start - origin) + (inkRight - inkLeft) <= right - line.Left + 1E-9))
                     {
                         End(line);

@@ -10,7 +10,8 @@ namespace OpenCAD2D.UnitTest
     /// <summary>
     /// A table's rows grow to hold their cells' words as AutoCAD 2021 lays a table out: each cell's text wrapped at the cell's
     /// width less its margins, in the presenter's opencad2d, and its row as high as the tallest cell needs, never lower than it
-    /// was. The numbers are those AutoCAD 2021 gave the same tables (GenerateLayout and RecomputeTableBlock, ghsimplex.shx).
+    /// was. The numbers are those AutoCAD 2021 gave the same tables with opencad2d.shx (GenerateLayout and
+    /// RecomputeTableBlock, the probe of 2026-11-25).
     /// </summary>
     public class TableRowFitTests
     {
@@ -77,10 +78,11 @@ namespace OpenCAD2D.UnitTest
                 CadTableEditor.SetText(document, table.Handle, 2, 1, "HEA300 S355 with end plates both sides").Succeeded
             );
 
-            // Each row the actual height of its tallest text and 1.5 above and below: the title's five lines of 6, the
-            // header's three of 4.5 under Section and grade; a row of one-line words keeps its 9.
+            // Each row the actual height of its tallest text and 1.5 above and below: the title's lines of 6 and the
+            // header's of 4.5 under Section and grade; the third row the four lines of "HEA300 S355 with end plates both sides"
+            // (27.41031 and the margins, 30.41031).
             table = (DxfTable)document.FindEntity(table.Handle);
-            double[] autocad = { 39.28571, 24.21429, 45.42857, 30.0, 38.14286, 60.42857 };
+            double[] autocad = { 29.29823, 16.41343, 30.41031, 23.1013, 22.78346, 45.28346 };
 
             for (int r = 0; r < autocad.Length; r++)
             {
@@ -91,15 +93,15 @@ namespace OpenCAD2D.UnitTest
             // row of data, centred in the last row and 1.5 above its bottom.
             DxfMText title = Text(table, "Bill of steel members for the north frame of the hall");
             Assert.Equal(45.0, title.Location.X, Places);
-            Assert.Equal(-19.64286, title.Location.Y, Places);
-            Assert.Equal(-65.0, Text(table, "B1").Location.Y, Places);
-            Assert.Equal(-110.42857, Text(table, "IPE200").Location.Y, Places);
-            Assert.Equal(-207.28571, Text(table, "x").Location.Y, Places);
+            Assert.Equal(-14.64912, title.Location.Y, Places);
+            Assert.Equal(-47.21166, Text(table, "B1").Location.Y, Places);
+            Assert.Equal(-77.62197, Text(table, "IPE200").Location.Y, Places);
+            Assert.Equal(-144.64847, Text(table, "x").Location.Y, Places);
             Assert.Equal(1.5, Text(table, "x").Location.X, Places);
             DxfMText bottom = Text(table, "bottom right words that wrap twice at least here");
             Assert.Equal(58.5, bottom.Location.X, Places);
-            Assert.Equal(-236.0, bottom.Location.Y, Places);
-            Assert.Equal(-207.28571, Text(table, "middle centre wraps").Location.Y, Places);
+            Assert.Equal(-165.7902, bottom.Location.Y, Places);
+            Assert.Equal(-144.64847, Text(table, "middle centre wraps").Location.Y, Places);
         }
 
         [Fact]
@@ -125,17 +127,17 @@ namespace OpenCAD2D.UnitTest
             );
 
             table = (DxfTable)document.FindEntity(table.Handle);
-            double[] autocad = { 20.0, 24.21429, 45.42857, 68.14286 };
+            double[] autocad = { 20.0, 20.0, 30.41031, 53.00714 };
 
             for (int r = 0; r < autocad.Length; r++)
             {
                 Assert.Equal(autocad[r], table.RowHeight(r), Places);
             }
 
-            // The long words made short again: the row keeps its 45.42857, as AutoCAD 2021 kept it.
+            // The long words made short again: the row keeps its 30.41031, as AutoCAD 2021 kept it.
             Assert.True(CadTableEditor.SetText(document, table.Handle, 2, 1, "a").Succeeded);
             table = (DxfTable)document.FindEntity(table.Handle);
-            Assert.Equal(45.42857, table.RowHeight(2), Places);
+            Assert.Equal(30.41031, table.RowHeight(2), Places);
         }
 
         private static string Lines(int count) =>
@@ -176,22 +178,25 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void TwelveLinesMergedOverTwoRows_ShareTheirHeightEqually_NotInTheLastRow()
         {
-            // AutoCAD 2021 GenerateLayout: 12 lines of 4.5 in a merged block of rows 2 and 3 need 90.42857 with the margins (the
-            // same lines in one row made it 90.42857), and the rows, each 9, came to 45.21429 each, not 9 and 81.42857.
+            // AutoCAD 2021 GenerateLayout: 12 lines of 4.5 in a merged block of rows 2 and 3 need 90.11184 with the margins (the
+            // same lines in one row made it 90.11184), and the rows, each 9, came to 45.05592 each, not 9 and 81.11184.
             double[] nine = { 9, 9, 9, 9, 9, 9 };
             AssertHeights(
-                new[] { 11.0, 9, 45.21429, 45.21429, 9, 9 },
+                new[] { 11.0, 9, 45.05592, 45.05592, 9, 9 },
                 Laid(nine, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 12))
             );
-            AssertHeights(new[] { 11.0, 9, 22.5, 22.5, 9, 9 }, Laid(nine, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 6)));
             AssertHeights(
-                new[] { 11.0, 9, 30.14286, 30.14286, 30.14286, 9 },
+                new[] { 11.0, 9, 22.55592, 22.55592, 9, 9 },
+                Laid(nine, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 6))
+            );
+            AssertHeights(
+                new[] { 11.0, 9, 30.03728, 30.03728, 30.03728, 9 },
                 Laid(nine, new[] { new[] { 2, 0, 4, 0 } }, (2, 0, 12))
             );
 
             // A block of two rows and two columns, or all three columns, shares the same way.
             AssertHeights(
-                new[] { 11.0, 9, 45.21429, 45.21429, 9, 9 },
+                new[] { 11.0, 9, 45.05592, 45.05592, 9, 9 },
                 Laid(nine, new[] { new[] { 2, 0, 3, 1 } }, (2, 0, 12))
             );
         }
@@ -199,29 +204,29 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void TheRowsOfAMergedBlock_GrowInProportionToTheirHeights_AndNoneIsShrunk()
         {
-            // Rows of 12 and 20 under 12 lines (90.42857): 90.42857 * 12 / 32 and * 20 / 32, as AutoCAD 2021 laid them out; rows
-            // of 20 and 20 make 45.21429 each, though they hold 40 of the 90.42857 already.
+            // Rows of 12 and 20 under 12 lines (90.11184): 90.11184 * 12 / 32 and * 20 / 32, as AutoCAD 2021 laid them out; rows
+            // of 20 and 20 make 45.05592 each, though they hold 40 of the 90.11184 already.
             AssertHeights(
-                new[] { 11.0, 9, 33.91071, 56.51786, 9, 9 },
+                new[] { 11.0, 9, 33.79194, 56.3199, 9, 9 },
                 Laid(new double[] { 9, 9, 12, 20, 9, 9 }, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 12))
             );
             AssertHeights(
-                new[] { 11.0, 9, 56.51786, 33.91071, 9, 9 },
+                new[] { 11.0, 9, 56.3199, 33.79194, 9, 9 },
                 Laid(new double[] { 9, 9, 20, 12, 9, 9 }, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 12))
             );
             AssertHeights(
-                new[] { 11.0, 9, 45.21429, 45.21429, 9, 9 },
+                new[] { 11.0, 9, 45.05592, 45.05592, 9, 9 },
                 Laid(new double[] { 9, 9, 20, 20, 9, 9 }, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 12))
             );
 
-            // Rows that hold the words already stay as they are: 6 lines need 45 in rows of 5 and 50, which come to 9 (the least a
+            // Rows that hold the words already stay as they are: 6 lines need 45.11184 in rows of 5 and 50, which come to 9 (the least a
             // row of words is) and 50.
             AssertHeights(
                 new[] { 11.0, 9, 9, 50, 9, 9 },
                 Laid(new double[] { 9, 9, 5, 50, 9, 9 }, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 6))
             );
             AssertHeights(
-                new[] { 11.0, 9, 22.5, 22.5, 9, 9 },
+                new[] { 11.0, 9, 22.55592, 22.55592, 9, 9 },
                 Laid(new double[] { 9, 9, 5, 5, 9, 9 }, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 6))
             );
         }
@@ -229,21 +234,21 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void ABlockAcrossRows_SharesAmongTheRowsTheirOwnCellsHaveMadeTallFirst()
         {
-            // 12 lines over rows 2 and 3 with 6 lines (45) in (3, 1): the rows stand at 9 and 45 when the block is laid out, and
-            // share its 90.42857 as 1 to 5, 15.07143 and 75.35714; with the 6 lines in (2, 1) it is 5 to 1.
+            // 12 lines over rows 2 and 3 with 6 lines (45.11184) in (3, 1): the rows stand at 9 and 45.11184 when the block is laid out, and
+            // share its 90.11184 in proportion to 9 and 45.11184, 14.9876 and 75.12424; with the 6 lines in (2, 1) the other way round.
             double[] nine = { 9, 9, 9, 9, 9, 9 };
             AssertHeights(
-                new[] { 11.0, 9, 15.07143, 75.35714, 9, 9 },
+                new[] { 11.0, 9, 14.9876, 75.12424, 9, 9 },
                 Laid(nine, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 12), (3, 1, 6))
             );
             AssertHeights(
-                new[] { 11.0, 9, 75.35714, 15.07143, 9, 9 },
+                new[] { 11.0, 9, 75.12424, 14.9876, 9, 9 },
                 Laid(nine, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 12), (2, 1, 6))
             );
 
             // Words in a cell of a row of their own that are as tall as the block's: the rows come to what they need.
             AssertHeights(
-                new[] { 11.0, 9, 90.42857, 90.42857, 9, 9 },
+                new[] { 11.0, 9, 90.11184, 90.11184, 9, 9 },
                 Laid(nine, new[] { new[] { 2, 0, 3, 0 } }, (2, 0, 12), (2, 1, 12), (3, 1, 12))
             );
         }
@@ -251,23 +256,23 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void BlocksAcrossRowsThatShareARow_ShareOneAfterTheOther_InTheOrderOfTheirTopLeftCells()
         {
-            // AutoCAD 2021 read back from a DXF: the block at (2, 1) over rows 2 and 3 first, 45.21429 each, then the block at
-            // (3, 0) over rows 3 and 4, which finds 45.21429 and 9 and shares its 90.42857 as 5 to 1: 75.41671 and 15.01186.
+            // AutoCAD 2021 read back from a DXF: the block at (2, 1) over rows 2 and 3 first, 45.05592 each, then the block at
+            // (3, 0) over rows 3 and 4, which finds 45.05592 and 9 and shares its 90.11184 in proportion to them: 75.10873 and 15.0031.
             double[] nine = { 9, 9, 9, 9, 9, 9 };
             AssertHeights(
-                new[] { 11.0, 9, 45.21429, 75.41671, 15.01186, 9 },
+                new[] { 11.0, 9, 45.05592, 75.10873, 15.0031, 9 },
                 Laid(nine, new[] { new[] { 3, 0, 4, 0 }, new[] { 2, 1, 3, 1 } }, (3, 0, 12), (2, 1, 12))
             );
 
-            // A block of rows 2 to 4 first (30.14286 each), then one over rows 2 and 3 that needs 90.42857 of their 60.28571.
+            // A block of rows 2 to 4 first (30.03728 each), then one over rows 2 and 3 that needs 90.11184 of their 60.07456.
             AssertHeights(
-                new[] { 11.0, 9, 45.21429, 45.21429, 30.14286, 9 },
+                new[] { 11.0, 9, 45.05592, 45.05592, 30.03728, 9 },
                 Laid(nine, new[] { new[] { 2, 0, 4, 0 }, new[] { 2, 1, 3, 1 } }, (2, 0, 12), (2, 1, 12))
             );
 
-            // A block of 6 lines over rows 2 and 3 (22.5 each) and one of 12 over rows 2 to 4, which finds 22.5, 22.5 and 9.
+            // A block of 6 lines over rows 2 and 3 (22.55592 each) and one of 12 over rows 2 to 4, which finds 22.55592, 22.55592 and 9.
             AssertHeights(
-                new[] { 11.0, 9, 37.67857, 37.67857, 15.07143, 9 },
+                new[] { 11.0, 9, 37.56212, 37.56212, 14.9876, 9 },
                 Laid(nine, new[] { new[] { 2, 0, 3, 0 }, new[] { 2, 1, 4, 1 } }, (2, 0, 6), (2, 1, 12))
             );
         }
@@ -315,11 +320,12 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Theory]
-        [InlineData(27.0, 1)]
-        [InlineData(26.75, 2)]
+        [InlineData(21.65, 1)]
+        [InlineData(21.60, 2)]
         public void AWordWhoseInkEndsOnTheWidth_StaysOnItsLine_AsInAutoCad(double width, int lines)
         {
-            // AutoCAD 2021 set "with end" in ghsimplex 4.5 high on one line from a width of 27, its ActualWidth 27.
+            // AutoCAD 2021 set "with end" in opencad2d.shx 4.5 high on one line from a width of 21.62 (21.615 gives two), its
+            // ActualWidth 21.375.
             DxfDatabase db = Drawing();
             db.ModelSpace.AppendEntity(
                 new DxfMText

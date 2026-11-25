@@ -491,6 +491,21 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void ADrawingNamingTheRemovedGhsimplex_TakesTheMissingFontPath_NoAliasToTheBuiltInFont()
+        {
+            _folder.Write("test.shx", ShxFiles.Unifont());
+            CadDocument document = Drawing("ghsimplex.shx", null, Text("I", 5.0));
+            var said = new List<string>();
+            document.FontMissing += (s, e) => said.Add(e.Message);
+            document.Fonts = Fonts("test.shx");
+
+            DisplayText2 shown = Shown(document);
+
+            Assert.Equal("test.shx", shown.FontName);
+            Assert.Equal(new[] { "Missing SHX files: ghsimplex.shx drawn in test.shx; txt drawn in test.shx." }, said);
+        }
+
+        [Fact]
         public void AFontNotFoundWithNoReplacementFoundIsDrawnInTheDrawingFontAsBefore()
         {
             CadDocument document = Drawing("romans.shx", null, Text("I", 5.0));
@@ -630,8 +645,9 @@ namespace OpenCAD2D.UnitTest
                 }
             }
 
-            // Hershey's Roman Simplex: capitals 21 above the baseline, descenders 7 below, as romans.shx; ABC123 is 18 + 21 + 21
-            // + 20 + 20 + 20 = 120 units wide, 5.7 heights, inked from the baseline to the capitals' top.
+            // OpenCAD2D ISO: capitals 100 above the baseline, descenders 30 below; the arcs of C, 2 and 3 are drawn by bulges, so
+            // the ink runs up to 0.6 of a unit past the baseline and the capitals' top; ABC123 is 80 + 70 + 65 + 70 + 70 + 70 = 425
+            // units wide, 4.25 heights, inked from the baseline to the capitals' top.
             _output.WriteLine(
                 "ABC123: "
                     + advance
@@ -643,16 +659,16 @@ namespace OpenCAD2D.UnitTest
                     + top
             );
             Assert.Equal(ShxFontKind.Unifont, font.Kind);
-            Assert.Equal(98, font.Count);
-            Assert.Equal(21.0, font.Above);
-            Assert.Equal(7.0, font.Below);
-            Assert.Equal(120.0, advance, 9);
-            Assert.Equal(21.0, top, 9);
-            Assert.Equal(0.0, bottom, 9);
+            Assert.Equal(242, font.Count);
+            Assert.Equal(100.0, font.Above);
+            Assert.Equal(30.0, font.Below);
+            Assert.Equal(425.0, advance, 9);
+            Assert.InRange(top, 100.0, 100.6);
+            Assert.InRange(bottom, -0.6, 0.0);
             Assert.True(font.Has(0xB0));
             Assert.True(font.Has(0xB1));
             Assert.True(font.Has(0x2205));
-            Assert.Equal(-7.0, font.GlyphOf('g').Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).Min(), 9);
+            Assert.Equal(-30.0, font.GlyphOf('g').Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).Min(), 9);
         }
 
         [Fact]
@@ -671,13 +687,14 @@ namespace OpenCAD2D.UnitTest
             double[] ys = shown.Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).ToArray();
             double[] xs = shown.Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 0)).ToArray();
 
-            // 2.5 high in a font 21 above: the ink from the baseline at 20 to 22.5; 120 units across at 2.5 / 21 is 14.286, the
-            // ink a little within it, from the foot of the A 1 unit in to the right of the 3 at 117.
+            // 2.5 high in a font 100 above: the ink from the baseline at 20 to 22.5; 425 units across at 2.5 / 100 is 10.625, the
+            // ink a little within it, from the foot of the A 10 units in (its left bearing) to the right of the 3 at 415, the arcs
+            // of the bulges a few hundredths of a millimetre past the baseline and the top.
             Assert.Equal(CadFonts.BuiltInName, shown.FontName);
-            Assert.Equal(20.0, ys.Min(), 9);
-            Assert.Equal(22.5, ys.Max(), 9);
-            Assert.Equal(10.0 + (2.5 / 21.0), xs.Min(), 9);
-            Assert.Equal(10.0 + (117.0 * 2.5 / 21.0), xs.Max(), 9);
+            Assert.Equal(20.0, ys.Min(), 2);
+            Assert.Equal(22.5, ys.Max(), 2);
+            Assert.Equal(10.0 + (10.0 * 2.5 / 100.0), xs.Min(), 9);
+            Assert.InRange(xs.Max(), 10.0 + (410.0 * 2.5 / 100.0), 10.0 + (415.0 * 2.5 / 100.0) + 1E-9);
             Assert.Empty(said);
         }
 
