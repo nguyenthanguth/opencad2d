@@ -251,6 +251,35 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void TheWordsOfALeaderInTheBuiltInFont_AreMeasuredInTheFontsFolderShippedWithTheProgram()
+        {
+            // The same split as above, the words ABC123 in opencad2d.shx, which no folder the user set holds: it is in the Fonts
+            // folder beside the dll. AutoCAD 2021's box of ABC123 in it is 41.2488 of ink for every 10 of height (1.0000 to
+            // 42.2488), so the new leader on the right ends the box's ink, its gaps and its dogleg from the left.
+            CadDocument document = BlankWithMLeaderStyle();
+            document.Fonts = new CadFonts(new[] { _folder.FullPath }, null, null);
+            document.Database.TextStyleTable["Standard"].FileName = "opencad2d.shx";
+            DxfMLeader one = Make(document, P(0, 0), P(10, 10), "IOI");
+            DxfMLeader two = Make(document, P(-30, 0), P(-20, 25), "ABC123");
+            int line = two.AddLeaderLine(two.GetLeaderIndexes()[0]);
+            two.AddFirstVertex(line, new GeoPoint3(40, 30, 0));
+            double height = two.MText.TextHeight;
+            double left = one.TextLocation.X - one.LandingGap * one.Scale;
+            double gap = two.LandingGap * two.Scale;
+            double dogleg = two.DoglegLength * two.Scale;
+
+            Run(Session(document), "MLA", new[] { one.Handle, two.Handle }, Enter, new[] { one.Handle }, P(left, 110));
+
+            IReadOnlyList<int> leaders = two.GetLeaderIndexes();
+            Assert.Equal(2, leaders.Count);
+            Assert.Equal(
+                left + 2.0 * gap + (41.2488 * height / 10.0) + dogleg,
+                two.GetLastVertex(two.GetLeaderLineIndexes(leaders[1])[0]).X,
+                3
+            );
+        }
+
+        [Fact]
         public void ALeaderWhoseArrowheadsAreAllOnTheOtherSideOfTheBox_IsTurnedToIt()
         {
             // AutoCAD 2021: both lines of the leader on the left of the words have their arrowheads past the middle of the box

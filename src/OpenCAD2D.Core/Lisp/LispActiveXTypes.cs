@@ -312,7 +312,7 @@ namespace OpenCAD2D.Lisp
                 }
 
                 string windows = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
-                IEnumerable<string> folders = document.Fonts.Folders;
+                IEnumerable<string> folders = document.Fonts.FontFolders;
 
                 if (!string.IsNullOrEmpty(windows))
                 {

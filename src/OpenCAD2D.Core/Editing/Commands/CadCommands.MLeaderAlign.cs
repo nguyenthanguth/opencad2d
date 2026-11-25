@@ -997,7 +997,9 @@ namespace OpenCAD2D
                 _searched = _database.FontSearchPath;
                 _database.FontSearchPath = string.Join(
                     ";",
-                    document.Fonts.Folders.Concat(new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) })
+                    document.Fonts.FontFolders.Concat(
+                        new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) }
+                    )
                 );
             }
 

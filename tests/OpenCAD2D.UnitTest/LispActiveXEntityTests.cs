@@ -1388,6 +1388,61 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void TextBoxOfWordsInTheBuiltInFont_ReachesTheBulgesOfItsArcs_AsAutoCadMeasuresThem()
+        {
+            using (var fonts = new FontFolder())
+            {
+                CadCommandSession session = Scene(out CadDocument document, fonts, "ABC123");
+                document.Database.TextStyleTable["Standard"].FileName = "opencad2d.shx";
+                Value(session, "(vla-put-Height text 10)");
+
+                // The font is the one shipped in the Fonts folder beside the dll, not in a folder the user set.
+                // AutoCAD 2021 (accoreconsole, probe3 P3b): (textbox) of TEXT "ABC123" in opencad2d.shx is
+                // (1.0000 -0.6299) to (42.2488 10.7063) at 10 high and (10.0000 -6.2992) to (422.4882 107.0630) at 100 high,
+                // the arcs of C, 2 and 3 measured by the points they reach, not by the polylines the display draws.
+                Value(session, "(setq tb (textbox (entget etext)))");
+                AssertBox(session, 1.0000, -0.6299, 42.2488, 10.7063);
+                Value(session, "(vla-put-Height text 100)");
+                Value(session, "(setq tb (textbox (entget etext)))");
+                AssertBox(session, 10.0000, -6.2992, 422.4882, 107.0630);
+
+                // GetBoundingBox is that box moved to the insertion point (0 20 0), through the same fonts.
+                Value(session, "(vla-GetBoundingBox text 'lo 'hi)");
+                Assert.Equal(
+                    "T",
+                    Value(session, "(< (distance (vlax-safearray->list lo) (list 10.0 13.7008 0.0)) 0.001)")
+                );
+                Assert.Equal(
+                    "T",
+                    Value(session, "(< (distance (vlax-safearray->list hi) (list 422.4882 127.063 0.0)) 0.001)")
+                );
+            }
+        }
+
+        private static void AssertBox(CadCommandSession session, double left, double bottom, double right, double top)
+        {
+            double[] expected = { left, bottom, right, top };
+            string[] forms =
+            {
+                "(rtos (car (car tb)) 2 4)",
+                "(rtos (cadr (car tb)) 2 4)",
+                "(rtos (car (cadr tb)) 2 4)",
+                "(rtos (cadr (cadr tb)) 2 4)",
+            };
+
+            Assert.NotEqual("nil", Value(session, "tb"));
+
+            for (int i = 0; i < forms.Length; i++)
+            {
+                Assert.Equal(
+                    expected[i],
+                    double.Parse(Value(session, forms[i]).Trim('"'), System.Globalization.CultureInfo.InvariantCulture),
+                    4
+                );
+            }
+        }
+
+        [Fact]
         public void TextBoxOfATurnedText_IsTheBoxOfTheUnturnedText()
         {
             using (var fonts = new FontFolder())

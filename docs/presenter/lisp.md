@@ -2226,7 +2226,11 @@ left and upper right corners, relative to that point. AutoCAD 2021 gives `((0.0 
 high in the font `txt`. The presenter measures the words in the fonts of the drawing, its support folders and Windows'
 Fonts folder, so the same text in Arial 2.5 high gives `((0.0 -0.0409277 0.0) (5.63097 2.5 0.0))`; it gives `nil` for words
 whose font it cannot find, and for something that is no text. `vla-GetBoundingBox` of a TEXT or MTEXT is that box moved to
-the insertion point, and where no font is found it is the insertion point alone.
+the insertion point, and where no font is found it is the insertion point alone. The fonts include the Fonts folder shipped beside the program, so a style in the built-in
+`opencad2d.shx` is measured as AutoCAD 2021 measures it: the box takes the points the arcs of its letters reach, as well
+as their strokes, so `ABC123` 10 high gives `((1.0 -0.629921 0.0) (42.2488 10.7063 0.0))` and 100 high
+`((10.0 -6.29921 0.0) (422.488 107.063 0.0))`, the arcs of the C, 2 and 3 running 0.63 below the baseline and 0.71 above
+the capitals' top.
 
 #### Selection sets
 
