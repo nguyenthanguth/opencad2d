@@ -107,7 +107,9 @@ class _LocalBackend:
             if copy.Handle and not copy.IsErased and original.Handle
         ]
 
-    def read(self, dxf_type: str | None, layer: str | None, layout: str | None) -> list[tuple[str, Any, Any]]:
+    def read(
+        self, dxf_type: str | None, layer: str | None, layout: str | None, kind: Any = None
+    ) -> list[tuple[str, Any, Any]]:
         found: list[Any] = []
         for space in self._spaces(layout):
             for entity in space.Block:
@@ -116,6 +118,8 @@ class _LocalBackend:
                 if layer is not None and str(entity.Layer).upper() != layer.upper():
                     continue
                 if dxf_type is not None and dxf_type_of(entity).upper() != dxf_type:
+                    continue
+                if kind is not None and not isinstance(entity, kind):
                     continue
                 found.append(entity)
         return self._pack(found)

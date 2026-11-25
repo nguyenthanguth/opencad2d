@@ -313,6 +313,22 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       (board A5UcsDialog, AutoCAD probe .claude/scratch/a5): three tabs, rename/delete/Details, depth; OK one step named
       UCSMAN. Parked: orthographic depth and Reset not measured in AutoCAD (built from its documentation); UCSVP,
       UCSFOLLOW and UCSSELECTMODE kept on the drawing, not as variables; UCSNAME stays "" for an orthographic system
+- [ ] A6. More of the app as API (maintainer 2026-11-25): the window's view functions that exist inside (ZoomExtents,
+      ZoomToObjects, CadView.ZoomTo/ZoomAt/ZoomToHeight, and the like: zoom window, center, previous, pan, regen, the
+      current view read and set) made public for C# plugins (the command context), Remote (`CadRemoteDocument`) and
+      Python (`Drawing.zoom_extents()` ...), one meaning in all three; a survey first of every such internal function
+      worth exposing. -> verify: each call tested in-process, through Remote and from a Python tool; docs and stubs.
+- [x] A7. Typed entities in Python, as C#'s `if (obj is Line line)`: `Entity.net` typed `DxfEntity` (not `Any`) so that
+      `isinstance(e.net, DxfLine)` and `match e.net: case DxfCircle() as c:` narrow in Pylance (both already run under
+      pythonnet, checked 2026-11-25); `Entity` generic, `entities(DxfCircle)` giving `list[Entity[DxfCircle]]`.
+      -> verify: pyright strict on an example; pytest on both runtimes.
+      Done 2026-11-25 (API T2): Entity[E], entities(DxfCircle), add_* typed; pytest 685 coreclr / 672+13 netfx, pyright
+      strict clean, bad_typed_entities.py gives exactly its 6 errors
+- [ ] A8. A few edit calls with types for plugins and Python: erase, move, copy, rotate, scale, mirror, offset on
+      entities, returning the new ones (no command text), one undo step with the rest of the run.
+      -> verify: in-process, Remote and Python tests; the same drawing as the command gives.
+- [ ] A9. Documents for C# plugins as AutoCAD's DocumentManager: the open drawings listed, one opened, closed, made
+      active (Remote and Python have them). Plan in .claude/scratch/api/spec.md (API-D22).
 
 #### Parked follow-ups
 

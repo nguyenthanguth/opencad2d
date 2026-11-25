@@ -75,10 +75,13 @@ class _RemoteBackend:
     def _pairs(self, entities: Any) -> list[tuple[str, Any, Any]]:
         return [(str(self._document.HandleOf(entity)), entity, None) for entity in entities]
 
-    def read(self, dxf_type: str | None, layer: str | None, layout: str | None) -> list[tuple[str, Any, Any]]:
-        if layer is None and layout is None:
+    def read(
+        self, dxf_type: str | None, layer: str | None, layout: str | None, kind: Any = None
+    ) -> list[tuple[str, Any, Any]]:
+        if layer is None and layout is None and kind is None:
             return self._pairs(self._document.GetObjects())
         selector = _remote.CadObjectFilter()
+        selector.Kind = kind  # the app finds the class and its subclasses, as isinstance does
         selector.Layer = layer
         selector.Layout = layout
         return self._pairs(self._document.GetObjects(selector))

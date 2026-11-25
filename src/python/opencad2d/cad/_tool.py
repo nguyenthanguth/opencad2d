@@ -15,7 +15,7 @@ import importlib
 import io
 import threading
 from collections.abc import Callable, Sequence
-from typing import Any
+from typing import Any, cast
 
 from ._drawing import Documents, Drawing, Entity, point3
 from ._remote import _RemoteBackend  # pyright: ignore[reportPrivateUsage]
@@ -39,7 +39,10 @@ class _ToolBackend(_RemoteBackend):
         from . import get_entity  # pyright: ignore[reportAttributeAccessIssue]
 
         found: Any = get_entity(message)
-        return (found.handle, found.net, None) if isinstance(found, Entity) else None
+        if not isinstance(found, Entity):
+            return None
+        entity = cast(Entity, found)
+        return (entity.handle, entity.net, None)
 
     def pick_objects(self, message: str) -> list[tuple[str, Any, Any]]:
         from . import get_selection  # pyright: ignore[reportAttributeAccessIssue]

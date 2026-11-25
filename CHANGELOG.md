@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **CHANGED.** Python `Entity` is generic and `Entity.net` is typed: `drawing.entities(DxfCircle)` and the `add_*` calls
+  give an `Entity[DxfCircle]` (a class asks for its subclasses too, and a class that is no `DxfEntity` raises `TypeError`),
+  while an entity read by name, handle, selection or pick has a `DxfEntity` for `net`. A type checker now asks for
+  `entities(DxfCircle)`, `if isinstance(e.net, DxfLine):` or `match e.net: case DxfCircle() as c:` before `e.net.Radius`,
+  as C#'s `if (obj is DxfLine line)`; nothing changes at run time.
 - **FIXED.** Global settings > Folder preference: the kind of a default folder ("Drawing templates") was cut at 96 pixels and ran into its path; the kind column is now as wide as the longest kind of the page, with a gap of 16 pixels before the path, and the paths of Fonts, Hatch patterns, Linetypes, Lisps and Drawing templates start at one place. The Python block's "Passed over" list showed `3.10: no InstallPath` twice when HKCU and HKLM both register 3.10; where a tag is registered in both hives each line now names its hive (`3.10 (HKCU): no InstallPath`, `3.10 (HKLM): no InstallPath`, `3.13 (HKLM): 3.13 (HKCU) was chosen instead`).
 
 - **NEW.** UCSMAN (UC, DDUCS) opens the UCS dialog as AutoCAD 2021's: Named UCSs (Unnamed, World, Previous and the named systems, with Set Current, Rename in place, Delete and Details to four decimals relative to World, Unnamed or another system), Orthographic UCSs (Top, Bottom, Front, Back, Left and Right with their depth) and Settings (the UCS icon, Allow Selecting UCS icon, Save UCS with viewport, Update view to Plan). Nothing reaches the drawing until OK, and OK is one undo step named UCSMAN; Cancel changes nothing. Names are refused with AutoCAD's three messages, and World, Previous and Unnamed as taken. UCSMAN with no window now says the window shows it, in place of listing the named systems.
