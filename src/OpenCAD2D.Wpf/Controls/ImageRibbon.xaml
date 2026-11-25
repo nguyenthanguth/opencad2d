@@ -12,9 +12,6 @@
     (DynamicResource).
     -->
     <UserControl.Resources>
-        <Geometry x:Key="IconClipCreate">M6 6h12v12H6zM3 9V3h6M21 15v6h-6</Geometry>
-        <Geometry x:Key="IconClipRemove">M6 6h12v12H6zM3 3l18 18</Geometry>
-        <Geometry x:Key="IconCloseImage">M5 5l14 14M19 5L5 19</Geometry>
         <Style x:Key="ImageLabel" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,0,6,2" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -113,7 +110,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconClipCreate}"
+                        Tag="{DynamicResource IconClipCreate.Color}"
                         Content="Create Clipping Boundary"
                         IsEnabled="True"
                         Command="{Binding CreateClipCommand}"
@@ -121,7 +118,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconClipRemove}"
+                        Tag="{DynamicResource IconClipRemove.Color}"
                         Content="Remove Clipping"
                         IsEnabled="True"
                         Command="{Binding RemoveClipCommand}"
@@ -165,7 +162,7 @@
                 <TextBlock DockPanel.Dock="Bottom" Style="{DynamicResource GroupTitle}" Text="Close" />
                 <Button
                     Style="{DynamicResource BigButton}"
-                    Tag="{StaticResource IconCloseImage}"
+                    Tag="{DynamicResource IconCloseImage.Color}"
                     Content="Close Image"
                     IsEnabled="True"
                     Command="{Binding CloseCommand}"

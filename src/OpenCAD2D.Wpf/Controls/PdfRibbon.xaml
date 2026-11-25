@@ -12,10 +12,6 @@
     styles are the workspace's, found at run time (DynamicResource).
     -->
     <UserControl.Resources>
-        <Geometry x:Key="IconPdfClipCreate">M6 6h12v12H6zM3 9V3h6M21 15v6h-6</Geometry>
-        <Geometry x:Key="IconPdfClipRemove">M6 6h12v12H6zM3 3l18 18</Geometry>
-        <Geometry x:Key="IconPdfLayers">M12 3l9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5</Geometry>
-        <Geometry x:Key="IconClosePdf">M5 5l14 14M19 5L5 19</Geometry>
         <Style x:Key="PdfLabel" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,0,6,2" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -110,7 +106,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconPdfClipCreate}"
+                        Tag="{DynamicResource IconPdfClipCreate.Color}"
                         Content="Create Clipping Boundary"
                         IsEnabled="True"
                         Command="{Binding CreateClipCommand}"
@@ -118,7 +114,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconPdfClipRemove}"
+                        Tag="{DynamicResource IconPdfClipRemove.Color}"
                         Content="Remove Clipping"
                         IsEnabled="True"
                         Command="{Binding RemoveClipCommand}"
@@ -150,7 +146,7 @@
                     </StackPanel>
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconPdfLayers}"
+                        Tag="{DynamicResource IconPdfLayers.Color}"
                         Content="Underlay Layers"
                         IsEnabled="True"
                         Command="{Binding LayersCommand}"
@@ -166,7 +162,7 @@
                 <TextBlock DockPanel.Dock="Bottom" Style="{DynamicResource GroupTitle}" Text="Close" />
                 <Button
                     Style="{DynamicResource BigButton}"
-                    Tag="{StaticResource IconClosePdf}"
+                    Tag="{DynamicResource IconClosePdf.Color}"
                     Content="Close PDF Underlay"
                     IsEnabled="True"
                     Command="{Binding CloseCommand}"

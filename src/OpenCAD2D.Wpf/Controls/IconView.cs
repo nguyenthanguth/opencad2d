@@ -6,7 +6,7 @@ namespace OpenCAD2D.Wpf
     /// <summary>
     /// A line icon drawn from path data on a 24 by 24 grid, as the open-source icon sets give them, scaled to its size: an
     /// icon of size 26 draws the grid 26 pixels wide, its lines <see cref="StrokeThickness"/> grid units thick with round
-    /// ends and joins.
+    /// ends and joins. Given a <see cref="Icon"/> instead, it draws that colour icon, which has its own strokes and colours.
     /// </summary>
     public sealed class IconView : FrameworkElement
     {
@@ -14,6 +14,14 @@ namespace OpenCAD2D.Wpf
         public static readonly DependencyProperty DataProperty = DependencyProperty.Register(
             nameof(Data),
             typeof(System.Windows.Media.Geometry),
+            typeof(IconView),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender)
+        );
+
+        /// <summary>Identifies the <see cref="Icon"/> property.</summary>
+        public static readonly DependencyProperty IconProperty = DependencyProperty.Register(
+            nameof(Icon),
+            typeof(RibbonIcon),
             typeof(IconView),
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender)
         );
@@ -63,6 +71,18 @@ namespace OpenCAD2D.Wpf
             set => SetValue(DataProperty, value);
         }
 
+        /// <summary>
+        /// Gets or sets the colour icon to draw instead of <see cref="Data"/>; null, the default, draws <see cref="Data"/>. The
+        /// icon is drawn <see cref="Size"/> wide: its small drawing where that is under 24 device pixels (a size of 16 at 100
+        /// % or 125 %), its large drawing from 24 up (a size of 16 at 150 %, or 32 at 100 %), so that a size of 16 shows the
+        /// 1 pixel lines of the small drawing at 96 DPI and the 1.5 pixel lines of the large one at 144 DPI.
+        /// </summary>
+        public RibbonIcon Icon
+        {
+            get => (RibbonIcon)GetValue(IconProperty);
+            set => SetValue(IconProperty, value);
+        }
+
         /// <summary>Gets or sets the width and height of the icon in pixels; 16 by default.</summary>
         public double Size
         {
@@ -95,8 +115,29 @@ namespace OpenCAD2D.Wpf
         protected override Size MeasureOverride(Size availableSize) => new Size(Size, Size);
 
         /// <inheritdoc/>
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi) => InvalidateVisual();
+
+        /// <inheritdoc/>
         protected override void OnRender(DrawingContext drawingContext)
         {
+            RibbonIcon icon = Icon;
+
+            if (icon != null)
+            {
+                bool small = icon.Small != null && Size * VisualTreeHelper.GetDpi(this).DpiScaleX < 24;
+                Drawing drawing = small ? icon.Small : icon.Large;
+
+                if (drawing != null)
+                {
+                    double fit = Size / (small ? 16.0 : 32.0);
+                    drawingContext.PushTransform(new ScaleTransform(fit, fit));
+                    drawingContext.DrawDrawing(drawing);
+                    drawingContext.Pop();
+                }
+
+                return;
+            }
+
             System.Windows.Media.Geometry data = Data;
 
             if (data == null)

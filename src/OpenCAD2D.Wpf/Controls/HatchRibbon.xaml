@@ -14,15 +14,6 @@
         <local:BoolToVisibilityConverter x:Key="Shown" />
         <local:BoolToVisibilityConverter x:Key="Hidden" Invert="True" />
         <local:RgbBrushConverter x:Key="RgbBrush" />
-        <Geometry x:Key="IconPickPoints">M3 3h18v18H3zM12 8v8M8 12h8M11 11h2v2h-2z</Geometry>
-        <Geometry x:Key="IconSelectObjects">M5 3l12 9-5 1 3 6-3 1-3-6-4 3z</Geometry>
-        <Geometry x:Key="IconRemoveBoundary">M3 3h18v18H3zM8 12h8</Geometry>
-        <Geometry x:Key="IconRecreate">M5 12a7 7 0 1 0 2-5M5 4v4h4M10 10h4v4h-4z</Geometry>
-        <Geometry x:Key="IconDisplayBoundary">
-            M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z
-        </Geometry>
-        <Geometry x:Key="IconSetOrigin">M5 19V5M5 19h14M8 16l3-3M14 7v4M12 9h4</Geometry>
-        <Geometry x:Key="IconCloseHatch">M5 5l14 14M19 5L5 19</Geometry>
         <Style x:Key="HatchField" TargetType="TextBox">
             <Setter Property="Width" Value="64" />
             <Setter Property="Margin" Value="0,0,0,2" />
@@ -48,7 +39,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconPickPoints}"
+                        Tag="{DynamicResource IconPickPoints.Color}"
                         Content="Pick Points"
                         IsEnabled="True"
                         Command="{Binding PickPointsCommand}"
@@ -56,7 +47,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconSelectObjects}"
+                        Tag="{DynamicResource IconSelectObjects.Color}"
                         Content="Select"
                         IsEnabled="True"
                         Command="{Binding SelectCommand}"
@@ -64,7 +55,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconRemoveBoundary}"
+                        Tag="{DynamicResource IconRemoveBoundary.Color}"
                         Content="Remove"
                         IsEnabled="True"
                         Command="{Binding RemoveCommand}"
@@ -72,7 +63,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconRecreate}"
+                        Tag="{DynamicResource IconRecreate.Color}"
                         Content="Recreate"
                         IsEnabled="True"
                         Command="{Binding RecreateCommand}"
@@ -81,7 +72,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconDisplayBoundary}"
+                        Tag="{DynamicResource IconDisplayBoundary.Color}"
                         Content="Display Boundary Objects"
                         IsEnabled="True"
                         Command="{Binding DisplayBoundaryCommand}"
@@ -370,7 +361,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconSetOrigin}"
+                        Tag="{DynamicResource IconSetOrigin.Color}"
                         Content="Set Origin"
                         IsEnabled="True"
                         Command="{Binding SetOriginCommand}"
@@ -565,7 +556,7 @@
                 <TextBlock DockPanel.Dock="Bottom" Style="{DynamicResource GroupTitle}" Text="Close" />
                 <Button
                     Style="{DynamicResource BigButton}"
-                    Tag="{StaticResource IconCloseHatch}"
+                    Tag="{DynamicResource IconCloseHatch.Color}"
                     Content="{Binding CloseText}"
                     IsEnabled="True"
                     Command="{Binding CloseCommand}"

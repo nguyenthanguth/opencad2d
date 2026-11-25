@@ -12,10 +12,6 @@
     -->
     <UserControl.Resources>
         <local:BoolToVisibilityConverter x:Key="Shown" />
-        <Geometry x:Key="IconBasePoint">M12 3v6M12 15v6M3 12h6M15 12h6M10 10h4v4h-4z</Geometry>
-        <Geometry x:Key="IconEditSource">M4 20l1-4 11-11 3 3L8 19zM14 7l3 3</Geometry>
-        <Geometry x:Key="IconReplace">M4 7h10M4 7l3-3M4 7l3 3M20 17H10M20 17l-3-3M20 17l-3 3</Geometry>
-        <Geometry x:Key="IconReset">M5 12a7 7 0 1 0 2-5M5 4v4h4</Geometry>
         <Style x:Key="ArrayField" TargetType="TextBox">
             <Setter Property="Width" Value="64" />
             <Setter Property="Margin" Value="0,0,0,2" />
@@ -173,7 +169,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconBasePoint}"
+                        Tag="{DynamicResource IconBasePoint.Color}"
                         Content="Base Point"
                         IsEnabled="True"
                         Command="{Binding BasePointCommand}"
@@ -181,19 +177,19 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconEditSource}"
+                        Tag="{DynamicResource IconEditSource.Color}"
                         Content="Edit Source"
                         ToolTip="Not built: replace the source objects with ARRAYEDIT, REPlace, Source objects"
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconReplace}"
+                        Tag="{DynamicResource IconReplace.Color}"
                         Content="Replace Item"
                         ToolTip="Not built: replace the source objects with ARRAYEDIT, REPlace, Source objects"
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconReset}"
+                        Tag="{DynamicResource IconReset.Color}"
                         Content="Reset Array"
                         IsEnabled="True"
                         Command="{Binding ResetCommand}"

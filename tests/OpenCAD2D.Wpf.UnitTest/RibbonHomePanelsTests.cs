@@ -1570,12 +1570,12 @@ namespace OpenCAD2D.Wpf.UnitTest
             {
                 var text = (ButtonBase)BodyControls(Panel(strip, "Annotation"))[0];
                 IconView icon = Descendants(text).OfType<IconView>().First();
-                var letter = (System.Windows.Media.Geometry)workspace.FindResource("GhIconText");
-                var page = (System.Windows.Media.Geometry)workspace.FindResource("GhIconMText");
+                object letter = workspace.FindResource("GhIconText.Color");
+                object page = workspace.FindResource("GhIconMText.Color");
 
-                // GhIconText is the T of the design; GhIconMText is the page the button drew until now.
-                Assert.NotEqual(letter.Bounds, page.Bounds);
-                Assert.Equal(letter.Bounds, icon.Data.Bounds);
+                // GhIconText is the T of the design; GhIconMText is the page the button drew before it.
+                Assert.NotSame(letter, page);
+                Assert.Same(letter, icon.Icon);
             });
         }
 
