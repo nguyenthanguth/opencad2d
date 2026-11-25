@@ -120,6 +120,11 @@ namespace OpenCAD2D.Wpf
                     ToolTip = item.ToolTip,
                     InputGestureText = item.Shortcut,
                 };
+                if (item.IsDefault)
+                {
+                    menuItem.FontWeight = FontWeights.SemiBold;
+                }
+
                 Fill(menuItem, item.Items);
                 menu.Items.Add(menuItem);
             }

@@ -965,6 +965,9 @@ namespace OpenCAD2D.Wpf
                 _model.ShowDesignCenter = palette =>
                     DesignCenterWindow.ShowPalette(Window.GetWindow(this), shown, palette);
                 _model.CloseDesignCenter = DesignCenterWindow.ClosePalette;
+                _model.ShowSheetSetManager = palette =>
+                    SheetSetManagerWindow.ShowPalette(Window.GetWindow(this), shown, palette);
+                _model.CloseSheetSetManager = SheetSetManagerWindow.ClosePalette;
                 _model.ShowPdfLayers = dialog => PdfLayersWindow.Show(Window.GetWindow(this), dialog);
                 _model.ShowToolPalettes = palettes =>
                     ToolPalettesWindow.ShowPalette(Window.GetWindow(this), shown, palettes);
