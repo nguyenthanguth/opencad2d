@@ -310,6 +310,14 @@ belongs to the command:
 - A request of a run that has ended is refused, `The run 7 of STAIRSPY has ended.`, and one of another tool's token
   `belongs to another tool`. `pick` and `command` are refused inside a run: the run asks with `Ask`.
 
+- A tool reads and sets the settings its `plugin.json` declares (see [the manifest](plugins.md#the-manifest)) with
+  `app.GetToolSetting("textHeight")` (a `double` for a number, an `int` for an integer, a `bool`, or a `string` for a text and
+  for a choice) and `app.SetToolSetting("textHeight", 4.5)`, by name, in a run or out of one. The value is the one the user last
+  gave in the settings window, else the default. A value the setting refuses is refused in its own words,
+  `The setting Text height lies from 0.1 to 1000.`, and an unknown name with `The tool Circles declares no setting textHeight.`
+  The two are answered at once, with no wait for the app's window, which may be busy or waiting for this very tool, and are
+  refused on the app's own channel: `toolSetting works on the channel of the tools only.`
+
 The app's host makes the channel with `CadRemoteServer.ForTools`, gives each tool process `IssueToken()` and takes it back with
 `RevokeToken`, and registers `CreateRunCommand(name, usesSelection, token, started)` as the tool's command; `started` receives the
 `CadRemoteToolRun` (its `Id` and `DocumentId` are what the tool is told), and `Ended` tells how it ended (`Completed`, `Failed`,

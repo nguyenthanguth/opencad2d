@@ -145,6 +145,35 @@ uses slide-outs, dialog launchers, macro buttons or `CadSnapRequest.BlockReferen
 [editor](#the-editor-the-view-selection-and-variables) states 1.3; one that uses the [open drawings](#the-open-drawings-open-add-show-and-close) states 1.4; one that uses the
 [dry run of an edit](#the-editor-edits) (`CadEditor.Check`) states 1.5.
 
+A [Python tool](python.md#pluginjson) declares two more things the app shows with no Python running, a C# plugin declaring them in
+code instead (`CadCustomSnap` through the host, `[CadSetting]` on a property): `"snaps"` and `"settings"`.
+
+```json
+{ "name": "Circles",
+  "snaps": [ { "keyword": "CTOP", "name": "Circle top", "entityTypes": [ "CIRCLE" ], "glyph": "quadrant", "onByDefault": true } ],
+  "settings": [
+    { "name": "textHeight", "label": "Text height", "kind": "number", "default": 2.5, "minimum": 0.1, "maximum": 1000,
+      "description": "How high the marks are written." },
+    { "name": "side", "kind": "choice", "choices": [ "Left", "Right" ], "default": "Left" } ] }
+```
+
+- **A snap** (`CadPluginManifest.Snaps`, a `CadPluginSnapEntry` each) needs a `keyword`, in capitals however written, and a `name`;
+  one without either is passed over, as a ribbon button without text is. `entityTypes` are DXF names (`CIRCLE`, `ARC`, `LWPOLYLINE`),
+  none for every entity. The `glyph` is the name of a built-in marker, `quadrant` or `endpoint` or any other of `CadSnapKind` that
+  has one, in any case; or strokes in pixels about the point, Y down, as `CadMarkerStroke` has them,
+  `[ { "points": [[-4.5, 4.5], [4.5, 4.5], [0, -4.5]], "closed": true, "dotted": false, "filled": false } ]`; none is the default
+  square with a dot. A name no marker has, or a stroke with fewer than two points, is not passed over: the manifest does not read.
+- **A setting** (`CadPluginManifest.Settings`, a `CadPluginSettingEntry` each) has a `name` (letters, digits and underscores, not
+  starting with a digit, once in the file), a `kind` of `number`, `integer`, `boolean`, `text` or `choice` (with its `choices`),
+  and a `default` of that kind, in the range for a number, one of the choices for a choice. The `label` is the name where not
+  given; `minimum`, `maximum` and `description` are optional. A setting that breaks a rule makes the manifest unreadable, with the
+  rule in the message: `The setting textHeight: the default 0.05 lies outside 0.1 to 1000.` A C# plugin's `"settings"` is not used.
+- **The values** a user gives settings are kept in the settings file, `pluginSettings`, one entry per setting as
+  `Circles/textHeight=2.5`: the plugin's name as Load/Unload Applications shows it, a slash, the setting's name and the value in the
+  invariant culture (`True` or `False` for yes or no, the name of a choice). A setting at its default has no entry; the entries of
+  a plugin that is not loaded stay; a value the setting no longer takes (a range a new version narrowed) is dropped with a line
+  in the log and the default kept. A C# plugin's properties are given their kept values when the plugin loads.
+
 A plugin targets netstandard2.0 and references `OpenCAD2D` only, without copying it: the presenter gives a
 plugin its own, so that the `CadCommandContext` it is handed is of the type it was built against.
 

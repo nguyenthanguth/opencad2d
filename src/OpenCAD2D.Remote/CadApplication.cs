@@ -226,6 +226,100 @@ namespace OpenCAD2D.Remote
             throw new CadRemoteException("No running OpenCAD2D has " + full + " open.");
         }
 
+        /// <summary>
+        /// Reads a setting the tool declares in its plugin.json, as the user last set it in Load/Unload Applications, or its
+        /// default. Only on the channel of the tools, with the token of the tool; the app answers at once, whatever its window is
+        /// doing, in a run or out of one.
+        /// </summary>
+        /// <param name="name">The setting's name, as plugin.json gives it: "textHeight".</param>
+        /// <returns>A <c>double</c> for a number, an <c>int</c> for an integer, a <c>bool</c>, a <c>string</c> for a text or the name of a choice; null for a text with no value.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the name is null.</exception>
+        /// <exception cref="CadRemoteException">Thrown when the tool declares no such setting, or this is not the channel of the tools.</exception>
+        public object GetToolSetting(string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            JsonObject answer = _connection.Request(
+                new JsonObject().Set("op", RemoteOps.ToolSetting).Set("name", name)
+            );
+
+            switch (answer.GetString("kind"))
+            {
+                case "number":
+                    return answer.GetDouble("value");
+                case "integer":
+                    return (int)answer.GetLong("value");
+                default:
+                    return answer.Get("value");
+            }
+        }
+
+        /// <summary>
+        /// Sets a setting the tool declares in its plugin.json. The app checks the value as it checks one typed in the settings
+        /// window, keeps it in its settings file and shows it there; the next <see cref="GetToolSetting"/> gives it. Only on the
+        /// channel of the tools, with the token of the tool.
+        /// </summary>
+        /// <param name="name">The setting's name, as plugin.json gives it.</param>
+        /// <param name="value">A number, a <c>bool</c>, a text or the name of a choice; null for a text with no value. A text that reads as the setting's kind is taken ("2.5" for a number).</param>
+        /// <exception cref="ArgumentNullException">Thrown when the name is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the value is none of those types, or a number that is not finite.</exception>
+        /// <exception cref="CadRemoteException">Thrown when the tool declares no such setting, the value is out of its range or of another kind (the message is the setting's own words: "The setting Text height lies from 0.1 to 1000."), or this is not the channel of the tools.</exception>
+        public void SetToolSetting(string name, object value)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            _connection.Request(
+                new JsonObject().Set("op", RemoteOps.SetToolSetting).Set("name", name).Set("value", Wire(value))
+            );
+        }
+
+        /// <summary>A value as the channel carries it: a whole number as a <c>long</c>, any other number as a <c>double</c>.</summary>
+        private static object Wire(object value)
+        {
+            switch (value)
+            {
+                case null:
+                case string _:
+                case bool _:
+                    return value;
+                case sbyte _:
+                case byte _:
+                case short _:
+                case ushort _:
+                case int _:
+                case uint _:
+                case long _:
+                    return System.Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+                case ulong big:
+                    return big <= long.MaxValue ? (object)(long)big : (double)big;
+                case float _:
+                case double _:
+                case decimal _:
+                    double number = System.Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+
+                    if (double.IsNaN(number) || double.IsInfinity(number))
+                    {
+                        throw new ArgumentException(
+                            "A setting is never set to a number that is not finite.",
+                            nameof(value)
+                        );
+                    }
+
+                    return number;
+                default:
+                    throw new ArgumentException(
+                        "A setting is set to a number, a bool or a text, not a " + value.GetType().Name + ".",
+                        nameof(value)
+                    );
+            }
+        }
+
         /// <summary>Gets the drawing the user works in, or null when the app has none open.</summary>
         public CadRemoteDocument ActiveDocument
         {

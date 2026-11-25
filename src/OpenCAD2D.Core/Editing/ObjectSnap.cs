@@ -1211,7 +1211,8 @@ namespace OpenCAD2D
             GeoPoint2 cursor,
             double aperture,
             GeoPoint2? basePoint,
-            Action<SnapOffer, GeoPoint2> take
+            Action<SnapOffer, GeoPoint2> take,
+            bool isTyped = false
         )
         {
             foreach (SnapOffer offer in offers)
@@ -1229,7 +1230,8 @@ namespace OpenCAD2D
                         cursor,
                         aperture,
                         basePoint,
-                        offer.References
+                        offer.References,
+                        isTyped
                     )
                 );
 

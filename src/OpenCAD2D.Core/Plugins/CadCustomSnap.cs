@@ -95,7 +95,8 @@ namespace OpenCAD2D.Plugins
             GeoPoint2 cursor,
             double aperture,
             GeoPoint2? basePoint,
-            IReadOnlyList<string> blockReferences = null
+            IReadOnlyList<string> blockReferences = null,
+            bool isTyped = false
         )
         {
             Document = document;
@@ -105,6 +106,7 @@ namespace OpenCAD2D.Plugins
             Aperture = aperture;
             BasePoint = basePoint;
             BlockReferences = blockReferences ?? Array.Empty<string>();
+            IsTyped = isTyped;
         }
 
         /// <summary>Gets the drawing; null where the snap was asked without one.</summary>
@@ -135,5 +137,11 @@ namespace OpenCAD2D.Plugins
 
         /// <summary>Gets the point the rubber band is drawn from, as the built-in perpendicular works from it; null for none.</summary>
         public GeoPoint2? BasePoint { get; }
+
+        /// <summary>
+        /// Gets whether the point asked about was typed after the snap's keyword, rather than the cursor moving over the
+        /// drawing: the app may then wait for the answer, which it never does for the cursor.
+        /// </summary>
+        internal bool IsTyped { get; }
     }
 }
