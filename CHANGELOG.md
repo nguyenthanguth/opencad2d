@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **FIXED.** Copying to the Windows clipboard (Copy Full File Path, the text window's Copy, the command line's Copy,
+  copying objects) failed on a machine where a program watches the clipboard (clipboard history, a remote-desktop or phone
+  sync): the watcher opens the clipboard at the change and asks the app for the text, and the app answers only while its
+  thread takes messages, which the waits between its tries never did, so the copy gave up after about 5 s and left the
+  clipboard unflushed. The waits now answer what other programs send, and the flush that keeps the copy after the app is
+  closed is tried every 100 ms the same way: the copy goes through at the second try (about 100 ms).
 - **NEW.** `CadEditor.Check(Action<CadEditor>)` (plugin API 1.5): the dry run of an edit. It runs the calls it is given
   with every check they make (the numbers, the objects, the plan of an offset, the owner's gate), writes nothing, and
   gives null or the words the call would throw: `Check(e => e.Offset(circle, 15, side))` of a circle of radius 10 inward

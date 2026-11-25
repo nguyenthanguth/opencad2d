@@ -167,10 +167,12 @@ namespace OpenCAD2D.Wpf.UnitTest
             string read = null;
 
             Sta(() =>
-            {
-                Run(model, Row(model, "b.dxf"), "Copy Full File Path");
-                read = CadWindowsClipboard.TryGetText();
-            });
+                RealClipboard.Preserving(() =>
+                {
+                    Run(model, Row(model, "b.dxf"), "Copy Full File Path");
+                    read = CadWindowsClipboard.TryGetText();
+                })
+            );
 
             Assert.Equal(b, read);
         }
