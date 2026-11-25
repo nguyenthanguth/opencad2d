@@ -1,7 +1,8 @@
 # opencad2d
 
-GeometryHelper for Python: 2D and 3D geometry, DXF and DWG read and write, and the CAD presenter without a window
-(a `CadDocument` edited through its command session and saved). The library is the .NET one, run on
+OpenCAD2D for Python: commands and tools inside the OpenCAD2D app, driving a running app from outside, and drawings
+without a window (a `CadDocument` edited through its command session and saved), on the core library GeometryHelper
+(2D and 3D geometry, DXF and DWG read and write). The library is the .NET one, run on
 [pythonnet](https://pythonnet.github.io/); the .NET names stay as they are, and the wheel carries stubs so an editor
 (Pylance, pyright) completes them.
 

@@ -1,4 +1,4 @@
-"""GeometryHelper for Python: the .NET library and the CAD presenter, on pythonnet.
+"""OpenCAD2D for Python: the app's .NET libraries (OpenCAD2D and its core library GeometryHelper), on pythonnet.
 
 Importing this package starts a .NET runtime (unless one is already running) and loads GeometryHelper,
 OpenCAD2D.Remote and OpenCAD2D from the ``lib`` folder beside this file, or from the folder the environment variable

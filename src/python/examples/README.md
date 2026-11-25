@@ -1,6 +1,6 @@
 # Python examples
 
-Thirteen examples for the three places Python works with GeometryHelper: outside the app on the libraries, as a Python tool
+Thirteen examples for the three places Python works with OpenCAD2D and its core library GeometryHelper: outside the app on the libraries, as a Python tool
 of OpenCAD2D (a folder with a `requirements.txt`, an `__init__.py` and a `plugin.json`), and outside it driving a running app. Each does one common task, and a test of the repository runs
 each against a drawing it builds, on .NET 8 and on .NET Framework 4.8, so they keep working. They are not part of the
 wheel. The guide, [Python examples](../../../docs/python-examples.md), shows what each prints.
