@@ -157,6 +157,10 @@
   `^C^C_CIRCLE;0,0;\` form). Plugin API 1.2: a plugin using them states `[assembly: CadPluginApi("1.2")]`.
 - **NEW.** The coordinate rows of a point a plugin gives (`CadPropertyRow.Point` with a setter) show a pick-point button on
   the row being edited: `Pick a point in the drawing:`, a rubber band from the point, the setter called once.
+- **NEW.** The coordinate rows of the presenter's own Properties show the pick-point button too, as AutoCAD 2021: Start and
+  End of a line, Center of a circle, an arc, an ellipse and a viewport, Position of a text, an MTEXT, a block reference and an OLE
+  object, Vertex of a polyline. The pick asks `Pick a point in the drawing:`, sets X and Y of every selected object as one
+  undo step and keeps each Z; Radius, Scale and the read-only rows have none.
 - **CHANGED.** Color rows in Properties and Quick Properties draw a swatch before the value, as AutoCAD 2021: the layer's
   colour for ByLayer, white for ByBlock, White (7) split black and white, none for *VARIES*; the list draws one before each
   colour and a wheel before Select Color.... The drop-down of a collapsed ribbon panel with a slide-out also shows the

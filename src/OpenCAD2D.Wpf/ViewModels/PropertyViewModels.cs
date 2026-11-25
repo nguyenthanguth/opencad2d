@@ -33,8 +33,9 @@ namespace OpenCAD2D.Wpf
             IsColor = isColor;
             _byLayerRgb = byLayerRgb;
 
-            // A point an extension or a plugin gave a setter is picked on the drawing, X, Y and Z alike.
-            if (pick != null && row.PointSetter != null && !row.IsReadOnly)
+            // A coordinate of a point is picked on the drawing, X, Y and Z alike: of a point an extension or a plugin gave a setter,
+            // and of the presenter's own (Center X of a circle, Start Y of a line), where the caller gives the pick.
+            if (pick != null && !row.IsReadOnly)
             {
                 _pick = new DelegateCommand(_ => pick(row), _ => canPick == null || canPick());
             }
@@ -97,12 +98,12 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the colour of the layer of the objects, which a colour of ByLayer is drawn in: that of the one layer they are on, white where they differ.</summary>
         internal int ByLayerRgb => _byLayerRgb;
 
-        /// <summary>Gets whether the row is a coordinate of a point a plugin or an extension can change, which shows a button to pick the point on the drawing while it is edited.</summary>
+        /// <summary>Gets whether the row is a coordinate of a point that can be changed (the presenter's own, or one a plugin or an extension gave a setter), which shows a button to pick the point on the drawing while it is edited.</summary>
         public bool CanPickPoint => _pick != null;
 
         /// <summary>
         /// Gets what the pick-point button does: asks "Pick a point in the drawing:" on the command line, with a rubber band from the
-        /// point, and gives the setter the point picked, its X and Y the picked ones and its Z as it was. It cannot run while a command
+        /// point, and sets the point to the one picked, its X and Y the picked ones and its Z as it was. It cannot run while a command
         /// runs. Null for a row that is not a coordinate of a point.
         /// </summary>
         public ICommand PickPointCommand => _pick;

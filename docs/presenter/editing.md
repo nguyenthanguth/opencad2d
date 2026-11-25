@@ -4720,6 +4720,17 @@ that cannot be taken, a row that cannot be set and an entity on a locked layer a
 locked, setting the radius gives `Refused: The circle 105 is on a locked layer.` With nothing selected the first five rows set
 the drawing's current settings, which new entities take.
 
+**Picking a point on the drawing.** The coordinate rows of a point show a pick-point button at their right while the row is
+edited, as AutoCAD 2021's palette does: Start and End X, Y and Z of a line, Center X, Y and Z of a circle, an arc, an ellipse
+and a viewport, Position X, Y and Z of a text, an MTEXT and a block reference, Position X and Y of an OLE object, Vertex X and Y of a
+polyline. A click asks `Pick a point in the drawing:` on the command line, with a rubber band from the point, and writes no
+line of history for the point picked; Esc leaves the point. The pick sets X and Y together as one undo step, the Z each object
+has kept: a circle about (50, 30, 0) picked at (120.5, 80.25) has its centre there, and one undo puts it back. With several
+objects selected, whatever their *Varies* rows say, all of them are set to the point picked. The button is grey while a command
+runs, and an object on a locked layer is refused on the command line as a typed value is. Radius, Scale X, Origin X of a hatch,
+Text position X of a dimension and the read-only rows have no button.
+[`CadPropertyEditor.SetPoint`](xref:OpenCAD2D.CadPropertyEditor) does the setting for the window.
+
 The row "Text override" of a dimension is set as in AutoCAD: `<>` stands for the measurement, so `<> TYP` on a dimension of
 3 000 shows `3000 TYP`, and an empty text shows the measurement. The text of the dimension's own picture is written again
 and one undo takes it back. On a model drawing the edit goes through its owner as a hand edit (see
