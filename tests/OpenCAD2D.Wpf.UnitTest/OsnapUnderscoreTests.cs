@@ -144,6 +144,33 @@ namespace OpenCAD2D.Wpf.UnitTest
             }
         }
 
+        [Theory]
+        [InlineData("LINE _END 60,1 \n")]
+        [InlineData("LINE END 60,1 \n")]
+        [InlineData("LINE\t_end\t60,1\n")]
+        public void AScriptLineOfWords_TakesTheSnapWordAsTheOverrideOfTheNextPoint(string script)
+        {
+            string path = System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
+                "osnap-underscore-" + System.Guid.NewGuid().ToString("N") + ".scr"
+            );
+            System.IO.File.WriteAllText(path, script);
+
+            try
+            {
+                MainViewModel model = Open();
+                model.Execute("SCRIPT");
+                model.Execute("\"" + path + "\"");
+
+                Assert.Equal(100.0, model.Session.LastPoint.X, 9);
+                Assert.Equal(0.0, model.Session.LastPoint.Y, 9);
+            }
+            finally
+            {
+                System.IO.File.Delete(path);
+            }
+        }
+
         [Fact]
         public void ATransparentEnd_IsNotASnap()
         {

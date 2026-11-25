@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **FIXED.** SCRIPT fed a whole line as one word, so `LINE 0,0 10,0 ` and `LINE END 60,1` were refused and only a line
+  that was itself a snap word was a snap. A line is read as AutoCAD 2021 reads a .scr (measured in accoreconsole): a space,
+  a tab and the end of a line are each Enter, so `LINE 0,0 10,0 ` draws a line from (0, 0) to (10, 0) and ends it, and two
+  spaces in a row are two Enters (`LINE 0,0 10,0  CIRCLE 5,5 3` draws both). At a prompt for text (TEXT's `Enter text:`,
+  -MTEXT) the rest of the line is the text, `Hello  World ` with both spaces and the one at the end, and a form of AutoLISP
+  in parentheses, its strings and a form run over several lines keep their spaces and are followed by the next word of the
+  line. A line is a comment only when its first character is a semicolon (` ;c` and `LINE 0,0 ; c` are not).
 - **FIXED.** An object snap word typed with AutoCAD's underscore, `_END`, `_mid`, `_CEN`, `_NONE`, is the override of the
   next point as `END` is (it was refused): on the command line, in `-OSNAP`'s list, in a plugin's macro (which trimmed
   the underscore itself), and now also where a word is fed as typed, which took no snap word at all: a routine's
