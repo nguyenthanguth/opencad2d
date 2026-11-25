@@ -199,10 +199,9 @@ namespace OpenCAD2D
                     End();
                     char n = raw[i + 1];
 
-                    if ("fFHCcTQWApS".IndexOf(n) >= 0)
+                    if (CadMTextCodes.TryRead(raw, i, out CadMTextCode read))
                     {
-                        int semicolon = raw.IndexOf(';', i);
-                        i = semicolon < 0 ? raw.Length : semicolon + 1;
+                        i = read.End;
                     }
                     else if (n == 'U' && i + 2 < raw.Length && raw[i + 2] == '+')
                     {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace OpenCAD2D
 {
@@ -772,15 +771,7 @@ namespace OpenCAD2D
                         break;
                 }
 
-                if ("HWQT".IndexOf(code) >= 0)
-                {
-                    NumberCode(code);
-                    return;
-                }
-
-                int end = _text.IndexOf(';', _at + 2);
-
-                if ("fFCcApS".IndexOf(code) < 0 || end < 0)
+                if (!CadMTextCodes.TryRead(_text, _at, out CadMTextCode read))
                 {
                     // A code not known: kept as written, its letter shown.
                     Symbol(code.ToString(), _text.Substring(_at, 2));
@@ -788,84 +779,59 @@ namespace OpenCAD2D
                     return;
                 }
 
-                string value = _text.Substring(_at + 2, end - _at - 2);
-                string written = _text.Substring(_at, end - _at + 1);
-                _at = end + 1;
+                string written = _text.Substring(_at, read.End - _at);
+                _at = read.End;
 
                 switch (code)
                 {
+                    case 'H':
+                    case 'W':
+                    case 'Q':
+                    case 'T':
+                        NumberCode(read);
+                        break;
                     case 'f':
                     case 'F':
-                        FontCode(value, code == 'F');
+                        FontCode(read.Value, code == 'F');
                         break;
                     case 'C':
-                        if (
-                            int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int index)
-                            && index >= 0
-                            && index <= 257
-                        )
-                        {
-                            _look = _look.WithColorIndex(index);
-                        }
-
+                        // Colour 0 is ByBlock, 1 to 255 the index; above that, ByLayer.
+                        _look = _look.WithColorIndex(read.Number < 256.0 ? (int)read.Number : 256);
                         break;
                     case 'c':
-                        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bgr))
-                        {
-                            _look = _look.WithTrueColor(Swap(bgr));
-                        }
-
+                        // The number is the blue, green and red of the colour; one out of the range of a colour is ByLayer.
+                        _look =
+                            read.Number >= 0.0 && read.Number <= 0xFFFFFF
+                                ? _look.WithTrueColor(Swap((int)read.Number))
+                                : _look.WithColorIndex(256);
                         break;
                     case 'A':
-                        if (
-                            int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int align)
-                            && align >= 0
-                            && align <= 2
-                        )
-                        {
-                            _look = _look.WithAlign(align == 0 ? (int?)null : align);
-                        }
-
+                        _look = _look.WithAlign(read.Number == 1.0 || read.Number == 2.0 ? (int?)read.Number : null);
                         break;
                     case 'p':
-                        ParagraphCode(written, value);
+                        ParagraphCode(written, read.Value);
                         break;
                     case 'S':
-                        Symbol(Stacked(value), written);
+                        // A stack with no semicolon runs to the end of the text; it is written closed, as the layout reads it.
+                        Symbol(
+                            Stacked(read.Value),
+                            written.EndsWith(";", StringComparison.Ordinal) ? written : written + ";"
+                        );
                         break;
                 }
             }
 
-            private static readonly Regex NumberCodeValue = new Regex(
-                @"\G(?: *(?<n>[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+))(?:[eE](?<e>[+-]?[0-9]+)?)?)?(?<x>[xX])?;?",
-                RegexOptions.CultureInvariant
-            );
-
-            // \H \W \Q \T as AutoCAD 2021 reads them: a number (leading spaces, a sign, digits with a point, an exponent), an
-            // x for "times", and a semicolon, each of them optional and the semicolon not needed to end the number. Whatever
-            // follows is text: \H at the end, \H;, \Hx; and \H2 lay nothing out, \H2B is \H2;B, \Hab;A is \H then "ab;A". A
-            // value that is not a number leaves the height, the slant and the tracking as they were, and a width or tracking
+            // \H \W \Q \T as AutoCAD 2021 reads them (CadMTextCodes): whatever follows the number, the x and the semicolon is
+            // text: \H at the end, \H;, \Hx; and \H2 lay nothing out, \H2B is \H2;B, \Hab;A is \H then "ab;A", \H2 B is \H
+            // then "2 B". A value that is not a number leaves the height and the slant as they were, and a width or tracking
             // that is not one, or is below 0.1 and 0.75, is that smallest.
-            private void NumberCode(char code)
+            private void NumberCode(CadMTextCode code)
             {
-                Match match = NumberCodeValue.Match(_text, _at + 2);
-                _at = match.Index + match.Length;
-                bool hasNumber = match.Groups["n"].Success;
-                bool times = match.Groups["x"].Success;
-                double number = 0.0;
+                bool hasNumber = code.HasNumber;
+                bool times = code.Times;
+                double number = code.Number;
 
-                if (hasNumber)
-                {
-                    string exponent = match.Groups["e"].Success ? "e" + match.Groups["e"].Value : "";
-                    double.TryParse(
-                        match.Groups["n"].Value + exponent,
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out number
-                    );
-                }
-
-                switch (code)
+                switch (code.Letter)
                 {
                     case 'H':
                         if (hasNumber && number > 0.0)
