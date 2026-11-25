@@ -682,7 +682,8 @@ standard error goes to the log. A line it writes on its standard output outside 
 command line of its last run. `input(prompt)` is not a prompt of the app: ask with `get_string`.
 
 The process is
-`python -I -X utf8 -u -m opencad2d.tool <folder> <control in> <control out>`, with `OPENCAD2D_RUNTIME=coreclr`,
+`python -I -X utf8 -u -m opencad2d.tool <folder> <control in> <control out>`, with `OPENCAD2D_RUNTIME=auto` (.NET 8 or
+later where it is installed, else the .NET Framework 4.8 of Windows, so a machine needs no .NET installed),
 `OPENCAD2D_LIB` (the folder the app's own `OpenCAD2D.Core.dll`, `OpenCAD2D.Remote.dll` and `GeometryHelper.dll` are in, with
 `Fonts`, `Hatches` and `Linetypes`), and the pipe and token of the private channel of the tools
 ([Driving the app from another program](remote.md#the-channel-of-the-tools-and-runs)). It stays until the tool is unloaded or

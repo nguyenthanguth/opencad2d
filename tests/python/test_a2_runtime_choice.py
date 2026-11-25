@@ -101,6 +101,26 @@ def test_coreclr_with_no_runtime_listed_at_all_is_refused_with_the_documented_te
     assert NO_NET8_TEXT in process.stderr.splitlines()
 
 
+FAKE_NO_DOTNET = (
+    "import clr_loader\n"
+    "def _none():\n"
+    "    raise RuntimeError('Can not determine dotnet root')\n"
+    "clr_loader.find_runtimes = _none\n"
+)
+
+
+def test_auto_falls_back_to_netfx_when_clr_loader_finds_no_dotnet_root(python: Python) -> None:
+    process = python(FAKE_NO_DOTNET + PRINT_RUNTIME, env={"OPENCAD2D_RUNTIME": "auto"})
+    assert process.returncode == 0, process.stderr
+    assert process.stdout.strip() == "netfx"
+
+
+def test_coreclr_when_clr_loader_finds_no_dotnet_root_is_refused_with_the_documented_text(python: Python) -> None:
+    process = python(FAKE_NO_DOTNET + "import opencad2d\n", env={"OPENCAD2D_RUNTIME": "coreclr"})
+    assert process.returncode == 1
+    assert NO_NET8_TEXT in process.stderr.splitlines()
+
+
 def test_the_pythonnet_variable_is_not_read(python: Python) -> None:
     # PYTHONNET_RUNTIME=netfx would start .NET Framework if pythonnet were left to choose; the package asks for coreclr.
     process = python(

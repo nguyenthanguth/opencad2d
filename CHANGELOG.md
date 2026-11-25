@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **FIXED.** A Python tool did not run on a Windows with no .NET 8 installed (the app brings its own .NET, a tool's
+  process did not): it now runs on the .NET Framework 4.8 of Windows, and importing `opencad2d` with no .NET at all
+  chooses it under `auto` instead of raising "Can not determine dotnet root". Found by the setup's test in Windows
+  Sandbox.
+- **FIXED.** Uninstalling OpenCAD2D left `python\opencad2d\__pycache__` and `python\opencad2d\cad\__pycache__` in the
+  install folder.
 - **NEW.** Plugin Settings: Settings..., after Remove in Load/Unload Applications, opens a dialog for a loaded C#
   plugin's `[CadSetting]` properties or a Python tool's `"settings"`: a row per setting by kind, its description and
   range in grey, a refused value in red under it with OK greyed; OK applies every value at once and writes

@@ -33,13 +33,15 @@ _ASSEMBLIES = ("GeometryHelper", "OpenCAD2D.Remote", "OpenCAD2D.Core")
 
 
 def _has_dotnet8() -> bool:
-    """Say whether a Microsoft.NETCore.App of major version 8 or more is installed."""
+    """Say whether a Microsoft.NETCore.App of major version 8 or more is installed; none at all, as on a clean Windows, is False."""
     import clr_loader
 
-    return any(
-        info.name == "Microsoft.NETCore.App" and int(info.version.split(".")[0]) >= 8
-        for info in clr_loader.find_runtimes()
-    )
+    try:
+        runtimes = list(clr_loader.find_runtimes())
+    except RuntimeError:
+        # With no .NET installed, clr_loader raises "Can not determine dotnet root" instead of listing nothing.
+        return False
+    return any(info.name == "Microsoft.NETCore.App" and int(info.version.split(".")[0]) >= 8 for info in runtimes)
 
 
 def _start_runtime() -> None:
