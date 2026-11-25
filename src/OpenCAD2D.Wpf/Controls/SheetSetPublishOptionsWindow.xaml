@@ -1,0 +1,260 @@
+<Window
+    x:Class="OpenCAD2D.Wpf.SheetSetPublishOptionsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Sheet Set PDF Publish Options"
+    Width="480"
+    Height="606"
+    WindowStyle="None"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    Background="#262B33"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/StyleDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- Design A12Publish, state 3: Default output location, Quality, Data and Font handling; the rows the writer does
+         always or never are greyed, as Export to PDF Options greys them. -->
+    <Border
+        x:Name="Root"
+        Background="{StaticResource GhPanel}"
+        BorderBrush="{StaticResource GhBorder}"
+        BorderThickness="1"
+        TextElement.FontFamily="{StaticResource GhFont}"
+        TextElement.FontSize="12"
+        TextElement.Foreground="{StaticResource GhText}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+    >
+        <DockPanel>
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhHeader}"
+                Padding="16,10"
+                MouseLeftButtonDown="OnHeaderDown"
+            >
+                <DockPanel>
+                    <Button
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource GhTitleCloseButton}"
+                        Click="OnCancel"
+                        ToolTip="Close"
+                    />
+                    <TextBlock
+                        Text="Sheet Set PDF Publish Options"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        VerticalAlignment="Center"
+                    />
+                </DockPanel>
+            </Border>
+
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button
+                            Style="{StaticResource StylePrimaryButton}"
+                            Content="OK"
+                            Padding="18,5"
+                            Margin="0,0,8,0"
+                            IsDefault="True"
+                            Click="OnOk"
+                        />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Cancel"
+                            Padding="14,5"
+                            Margin="0,0,8,0"
+                            IsCancel="True"
+                            Click="OnCancel"
+                        />
+                        <Button Style="{StaticResource GhDialogButton}" Content="Help" Padding="14,5" Click="OnHelp" />
+                    </StackPanel>
+                    <TextBlock
+                        Text="{Binding Message}"
+                        Foreground="{StaticResource GhTextMuted}"
+                        VerticalAlignment="Center"
+                        TextWrapping="Wrap"
+                        Margin="0,0,12,0"
+                        AutomationProperties.Name="Message"
+                    />
+                </DockPanel>
+            </Border>
+
+            <StackPanel Margin="16,12">
+                <HeaderedContentControl
+                    Style="{StaticResource BlockGroup}"
+                    Header="Default output location"
+                    Margin="0,0,0,10"
+                >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="10" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="10" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Location:" VerticalAlignment="Center" />
+                        <TextBox
+                            Grid.Column="1"
+                            Style="{StaticResource BlockBox}"
+                            Text="{Binding Location, UpdateSourceTrigger=PropertyChanged}"
+                            AutomationProperties.Name="Location"
+                        />
+                        <Button
+                            Grid.Column="2"
+                            Style="{StaticResource GhDialogButton}"
+                            Content="…"
+                            Padding="12,4"
+                            Margin="8,0,0,0"
+                            ToolTip="Browse for the folder"
+                            AutomationProperties.Name="Browse"
+                            Click="OnBrowse"
+                        />
+                        <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+                            <CheckBox
+                                Style="{StaticResource BlockCheck}"
+                                Content="Prompt for name"
+                                IsChecked="{Binding PromptForName, Mode=TwoWay}"
+                                Margin="0,0,24,0"
+                            />
+                            <CheckBox
+                                Style="{StaticResource BlockCheck}"
+                                Content="Multi-sheet file"
+                                IsChecked="{Binding MultiSheet, Mode=TwoWay}"
+                                Margin="0"
+                            />
+                        </StackPanel>
+                        <TextBlock Grid.Row="4" Text="File name:" VerticalAlignment="Center" />
+                        <TextBox
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Style="{StaticResource BlockBox}"
+                            Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding IsFileNameEnabled}"
+                            AutomationProperties.Name="File name"
+                        />
+                    </Grid>
+                </HeaderedContentControl>
+
+                <HeaderedContentControl Style="{StaticResource BlockGroup}" Header="Quality" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Text="Vector quality"
+                            Foreground="{StaticResource GhTextMuted}"
+                            VerticalAlignment="Center"
+                        />
+                        <ComboBox
+                            Grid.Column="1"
+                            Style="{StaticResource GhComboBox}"
+                            IsEnabled="False"
+                            SelectedIndex="0"
+                            AutomationProperties.Name="Vector quality"
+                            ToolTip="Lines are written as exact vectors"
+                        >
+                            <ComboBoxItem Content="Exact vectors" />
+                        </ComboBox>
+                        <TextBlock
+                            Grid.Row="2"
+                            Text="Raster image quality"
+                            Foreground="{StaticResource GhTextMuted}"
+                            VerticalAlignment="Center"
+                        />
+                        <ComboBox
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Style="{StaticResource GhComboBox}"
+                            IsEnabled="False"
+                            SelectedIndex="0"
+                            AutomationProperties.Name="Raster image quality"
+                            ToolTip="Raster images are kept at their own resolution"
+                        >
+                            <ComboBoxItem Content="As embedded" />
+                        </ComboBox>
+                        <TextBlock
+                            Grid.Row="4"
+                            Text="Merge control"
+                            Foreground="{StaticResource GhTextMuted}"
+                            VerticalAlignment="Center"
+                        />
+                        <ComboBox
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            Style="{StaticResource GhComboBox}"
+                            IsEnabled="False"
+                            SelectedIndex="0"
+                            AutomationProperties.Name="Merge control"
+                        >
+                            <ComboBoxItem Content="Lines overwrite" />
+                        </ComboBox>
+                    </Grid>
+                </HeaderedContentControl>
+
+                <HeaderedContentControl Style="{StaticResource BlockGroup}" Header="Data" Margin="0,0,0,10">
+                    <StackPanel>
+                        <CheckBox
+                            Style="{StaticResource BlockCheck}"
+                            Content="Include layer information"
+                            IsEnabled="False"
+                            ToolTip="The PDF writer keeps no layers"
+                        />
+                        <CheckBox
+                            Style="{StaticResource BlockCheck}"
+                            Content="Include hyperlinks"
+                            IsChecked="{Binding IncludeHyperlinks, Mode=TwoWay}"
+                        />
+                        <CheckBox
+                            Style="{StaticResource StyleCheck}"
+                            Content="Create bookmarks"
+                            IsChecked="{Binding CreateBookmarks, Mode=TwoWay}"
+                        />
+                    </StackPanel>
+                </HeaderedContentControl>
+
+                <HeaderedContentControl Style="{StaticResource BlockGroup}" Header="Font handling">
+                    <StackPanel>
+                        <CheckBox
+                            Style="{StaticResource BlockCheck}"
+                            Content="Capture fonts used in the drawing"
+                            IsChecked="True"
+                            IsEnabled="False"
+                            ToolTip="TrueType fonts are always embedded"
+                        />
+                        <CheckBox
+                            Style="{StaticResource StyleCheck}"
+                            Content="Convert all text to geometry"
+                            IsEnabled="False"
+                        />
+                    </StackPanel>
+                </HeaderedContentControl>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

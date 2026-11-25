@@ -182,6 +182,30 @@ namespace OpenCAD2D.Wpf
             string path,
             IReadOnlyList<CadDocument> documents,
             IReadOnlyList<CadPlotJob> pages
+        ) => WritePages(path, documents, pages, null, null);
+
+        /// <summary>
+        /// Writes plots of spaces of several drawings to one PDF file as
+        /// <see cref="WritePages(string, IReadOnlyList{CadDocument}, IReadOnlyList{CadPlotJob})"/> does, with an outline of
+        /// bookmarks, and tells before each page is drawn. A published sheet set's PDF has one bookmark, <c>Sheets and Views</c>,
+        /// and under it a bookmark for each page.
+        /// </summary>
+        /// <param name="path">The file.</param>
+        /// <param name="documents">The drawing of each page, as many as there are pages.</param>
+        /// <param name="pages">The plot of each page.</param>
+        /// <param name="bookmarks">The top bookmarks of the outline, each with those under it; null or empty for a PDF with no outline.</param>
+        /// <param name="beforePage">Called with the index of each page, from 0, before it is drawn; it may throw <see cref="OperationCanceledException"/> to stop, which writes no file. Null for none.</param>
+        /// <returns>The plots as they were laid on their sheets, in the order of the pages.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the path, the drawings or the pages are null.</exception>
+        /// <exception cref="ArgumentException">Thrown when there is no page, the drawings are not as many as the pages, or a bookmark goes to a page the PDF has not.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when a page has nothing to plot.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when <paramref name="beforePage"/> stops the writing.</exception>
+        public static IReadOnlyList<CadPlotPage> WritePages(
+            string path,
+            IReadOnlyList<CadDocument> documents,
+            IReadOnlyList<CadPlotJob> pages,
+            IReadOnlyList<CadPdfBookmark> bookmarks,
+            Action<int> beforePage
         )
         {
             if (path == null)
@@ -209,7 +233,14 @@ namespace OpenCAD2D.Wpf
                 throw new ArgumentException("Each page has a drawing.", nameof(documents));
             }
 
-            byte[] pdf = Make(documents, pages, out IReadOnlyList<CadPlotPage> laid, out var stamped);
+            byte[] pdf = Make(
+                documents,
+                pages,
+                bookmarks,
+                beforePage,
+                out IReadOnlyList<CadPlotPage> laid,
+                out var stamped
+            );
             File.WriteAllBytes(path, pdf);
 
             for (int i = 0; i < pages.Count; i++)
@@ -259,6 +290,8 @@ namespace OpenCAD2D.Wpf
                         null
                     ),
                 },
+                null,
+                null,
                 out IReadOnlyList<CadPlotPage> pages,
                 out IReadOnlyList<IReadOnlyList<string>> lines
             );
@@ -270,6 +303,8 @@ namespace OpenCAD2D.Wpf
         private static byte[] Make(
             IReadOnlyList<CadDocument> documents,
             IReadOnlyList<CadPlotJob> jobs,
+            IReadOnlyList<CadPdfBookmark> bookmarks,
+            Action<int> beforePage,
             out IReadOnlyList<CadPlotPage> pages,
             out IReadOnlyList<IReadOnlyList<string>> stamped
         )
@@ -333,6 +368,7 @@ namespace OpenCAD2D.Wpf
                     {
                         for (int i = 0; i < jobs.Count; i++)
                         {
+                            beforePage?.Invoke(i);
                             CadDocument document = documents[i];
                             CadPlotPage page = laid[i];
                             CadPlotSettings settings = jobs[i].Settings;
@@ -396,7 +432,9 @@ namespace OpenCAD2D.Wpf
                 }
             }
 
-            return written;
+            return bookmarks == null || bookmarks.Count == 0
+                ? written
+                : CadPdfOutline.Add(written, bookmarks, jobs.Count);
         }
 
         /// <summary>

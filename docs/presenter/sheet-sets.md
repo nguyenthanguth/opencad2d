@@ -81,8 +81,8 @@ Right-click a row: a row outside the selection is selected first; a row inside i
 **Publish ▸** holds Publish to PDF, Publish to Plotter, Publish Using Page Setup Override ▸ (the page setups of the set's
 overrides file, grey where the set names none), then the check of the row (Publish in Reverse Order on the set; Publish
 Sheets in Subset and Publish in Reverse Order on a subset; Include for Publish on a sheet), Sheet Set PDF Publish Options…
-(the set) and Publish Dialog Box… (PUBLISH). Items in the menus that are not built yet say so on the command line ("Publish
-to PDF is not built yet (A12 package 5a)."): the New Sheet, New Subset, Import Layouts, Rename & Renumber and Properties
+(the set) and Publish Dialog Box… (the Publish dialog over the set's sheets; see [Publish](#publish)). Items in the menus
+that are not built yet say so on the command line: the New Sheet, New Subset, Import Layouts, Rename & Renumber and Properties
 dialogs, Insert Sheet List Table and the Sheet Views and Model Views tabs. The operations those dialogs run are built.
 
 - **Remove Subset** is grey while the subset holds sheets or subsets: move or remove them first.
@@ -99,6 +99,25 @@ changes the set is grey (New Sheet, New Subset, Import Layout as Sheet, Resave A
 sheet New Sheet, Rename & Renumber, Remove Sheet and Include for Publish), the rows cannot be dragged, and a change asked of
 the model is refused with a line on the command line. Close Sheet Set, Publish, eTransmit, Manage Page Setups and Properties
 work as before. The palette does not write a `.DBL` of its own yet.
+
+## Publish
+
+The Publish items on the Sheet List (set, subset and sheet menus, and the toolbar) publish the sheets under the rows
+chosen, or the whole set when the set or nothing is chosen, in set order. A sheet is left out, and said so on the command
+line, when it is not included for publish, or when it sits (at any depth) in a subset whose Publish Sheets in Subset is
+cleared. Publish to PDF writes one PDF named after the set (or the name asked for) or, with Multi-sheet file off, a PDF
+for each sheet named "Number Title.pdf", into the Location of Sheet Set PDF Publish Options (the folder of the .dst until
+set). A set of three drawings in two subsets, one sheet not included, gives a PDF of the other three sheets in set order,
+each page the size of its own sheet (ISO A3, A1 and A4 in the test). With Create bookmarks the PDF has AutoCAD's
+bookmarks: "Sheets and Views", then one for each page ("A-101 Ground Floor Plan"), not nested by subset. Two sheets of
+the same name give "A-101 Plan.pdf" and "A-101 Plan (2).pdf" where AutoCAD overwrites the first, and a character a file
+name cannot hold becomes "_" where AutoCAD writes nothing.
+
+Publish Using Page Setup Override publishes every sheet by a page setup of the page setup overrides file. Publish in
+Reverse Order writes the pages, and their bookmarks, in the reverse of set order. Sheet Set PDF Publish Options keeps
+Location, Prompt for name and Multi-sheet file in the .dst; Include hyperlinks, Create bookmarks and File name last for
+the session. While it runs a small window shows "Sheet 4 of 9: A-103 Roof Plan"; Cancel stops at the next sheet, and a
+PDF of several sheets that was not finished is not written. Publish to Plotter runs with no progress window.
 
 ## What the operations do to the drawings
 

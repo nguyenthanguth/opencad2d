@@ -75,6 +75,19 @@ namespace OpenCAD2D
         /// <summary>Gets or sets AutoCAD's Open in viewer when done: each PDF written is opened in the program Windows gives its type.</summary>
         public bool OpenInViewer { get; set; }
 
+        /// <summary>
+        /// Gets or sets AutoCAD's Create bookmarks: each PDF written carries an outline, a bookmark <c>Sheets and Views</c> with a
+        /// bookmark under it for each page, named as the sheet is in the list, that goes to the page. False until set; a sheet
+        /// list file does not keep it. The sheets of a sheet set are published with it on.
+        /// </summary>
+        public bool CreateBookmarks { get; set; }
+
+        /// <summary>
+        /// Gets or sets AutoCAD's Include hyperlinks for the sheets of the list: the hyperlinks of the objects plotted become links
+        /// of the PDF (<see cref="CadPlotSettings.PdfHyperlinks"/>). False until set; a sheet list file does not keep it.
+        /// </summary>
+        public bool IncludeHyperlinks { get; set; }
+
         /// <summary>Makes a copy that changes apart from this one.</summary>
         /// <returns>The copy.</returns>
         public CadPublishOptions Clone() => (CadPublishOptions)MemberwiseClone();
