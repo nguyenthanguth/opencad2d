@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace OpenCAD2D
 {
@@ -771,9 +772,15 @@ namespace OpenCAD2D
                         break;
                 }
 
+                if ("HWQT".IndexOf(code) >= 0)
+                {
+                    NumberCode(code);
+                    return;
+                }
+
                 int end = _text.IndexOf(';', _at + 2);
 
-                if ("fFHCcQTWApS".IndexOf(code) < 0 || end < 0)
+                if ("fFCcApS".IndexOf(code) < 0 || end < 0)
                 {
                     // A code not known: kept as written, its letter shown.
                     Symbol(code.ToString(), _text.Substring(_at, 2));
@@ -790,38 +797,6 @@ namespace OpenCAD2D
                     case 'f':
                     case 'F':
                         FontCode(value, code == 'F');
-                        break;
-                    case 'H':
-                        if (TryNumber(value, out double heightValue, out bool times) && heightValue > 0.0)
-                        {
-                            double before = _look.Height ?? _height;
-                            double now = times ? before * heightValue : heightValue;
-                            _look = _look.WithHeight(now == _height ? (double?)null : now);
-                        }
-
-                        break;
-                    case 'W':
-                        if (TryNumber(value, out double width, out bool widthTimes) && width > 0.0)
-                        {
-                            _look = _look.WithWidthFactor(
-                                widthTimes ? (_look.WidthFactor ?? _styleWidth) * width : width
-                            );
-                        }
-
-                        break;
-                    case 'Q':
-                        if (TryNumber(value, out double slant, out _))
-                        {
-                            _look = _look.WithOblique(slant);
-                        }
-
-                        break;
-                    case 'T':
-                        if (TryNumber(value, out double tracking, out bool trackingTimes) && tracking > 0.0)
-                        {
-                            _look = _look.WithTracking(trackingTimes ? (_look.Tracking ?? 1.0) * tracking : tracking);
-                        }
-
                         break;
                     case 'C':
                         if (
@@ -857,6 +832,64 @@ namespace OpenCAD2D
                         break;
                     case 'S':
                         Symbol(Stacked(value), written);
+                        break;
+                }
+            }
+
+            private static readonly Regex NumberCodeValue = new Regex(
+                @"\G(?: *(?<n>[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+))(?:[eE](?<e>[+-]?[0-9]+)?)?)?(?<x>[xX])?;?",
+                RegexOptions.CultureInvariant
+            );
+
+            // \H \W \Q \T as AutoCAD 2021 reads them: a number (leading spaces, a sign, digits with a point, an exponent), an
+            // x for "times", and a semicolon, each of them optional and the semicolon not needed to end the number. Whatever
+            // follows is text: \H at the end, \H;, \Hx; and \H2 lay nothing out, \H2B is \H2;B, \Hab;A is \H then "ab;A". A
+            // value that is not a number leaves the height, the slant and the tracking as they were, and a width or tracking
+            // that is not one, or is below 0.1 and 0.75, is that smallest.
+            private void NumberCode(char code)
+            {
+                Match match = NumberCodeValue.Match(_text, _at + 2);
+                _at = match.Index + match.Length;
+                bool hasNumber = match.Groups["n"].Success;
+                bool times = match.Groups["x"].Success;
+                double number = 0.0;
+
+                if (hasNumber)
+                {
+                    string exponent = match.Groups["e"].Success ? "e" + match.Groups["e"].Value : "";
+                    double.TryParse(
+                        match.Groups["n"].Value + exponent,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out number
+                    );
+                }
+
+                switch (code)
+                {
+                    case 'H':
+                        if (hasNumber && number > 0.0)
+                        {
+                            double before = _look.Height ?? _height;
+                            double now = times ? before * number : number;
+                            _look = _look.WithHeight(now == _height ? (double?)null : now);
+                        }
+
+                        break;
+                    case 'W':
+                        double widthNow = times ? (_look.WidthFactor ?? _styleWidth) * number : number;
+                        _look = _look.WithWidthFactor(hasNumber ? Math.Max(0.1, widthNow) : 0.1);
+                        break;
+                    case 'Q':
+                        if (hasNumber)
+                        {
+                            _look = _look.WithOblique(number);
+                        }
+
+                        break;
+                    case 'T':
+                        double trackingNow = times ? (_look.Tracking ?? 1.0) * number : number;
+                        _look = _look.WithTracking(hasNumber ? Math.Max(0.75, trackingNow) : 0.75);
                         break;
                 }
             }
@@ -1059,21 +1092,6 @@ namespace OpenCAD2D
                 string top = value.Substring(0, split).Trim();
                 string bottom = value.Substring(split + 1).Trim();
                 return value[split] == '^' ? top + " " + bottom : top + "/" + bottom;
-            }
-
-            private static bool TryNumber(string value, out double number, out bool times)
-            {
-                string text = value.Trim();
-                times = text.EndsWith("x", StringComparison.OrdinalIgnoreCase);
-
-                if (times)
-                {
-                    text = text.Substring(0, text.Length - 1);
-                }
-
-                return double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out number)
-                    && !double.IsNaN(number)
-                    && !double.IsInfinity(number);
             }
         }
     }

@@ -8,6 +8,12 @@
 - **NEW.** Remote `Move`, `Copy`, `Rotate`, `Scale`, `Mirror` and `Offset` on `CadRemoteDocument`: queued changes and
   the edit in one commit (one step REMOTE), the new copies in its answer; `commit` takes the operations `transform` and
   `offset` (protocol version 1).
+- **FIXED.** MTEXT format codes `\H`, `\W`, `\Q` and `\T` are read as AutoCAD 2021 reads them: a number (with a sign, a
+  point or an exponent), an `x` for "times" and a semicolon, each optional, the number ending where it ends. A `\H` with
+  nothing after it was laid out as the letter H, 115 by 120 at height 100; it is a code that lays out nothing, 0 wide by
+  100 high, as are `\H;`, `\Hx;`, `\H2`, `\W`, `\Q15` and `\T`. `\H2B` is `\H2;B` (B 2 high), `\Hab;A` is `\H` and the
+  text "ab;A", `\H2xA` doubles the height. A `\W` with no number or one below 0.1 sets the width factor 0.1, and a `\T`
+  below 0.75 the tracking 0.75, as AutoCAD does.
 - **FIXED.** MIRROR with a second point 1E-8 to 2E-5 from the first no longer ends with "Cannot normalize a zero-length
   vector." after the Erase prompt: it says "Invalid point: the mirror line is too short." and asks again.
 - **BREAKING.** The built-in font is now OpenCAD2D ISO (`opencad2d.shx`; `CadFonts.BuiltInName` is `"opencad2d"`,
