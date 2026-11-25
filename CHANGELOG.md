@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **NEW.** Python `Drawing.move`, `copy`, `rotate`, `scale`, `mirror` and `offset` (A8): the commands as calls on `Entity`
+  objects, typed (`copy([circle], (0, 50))` is a `list[Entity[DxfCircle]]`, `offset` gives `list[Entity[DxfCurve]]`).
+  What is queued goes with the edit in one undo step (`REMOTE` from outside the app, `PYTHON` for a file, the run's own in
+  a tool), and an edit the drawing refuses applies none of it. In-place edits read the `Entity` objects given again.
 - **NEW.** `CadEditor.Move`, `Copy`, `Rotate`, `Scale`, `Mirror`, `Offset` and `Erase` (A8): the edits as calls for
   plugins, each doing what the command of its name does, through the code the command runs; refused whole with the
   object's words; one undo step named as the command, or joining the running command's step.
