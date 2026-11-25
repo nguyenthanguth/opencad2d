@@ -115,6 +115,23 @@ namespace OpenCAD2D.SheetSets
             return null;
         }
 
+        /// <summary>The path the reference names where the file may not be there yet (a folder a new sheet is to be saved in): the first form that exists, else the first that makes a path, the relative one first; null where none does.</summary>
+        internal string Locate(string setFolder)
+        {
+            string found = Resolve(setFolder);
+            if (found != null)
+            {
+                return found;
+            }
+
+            foreach (string candidate in Candidates(setFolder))
+            {
+                return candidate;
+            }
+
+            return null;
+        }
+
         private IEnumerable<string> Candidates(string setFolder)
         {
             if (RelativeFileName != null)

@@ -10,6 +10,17 @@
   by one, and a file that moved on disk is reloaded first. The ten `.dst` files AutoCAD 2021 installs read and write
   back to the same bytes, and AutoCAD's own sheet set API reads a set made here (names, subsets, sheets, custom
   properties, views) as this model does (the engine of A12; no command or window yet).
+- **NEW.** Sheet set operations (A12, engine only): a set made from an example `.dst` (its subsets, custom properties
+  and settings, no sheets, every file named again relative to the new set, optionally a folder per subset) or from
+  existing drawings (`CadSheetImportSource`, subsets from folders); `NewSubset`; `NewSheet`, which makes a drawing from
+  the layout of the sheet creation template, "Number Title" as its layout and file name, saved as a DWG of AutoCAD 2018
+  where the subset or set puts new sheets; `ImportLayouts` and `CheckLayouts`, which refuse a layout whose name holds a
+  `#` or that is a sheet of this set or of another set that is there; `CadSheetSetSheet.FindLayout` by handle and then
+  name, `Associate`, `RenameAndRenumber` (renames the layout and moves the drawing, the other sheets of that drawing
+  following) and `CadSheetSet.ResaveAllSheets`; custom properties by owner (`AddCustomProperty`, a sheet property given
+  to every sheet, `DeleteCustomProperty`). Each drawing a sheet is made, imported, renamed or resaved in carries AutoCAD's
+  `AcSheetSetData` mark (`CadSheetSetHint`), which AutoCAD 2021 reads back with the same values; layout handles survive
+  our DWG save.
 - **CHANGED.** The Python guide says what a read sees after a write in one command: `drawing.add_line(...)` queues, so
   `drawing.entities()` right after it lists the drawing as the last commit left it (10 objects, where the line makes
   11), and `commit()` first makes the read see the line; a command that never commits has its line when it ends. It is so

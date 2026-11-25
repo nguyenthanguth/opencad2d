@@ -11,7 +11,7 @@ namespace OpenCAD2D.SheetSets
     /// revision fields, whether it is published, its custom property values and its sheet views. It is named
     /// <c>CadSheetSetSheet</c>, not <c>CadSheet</c>, because <see cref="CadSheet"/> is a sheet of a spreadsheet.
     /// </summary>
-    public sealed class CadSheetSetSheet : CadSheetComponent
+    public sealed partial class CadSheetSetSheet : CadSheetComponent
     {
         internal CadSheetSetSheet(CadSheetSetFile file, XElement element)
             : base(file, element) { }

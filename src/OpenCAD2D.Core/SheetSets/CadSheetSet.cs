@@ -181,7 +181,7 @@ namespace OpenCAD2D.SheetSets
     /// it, and the base of <see cref="CadSheetSet"/>, which is the group at the top. The <see cref="Children"/> are in set
     /// order, which is the order of the XML and nothing else.
     /// </summary>
-    public class CadSheetSubset : CadSheetComponent
+    public partial class CadSheetSubset : CadSheetComponent
     {
         internal CadSheetSubset(CadSheetSetFile file, XElement element)
             : base(file, element) { }
@@ -436,7 +436,7 @@ namespace OpenCAD2D.SheetSets
     /// overrides file, the label block, the resource locations (the folders of the Model Views tab) and the view
     /// categories. Taken from <see cref="CadSheetSetFile.SheetSet"/>.
     /// </summary>
-    public sealed class CadSheetSet : CadSheetSubset
+    public sealed partial class CadSheetSet : CadSheetSubset
     {
         internal CadSheetSet(CadSheetSetFile file, XElement element)
             : base(file, element) { }
