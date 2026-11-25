@@ -698,8 +698,8 @@ namespace OpenCAD2D
         }
 
         /// <summary>
-        /// SCRIPT: the lines of a script file, each fed to the command line as typed and Enter pressed once SCRIPT has ended, a
-        /// blank line being Enter and a line that starts with a semicolon a comment; the first line refused stops it.
+        /// SCRIPT: the lines of a script file, fed once SCRIPT has ended as AutoCAD reads them: a space, a tab and the end of a line
+        /// are each Enter, a blank line being Enter and a line that starts with a semicolon a comment; the first word refused stops it.
         /// </summary>
         private static IEnumerable<CadPrompt> Script(CadCommandContext c)
         {

@@ -4,6 +4,7 @@ using System.Globalization;
 using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Lisp;
 
 namespace OpenCAD2D
 {
@@ -1944,19 +1945,22 @@ namespace OpenCAD2D
         internal void QueueScript(List<string> lines) => _script = lines;
 
         /// <summary>
-        /// Feeds each line of a script as typed and Enter pressed, a blank one as Enter and one that starts with a semicolon
-        /// passed over as a comment, stopping at the first refused with the number of its line in the file.
+        /// Feeds each line of a script as AutoCAD reads it: a space (or tab) and the end of a line are each Enter, so the words
+        /// of a line are typed one after another and an empty one, from a trailing space, two spaces or a blank line, is Enter;
+        /// where the prompt takes text, or a form of AutoLISP is open, the rest of the line is one word with its spaces. A line
+        /// whose first character is a semicolon is passed over as a comment. It stops at the first word refused, with the number
+        /// of its line in the file.
         /// </summary>
         private void RunScript(List<string> lines)
         {
             for (int i = 0; i < lines.Count; i++)
             {
-                if (lines[i].TrimStart().StartsWith(";", StringComparison.Ordinal))
+                if (lines[i].StartsWith(";", StringComparison.Ordinal))
                 {
                     continue;
                 }
 
-                if (!FeedTyped(lines[i]))
+                if (!FeedScriptLine(lines[i]))
                 {
                     Write(
                         "Script stopped at line "
@@ -1967,6 +1971,66 @@ namespace OpenCAD2D
                     return;
                 }
             }
+        }
+
+        private bool FeedScriptLine(string line)
+        {
+            int at = 0;
+
+            while (true)
+            {
+                string rest = line.Substring(at);
+                int length = ScriptWordLength(rest);
+
+                if (!FeedTyped(rest.Substring(0, length)))
+                {
+                    return false;
+                }
+
+                at += length;
+
+                if (at >= line.Length)
+                {
+                    return true;
+                }
+
+                // The space or tab that ended the word is its Enter; a form of AutoLISP may be followed by a word with none.
+                if (line[at] == ' ' || line[at] == '\t')
+                {
+                    at++;
+                }
+            }
+        }
+
+        /// <summary>The length of the word at the start of the rest of a script line: all of it for a prompt that takes text, a form of AutoLISP to its closing parenthesis (or the whole rest where it stays open), else up to the next space or tab.</summary>
+        private int ScriptWordLength(string rest)
+        {
+            if (_lispText == null && Prompt != null && Prompt.TakesSpaces)
+            {
+                return rest.Length;
+            }
+
+            if (_lispText != null || (rest.StartsWith("(", StringComparison.Ordinal) && IsLispInput(rest)))
+            {
+                string open = _lispText == null ? string.Empty : _lispText + "\n";
+
+                for (int i = 0; i < rest.Length; i++)
+                {
+                    if (
+                        rest[i] == ')'
+                        && LispInterpreter.OpenParens(open + rest.Substring(0, i + 1), out bool inString) == 0
+                        && !inString
+                    )
+                    {
+                        return i + 1;
+                    }
+                }
+
+                return rest.Length;
+            }
+
+            int end = rest.IndexOfAny(new[] { ' ', '\t' });
+            return end < 0 ? rest.Length : end;
         }
 
         private void Changed() => PromptChanged?.Invoke(this, EventArgs.Empty);
