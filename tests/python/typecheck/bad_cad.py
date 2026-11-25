@@ -3,6 +3,7 @@ wrong at a prompt, a command or a decorator (P3 D709)."""
 
 from opencad2d import cad
 from opencad2d.cad import command
+from GeometryHelper.Geometry import GeoPoint2
 
 # a message is text
 cad.get_point(5)  # expect: reportArgumentType
@@ -29,3 +30,25 @@ cad.get_distance("Radius", (0, 0))  # expect: reportArgumentType
 # the decorator is given the name of the command: it cannot stand alone
 @command  # expect: reportArgumentType
 def broken() -> None: ...
+
+
+# a snap's keyword is text
+@cad.snap(5)  # expect: reportArgumentType
+def numbered(request: cad.SnapRequest) -> None: ...
+
+
+# a finder is given a SnapRequest, not a point
+@cad.snap("CTOP")  # expect: reportArgumentType
+def wrong_argument(request: GeoPoint2) -> None: ...
+
+
+# the decorator is given the keyword: it cannot stand alone
+@cad.snap  # expect: reportArgumentType
+def bare(request: cad.SnapRequest) -> None: ...
+
+
+# a setting is named by text
+cad.setting(2.5)  # expect: reportArgumentType
+
+# a setting takes a number, a bool, text or None, not a list
+cad.set_setting("textHeight", [1.0])  # expect: reportArgumentType

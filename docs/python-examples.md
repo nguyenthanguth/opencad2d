@@ -1,6 +1,6 @@
 # Python examples
 
-Thirteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
+Fourteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
 drawing in code, cut one solid from another, number points in the app, draw in an app that is running. They are in
 `src/python/examples` of the repository, in three folders for the three places Python works with the library (a tool of the
 app is a folder of its own), and this page shows each as it is, with what it prints. A test of the repository runs every file, on .NET 8 and on .NET Framework
@@ -25,6 +25,7 @@ is what the files do.
 | [`number_points`](#number-the-points-you-pick) | a number written at each point you pick |
 | [`drawing_tools`](#commands-of-your-own) | the commands RECTC and LAYERCOUNT |
 | [`selection_lengths`](#the-length-of-a-selection) | the length and closed area of the selected objects |
+| [`circle_marks`](#a-snap-a-setting-and-a-button-for-circles) | the snap CTOP, the setting textHeight, the command MARKTOPS and a ribbon button |
 | [`draw_and_read.py`](#draw-a-grid-and-read-it-back) | a grid drawn in a new drawing of the running app, read back |
 | [`pick_and_mark.py`](#pick-a-point-and-mark-it) | a circle drawn where the user picks |
 | [`open_documents.py`](#the-open-drawings) | the drawings the app has open and what is in each |
@@ -188,7 +189,7 @@ holds: MTEXT 1.` The DWG writer says nothing of what it leaves out: it logs it.
 
 ## Tools of the app
 
-The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the thirteen: they
+The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the fourteen: they
 are in the app's `Pythons` folder and in `examples\Pythons` of the repository, and [Python commands and
 tools](presenter/python.md#where-tools-load-from) shows what they write. Each tool below is run in a `python.exe` of its own, with a
 venv of its own that its `requirements.txt` fills (these need no package, so their files are empty).
@@ -246,12 +247,32 @@ rectangle's 5 000. With nothing selected it writes `Nothing selected.`
 
 [!code-python[](../src/python/examples/tools/selection_lengths/__init__.py)]
 
+### A snap, a setting and a button for circles
+
+`circle_marks` is the one tool here that adds to the window, with the three files of a tool and what its `plugin.json` says besides its
+command. Its snap CTOP is the top of a circle: `@snap("CTOP")` is bound to the `"snaps"` entry with that keyword, which names it
+"Circle top", limits it to `CIRCLE` and gives it the marker of the quadrant snap, and the app asks the tool about a circle the cursor
+comes near once, until the drawing changes. For a circle of radius 25 about (100, 50) the point is (100, 75). Its setting `textHeight`
+(2.5, from 0.1 to 1000) is shown in Load/Unload Applications, Settings..., and the command MARKTOPS, which asks `Select objects:` (or
+takes the objects selected), writes a text `R25` of that height at the top of each selected circle: 2.5 high until the user changes it.
+A ribbon tab Circles holds one large button, Mark tops, that starts MARKTOPS. With one circle selected it writes
+
+```text
+Marks written: 1, 2.5 high.
+```
+
+Anything but a circle in the selection is passed over, and with no circle selected it writes `No circle selected.` and draws nothing. The
+snap and the setting need the app and its `plugin.json`; a test of the repository starts the tool's process, asks the snap as the app does
+and runs the command.
+
+[!code-python[](../src/python/examples/tools/circle_marks/__init__.py)]
+
 ## Driving a running app
 
-These files connect to OpenCAD2D from another process with [`CadApplication`](xref:OpenCAD2D.Remote.CadApplication),
+These files connect to OpenCAD2D from another process with `connect()` ([Driving the app from another program](presenter/remote.md)),
 so the app has to be running with "Allow other programs to connect" on ([the setting](presenter/remote.md#the-setting)). Each
-has a `main` that works on the connection it is given, wrapped in the `Drawing` API with `App(connection)` (what `connect()` gives),
-and a `__main__` block that makes the connection with `with CadApplication() as app:`, which closes it at the end. [From Python](presenter/remote.md#from-python) tells how
+has a `main` that works on the `App` it is given, the `Drawing` API over the connection,
+and a `__main__` block that makes the connection with `with connect() as cad:`, which closes it at the end. [From Python](presenter/remote.md#from-python) tells how
 the .NET calls look in Python. The numbers below come from the test server of the repository, an app with no window.
 
 ### Draw a grid and read it back

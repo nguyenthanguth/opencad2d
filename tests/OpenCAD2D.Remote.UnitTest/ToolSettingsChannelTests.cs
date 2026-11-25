@@ -117,6 +117,29 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        public void AToolSetsATextSetting_WhichIsKeptUnlessItIsTheDefault()
+        {
+            const string manifest =
+                "{ \"name\": \"Circles\", \"settings\": [ { \"name\": \"title\", \"kind\": \"text\", \"default\": \"Plan\" } ] }";
+
+            using (var harness = new Harness())
+            {
+                var settings = new GlobalSettings();
+                CadApplication app = Connect(harness, OneDrawing(), Store(settings), manifest, out _);
+
+                app.SetToolSetting("title", "Section");
+
+                Assert.Equal("Section", app.GetToolSetting("title"));
+                Assert.Equal(new[] { "Circles/title=Section" }, settings.PluginSettings);
+
+                app.SetToolSetting("title", "Plan");
+
+                Assert.Equal("Plan", app.GetToolSetting("title"));
+                Assert.Empty(settings.PluginSettings);
+            }
+        }
+
+        [Fact]
         public void AValueOutOfRange_IsRefused_InTheSettingsOwnWords_AndTheValueStays()
         {
             using (var harness = new Harness())

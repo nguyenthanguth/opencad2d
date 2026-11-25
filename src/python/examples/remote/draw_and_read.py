@@ -8,15 +8,13 @@ lines are read back by layer and kind, and the drawing is saved as OUT (.dxf or 
 import sys
 from pathlib import Path
 
-from opencad2d.cad import App
+from opencad2d.cad import App, connect
 from GeometryHelper.Dxf import DxfLine
-from OpenCAD2D.Remote import CadApplication
 
 LAYER = "Grid"
 
 
-def main(app: CadApplication, out: str | None) -> None:
-    cad = App(app)  # the Drawing API over the connection, as connect() gives it
+def main(cad: App, out: str | None) -> None:
     drawing = cad.new()
     drawing.layers.add(LAYER)
     for step in range(0, 1001, 100):
@@ -32,5 +30,5 @@ def main(app: CadApplication, out: str | None) -> None:
 
 
 if __name__ == "__main__":
-    with CadApplication() as app:
-        main(app, sys.argv[1] if len(sys.argv) > 1 else None)
+    with connect() as cad:
+        main(cad, sys.argv[1] if len(sys.argv) > 1 else None)

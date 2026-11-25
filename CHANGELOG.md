@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **NEW.** Python tools get custom object snaps: `@snap("CTOP")` with a `"snaps"` entry in `plugin.json`, and
+  `SnapRequest`; the finder runs in the tool, is asked once per entity and its points are kept until the drawing changes
+  (one question 0.29 ms; 20 entities 0.85 ms). The snaps show in the window once its side is in (PW3 C2).
+- **NEW.** Python tools get settings: a `"settings"` entry in `plugin.json`, read with `setting(name)` and written with
+  `set_setting(name, value)`.
+- **NEW.** The example tool `circle_marks`: the snap CTOP, the setting textHeight, the command MARKTOPS and a ribbon button.
+- **CHANGED.** The remote Python examples take `cad: App` and connect with `with connect() as cad:`.
 - **NEW.** `CadPluginManifest.Snaps` and `Settings`: a Python tool declares object snaps and settings in `plugin.json`,
   read without running it (PW3).
 - **NEW.** `GlobalSettings.PluginSettings` (`pluginSettings` in the settings file): the values of plugin settings, one

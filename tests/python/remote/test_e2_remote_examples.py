@@ -19,6 +19,7 @@ from typing import Any
 
 import pytest
 
+from opencad2d.cad import App
 from OpenCAD2D import CadDocument
 from OpenCAD2D.Remote import CadObjectFilter
 from GeometryHelper.Dxf import DxfCircle, DxfLine, DxfMText
@@ -80,7 +81,7 @@ def test_draw_and_read_draws_a_grid_of_twenty_two_lines_on_a_layer_of_its_own_an
     app: Any, printed: Output
 ) -> None:
     # 11 vertical lines (x = 0, 100, ... 1000, each from y = 0 to 1000) and 11 horizontal: 22 lines of 1000 = 22 000.
-    _load("draw_and_read.py").main(app, None)
+    _load("draw_and_read.py").main(App(app), None)
 
     assert printed().splitlines() == ["22 lines on Grid, total length 22000.000"]
     drawing = app.ActiveDocument
@@ -95,7 +96,7 @@ def test_draw_and_read_given_a_file_saves_the_drawing_there_and_says_so(
 ) -> None:
     out = tmp_path / f"grid.{extension}"
 
-    _load("draw_and_read.py").main(app, str(out))
+    _load("draw_and_read.py").main(App(app), str(out))
 
     assert printed().splitlines() == ["22 lines on Grid, total length 22000.000", f"saved grid.{extension}"]
     saved = [e for e in CadDocument.Open(str(out)).Database.ModelSpace if isinstance(e, DxfLine)]
@@ -108,8 +109,8 @@ def test_draw_and_read_called_twice_makes_a_second_drawing_and_does_not_add_to_t
 ) -> None:
     main = _load("draw_and_read.py").main
 
-    main(app, None)
-    main(app, None)
+    main(App(app), None)
+    main(App(app), None)
 
     assert printed().splitlines() == ["22 lines on Grid, total length 22000.000"] * 2
     assert [drawing.GetObjects().Count for drawing in app.Documents] == [22, 22]
@@ -158,7 +159,7 @@ def test_pick_and_mark_gives_the_circle_to_the_point_typed_and_starts_a_drawing_
     assert module.PICK_TIMEOUT.TotalSeconds == 60
     timer, answers = _answer_later(server, "type 120,80")
 
-    status = module.main(_Viewless(app, []))
+    status = module.main(App(_Viewless(app, [])))
     timer.join()
 
     assert answers == ["DONE"]
@@ -176,7 +177,7 @@ def test_pick_and_mark_uses_the_drawing_that_is_active_and_starts_no_other(
     module = _load("pick_and_mark.py")
     timer, answers = _answer_later(server, "type 120,80")
 
-    status = module.main(_Viewless(app, []))
+    status = module.main(App(_Viewless(app, [])))
     timer.join()
 
     assert (answers, status) == (["DONE"], 0)
@@ -193,7 +194,7 @@ def test_pick_and_mark_cancelled_with_escape_says_so_returns_one_and_draws_nothi
     module = _load("pick_and_mark.py")
     timer, answers = _answer_later(server, "escape")
 
-    status = module.main(_Viewless(app, []))
+    status = module.main(App(_Viewless(app, [])))
     timer.join()
 
     assert answers == ["DONE"]
@@ -209,7 +210,7 @@ def test_pick_and_mark_asks_for_the_centre_with_its_time_limit_and_zooms_to_the_
     calls: list[Call] = []
     timer, answers = _answer_later(server, "type 120,80")
 
-    module.main(_Viewless(app, calls))
+    module.main(App(_Viewless(app, calls)))
     timer.join()
 
     assert answers == ["DONE"]
@@ -247,7 +248,7 @@ def test_open_documents_lists_each_drawing_with_its_objects_by_class_and_marks_t
     second.CommitChanges()
     second.Activate()
 
-    result = _load("open_documents.py").main(app)
+    result = _load("open_documents.py").main(App(app))
 
     lines = printed().splitlines()
     assert result is None
@@ -259,4 +260,4 @@ def test_open_documents_lists_each_drawing_with_its_objects_by_class_and_marks_t
 def test_open_documents_with_no_drawing_open_ends_without_an_error(app: Any) -> None:
     assert app.Documents.Count == 0
 
-    assert _load("open_documents.py").main(app) is None
+    assert _load("open_documents.py").main(App(app)) is None
