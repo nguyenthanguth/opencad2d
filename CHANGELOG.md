@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **NEW.** Python `Drawing.move`, `copy`, `rotate`, `scale`, `mirror` and `offset` (A8): the commands as calls on `Entity`
+  objects, typed (`copy([circle], (0, 50))` is a `list[Entity[DxfCircle]]`, `offset` gives `list[Entity[DxfCurve]]`).
+  What is queued goes with the edit in one undo step (`REMOTE` from outside the app, `PYTHON` for a file, the run's own in
+  a tool), and an edit the drawing refuses applies none of it. In-place edits read the `Entity` objects given again.
 - **FIXED.** `(textbox)` of a TEXT in the built-in font `opencad2d.shx` gave `nil`, and so did the other measures that take
   a text's box from the drawing's fonts the same way (`vla-GetBoundingBox` of a TEXT or MTEXT, the breaks of a dimension
   or a multileader, MLEADERALIGN): they looked in the folders a user set and Windows' Fonts folder but not in

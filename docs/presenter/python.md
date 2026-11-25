@@ -303,6 +303,7 @@ handles = drawing.commit()          # the handles of the circle and the line, in
 | `add(dxf_entity, layout)` | queue a copy of any `GeometryHelper.Dxf` entity; gives an `Entity` of its class |
 | `add_line`, `add_circle`, `add_arc`, `add_polyline`, `add_text`, `add_mtext` | queue the common objects; angles are **radians**; `**props` takes `layer`, `color`, `linetype`; each gives an `Entity` of its class (`Entity[DxfLine]`...) |
 | `modify(entity)`, `erase(entity_or_handle)` | queue a change made to `entity.net`, or an erase |
+| `move`, `copy`, `rotate`, `scale`, `mirror`, `offset` | the commands of the same names as calls, on `Entity` objects; they flush what is queued and edit in one undo step ([below](#edits-move-copy-rotate-scale-mirror-offset)) |
 | `commit()` | apply everything queued as one undo step; the handles of the objects added |
 | `layers`, `current_layer`, `text_styles`, `dimension_styles`, `blocks`, `layouts`, `current_layout` | the tables; styles and blocks are read-only copies |
 | `zoom_extents`, `zoom_window`, `zoom_objects`, `zoom_center`, `zoom_scaled`, `zoom_previous`, `pan`, `regen`, `view`, `has_window` | move and read the view, as ZOOM, -PAN and REGEN do ([below](#the-view-selection-and-variables)); `RuntimeError` on a file |
@@ -381,6 +382,52 @@ wider or taller than a box given to it where the shape differs.
   raised.
 - **What is queued** is not flushed by these calls: `zoom_objects` and the selections see what `commit()` applied. A variable
   is set to an `int`, a `float`, a `str` or a tuple of 2 or 3 numbers; a `bool` is a `TypeError`.
+
+### Edits: move, copy, rotate, scale, mirror, offset
+
+`move`, `copy`, `rotate`, `scale`, `mirror` and `offset` of a `Drawing` do what the commands MOVE, COPY, ROTATE, SCALE, MIRROR
+and OFFSET do, through the code the commands run ([`CadEditor`](plugins.md#the-editor-edits) in a plugin,
+[the same calls](remote.md#edits-in-one-call) from C# outside the app). They take the `Entity` objects a script read and give
+back `Entity` objects of the same class, so a type checker follows them: `drawing.copy([circle], (0, 50))` is a
+`list[Entity[DxfCircle]]`, and `offset` gives `list[Entity[DxfCurve]]`.
+
+```python
+# each call below is made on the drawing as it was first read: a line from (0, 0) to (100, 0), a circle of radius 10 about (200, 0)
+line = drawing.entities(DxfLine)[0]
+circle = drawing.entities(DxfCircle)[0]
+
+drawing.move([line, circle], (10, 5))               # the line now runs from (10, 5) to (110, 5); [line, circle]
+drawing.rotate([line], (0, 0), math.pi / 2)         # radians, counter-clockwise, about the world Z
+drawing.scale([circle], (0, 0), 2.0)                # the circle: radius 20 about (400, 0)
+copies = drawing.copy([line, circle], (0, 50))      # two new Entity objects, 50 above their sources
+mirrored = drawing.mirror([line], (0, 0), (10, 0))  # across the x axis; erase_source=True mirrors the line itself
+curves = drawing.offset(line, 5.0, (50, 10))        # a line from (0, 5) to (100, 5), on the layer of the source
+```
+
+- **In place or new.** `move`, `rotate`, `scale` and `mirror(..., erase_source=True)` change the objects themselves: the
+  `Entity` objects given come back, in the order given, with their `net` read again from the drawing (the same handle, the new
+  coordinates). `copy`, `mirror` and `offset` leave the objects given alone and give new `Entity` objects, in the order given,
+  with handles of their own; an object given twice is taken once.
+- **What is queued goes with the edit.** `add_*`, `modify`, `erase` and a layer or colour set on an `Entity` are applied first
+  and the edit after them, in one undo step: `REMOTE` from outside the app, `PYTHON` for a file, and the run's own in a tool,
+  so one U takes a run that copies, moves and zooms back whole. An object added in the same step has its real handle when the
+  call returns. A `modify` queued before a `scale` is scaled: the circle set to radius 30 and scaled by 2 has radius 60.
+- **A refused edit applies nothing.** An object that is locked, erased, inside a block, read from another drawing or not
+  committed yet, a factor of nought, a mirror line shorter than the tolerance, an offset distance of nought: the whole call is
+  refused, and what was queued with it is not applied and not kept. The words are the editor's (`The object 2F is on the locked
+  layer Steel.`). What Python sees is a `ValueError` whichever way the drawing is reached: a number that is not finite, a factor
+  or distance of nought or below, a displacement of three numbers, an `offset` of a text (`Cannot offset that object.`), an
+  object read from another drawing or not committed yet. What the drawing refuses is a `RuntimeError` on a file and a
+  `CadRemoteException` from outside the app and in a tool: a locked, erased or block object, an owner that will not allow the
+  change, an offset that makes no curve; a mirror line or an offset distance under the tolerance is a `ValueError` on a file
+  and a `CadRemoteException` from the app. On a file, inside an `undo_group` of the script, a refusal does not end the group and
+  leaves the edits before it in it.
+- **The numbers are the world's.** A displacement is a `GeoVector2` or a tuple of two numbers (three are a `ValueError`); a
+  point is a `GeoPoint2`, a `GeoPoint3` or a tuple, a z dropped; angles are in radians, whatever ANGDIR and ANGBASE say. A mirror
+  keeps a text readable under MIRRTEXT 0, as MIRROR does. The user's selection stays as it was.
+- **One call is one commit.** A call costs one request in a tool or from outside the app (about 17 ms) whatever the number of
+  objects, and one more for each object added in the same step, whose handle is asked once the commit is made: move a thousand
+  objects in one call, not a call for each.
 
 ### A drawing made and saved in code
 

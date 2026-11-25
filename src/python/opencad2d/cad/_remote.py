@@ -16,7 +16,7 @@ import importlib
 from types import TracebackType
 from typing import Any
 
-from ._drawing import Backend, Box, Documents, Drawing, Look, Op, look_color
+from ._drawing import Backend, Box, Documents, Drawing, Entity, Look, Op, look_color
 
 _net: Any = importlib.import_module("System")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
@@ -97,13 +97,13 @@ class _RemoteBackend:
     def select(self, handles: list[str]) -> None:
         self._document.Select(_net.Array[_net.String](handles))
 
-    def commit(self, ops: list[Op]) -> list[str | None]:
+    def _enqueue(self, ops: list[Op]) -> list[str]:
+        """Queues the ops in the document, which sends them with the next commit or edit; the tickets of the inserts."""
         document = self._document
-        added = 0
+        tickets: list[str] = []
         for op in ops:
             if op.kind == "insert":
-                document.Insert(op.copy, op.layout)
-                added += 1
+                tickets.append(str(document.Insert(op.copy, op.layout)))
             elif op.kind == "modify":
                 assert op.entity is not None
                 document.Modify(op.entity.net)
@@ -115,8 +115,42 @@ class _RemoteBackend:
             else:
                 assert op.layer is not None
                 document.ModifyLayer(_layer_of(op.layer._look))  # pyright: ignore[reportPrivateUsage]
-        handles: list[str | None] = [str(handle) for handle in document.CommitChanges()]
+        return tickets
+
+    def commit(self, ops: list[Op]) -> list[str | None]:
+        added = len(self._enqueue(ops))
+        handles: list[str | None] = [str(handle) for handle in self._document.CommitChanges()]
         return handles + [None] * (added - len(handles))
+
+    def edit(
+        self, ops: list[Op], how: str, items: list[Entity], args: tuple[Any, ...]
+    ) -> tuple[list[str | None], list[tuple[str, Any, Any]]]:
+        """What is queued and an edit call of the document as one commit: one undo step for the app (REMOTE, or the run's own).
+        The handles of the inserts are asked of their tickets once the commit is made."""
+        document = self._document
+        tickets = self._enqueue(ops)
+        given: Any = _net.Array[_dxf.DxfEntity]([item.net for item in items])
+        if how == "move":
+            found = document.Move[_dxf.DxfEntity](given, args[0])
+        elif how == "copy":
+            found = document.Copy[_dxf.DxfEntity](given, args[0])
+        elif how == "rotate":
+            found = document.Rotate[_dxf.DxfEntity](given, args[0], args[1])
+        elif how == "scale":
+            found = document.Scale[_dxf.DxfEntity](given, args[0], args[1])
+        elif how == "mirror":
+            found = document.Mirror[_dxf.DxfEntity](given, args[0], args[1], args[2])
+        else:
+            found = document.Offset(items[0].net, args[0], args[1])
+        return [self._made(ticket) for ticket in tickets], self._pairs(found)
+
+    def _made(self, ticket: str) -> str | None:
+        """The handle an insert of the commit has in the drawing, from its ticket; None where the app made no object of it."""
+        try:
+            entity = self._document.GetObject(ticket)
+        except _remote.CadRemoteException:
+            return None
+        return None if entity is None else str(self._document.HandleOf(entity))
 
     def layers(self) -> list[Look]:
         looks: list[Look] = []

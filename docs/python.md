@@ -431,6 +431,11 @@ A `Drawing` of the app or of a running app also moves the view and reads it as a
 system variables (`get_variable`, `set_variable`); on a drawing of a file the view calls raise `RuntimeError`, since a file
 has no view, and the selections and the variables work ([the view, selection and variables](presenter/python.md#the-view-selection-and-variables)).
 
+A `Drawing` also edits, with the commands' own code: `move`, `copy`, `rotate`, `scale`, `mirror` and `offset` take the `Entity`
+objects a script read and give back `Entity` objects of the same class (`drawing.copy([circle], (0, 50))` is a
+`list[Entity[DxfCircle]]`), one undo step with what the script had queued; a refused edit applies nothing
+([edits](presenter/python.md#edits-move-copy-rotate-scale-mirror-offset)).
+
 ### Typed entities
 
 An `Entity` knows the class of its `net` for a type checker (`Entity[DxfCircle]`; a bare `Entity` is an `Entity[DxfEntity]`),

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import builtins
 import importlib
+import math
 import os
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
@@ -21,7 +22,7 @@ from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Protocol, TypeVar, o
 
 if TYPE_CHECKING:
     import typing_extensions
-    from GeometryHelper.Dxf import DxfArc, DxfCircle, DxfDBText, DxfEntity, DxfLine, DxfMText, DxfPolyline
+    from GeometryHelper.Dxf import DxfArc, DxfCircle, DxfCurve, DxfDBText, DxfEntity, DxfLine, DxfMText, DxfPolyline
 
     # The class of an Entity's net; a bare Entity is an Entity[DxfEntity]. The default needs typing_extensions, which only
     # the type checker reads: at run time E is a plain TypeVar and nothing is imported.
@@ -30,6 +31,7 @@ else:
     E = TypeVar("E", covariant=True)
 
 K = TypeVar("K", bound="DxfEntity")
+R = TypeVar("R")
 
 _net: Any = importlib.import_module("System")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
@@ -117,6 +119,9 @@ class Backend(Protocol):
     def selected(self) -> list[tuple[str, Any, Any]]: ...
     def select(self, handles: list[str]) -> None: ...
     def commit(self, ops: list[Op]) -> list[str | None]: ...
+    def edit(
+        self, ops: list[Op], how: str, items: list[Entity], args: tuple[Any, ...]
+    ) -> tuple[list[str | None], list[tuple[str, Any, Any]]]: ...
     def layers(self) -> list[Look]: ...
     def pick_point(self, message: str, base: Any) -> Any: ...
     def pick_object(self, message: str) -> tuple[str, Any, Any] | None: ...
@@ -191,6 +196,19 @@ def vector2(value: Any) -> Any:
         numbers: list[Any] = list(value)  # pyright: ignore[reportUnknownArgumentType]
         return _geo.GeoVector2(float(numbers[0]), float(numbers[1]))
     raise ValueError(f"A displacement is a GeoVector2 or a tuple of 2 numbers, not {value!r}.")
+
+
+def finite(what: str, *numbers: float) -> None:
+    """``ValueError`` unless every number is finite: an edit sends numbers that are numbers, as the app takes none other."""
+    for number in numbers:
+        if not math.isfinite(number):
+            raise ValueError(f"{what} is a finite number, not {number!r}.")
+
+
+def positive(what: str, number: float) -> None:
+    """``ValueError`` unless the number is finite and above nought (a scale factor, an offset distance)."""
+    if not (math.isfinite(number) and number > 0.0):
+        raise ValueError(f"{what} is a finite number above nought, not {number!r}.")
 
 
 def variable_value(name: str, value: Any) -> Any:
@@ -271,6 +289,11 @@ class Entity(Generic[E]):
                 entity.net.Length                         # 100.0 for the line from (0, 0) to (100, 0)
         """
         return self._net
+
+    def _renew(self, net: Any, source: Any) -> None:
+        """Reads the object again: the copy an edit gave back for this object's handle, which the object keeps."""
+        self._net = net
+        self._source = source
 
     def _set(self, member: str, value: Any) -> None:
         if self._handle.startswith("~"):
@@ -1042,6 +1065,147 @@ class Drawing:
                 raise ValueError(f"The object {handle} is not in the drawing yet: call commit() first.")
         self._queue(Op("erase", handle=handle))
 
+    # ---- editing: the commands as calls ----------------------------------------------------------------------------
+
+    def _edit(self, how: str, items: Sequence[Entity[Any]], args: tuple[Any, ...], in_place: bool) -> list[Entity[Any]]:
+        """Sends what is queued and the edit as one commit and reads what it gave back: the objects given, read again, for an
+        edit in place, else new ``Entity`` objects for what it made."""
+        entities = list(items)
+        for entity in entities:
+            self._own(entity, how)
+        if not entities:
+            return []
+        ops, changed_layers = self._take()
+        try:
+            handles, found = self._backend.edit(ops, how, entities, args)
+        finally:
+            self._released(changed_layers)
+        self._settled(ops, handles)
+        if not in_place:
+            return [Entity(self, handle, net, source) for handle, net, source in found]
+        latest = {handle: (net, source) for handle, net, source in found}
+        for entity in entities:
+            if entity.handle in latest:
+                entity._renew(*latest[entity.handle])  # pyright: ignore[reportPrivateUsage]
+        return entities
+
+    def move(self, items: Sequence[Entity[K]], displacement: Any) -> list[Entity[K]]:
+        """Move objects by a displacement, as MOVE does, in the objects themselves: the ``Entity`` objects given are read
+        again and come back in the order given. What is queued is applied first and with it, as one undo step (``REMOTE`` from
+        outside the app, ``PYTHON`` for a file, the run's own in a tool); a drawing that refuses applies none of it and
+        raises. The displacement is a ``GeoVector2`` or a tuple of 2 numbers, in the world, not the UCS.
+
+        Example:
+            line = drawing.entities(DxfLine)[0]           # from (0, 0) to (100, 0)
+            drawing.move([line], (10, 5))                 # [line]; line.net now runs from (10, 5) to (110, 5)
+        """
+        vector = vector2(displacement)
+        finite("The displacement", vector.X, vector.Y)
+        return self._edit("move", items, (vector,), True)
+
+    def copy(self, items: Sequence[Entity[K]], displacement: Any) -> list[Entity[K]]:
+        """Copy objects by a displacement, as COPY does with a displacement typed: the objects stay and the copies come back
+        as new ``Entity`` objects, of the class of their sources and in the order given, an object given twice copied once.
+        Queued changes go with it, as ``move`` says.
+
+        Example:
+            copies = drawing.copy([line, circle], (0, 50))  # two new objects 50 above the line and the circle
+            copies[0].net.StartPoint.Y                    # 50.0 for the line from (0, 0) to (100, 0)
+        """
+        vector = vector2(displacement)
+        finite("The displacement", vector.X, vector.Y)
+        return self._edit("copy", items, (vector,), False)
+
+    def rotate(self, items: Sequence[Entity[K]], base: Any, angle: float) -> list[Entity[K]]:
+        """Turn objects about a base point, as ROTATE does, in the objects themselves: the angle is in radians,
+        counter-clockwise, whatever ANGDIR and ANGBASE say. Queued changes go with it, as ``move`` says.
+
+        Example:
+            drawing.rotate([line], (0, 0), math.pi / 2)   # the line from (0, 0) to (100, 0) now runs to (0, 100)
+        """
+        point = point2(base)
+        finite("The base point", point.X, point.Y)
+        finite("The angle", angle)
+        return self._edit("rotate", items, (point, float(angle)), True)
+
+    def scale(self, items: Sequence[Entity[K]], base: Any, factor: float) -> list[Entity[K]]:
+        """Scale objects about a base point, as SCALE does, in the objects themselves: the factor is above nought. Queued
+        changes go with it, as ``move`` says.
+
+        Example:
+            drawing.scale([circle], (0, 0), 2.0)          # a circle of radius 25 about (50, 50): radius 50 about (100, 100)
+        """
+        point = point2(base)
+        finite("The base point", point.X, point.Y)
+        positive("A scale factor", factor)
+        return self._edit("scale", items, (point, float(factor)), True)
+
+    def mirror(
+        self, items: Sequence[Entity[K]], first: Any, second: Any, erase_source: bool = False
+    ) -> list[Entity[K]]:
+        """Mirror objects across the line through two points, as MIRROR does: a text stays readable under MIRRTEXT 0, a hatch
+        keeps its pattern under MIRRHATCH 0. The mirrored copies come back as new ``Entity`` objects; with ``erase_source`` the
+        objects themselves are mirrored where they stand and come back, read again, as ``move`` does. Queued changes go with
+        it, as ``move`` says.
+
+        Example:
+            mirrored = drawing.mirror([line], (0, 0), (10, 0))   # a line from (0, 0) to (0, 50) gives one to (0, -50)
+        """
+        one, two = point2(first), point2(second)
+        finite("A point of the mirror line", one.X, one.Y, two.X, two.Y)
+        return self._edit("mirror", items, (one, two, bool(erase_source)), bool(erase_source))
+
+    def offset(self, curve: Entity[DxfCurve], distance: float, side: Any) -> list[Entity[DxfCurve]]:
+        """Offset a curve to the side of a point, as one pick of OFFSET with a distance typed: the copies go on the layer of the
+        curve, which stays. A line, arc, circle, ellipse, polyline, spline, xline or ray; ``ValueError("Cannot offset that
+        object.")`` for any other object, and ``RuntimeError`` where the offset makes no curve (a circle of radius 10 offset
+        inward by 15). Queued changes go with it, as ``move`` says.
+
+        Example:
+            drawing.offset(line, 5.0, (50, 10))           # [the line from (0, 5) to (100, 5)] for one from (0, 0) to (100, 0)
+        """
+        self._own(curve, "offset")
+        if not isinstance(curve.net, _dxf.DxfCurve):
+            raise ValueError("Cannot offset that object.")
+        point = point2(side)
+        finite("The side point", point.X, point.Y)
+        positive("An offset distance", distance)
+        return self._edit("offset", [curve], (float(distance), point), False)
+
+    def _take(self) -> tuple[list[Op], list[Layer]]:
+        """What is queued as the ops a backend applies, the queue emptied; with the layers that were changed."""
+        ops = list(self._ops)
+        for entity in self._changed_entities:
+            ops.append(Op("modify", entity=entity))
+        for layer in self._changed_layers:
+            ops.append(Op("modify_layer", layer=layer))
+        changed_layers = self._changed_layers[:]
+        self._ops.clear()
+        self._changed_entities.clear()
+        self._changed_layers.clear()
+        self._noted = False
+        return ops, changed_layers
+
+    def _released(self, changed_layers: list[Layer]) -> None:
+        """Ends a send, well or not: a layer is no longer waiting to be written and the layers are read again."""
+        for layer in changed_layers:
+            layer._dirty = False  # pyright: ignore[reportPrivateUsage]
+        self._layers._known.clear()  # pyright: ignore[reportPrivateUsage]
+
+    @staticmethod
+    def _settled(ops: list[Op], handles: list[str | None]) -> list[str]:
+        """Gives the objects added their real handles; the handles, in the order added."""
+        added = [op for op in ops if op.kind == "insert"]
+        for op in ops:
+            if op.kind == "add_layer" and op.layer is not None:
+                op.layer._pending = False  # pyright: ignore[reportPrivateUsage]
+        made: list[str] = []
+        for op, handle in zip(added, handles + [None] * (len(added) - len(handles))):
+            if handle is not None and op.entity is not None:
+                op.entity._handle = handle  # pyright: ignore[reportPrivateUsage]
+                made.append(handle)
+        return made
+
     def commit(self) -> list[str]:
         """Apply everything queued as one undo step, and return the handles of the objects added, in the order they were
         added; ``[]`` when nothing was queued. The layers are made first, so an object can be put on a layer made in the same
@@ -1052,34 +1216,14 @@ class Drawing:
             drawing.add_circle((50, 50), 25)
             drawing.commit()                              # ['101', '102']; a second commit with nothing queued gives []
         """
-        ops = list(self._ops)
-        for entity in self._changed_entities:
-            ops.append(Op("modify", entity=entity))
-        for layer in self._changed_layers:
-            ops.append(Op("modify_layer", layer=layer))
-        added = [op for op in ops if op.kind == "insert"]
-        pending = [op.layer for op in ops if op.kind == "add_layer" and op.layer is not None]
-        changed_layers = self._changed_layers[:]
-        self._ops.clear()
-        self._changed_entities.clear()
-        self._changed_layers.clear()
-        self._noted = False
+        ops, changed_layers = self._take()
         if not ops:
             return []
         try:
             handles = self._backend.commit(ops)
         finally:
-            for layer in changed_layers:
-                layer._dirty = False  # pyright: ignore[reportPrivateUsage]
-            self._layers._known.clear()  # pyright: ignore[reportPrivateUsage]
-        for layer in pending:
-            layer._pending = False  # pyright: ignore[reportPrivateUsage]
-        made: list[str] = []
-        for op, handle in zip(added, handles + [None] * (len(added) - len(handles))):
-            if handle is not None and op.entity is not None:
-                op.entity._handle = handle  # pyright: ignore[reportPrivateUsage]
-                made.append(handle)
-        return made
+            self._released(changed_layers)
+        return self._settled(ops, handles)
 
     # ---- layers, styles, blocks, layouts --------------------------------------------------------------------------
 

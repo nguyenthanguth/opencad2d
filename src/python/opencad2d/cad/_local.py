@@ -245,6 +245,58 @@ class _LocalBackend:
             raise RuntimeError(str(result.Message))
         return inserted
 
+    def edit(
+        self, ops: list[Op], how: str, items: list[Entity], args: tuple[Any, ...]
+    ) -> tuple[list[str | None], list[tuple[str, Any, Any]]]:
+        """What is queued and one call of the ``CadEditor`` as one undo step, PYTHON, or inside the group the script has open.
+        Everything an edit refuses is looked at first, so that a refused edit applies none of what was queued with it; what the
+        editor decides in the writing (an owner's gate, an offset that makes no curve) cancels the group of its own and, inside
+        the script's, is the refusal of any commit."""
+        document = self.document
+        handles = list(dict.fromkeys(item.handle for item in items))
+        for handle in handles:
+            entity = self._existing(handle)
+            if _cad.CadLayerEditor.IsLocked(document.Database, entity.Layer):
+                raise RuntimeError(f"The object {handle} is on the locked layer {entity.Layer}.")
+        self._edited(how, [], args)  # the numbers, which the editor takes from an empty list as it takes them from any
+        own = not document.IsInGroup
+        if own:
+            document.BeginGroup("PYTHON")
+        try:
+            inserted = self.commit(ops) if ops else []
+            made = self._edited(how, [document.FindEntity(handle) for handle in handles], args)
+        except BaseException:
+            if own:
+                document.CancelGroup()
+            raise
+        if own:
+            document.EndGroup()
+        return inserted, self._pack(made)
+
+    def _edited(self, how: str, entities: list[Any], args: tuple[Any, ...]) -> list[Any]:
+        """One call of the editor for an edit, its refusals as Python's: ``ValueError`` for the arguments, ``RuntimeError``
+        for what the drawing refuses. Gives the objects of the drawing the call gave back."""
+        editor = self._editor
+        given: Any = _net.Array[_dxf.DxfEntity](entities)
+        try:
+            if how == "offset":
+                if not entities:
+                    return []
+                return list(editor.Offset(entities[0], args[0], args[1]))
+            if how == "move":
+                return list(editor.Move[_dxf.DxfEntity](given, args[0]))
+            if how == "copy":
+                return list(editor.Copy[_dxf.DxfEntity](given, args[0]))
+            if how == "rotate":
+                return list(editor.Rotate[_dxf.DxfEntity](given, args[0], args[1]))
+            if how == "scale":
+                return list(editor.Scale[_dxf.DxfEntity](given, args[0], args[1]))
+            return list(editor.Mirror[_dxf.DxfEntity](given, args[0], args[1], args[2]))
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+        except _net.InvalidOperationException as error:
+            raise RuntimeError(str(error.Message)) from None
+
     def _insert_group(self, scope: Any, batch: Any, space: Any, group: list[Any], inserted: list[str | None]) -> None:
         # A layer the drawing lacks is made by the copy; the layer box and the Layer manager are told.
         layers = self.document.Database.LayerTable
