@@ -95,6 +95,7 @@ namespace OpenCAD2D
                     var copies = copy ? new Dictionary<string, DxfEntity>(StringComparer.OrdinalIgnoreCase) : null;
                     var together = new HashSet<string>(handles, StringComparer.OrdinalIgnoreCase);
                     var clippedViewports = new List<DxfViewport>();
+                    Dictionary<string, CadCommands.ReadableMirror> readAhead = ReadAhead(s, handles, copy, readable);
 
                     foreach (string handle in handles)
                     {
@@ -104,7 +105,10 @@ namespace OpenCAD2D
                         }
 
                         DxfEntity entity = s.Document.FindEntity(handle);
-                        CadCommands.ReadableMirror kept = readable?.Invoke(entity);
+                        CadCommands.ReadableMirror kept =
+                            readAhead != null && readAhead.TryGetValue(handle, out CadCommands.ReadableMirror ahead)
+                                ? ahead
+                                : readable?.Invoke(entity);
 
                         if (
                             entity is DxfViewport plain
@@ -206,6 +210,54 @@ namespace OpenCAD2D
                 copy ? null : handles
             );
             return plan;
+        }
+
+        /// <summary>
+        /// How a mirror moves each text and INSERT of the selection, worked out before anything moves, in one scope of the
+        /// document's fonts rather than one a text: each scope reads the font file again, so that MIRROR of 2000 texts in
+        /// opencad2d.shx took 340 ms and not 95. The fonts are not left set while the copies are written, which would put a
+        /// copy's words where they stand as it is appended. Null where nothing is read ahead: no way to move them, or no text
+        /// or INSERT.
+        /// </summary>
+        private static Dictionary<string, CadCommands.ReadableMirror> ReadAhead(
+            CadEditScope s,
+            IReadOnlyList<string> handles,
+            bool copy,
+            Func<DxfEntity, CadCommands.ReadableMirror> readable
+        )
+        {
+            if (readable == null)
+            {
+                return null;
+            }
+
+            Dictionary<string, CadCommands.ReadableMirror> ahead = null;
+            IDisposable measuring = null;
+
+            try
+            {
+                foreach (string handle in handles)
+                {
+                    if (copy || !s.IsHandled(handle))
+                    {
+                        DxfEntity entity = s.Document.FindEntity(handle);
+
+                        if (entity is DxfDBText || entity is DxfBlockReference)
+                        {
+                            measuring = measuring ?? new Lisp.LispActiveX.MeasuringScope(s.Document);
+                            ahead = ahead
+                                ?? new Dictionary<string, CadCommands.ReadableMirror>(StringComparer.OrdinalIgnoreCase);
+                            ahead[handle] = readable(entity);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                measuring?.Dispose();
+            }
+
+            return ahead;
         }
 
         /// <summary>The scope in which a hatch mirrored reflects the lines of its pattern, for an object MIRROR moves under MIRRHATCH 1; none otherwise.</summary>
