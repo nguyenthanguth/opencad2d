@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **FIXED.** The fractional arc of an SHX shape (code 11) is read as AutoCAD 2021 reads it, measured by `(textbox)` on
+  1926 pairs of glyphs: each offset is rounded to whole degrees half up (an offset of 128 is 23 degrees, not 22), an end
+  that rounds to 0 is the whole octant, an end before the start turns the long way in the octant byte's sense, equal ends
+  are a whole circle, and a count of 0 is 8 octants with the sense from bit 7 of the octant byte (`0x80` is a whole
+  circle clockwise). An arc of radius 100 with offsets 0 and 0 and octant byte `0x20` is now a whole circle, its box
+  200 by 200, where it drew nothing. Codes 10 and 12 are as before.
 - **BREAKING.** The last GeometryHelper and GH names are out of what OpenCAD2D writes and shows (A10), with no
   compatibility kept: a file or setting that carries an old name is no longer read as the new one. Renamed: the XRECORD
   `GH_REFEDIT` of a REFEDIT in progress is `OPENCAD2D_REFEDIT` (a drawing saved in the middle of an edit by an older build
