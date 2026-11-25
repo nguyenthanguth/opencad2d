@@ -153,7 +153,8 @@ is set:
 A process needs the `python.exe` alone, so nothing else of an install is checked. The registry holds more than what is installed: it may list 3.10 with no install path, 3.13 whose
 `python.exe` is gone from the disk, and 3.14 (3.14.4, 64-bit). The finder checks the files, so it takes 3.14 and keeps the
 others, each with its reason: `3.10: no InstallPath`, `3.13: ...\Python313\python.exe is missing`. The reasons are what
-Global settings lists as "Passed over". What is wrong is written where a tool is used, on the command line, in one of these
+Global settings lists as "Passed over". Where both hives register the same tag, each line names its hive: `3.10 (HKCU): no InstallPath`,
+`3.10 (HKLM): no InstallPath`. What is wrong is written where a tool is used, on the command line, in one of these
 sentences:
 
 | When | The sentence |
