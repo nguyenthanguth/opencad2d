@@ -36,15 +36,19 @@ namespace OpenCAD2D
                 )
             );
             registry.AddVariable(
-                CadSystemVariable.Text(
-                    "CENTERLTYPE",
-                    true,
-                    s => s.Document.Database.CenterLtype,
-                    (c, typed) =>
-                        CenterLinetypeKnown(c.Database, typed)
-                            ? SetCenter(c, "CENTERLTYPE", c.Database.CenterLtype, typed, (d, v) => d.CenterLtype = v)
-                            : "Cannot set CENTERLTYPE to that value."
-                )
+                CadSystemVariable
+                    .Text(
+                        "CENTERLTYPE",
+                        true,
+                        s => s.Document.Database.CenterLtype,
+                        (c, typed) =>
+                            CenterLinetypeKnown(c.Database, typed)
+                                ? SetCenter(c, "CENTERLTYPE", c.Database.CenterLtype, typed, (d, v) =>
+                                    d.CenterLtype = v
+                                )
+                                : "Cannot set CENTERLTYPE to that value."
+                    )
+                    .AllowingSpaces()
             );
             registry.AddVariable(
                 CadSystemVariable.Number(
@@ -83,15 +87,19 @@ namespace OpenCAD2D
                 )
             );
             registry.AddVariable(
-                CadSystemVariable.Text(
-                    "CENTERLAYER",
-                    true,
-                    s => s.Document.Database.CenterLayer,
-                    (c, typed) =>
-                        typed == "." || CadLayerEditor.IsLayerName(typed)
-                            ? SetCenter(c, "CENTERLAYER", c.Database.CenterLayer, typed, (d, v) => d.CenterLayer = v)
-                            : "Cannot set CENTERLAYER to that value."
-                )
+                CadSystemVariable
+                    .Text(
+                        "CENTERLAYER",
+                        true,
+                        s => s.Document.Database.CenterLayer,
+                        (c, typed) =>
+                            typed == "." || CadLayerEditor.IsLayerName(typed)
+                                ? SetCenter(c, "CENTERLAYER", c.Database.CenterLayer, typed, (d, v) =>
+                                    d.CenterLayer = v
+                                )
+                                : "Cannot set CENTERLAYER to that value."
+                    )
+                    .AllowingSpaces()
             );
         }
 

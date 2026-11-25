@@ -340,27 +340,39 @@ namespace OpenCAD2D
             }
         }
 
-        // Whether the message is the whole text, as a get function of AutoLISP shows it, and whether a space ends the answer.
+        // Whether the message is the whole text, as a get function of AutoLISP shows it, and whether a space is part of the answer.
         private bool _raw;
-        private bool _endsAtSpace;
+        private bool _takesSpaces;
 
         /// <summary>
-        /// Gets whether a space typed is part of the answer: true for a prompt for text (<see cref="CadPromptKind.String"/>) and
-        /// false for every other kind, and for the text AutoLISP's <c>getstring</c> asks without its first argument, where a
-        /// space ends the answer as Enter does and the rest of the line is the next input. The window types a space only
-        /// where this is true and takes Space as Enter elsewhere.
+        /// Gets whether a space typed is part of the answer: true only for a prompt for text (<see cref="CadPromptKind.String"/>)
+        /// that was made one that takes spaces (<see cref="AllowingSpaces"/>), as AutoCAD's TEXT and -MTEXT do, or as AutoLISP's
+        /// <c>getstring</c> does with its first argument. False for every other prompt, a name or a file name among them:
+        /// a space ends the answer as Enter does and the rest of the line is the next input. The window types a space only where
+        /// this is true and takes Space as Enter elsewhere, and a script ends the word at a space there.
         /// </summary>
-        public bool TakesSpaces => Kind == CadPromptKind.String && !_endsAtSpace;
+        public bool TakesSpaces => Kind == CadPromptKind.String && _takesSpaces;
+
+        /// <summary>
+        /// Makes the prompt for text one where a space is part of the answer (<see cref="TakesSpaces"/>), as AutoCAD's own prompt
+        /// for a line of text does; a prompt made with <see cref="ForString"/> ends at a space until this is called.
+        /// </summary>
+        /// <returns>The prompt.</returns>
+        public CadPrompt AllowingSpaces()
+        {
+            _takesSpaces = true;
+            return this;
+        }
 
         /// <summary>
         /// Shows the message as it is, as AutoLISP's get functions do: <c>Pick: </c> is the whole text, and what is typed is
         /// echoed straight after it (<see cref="Echo"/>). Where <paramref name="endsAtSpace"/> is true a space ends the
-        /// answer (<see cref="TakesSpaces"/>).
+        /// answer (<see cref="TakesSpaces"/>), else it is part of it.
         /// </summary>
         internal CadPrompt AsRaw(bool endsAtSpace = false)
         {
             _raw = true;
-            _endsAtSpace = endsAtSpace;
+            _takesSpaces = !endsAtSpace;
             return this;
         }
 
@@ -579,7 +591,10 @@ namespace OpenCAD2D
             string defaultValue
         ) => new CadPrompt(CadPromptKind.Keyword, message, keywords, defaultValue, null) { AcceptsText = true };
 
-        /// <summary>Asks for a text.</summary>
+        /// <summary>
+        /// Asks for a text. A space ends the answer as Enter does, as AutoCAD's prompts for a name, a file name or an option
+        /// word do; <see cref="AllowingSpaces"/> makes it a prompt for a line of text, as TEXT's "Enter text:".
+        /// </summary>
         /// <param name="message">The message: "Enter text".</param>
         /// <param name="defaultValue">The default Enter takes; null for none.</param>
         /// <returns>The prompt.</returns>
@@ -595,7 +610,7 @@ namespace OpenCAD2D
             new CadPrompt(CadPromptKind.String, message, null, null, null)
             {
                 InPlace = edit ?? throw new ArgumentNullException(nameof(edit)),
-            };
+            }.AllowingSpaces();
 
         /// <summary>
         /// Gets whether the prompt only waits: a command that works for a program outside the app (a run of a tool) shows it

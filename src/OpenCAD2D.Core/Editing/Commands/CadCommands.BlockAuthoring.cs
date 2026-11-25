@@ -370,11 +370,13 @@ namespace OpenCAD2D
                 case "Description":
                     for (int i = 0; i < properties.Length; i++)
                     {
-                        yield return CadPrompt.ForString(
-                            "Enter "
-                                + (properties.Length > 1 ? properties[i] + " " : string.Empty)
-                                + "property description"
-                        );
+                        yield return CadPrompt
+                            .ForString(
+                                "Enter "
+                                    + (properties.Length > 1 ? properties[i] + " " : string.Empty)
+                                    + "property description"
+                            )
+                            .AllowingSpaces();
 
                         if (c.Input.Text != null)
                         {

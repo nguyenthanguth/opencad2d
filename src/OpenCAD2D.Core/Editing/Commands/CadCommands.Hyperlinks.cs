@@ -202,7 +202,7 @@ namespace OpenCAD2D
             string address = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : string.Empty;
             yield return CadPrompt.ForString("Enter named location", "none");
             string place = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : string.Empty;
-            yield return CadPrompt.ForString("Enter description", "none");
+            yield return CadPrompt.ForString("Enter description", "none").AllowingSpaces();
             string text = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : string.Empty;
             DxfHyperLink link = CadHyperlinks.Make(address, place, text);
 

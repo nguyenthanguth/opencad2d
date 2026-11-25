@@ -33,6 +33,7 @@ namespace OpenCAD2D
     {
         private readonly Func<CadCommandSession, string> _show;
         private Func<CadCommandContext, IEnumerable<CadPrompt>> _ask;
+        private bool _spaces;
         private CadEditRecordKind _recordKind = CadEditRecordKind.SettingChanged;
         private Func<CadCommandSession, double[]> _numbers;
         private Func<CadCommandContext, object, bool> _setFromLisp;
@@ -931,13 +932,30 @@ namespace OpenCAD2D
             }
         }
 
+        /// <summary>
+        /// Makes the prompt of a text variable a prompt for a line of text, where a space is part of the answer, as SETVAR does for
+        /// DIMPOST, POLARADDANG or CANNOSCALE; one that is not asks for a name, which a space ends, as CLAYER or TEXTSTYLE do.
+        /// </summary>
+        /// <returns>The variable.</returns>
+        internal CadSystemVariable AllowingSpaces()
+        {
+            _spaces = true;
+            return this;
+        }
+
+        private static CadPrompt Asking(CadSystemVariable variable, string message, string offered)
+        {
+            CadPrompt prompt = CadPrompt.ForString(message, offered);
+            return variable._spaces ? prompt.AllowingSpaces() : prompt;
+        }
+
         private static IEnumerable<CadPrompt> AskText(
             CadCommandContext c,
             CadSystemVariable variable,
             Func<CadCommandContext, string, string> take
         )
         {
-            yield return CadPrompt.ForString(variable.Message, variable.GetValue(c.Session));
+            yield return Asking(variable, variable.Message, variable.GetValue(c.Session));
 
             if (c.Input.Kind != CadInputKind.Text)
             {
@@ -960,7 +978,7 @@ namespace OpenCAD2D
             Func<CadCommandContext, string, string> take
         )
         {
-            yield return CadPrompt.ForString(variable.Message + ", or . for " + none, variable.GetValue(c.Session));
+            yield return Asking(variable, variable.Message + ", or . for " + none, variable.GetValue(c.Session));
 
             if (c.Input.Kind != CadInputKind.Text)
             {
@@ -982,7 +1000,7 @@ namespace OpenCAD2D
             Func<string, bool> take
         )
         {
-            yield return CadPrompt.ForString(variable.Message + ", or . for none", variable.GetValue(c.Session));
+            yield return Asking(variable, variable.Message + ", or . for none", variable.GetValue(c.Session));
 
             if (c.Input.Kind != CadInputKind.Text)
             {

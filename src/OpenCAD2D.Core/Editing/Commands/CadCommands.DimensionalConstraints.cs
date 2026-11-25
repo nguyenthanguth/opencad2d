@@ -245,10 +245,12 @@ namespace OpenCAD2D
 
         /// <summary>The prompt for the name and the value of a new dimensional constraint, which Enter takes as it stands.</summary>
         private static CadPrompt NamePrompt(CadConstraints.Work work, CadDimKind kind, double measured) =>
-            CadPrompt.ForString(
-                "Enter name or value",
-                work.Set.NextName(CadDimConstraint.PrefixOf(kind)) + "=" + PlainNumber(measured)
-            );
+            CadPrompt
+                .ForString(
+                    "Enter name or value",
+                    work.Set.NextName(CadDimConstraint.PrefixOf(kind)) + "=" + PlainNumber(measured)
+                )
+                .AllowingSpaces();
 
         #endregion
 
@@ -927,14 +929,14 @@ namespace OpenCAD2D
             switch (option)
             {
                 case "New":
-                    yield return CadPrompt.ForString("Enter name for new user parameter");
+                    yield return CadPrompt.ForString("Enter name for new user parameter").AllowingSpaces();
                     name = c.Input.Text;
-                    yield return CadPrompt.ForString("Enter expression");
+                    yield return CadPrompt.ForString("Enter expression").AllowingSpaces();
                     text = c.Input.Text;
                     Report(c, CadParameters.New(c.Document, name, text));
                     break;
                 case "Edit":
-                    yield return CadPrompt.ForString("Enter parameter name");
+                    yield return CadPrompt.ForString("Enter parameter name").AllowingSpaces();
                     name = c.Input.Text;
                     CadParameterRow row = CadParameters
                         .Rows(c.Document)
@@ -962,17 +964,17 @@ namespace OpenCAD2D
                                     )
                             )
                     );
-                    yield return CadPrompt.ForString("Enter expression");
+                    yield return CadPrompt.ForString("Enter expression").AllowingSpaces();
                     Report(c, CadParameters.Edit(c.Document, name, c.Input.Text));
                     break;
                 case "Rename":
-                    yield return CadPrompt.ForString("Enter parameter name");
+                    yield return CadPrompt.ForString("Enter parameter name").AllowingSpaces();
                     name = c.Input.Text;
-                    yield return CadPrompt.ForString("Enter new name");
+                    yield return CadPrompt.ForString("Enter new name").AllowingSpaces();
                     Report(c, CadParameters.Rename(c.Document, name, c.Input.Text));
                     break;
                 case "Delete":
-                    yield return CadPrompt.ForString("Enter parameter name");
+                    yield return CadPrompt.ForString("Enter parameter name").AllowingSpaces();
                     Report(c, CadParameters.Delete(c.Document, c.Input.Text));
                     break;
                 case "?":

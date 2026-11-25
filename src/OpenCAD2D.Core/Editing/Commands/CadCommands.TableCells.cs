@@ -110,7 +110,7 @@ namespace OpenCAD2D
 
             if (c.Input.Is("Equation"))
             {
-                yield return CadPrompt.ForString("Enter the formula, as =A1+B2");
+                yield return CadPrompt.ForString("Enter the formula, as =A1+B2").AllowingSpaces();
                 formula = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : null;
             }
             else if (c.Input.Is("Cell"))

@@ -601,7 +601,9 @@ namespace OpenCAD2D
                 CadSystemVariable.Text("CTAB", false, s => s.Document.CurrentSpace.Name, CurrentLayoutTab)
             );
             registry.AddVariable(
-                CadSystemVariable.Text("CANNOSCALE", true, s => s.Document.Database.Cannoscale, CurrentAnnotationScale)
+                CadSystemVariable
+                    .Text("CANNOSCALE", true, s => s.Document.Database.Cannoscale, CurrentAnnotationScale)
+                    .AllowingSpaces()
             );
             registry.AddVariable(
                 CadSystemVariable.Whole(

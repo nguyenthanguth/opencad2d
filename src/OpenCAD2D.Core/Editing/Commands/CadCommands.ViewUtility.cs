@@ -483,7 +483,7 @@ namespace OpenCAD2D
         {
             while (true)
             {
-                yield return CadPrompt.ForString(">> Expression");
+                yield return CadPrompt.ForString(">> Expression").AllowingSpaces();
 
                 string expression = Typed(c);
 

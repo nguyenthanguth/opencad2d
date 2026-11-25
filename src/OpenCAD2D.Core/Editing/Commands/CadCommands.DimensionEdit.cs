@@ -45,7 +45,7 @@ namespace OpenCAD2D
 
             if (kind == "New")
             {
-                yield return CadPrompt.ForString("Enter dimension text", "<>");
+                yield return CadPrompt.ForString("Enter dimension text", "<>").AllowingSpaces();
                 text = c.Input.Kind == CadInputKind.Text ? c.Input.Text : "<>";
             }
             else if (kind == "Rotate")

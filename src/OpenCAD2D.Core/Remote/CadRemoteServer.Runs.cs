@@ -300,7 +300,7 @@ namespace OpenCAD2D
                     yield return CadPrompt.ForInteger(question.Message, keywords, question.Default);
                     break;
                 case "string":
-                    yield return CadPrompt.ForString(question.Message, question.Default);
+                    yield return CadPrompt.ForString(question.Message, question.Default).AllowingSpaces();
                     break;
                 case "keyword":
                     yield return CadPrompt.ForKeyword(question.Message, keywords, question.Default);

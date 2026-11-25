@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **FIXED.** Every prompt for text took a space as part of the answer, in a script and on the command line, where AutoCAD
+  2021 takes it only at a few (measured in accoreconsole with a .scr, 228 runs with a space in the answer): `-LAYER N A B` made
+  one layer named `A B` (AutoCAD makes `A` and reads `B` as the next option), `-RENAME LA A B` looked for a layer `A B`
+  and the window typed the space into a name. A name, a file name or a list of names now ends at a space (new, make, set,
+  rename, on, off, freeze, thaw, lock and list of -LAYER, -RENAME, -VIEW, UCS, -STYLE, -LINETYPE, -GROUP, -PURGE,
+  -DIMSTYLE, -LAYOUT, -VPORTS, MLINE, -OSNAP, SETVAR's variable names and the variables CLAYER and TEXTSTYLE, -WBLOCK,
+  DXFOUT, SCRIPT, OPEN, -XREF, -IMAGE, -PLOT's file name), and the prompts that take the whole line are the text of TEXT,
+  -MTEXT, MLEADER and LEADER, dimension text, a description (layer, group, linetype), an attribute's value, prompt and
+  strings, a scale's name and ratio, a parameter's name and expression, CAL's expression, a page setup name and the text
+  variables DIMPOST, DIMAPOST, POLARADDANG, CANNOSCALE, TRUSTEDPATHS, HPLAYER, DIMLAYER, TEXTLAYER, CENTERLAYER and
+  CENTERLTYPE. `CadPrompt.ForString` ends at a space as `PromptStringOptions` does, and the new `AllowingSpaces()` makes
+  one a prompt for a line of text (a plugin's text that took spaces before needs it); AutoLISP's `getstring` with and
+  without `cr` and `getkword` are as they were.
 - **FIXED.** SCRIPT fed a whole line as one word, so `LINE 0,0 10,0 ` and `LINE END 60,1` were refused and only a line
   that was itself a snap word was a snap. A line is read as AutoCAD 2021 reads a .scr (measured in accoreconsole): a space,
   a tab and the end of a line are each Enter, so `LINE 0,0 10,0 ` draws a line from (0, 0) to (10, 0) and ends it, and two

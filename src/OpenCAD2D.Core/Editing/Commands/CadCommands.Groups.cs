@@ -36,7 +36,7 @@ namespace OpenCAD2D
 
                 if (c.Input.Is("Description"))
                 {
-                    yield return CadPrompt.ForString("Enter a group description");
+                    yield return CadPrompt.ForString("Enter a group description").AllowingSpaces();
 
                     if (c.Input.Kind == CadInputKind.Text)
                     {
@@ -207,7 +207,7 @@ namespace OpenCAD2D
                 yield break;
             }
 
-            yield return CadPrompt.ForString("Enter a group description");
+            yield return CadPrompt.ForString("Enter a group description").AllowingSpaces();
             string description = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : string.Empty;
 
             foreach (CadPrompt prompt in c.SelectObjects())

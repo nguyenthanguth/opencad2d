@@ -751,7 +751,7 @@ namespace OpenCAD2D
 
             if (settings.InsertTable)
             {
-                yield return CadPrompt.ForString("Enter a title for the table", settings.Title);
+                yield return CadPrompt.ForString("Enter a title for the table", settings.Title).AllowingSpaces();
                 settings.Title = Typed(c, settings.Title ?? string.Empty);
             }
 
