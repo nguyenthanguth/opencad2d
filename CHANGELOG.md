@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **CHANGED.** The Python guide says what a read sees after a write in one command: `drawing.add_line(...)` queues, so
+  `drawing.entities()` right after it lists the drawing as the last commit left it (10 objects, where the line makes
+  11), and `commit()` first makes the read see the line; a command that never commits has its line when it ends. It is so
+  on every backend and both runtimes; a test pins it in a tool (`test_tool_read_after_add.py`).
 - **CHANGED.** The ribbon's icons are drawn in colour (A13), one drawing for each of 378 commands in AutoCAD 2021's dark
   look and the program's own hand: light lines, blue points and arrows, teal windows and data, yellow results, red for
   delete and markup, green for add and ok. Each has a large drawing for 32 pixels and a small one for 16, lines whole

@@ -333,6 +333,12 @@ or `match e.net:` with `case DxfCircle() as c:` ([typed entities](../python.md#t
 of its measurement ([`CadDimensionPicture.Redraw`](xref:OpenCAD2D.CadDimensionPicture)): a rotated dimension from
 0,0 to 100,0 comes with the words `100`, and one moved to 150 with `150`.
 
+A read sees the drawing as the last commit left it, not what is still queued: in a command, `add_line(...)` followed by
+`entities()` lists the drawing as it was (10 objects, where the line makes 11), and `entities()` after `commit()` lists the
+line. Call `commit()` between a write and the read that must see it. A command that never commits has the line when it ends.
+Queueing is the same on a drawing of the app, of a running app and of a file, on both runtimes; the tool's edit calls
+(`move`, `copy` and the others) are the exception, as they apply what is queued first.
+
 An object added from a tool has the handle `~1`, `~2`... until `commit()` returns the real ones. A command commits what is still
 queued when it ends, inside its own step; `save()` commits first in every backend; anything left queued when a script ends
 outside the app is lost, without a warning. A round trip to the app costs about 17 ms for one call and 0.15 s for 1 000
