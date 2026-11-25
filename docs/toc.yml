@@ -5,6 +5,8 @@
       href: presenter/display.md
     - name: Editing as AutoCAD does
       href: presenter/editing.md
+    - name: Sheet sets
+      href: presenter/sheet-sets.md
     - name: Plotting to PDF
       href: presenter/plot.md
     - name: Owners

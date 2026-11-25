@@ -2359,6 +2359,10 @@ namespace OpenCAD2D.Wpf
                 case "TOOLPALETTESCLOSE":
                     OnToolPalettesRequested(e);
                     break;
+                case "SHEETSET":
+                case "SHEETSETHIDE":
+                    OnSheetSetRequested(e);
+                    break;
             }
         }
 

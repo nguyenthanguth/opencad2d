@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **NEW.** The Sheet Set Manager (A12, the palette): SHEETSET shows it as a floating window beside the drawing and
+  SHEETSETHIDE closes it. The sheet set control lists the sets open (the current one ticked), Recent (the last ten `.dst`
+  files, newest first) and New Sheet Set… / Open…; the Sheet List tab shows the set, its subsets and its sheets in set order
+  as "Number - Title", each sheet with an icon for a drawing open in the session, a sheet left out of publishing and a sheet
+  whose drawing or layout is not found, and a Details or Preview pane under it (the file, folder, layout, size and date of
+  the sheet, or its layout drawn). Sheets and subsets move by drag and drop; the menus of the set, a subset and a sheet
+  open sheets on their layout, add a subset or a sheet, import layouts, rename and renumber (a drawing open in the app is
+  saved, closed, renamed and opened again), remove (the drawing is kept), put a sheet in or out of publishing and resave all
+  sheets; a read-only or locked set is shown with a lock and refuses every change. The dialogs of New Sheet, Import,
+  Rename & Renumber and the Properties, the Sheet Views and Model Views tabs, publishing and eTransmit follow in the
+  next packages. The guide is `docs/presenter/sheet-sets.md`.
 - **NEW.** Sheet set data files: `CadSheetSetFile` opens, changes and saves AutoCAD 2021's own `.dst` (UTF-8 XML under a
   one-byte cipher), with a typed model over it: the set, its subsets and sheets in set order, a sheet's drawing and
   layout in four forms of the path (found again after the folder is moved), custom properties by owner, resource

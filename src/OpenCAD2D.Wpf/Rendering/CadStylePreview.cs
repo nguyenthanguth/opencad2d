@@ -321,6 +321,15 @@ namespace OpenCAD2D.Wpf
         internal static BitmapSource Drawing(DxfDatabase database, CadFonts fonts, int width, int height) =>
             Draw(database, fonts, width, height, DisplayBox.Empty);
 
+        /// <summary>The picture of a layout of a drawing, as the Sheet Set Manager previews a sheet: its paper drawn white with what is on it, zoomed to fit; model space where the drawing has no layout of that name.</summary>
+        internal static BitmapSource Layout(
+            DxfDatabase database,
+            string layoutName,
+            CadFonts fonts,
+            int width,
+            int height
+        ) => Draw(database, fonts, width, height, DisplayBox.Empty, 0xD0D4DA, 1, layoutName);
+
         /// <summary>
         /// The thumbnail of a page of a PDF, as the Attach PDF Underlay dialog lists it: the page drawn by the presenter's own display
         /// of PDF underlays, at scale 1 on white, filling the picture; null where the file cannot be read or has not the page.
@@ -373,7 +382,8 @@ namespace OpenCAD2D.Wpf
             int height,
             DisplayBox fit,
             int background = 0x000000,
-            int pdfFrame = 1
+            int pdfFrame = 1,
+            string layoutName = null
         )
         {
             CadDocument document = CadDocument.From(database, "preview.dxf");
@@ -385,7 +395,13 @@ namespace OpenCAD2D.Wpf
             }
 
             var view = new CadView(width, height);
-            DisplayBox bounds = document.GetDisplay(document.ModelSpace).Bounds;
+            CadSpace space =
+                layoutName == null
+                    ? document.ModelSpace
+                    : document.Spaces.FirstOrDefault(s =>
+                        !s.IsModel && string.Equals(s.Name, layoutName, StringComparison.OrdinalIgnoreCase)
+                    ) ?? document.ModelSpace;
+            DisplayBox bounds = space.IsModel ? document.GetDisplay(space).Bounds : space.PaperBounds;
             bounds = bounds.IsEmpty ? fit : bounds.Union(fit);
 
             if (!bounds.IsEmpty)
@@ -405,7 +421,7 @@ namespace OpenCAD2D.Wpf
                     renderer.Render(
                         surface.Canvas,
                         document,
-                        document.ModelSpace,
+                        space,
                         view,
                         new CanvasOptions { Background = background }
                     );

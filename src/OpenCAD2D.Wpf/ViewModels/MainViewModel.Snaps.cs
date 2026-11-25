@@ -101,6 +101,9 @@ namespace OpenCAD2D.Wpf
         /// </summary>
         internal string Icon { get; set; }
 
+        /// <summary>Gets whether the item is the one a double click does, written in bold as AutoCAD writes Open at the top of the Sheet Set Manager's sheet menu.</summary>
+        internal bool IsDefault { get; set; }
+
         /// <summary>Gets what choosing it does; null for a separator.</summary>
         public ICommand Command { get; }
 

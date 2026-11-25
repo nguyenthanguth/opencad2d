@@ -114,6 +114,7 @@ namespace OpenCAD2D
             AddLayerWalkTo(registry);
             AddLayerTranslateTo(registry);
             AddDesignCenterTo(registry);
+            AddSheetSetsTo(registry);
             AddToolPalettesTo(registry);
             AddLayerCopyTo(registry);
             AddDimStyleTypedTo(registry);

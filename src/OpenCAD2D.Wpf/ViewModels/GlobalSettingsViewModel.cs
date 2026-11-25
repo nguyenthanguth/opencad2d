@@ -669,6 +669,8 @@ namespace OpenCAD2D.Wpf
             ["ALIASEDIT"] = "Edit the command aliases",
             ["ADCENTER"] = "Show DesignCenter",
             ["ADCCLOSE"] = "Close DesignCenter",
+            ["SHEETSET"] = "Show the Sheet Set Manager",
+            ["SHEETSETHIDE"] = "Close the Sheet Set Manager",
             ["TOOLPALETTES"] = "Show the tool palettes",
             ["TOOLPALETTESCLOSE"] = "Close the tool palettes",
             ["APPLOAD"] = "Load an AutoLISP file or a plugin",

@@ -137,6 +137,7 @@ namespace OpenCAD2D
         private List<GlobalAutoCorrection> _corrections = new List<GlobalAutoCorrection>();
         private List<GlobalRecentFile> _recent = new List<GlobalRecentFile>();
         private List<string> _recentCommands = new List<string>();
+        private List<string> _recentSheetSets = new List<string>();
         private List<CadPaper> _pixelSizes = new List<CadPaper>();
 
         // ---- Input settings
@@ -308,6 +309,16 @@ namespace OpenCAD2D
         public const int RecentCommandsKept = 20;
 
         /// <summary>
+        /// Gets the sheet set data files (.dst) the Sheet Set Manager opened last, the newest first, each once (the path
+        /// compared with its letter case ignored), <see cref="RecentSheetSetsKept"/> at most, as the sheet set control's Recent list shows
+        /// them, kept from one session to the next.
+        /// </summary>
+        public IReadOnlyList<string> RecentSheetSets => _recentSheetSets;
+
+        /// <summary>How many sheet sets Recent keeps: 10.</summary>
+        public const int RecentSheetSetsKept = 10;
+
+        /// <summary>
         /// Gets the sizes of an image made with Custom… of a raster device's Paper size list, the newest first, each once,
         /// <see cref="CustomPixelSizesKept"/> at most: "2480 x 1754 Pixels (Custom)", listed after the sizes built in and
         /// kept from one session to the next.
@@ -363,6 +374,24 @@ namespace OpenCAD2D
             if (_recentCommands.Count > RecentCommandsKept)
             {
                 _recentCommands.RemoveRange(RecentCommandsKept, _recentCommands.Count - RecentCommandsKept);
+            }
+        }
+
+        /// <summary>Puts a sheet set data file first in <see cref="RecentSheetSets"/>, once, the oldest past <see cref="RecentSheetSetsKept"/> dropped.</summary>
+        /// <param name="path">The full path of the .dst.</param>
+        public void NoteRecentSheetSet(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            _recentSheetSets.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
+            _recentSheetSets.Insert(0, path);
+
+            if (_recentSheetSets.Count > RecentSheetSetsKept)
+            {
+                _recentSheetSets.RemoveRange(RecentSheetSetsKept, _recentSheetSets.Count - RecentSheetSetsKept);
             }
         }
 
@@ -521,6 +550,7 @@ namespace OpenCAD2D
             copy._corrections = new List<GlobalAutoCorrection>(_corrections);
             copy._recent = new List<GlobalRecentFile>(_recent);
             copy._recentCommands = new List<string>(_recentCommands);
+            copy._recentSheetSets = new List<string>(_recentSheetSets);
             copy._pixelSizes = new List<CadPaper>(_pixelSizes);
         }
 
@@ -605,6 +635,14 @@ namespace OpenCAD2D
             foreach (string command in _recentCommands)
             {
                 w.Value(null, command);
+            }
+
+            w.CloseList();
+            w.OpenList("recentSheetSets");
+
+            foreach (string recent in _recentSheetSets)
+            {
+                w.Value(null, recent);
             }
 
             w.CloseList();
@@ -749,6 +787,20 @@ namespace OpenCAD2D
                 )
                 {
                     _recentCommands.Add(command);
+                }
+            }
+
+            foreach (XElement item in root.Element("recentSheetSets")?.Elements() ?? Enumerable.Empty<XElement>())
+            {
+                string entry = item.Value.Trim();
+
+                if (
+                    entry.Length > 0
+                    && !_recentSheetSets.Exists(p => string.Equals(p, entry, StringComparison.OrdinalIgnoreCase))
+                    && _recentSheetSets.Count < RecentSheetSetsKept
+                )
+                {
+                    _recentSheetSets.Add(entry);
                 }
             }
 
