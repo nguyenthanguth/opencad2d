@@ -588,25 +588,68 @@ namespace OpenCAD2D
                     int startOffset = c[i];
                     int endOffset = c[i + 1];
                     int radius = (c[i + 2] << 8) + c[i + 3];
-                    int octant = Octant(c[i + 4]);
+                    byte octant = c[i + 4];
                     i += 5;
 
                     if (!skip)
                     {
-                        int size = Math.Abs(octant);
+                        // As AutoCAD 2021 draws it (1926 glyph pairs measured by TEXTBOX): each offset rounded half up to
+                        // whole degrees, an end that rounds to 0 the whole octant, an end before the start turned the long
+                        // way in the octant byte's sense (bit 7, so 0x80 is clockwise with no octant), equal ends a whole
+                        // circle. A start of 255 with an end of 0 to 2 is nothing counter-clockwise and a whole circle
+                        // clockwise.
+                        bool counter = (octant & 0x80) == 0;
+                        int size = octant & 0x7F;
                         int first = (size >> 4) & 7;
                         int count = size & 7;
-                        double part = 45.0 / 256.0;
-                        double ends = endOffset == 0 ? 256 : endOffset;
-                        double start =
-                            octant >= 0 ? (first * 45.0) + (startOffset * part) : (first * 45.0) - (startOffset * part);
-                        double stop =
-                            octant >= 0
-                                ? ((first + count - 1) * 45.0) + (ends * part)
-                                : ((first - count + 1) * 45.0) - (ends * part);
-                        start = Math.Round(start);
-                        stop = Math.Round(stop);
-                        pen.Arc(radius * pen.Scale, start * Math.PI / 180.0, (stop - start) * Math.PI / 180.0);
+
+                        if (count == 0)
+                        {
+                            count = 8;
+                        }
+
+                        int begin = ((startOffset * 45) + 128) / 256;
+                        int last = ((endOffset * 45) + 128) / 256;
+                        bool zeroEnd = last == 0;
+
+                        if (zeroEnd)
+                        {
+                            last = 45;
+                        }
+
+                        int start;
+                        int sweep;
+
+                        if (counter)
+                        {
+                            start = (first * 45) + begin;
+                            sweep = ((first + count - 1) * 45) + last - start;
+
+                            if (sweep < 0)
+                            {
+                                sweep += 360;
+                            }
+                        }
+                        else
+                        {
+                            start = (first * 45) - begin;
+                            sweep = ((first - count + 1) * 45) - last - start;
+
+                            if (sweep > 0)
+                            {
+                                sweep -= 360;
+                            }
+                        }
+
+                        if (sweep == 0 && !(counter && zeroEnd))
+                        {
+                            sweep = counter ? 360 : -360;
+                        }
+
+                        if (sweep != 0)
+                        {
+                            pen.Arc(radius * pen.Scale, start * Math.PI / 180.0, sweep * Math.PI / 180.0);
+                        }
                     }
                 }
                 else if (code == 12)

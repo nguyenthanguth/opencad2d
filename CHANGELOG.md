@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **FIXED.** The fractional arc of an SHX shape (code 11) is read as AutoCAD 2021 reads it, measured by `(textbox)` on
+  1926 pairs of glyphs: each offset is rounded to whole degrees half up (an offset of 128 is 23 degrees, not 22), an end
+  that rounds to 0 is the whole octant, an end before the start turns the long way in the octant byte's sense, equal ends
+  are a whole circle, and a count of 0 is 8 octants with the sense from bit 7 of the octant byte (`0x80` is a whole
+  circle clockwise). An arc of radius 100 with offsets 0 and 0 and octant byte `0x20` is now a whole circle, its box
+  200 by 200, where it drew nothing. Codes 10 and 12 are as before.
 - **FIXED.** MIRROR with MIRRTEXT 0 of a TEXT in an SHX font turns it over by the box AutoCAD 2021 measures (the box
   `(textbox)` gives, where an arc is reached by the points it bulges to) and not by the strokes the display draws: the C,
   2 and 3 of the built-in `opencad2d.shx` put the copy off. `ABC123` 10 high at the origin mirrored across `y = 50` now
