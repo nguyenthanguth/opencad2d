@@ -3675,9 +3675,9 @@ $(if,$(>,2,1),yes,no)`, yes). The format after `\f` is AutoCAD's: `%lu2%pr2` an 
 upper case (`%tc2` lower, `%tc3` first capital, `%tc4` each word), `%fn6` the name of the file and its extension (`%fn2` the name, `%fn4` the
 extension, `%fn1` the path); a date by its letters, `M/d/yyyy h:mm tt` as 11/17/2026 3:21 AM. A field that cannot be worked out shows
 `####` and one with nothing to show `----` (the date a drawing was made where it was never saved). FIELD shows the Field dialog (the
-categories All, Date & Time, Document, Linked, Objects, Other and Plot, the names in each, a preview and the field expression;
-Select object asks "Select an object:" and shows it again; the sheet set fields, BlockPlaceholder, NamedObject, LispVariable and Hyperlink are
-not built); OK asks "Specify start point of multiline text [Height/Justify]:" and makes an MTEXT of the field there, one undo step.
+categories All, Date & Time, Document, Linked, Objects, Other, Plot and SheetSet, the names in each, a preview and the field expression;
+Select object asks "Select an object:" and shows it again; BlockPlaceholder, NamedObject, LispVariable and Hyperlink are
+not built; the sheet set fields are described below); OK asks "Specify start point of multiline text [Height/Justify]:" and makes an MTEXT of the field there, one undo step.
 In the MTEXT editor the Field button of the Insert panel and Ctrl+F show the same dialog and put the field at the caret as one place,
 shown as the words it came to on a grey ground and written as its code; a double click on a field is Edit Field and puts the new field
 in its place. A TEXT edited in place shows its fields as their codes, and Ctrl+F puts a code at the caret. Words with a field in them
@@ -3691,6 +3691,35 @@ REGEN; a field made in the dialog is evaluated in every one of them, the date to
 field on a light grey ground that is never plotted; 0 draws none. The Contents of Properties are plain words: set there, they take
 the field out. Convert Field To Text is `ConvertFieldToText()` of the library. A drawing older than AutoCAD 2004 holds no field: the
 words the field comes to are written.
+
+The sheet set fields, `\AcSm`, read a sheet set data file (A12) as AutoCAD 2021 does; every result below was read from AutoCAD's own
+FIELD objects for a sheet A-101 "Ground floor" in the subset Plans of a set named Tower. A field in a title block is written unbound,
+`%<\AcSm Sheet.Number>%`, and means the sheet of the layout it is on, found through the link the drawing keeps to its set (the
+dictionary `AcSheetSetData`: the set's file, the drawing's file, the layout's name and handle) and then in the set by the layout's
+handle, else its name. `Sheet` has Number (A-101), Title (Ground floor), NumberAndTitle (`A-101 - Ground floor`; the title alone with no
+number, `T-1 - ` with a number and no title), Description, Category, RevisionNumber, RevisionDate, IssuePurpose and Name, then the sheet's
+custom properties (`%<\AcSm Sheet.Drawn By>%`: the sheet's own value, else the default of the set's definition); `Subset` has Name
+(Plans, and `####` for a sheet in the set itself) and Description; `SheetSet` has Name, Description, ProjectNumber, ProjectName,
+ProjectPhase, ProjectMilestone, then the set's custom properties (`%<\AcSm SheetSet.Client>%`). The component and the property are
+read in any letter case. A property with no value shows `----`; a name the component does not have, a field on model space and a
+field in a drawing that is no sheet show `####`; and `\AcVar CurrentSheetNumber` is no variable, which is why the dialog's
+CurrentSheetNumber writes `\AcSm Sheet.Number`. The bound form AutoCAD writes into a sheet once it is made,
+`\AcSm Database("..."Tower.dst").SheetSet("g...").Component("g...").Number`, names the set's file, the set and the component by
+their IDs, so it reads the same sheet from any drawing (`.SheetSet("g...").Client` reads the set, `.Component("g...").Name` a
+subset). A placeholder, `\AcSm ?Sheet.Number` or `?View.Title`, shows its own name, SheetNumber or ViewTitle, until a block that holds it
+is bound. The format `\f "%tc1"` changes the case of the words (`Ground floor` as GROUND FLOOR). Where the set or the sheet cannot be
+reached (the file is gone or moved away from its sheets) a field keeps the words it showed, and one never evaluated shows `####`. The
+set is looked for where the code and the link say, then as far from the drawing as the link says it was when it was written, so a set
+moved with its sheets is found. An unbound field in an attribute is evaluated again with the other fields of the drawing (on open, save,
+regen and plot, as FIELDEVAL says), so that a sheet renumbered in the set shows its new number. Making or importing a sheet binds the
+unbound fields of its layout to it (`CadSheetSetFields.Bind`), so that AutoCAD shows the right words in a sheet made here. In the Field
+dialog the SheetSet category has SheetSet (a tree of the set, its subsets, sheets and views, the properties of the one chosen, and a case;
+it writes the bound form), SheetSetPlaceholder (its nine types: SheetNumberAndTitle, SheetTitle, SheetNumber, SheetDescription,
+SheetCustom, ViewNumberAndTitle, ViewTitle, ViewNumber and ViewportScale) and the 17 CurrentSheet names (CurrentSheetNumber, CurrentSheetTitle,
+CurrentSheetNumberAndTitle, CurrentSheetDescription, CurrentSheetCategory, CurrentSheetRevisionNumber, CurrentSheetRevisionDate,
+CurrentSheetIssuePurpose, CurrentSheetSubSet, CurrentSheetCustom, CurrentSheetSet, CurrentSheetSetDescription, CurrentSheetSetCustom and
+the four CurrentSheetSetProject names), each the unbound code of the layout shown, with the case of the words and, for the custom ones,
+the property named from a list. The options area of the dialog scrolls, so the dialog keeps its size.
 
 ATTDISP asks "Enter attribute visibility setting [Normal/ON/OFF] <Normal>:": Normal shows the attributes that are not
 invisible, ON all of them and OFF none; a change says `Regenerating model.`, draws every

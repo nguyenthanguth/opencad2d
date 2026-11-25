@@ -24,6 +24,55 @@ namespace OpenCAD2D.Wpf
         public override string ToString() => Sample;
     }
 
+    /// <summary>A node of the sheet set tree of the Field dialog, as the tree shows it: the words it is listed by and the nodes under it.</summary>
+    internal sealed class FieldSheetNodeViewModel
+    {
+        private readonly Action<FieldSheetNodeViewModel> _chosen;
+        private bool _selected;
+
+        internal FieldSheetNodeViewModel(
+            CadFieldSheetNode node,
+            string selectedId,
+            Action<FieldSheetNodeViewModel> chosen
+        )
+        {
+            Node = node;
+            _chosen = chosen;
+            _selected = node.Id == selectedId;
+            Children = node.Children.Select(c => new FieldSheetNodeViewModel(c, selectedId, chosen)).ToList();
+        }
+
+        /// <summary>Gets or sets whether the tree has the node chosen; the tree sets it, and the dialog is told.</summary>
+        public bool IsSelected
+        {
+            get => _selected;
+            set
+            {
+                if (value && !_selected)
+                {
+                    _selected = true;
+                    _chosen(this);
+                }
+                else
+                {
+                    _selected = value;
+                }
+            }
+        }
+
+        /// <summary>Gets the node of the request.</summary>
+        internal CadFieldSheetNode Node { get; }
+
+        /// <summary>Gets the words the tree lists the node by.</summary>
+        public string Text => Node.Text;
+
+        /// <summary>Gets the nodes under it.</summary>
+        public IReadOnlyList<FieldSheetNodeViewModel> Children { get; }
+
+        /// <inheritdoc/>
+        public override string ToString() => Text;
+    }
+
     /// <summary>
     /// The logic of the Field dialog of FIELD and of the text editor's Insert Field: the category and the name chosen, the options
     /// the field offers, and the field expression and its preview that come of them, all of the request the dialog answers
@@ -34,6 +83,7 @@ namespace OpenCAD2D.Wpf
         private static readonly string[] PrecisionChoices = { "Current", "0", "1", "2", "3", "4", "5", "6", "7", "8" };
         private static readonly string[] SeparatorChoices = { "None", "Comma", "Space" };
         private string _factor;
+        private IReadOnlyList<FieldSheetNodeViewModel> _roots;
 
         /// <summary>Makes the dialog's logic over its request.</summary>
         /// <param name="request">The request.</param>
@@ -110,6 +160,105 @@ namespace OpenCAD2D.Wpf
             Request.Name.Type == CadFieldType.Formula ? "Formula:"
             : Request.Name.Type == CadFieldType.Diesel ? "DIESEL expression:"
             : "System variable name:";
+
+        /// <summary>Gets whether the field is a property of the sheet set chosen in its tree.</summary>
+        public bool IsSheetSet => Request.Name.Type == CadFieldType.SheetSet;
+
+        /// <summary>Gets whether the field is a placeholder of a label or callout block.</summary>
+        public bool IsPlaceholder => Request.Name.Type == CadFieldType.SheetSetPlaceholder;
+
+        /// <summary>Gets whether the field names a custom property: CurrentSheetCustom, CurrentSheetSetCustom and the SheetCustom placeholder.</summary>
+        public bool HasCustomName =>
+            Request.Name.Type == CadFieldType.CurrentSheetCustom
+            || (IsPlaceholder && Request.PlaceholderType == "SheetCustom");
+
+        /// <summary>Gets the tree of the sheet set the field reads: the set at its root; none where the drawing is no sheet of a set.</summary>
+        public IReadOnlyList<FieldSheetNodeViewModel> SheetSetRoots =>
+            _roots
+            ?? (
+                _roots =
+                    Request.SheetSetTree == null
+                        ? new FieldSheetNodeViewModel[0]
+                        : new[]
+                        {
+                            new FieldSheetNodeViewModel(
+                                Request.SheetSetTree,
+                                Request.SheetSetNode?.Id,
+                                SelectSheetSetNode
+                            ),
+                        }
+            );
+
+        /// <summary>Gets the line shown where there is no tree: why.</summary>
+        public string SheetSetHint =>
+            Request.SheetSetTree == null
+                ? "No sheet set is open: this drawing is not a sheet of a sheet set."
+                : string.Empty;
+
+        /// <summary>Gets the properties of the node chosen.</summary>
+        public IReadOnlyList<string> SheetSetProperties => Request.SheetSetProperties;
+
+        /// <summary>Gets or sets the property chosen of the node.</summary>
+        public string SelectedSheetSetProperty
+        {
+            get => Request.SheetSetProperty;
+            set
+            {
+                if (value != null)
+                {
+                    Request.ChooseSheetSetProperty(value);
+                    Updated();
+                }
+            }
+        }
+
+        /// <summary>Chooses the node the tree selected; the properties listed become its own.</summary>
+        /// <param name="node">The node.</param>
+        internal void SelectSheetSetNode(FieldSheetNodeViewModel node)
+        {
+            Request.ChooseSheetSetNode(node.Node.Id);
+            Raise(nameof(SheetSetProperties));
+            Raise(nameof(SelectedSheetSetProperty));
+            Updated();
+        }
+
+        /// <summary>Gets the types of placeholder listed.</summary>
+        public IReadOnlyList<string> PlaceholderTypes => Request.PlaceholderTypes;
+
+        /// <summary>Gets or sets the type of placeholder chosen.</summary>
+        public string SelectedPlaceholder
+        {
+            get => Request.PlaceholderType;
+            set
+            {
+                if (value != null)
+                {
+                    Request.ChoosePlaceholder(value);
+                    Raise(nameof(SelectedPlaceholder));
+                    Raise(nameof(HasCustomName));
+                    Raise(nameof(CustomNames));
+                    Raise(nameof(SelectedCustomName));
+                    Updated();
+                }
+            }
+        }
+
+        /// <summary>Gets the custom properties the field may name.</summary>
+        public IReadOnlyList<string> CustomNames => Request.CustomNames;
+
+        /// <summary>Gets or sets the custom property chosen.</summary>
+        public string SelectedCustomName
+        {
+            get => Request.CustomName;
+            set
+            {
+                if (value != null)
+                {
+                    Request.ChooseCustomName(value);
+                    Updated();
+                }
+            }
+        }
 
         /// <summary>Gets the dates as each format of the list writes them now.</summary>
         public IReadOnlyList<FieldDateChoice> DateChoices { get; }
@@ -313,6 +462,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Everything the field chosen shows has changed: its options, its expression and its preview.</summary>
         private void Changed()
         {
+            _roots = null;
             foreach (
                 string name in new[]
                 {
@@ -325,6 +475,17 @@ namespace OpenCAD2D.Wpf
                     nameof(IsNumber),
                     nameof(IsObject),
                     nameof(IsExpression),
+                    nameof(IsSheetSet),
+                    nameof(SheetSetRoots),
+                    nameof(SheetSetHint),
+                    nameof(IsPlaceholder),
+                    nameof(HasCustomName),
+                    nameof(SheetSetProperties),
+                    nameof(SelectedSheetSetProperty),
+                    nameof(PlaceholderTypes),
+                    nameof(SelectedPlaceholder),
+                    nameof(CustomNames),
+                    nameof(SelectedCustomName),
                     nameof(ExpressionLabel),
                     nameof(DateFormat),
                     nameof(SelectedDate),

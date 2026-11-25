@@ -3,6 +3,7 @@
     x:ClassModifier="internal"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Field"
     Width="680"
     Height="560"
@@ -18,6 +19,14 @@
                 <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="Show" />
+
+            <!-- A node of the sheet set tree: opened, the chosen one on the selection's ground. -->
+            <Style x:Key="FieldTreeItem" TargetType="TreeViewItem">
+                <Setter Property="IsExpanded" Value="True" />
+                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                <Setter Property="Foreground" Value="{StaticResource GhText}" />
+                <Setter Property="Padding" Value="2,2" />
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -168,6 +177,94 @@
                                         Style="{StaticResource BlockNumber}"
                                         Text="{Binding DateFormat, UpdateSourceTrigger=PropertyChanged}"
                                         AutomationProperties.Name="Date format"
+                                    />
+                                </StackPanel>
+
+                                <!-- A sheet set field: the tree of the set, then the properties of the node chosen. -->
+                                <StackPanel
+                                    Visibility="{Binding IsSheetSet, Converter={StaticResource Show}}"
+                                    Margin="0,0,0,8"
+                                >
+                                    <TextBlock Text="Sheet set navigation tree:" Margin="0,0,0,4" />
+                                    <TextBlock
+                                        Text="{Binding SheetSetHint}"
+                                        Foreground="{StaticResource GhTextMuted}"
+                                        TextWrapping="Wrap"
+                                        Margin="0,0,0,4"
+                                    />
+                                    <TreeView
+                                        x:Name="SheetSetTree"
+                                        ItemsSource="{Binding SheetSetRoots}"
+                                        Height="130"
+                                        Background="{StaticResource GhInput}"
+                                        Foreground="{StaticResource GhText}"
+                                        BorderBrush="{StaticResource GhBorder}"
+                                        BorderThickness="1"
+                                        Padding="0,2"
+                                        ItemContainerStyle="{StaticResource FieldTreeItem}"
+                                        AutomationProperties.Name="Sheet set navigation tree"
+                                    >
+                                        <TreeView.ItemTemplate>
+                                            <HierarchicalDataTemplate
+                                                DataType="{x:Type local:FieldSheetNodeViewModel}"
+                                                ItemsSource="{Binding Children}"
+                                            >
+                                                <TextBlock Text="{Binding Text}" />
+                                            </HierarchicalDataTemplate>
+                                        </TreeView.ItemTemplate>
+                                    </TreeView>
+                                    <TextBlock Text="Property:" Margin="0,8,0,4" />
+                                    <ListBox
+                                        ItemsSource="{Binding SheetSetProperties}"
+                                        SelectedItem="{Binding SelectedSheetSetProperty, Mode=TwoWay}"
+                                        Height="110"
+                                        Background="{StaticResource GhInput}"
+                                        Foreground="{StaticResource GhText}"
+                                        BorderBrush="{StaticResource GhBorder}"
+                                        BorderThickness="1"
+                                        Padding="0,2"
+                                        ItemContainerStyle="{StaticResource StyleListItem}"
+                                        AutomationProperties.Name="Sheet set property"
+                                    />
+                                </StackPanel>
+
+                                <!-- A placeholder: its type. -->
+                                <StackPanel
+                                    Visibility="{Binding IsPlaceholder, Converter={StaticResource Show}}"
+                                    Margin="0,0,0,8"
+                                >
+                                    <TextBlock Text="Placeholder type:" Margin="0,0,0,4" />
+                                    <ListBox
+                                        ItemsSource="{Binding PlaceholderTypes}"
+                                        SelectedItem="{Binding SelectedPlaceholder, Mode=TwoWay}"
+                                        Height="140"
+                                        Background="{StaticResource GhInput}"
+                                        Foreground="{StaticResource GhText}"
+                                        BorderBrush="{StaticResource GhBorder}"
+                                        BorderThickness="1"
+                                        Padding="0,2"
+                                        ItemContainerStyle="{StaticResource StyleListItem}"
+                                        AutomationProperties.Name="Placeholder type"
+                                    />
+                                </StackPanel>
+
+                                <!-- A field of a custom property: which one. -->
+                                <StackPanel
+                                    Visibility="{Binding HasCustomName, Converter={StaticResource Show}}"
+                                    Margin="0,0,0,8"
+                                >
+                                    <TextBlock Text="Custom property:" Margin="0,0,0,4" />
+                                    <ListBox
+                                        ItemsSource="{Binding CustomNames}"
+                                        SelectedItem="{Binding SelectedCustomName, Mode=TwoWay}"
+                                        Height="90"
+                                        Background="{StaticResource GhInput}"
+                                        Foreground="{StaticResource GhText}"
+                                        BorderBrush="{StaticResource GhBorder}"
+                                        BorderThickness="1"
+                                        Padding="0,2"
+                                        ItemContainerStyle="{StaticResource StyleListItem}"
+                                        AutomationProperties.Name="Custom property"
                                     />
                                 </StackPanel>
 

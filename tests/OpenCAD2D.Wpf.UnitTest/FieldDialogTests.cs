@@ -38,7 +38,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             var dialog = new FieldDialogViewModel(model.NewFieldRequest());
 
             Assert.Equal(
-                new[] { "All", "Date & Time", "Document", "Linked", "Objects", "Other", "Plot" },
+                new[] { "All", "Date & Time", "Document", "Linked", "Objects", "Other", "Plot", "SheetSet" },
                 dialog.Categories
             );
             Assert.Equal("Date", dialog.SelectedName.Name);

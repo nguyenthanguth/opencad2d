@@ -584,7 +584,7 @@ namespace OpenCAD2D.UnitTest
         public void TheCategoriesAreThoseOfAutoCAD_EachNameInTheCategoryItBelongsTo_AllHoldingEvery()
         {
             Assert.Equal(
-                new[] { "All", "Date & Time", "Document", "Linked", "Objects", "Other", "Plot" },
+                new[] { "All", "Date & Time", "Document", "Linked", "Objects", "Other", "Plot", "SheetSet" },
                 CadFieldRequest.CategoryNames
             );
             Assert.Equal(
