@@ -14,14 +14,14 @@ namespace OpenCAD2D.Wpf.UnitTest
     public sealed class DynamicBlockWindowTests
     {
         /// <summary>
-        /// A drawing of GH_PANEL, a rectangle whose Width (100, 150 or 200) stretches its right edge, GH_DOOR, a leaf flipped by
-        /// Hand, and GH_SIGN, a cross and a tick of the states Cross, Tick and Blank; one INSERT of each, in that order.
+        /// A drawing of OC_PANEL, a rectangle whose Width (100, 150 or 200) stretches its right edge, OC_DOOR, a leaf flipped by
+        /// Hand, and OC_SIGN, a cross and a tick of the states Cross, Tick and Blank; one INSERT of each, in that order.
         /// </summary>
         private static CadDocument Plan(out string[] handles)
         {
             DxfDatabase database = CadTemplate.CreateMetric();
 
-            var panel = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+            var panel = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
             database.BlockTable.Add(panel);
             DxfLine[] sides =
             {
@@ -45,7 +45,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             );
             panel.AddStretchAction(width, new GeoPoint2(90, -10), new GeoPoint2(110, 60), sides);
 
-            var door = new DxfBlockTableRecord { Name = "GH_DOOR", Origin = new GeoPoint3(0, 0, 0) };
+            var door = new DxfBlockTableRecord { Name = "OC_DOOR", Origin = new GeoPoint3(0, 0, 0) };
             database.BlockTable.Add(door);
             var leaf = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(90, 0, 0));
             door.AppendEntity(leaf);
@@ -54,7 +54,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 new[] { leaf }
             );
 
-            var sign = new DxfBlockTableRecord { Name = "GH_SIGN", Origin = new GeoPoint3(0, 0, 0) };
+            var sign = new DxfBlockTableRecord { Name = "OC_SIGN", Origin = new GeoPoint3(0, 0, 0) };
             database.BlockTable.Add(sign);
             var cross = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(40, 40, 0));
             var tick = new DxfLine(new GeoPoint3(10, 20, 0), new GeoPoint3(20, 10, 0));
@@ -123,7 +123,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal(200.0, (double)ValueOf(document, handles[0], "Width"), 9);
             Assert.Equal("200.0000", Custom(model).Rows.Single(r => r.Label == "Width").Value);
             Assert.Equal(
-                "GH_PANEL",
+                "OC_PANEL",
                 model.PropertyGroups.Single(g => g.Title == "Misc").Rows.Single(r => r.Label == "Name").Value
             );
         }
@@ -184,7 +184,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             reset.Command.Execute(null);
 
             Assert.Equal(100.0, (double)ValueOf(document, handles[0], "Width"), 9);
-            Assert.Equal("GH_PANEL", ((DxfBlockReference)document.FindEntity(handles[0])).Name);
+            Assert.Equal("OC_PANEL", ((DxfBlockReference)document.FindEntity(handles[0])).Name);
         }
 
         [Fact]
@@ -193,7 +193,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             CadDocument document = Plan(out _);
             MainViewModel model = Open(document);
             model.Execute("-BEDIT");
-            model.Execute("GH_SIGN");
+            model.Execute("OC_SIGN");
             var ribbon = (BlockEditorRibbonViewModel)model.BlockEditorTab.TabContent;
 
             Assert.True(ribbon.HasVisibilityStates);
@@ -208,7 +208,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             model.Execute("BCLOSE");
             model.Execute("-BEDIT");
-            model.Execute("GH_PANEL");
+            model.Execute("OC_PANEL");
             ribbon = (BlockEditorRibbonViewModel)model.BlockEditorTab.TabContent;
             Assert.False(ribbon.HasVisibilityStates);
             Assert.Equal(new[] { "(none)" }, ribbon.VisibilityStates);

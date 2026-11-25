@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- **BREAKING.** The last GeometryHelper and GH names are out of what OpenCAD2D writes and shows (A10), with no
+  compatibility kept: a file or setting that carries an old name is no longer read as the new one. Renamed: the XRECORD
+  `GH_REFEDIT` of a REFEDIT in progress is `OPENCAD2D_REFEDIT` (a drawing saved in the middle of an edit by an older build
+  opens with no edit open), the Layer Translator's XRECORD `GH_LAYTRANS_MAP` is `OPENCAD2D_LAYTRANS_MAP` (a .dws saved
+  before loads its layers and no mappings), the extended data application `GH_OWNER` is `OPENCAD2D_OWNER`
+  (`CadOwnerTag.ApplicationName`; an entity tagged before reads as untagged and is free to edit until the owner tags it
+  again), the sample template's dimension styles `GH` and `GH-Annotative` and its multileader style `GH` are `OpenCAD2D`
+  and `OpenCAD2D-Annotative` (a drawing made from the old `OpenCAD2D-mm.dwt` keeps its own), the data extraction file's
+  XML root `GeometryHelperDataExtraction` is `OpenCAD2DDataExtraction`, `CadToolPalettes.Format` is
+  `"OpenCAD2D.ToolPalettes"` (a `ToolPalettes.json` of the old format is refused in words), the private clipboard
+  format's header `GeometryHelper clipboard 1` is `OpenCAD2D clipboard 1`, the Lisps sample `GH-DrawingInfo.lsp` with its
+  command `GHINFO` is `DrawingInfo.lsp` with `LSPINFO`, the Python sample's `GHPYINFO` is `PYINFO`, and the C# sample
+  plugin's `GHDWGINFO` is `CSINFO`. Removed: the plotter names `GeometryHelper PDF`, `GeometryHelper PNG` and
+  `GeometryHelper JPG` (a layout or page setup naming one is a plotter this computer lacks, and
+  `CadPlotSettings.UseDevice` refuses them; saving no longer renames them), the file names `GeometryHelper.pat` and
+  `GeometryHelper.lin` (now ordinary file names, found in a support folder or not at all), the template name
+  `GeometryHelper-mm.dwt` (`CadTemplate.Find` no longer maps it to `OpenCAD2D-mm.dwt`), the copy of `%AppData%\GeometryHelper`
+  into `%AppData%\OpenCAD2D` at the first start (`CadOldFolders` is deleted), and the removal of the ProgID
+  `GeometryHelper.Drawing` by `--register` and `--unregister`. `CadPlotSettings.IsRasterDevice` and
+  `CadPlotSettings.DeviceName` take only the new names. A copy installed over an older one keeps `Lisps\GH-DrawingInfo.lsp`,
+  which still loads and still defines `GHINFO`: delete it by hand.
 - **NEW.** `CadEditor.Move`, `Copy`, `Rotate`, `Scale`, `Mirror`, `Offset` and `Erase` (A8): the edits as calls for
   plugins, each doing what the command of its name does, through the code the command runs; refused whole with the
   object's words; one undo step named as the command, or joining the running command's step.

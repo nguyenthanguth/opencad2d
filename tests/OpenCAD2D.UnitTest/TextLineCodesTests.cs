@@ -24,7 +24,7 @@ namespace OpenCAD2D.UnitTest
         {
             _folder.Write("test.shx", ShxFiles.Unifont());
             var database = new DxfDatabase("AC1027");
-            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_SHX", FileName = "test.shx" });
+            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_SHX", FileName = "test.shx" });
             var text = new DxfDBText
             {
                 TextString = words,
@@ -32,7 +32,7 @@ namespace OpenCAD2D.UnitTest
                 Height = 10.0,
             };
             database.ModelSpace.AppendEntity(text);
-            text.TextStyleName = "GH_SHX";
+            text.TextStyleName = "OC_SHX";
 
             if (mode != DxfTextHorizontalMode.TextLeft)
             {

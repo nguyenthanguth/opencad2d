@@ -1,8 +1,8 @@
-r"""DrawingInfo -- a sample Python tool: GHPYINFO writes what the drawing holds.
+r"""DrawingInfo -- a sample Python tool: PYINFO writes what the drawing holds.
 
-Try it: type GHPYINFO at the command line. It only reads; the drawing is not changed. Loading this folder starts no Python:
-the app starts the tool's process at the first GHPYINFO. It is the Python twin of GH-DrawingInfo.lsp (GHINFO) and of the
-DrawingInfo plugin (GHDWGINFO).
+Try it: type PYINFO at the command line. It only reads; the drawing is not changed. Loading this folder starts no Python:
+the app starts the tool's process at the first PYINFO. It is the Python twin of DrawingInfo.lsp (LSPINFO) and of the
+DrawingInfo plugin (CSINFO).
 
 The output for a drawing of two circles and a line, a layer Steel and a block BOLT:
 
@@ -23,7 +23,7 @@ from collections import Counter
 from opencad2d.cad import active_drawing, command, write
 
 
-@command("GHPYINFO")
+@command("PYINFO")
 def drawing_info() -> None:
     drawing = active_drawing()
     folder = os.path.dirname(drawing.path) if drawing.path else "not saved yet"

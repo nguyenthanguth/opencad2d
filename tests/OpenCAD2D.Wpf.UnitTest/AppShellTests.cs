@@ -39,38 +39,6 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void Register_TakesOutTheProgIdOfGeometryHelperCad_SoOpenWithListsTheAppOnce()
-        {
-            // What GeometryHelper CAD, as the app was called before, wrote: its ProgID, the default of .dxf, Open with.
-            var classes = new FakeUserClasses();
-            classes.SetValue("GeometryHelper.Drawing", "", "Drawing (GeometryHelper CAD)");
-            classes.SetValue(@"GeometryHelper.Drawing\shell\open\command", "", "\"old.exe\" \"%1\"");
-            classes.SetValue(".dxf", "", "GeometryHelper.Drawing");
-            classes.SetValue(@".dxf\OpenWithProgids", "GeometryHelper.Drawing", "");
-            classes.SetValue(@".dwg\OpenWithProgids", "GeometryHelper.Drawing", "");
-
-            CadFileAssociation.Register(classes, "OpenCAD2D", Exe, Icon);
-
-            Assert.False(classes.HasKey("GeometryHelper.Drawing"));
-            Assert.False(classes.HasKey(@"GeometryHelper.Drawing\shell\open\command"));
-            Assert.Null(classes.Get(@".dxf\OpenWithProgids", "GeometryHelper.Drawing"));
-            Assert.Null(classes.Get(@".dwg\OpenWithProgids", "GeometryHelper.Drawing"));
-            Assert.Equal("OpenCAD2D.Drawing", classes.Get(".dxf", ""));
-            Assert.Equal("OpenCAD2D.Drawing", classes.Get(".dwg", ""));
-            Assert.Equal("", classes.Get(@".dxf\OpenWithProgids", "OpenCAD2D.Drawing"));
-
-            // Unregister takes the old one out too, where a build of GeometryHelper CAD wrote it again.
-            classes.SetValue("GeometryHelper.Drawing", "", "Drawing (GeometryHelper CAD)");
-            classes.SetValue(@".dwg\OpenWithProgids", "GeometryHelper.Drawing", "");
-            CadFileAssociation.Unregister(classes);
-
-            Assert.False(classes.HasKey("GeometryHelper.Drawing"));
-            Assert.False(classes.HasKey("OpenCAD2D.Drawing"));
-            Assert.Null(classes.Get(@".dwg\OpenWithProgids", "GeometryHelper.Drawing"));
-            Assert.Null(classes.Get(".dxf", ""));
-        }
-
-        [Fact]
         public void Register_LeavesTheDefaultOfAnExtensionAnotherProgramHas_AndUnregisterLeavesItToo()
         {
             var classes = new FakeUserClasses();

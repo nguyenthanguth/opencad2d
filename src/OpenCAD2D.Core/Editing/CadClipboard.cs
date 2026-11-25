@@ -45,7 +45,7 @@ namespace OpenCAD2D
         /// <summary>The name of the private clipboard format the objects go on the Windows clipboard under.</summary>
         public const string Format = "OpenCAD2D.Entities";
 
-        private const string Header = "GeometryHelper clipboard 1";
+        private const string Header = "OpenCAD2D clipboard 1";
 
         /// <summary>Makes what a clipboard holds.</summary>
         /// <param name="drawing">The DXF of the objects copied; null for text alone.</param>

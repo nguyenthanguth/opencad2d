@@ -2,8 +2,8 @@ namespace GeometryHelper.UnitTest.Dxf
 {
     /// <summary>
     /// Drawings ezdxf 1.4.5 wrote of dimensions, as their text: of R12, R2000 and R2018, each with the dimension styles
-    /// Standard, GH_DIM (every variable away from ezdxf's own, its arrowheads ARCHTICK, DOT and OPEN, from R2007 its
-    /// linetypes) and GH_EMPTY, and a dimension of each kind: rotated (with overrides of every kind), aligned, radius,
+    /// Standard, OC_DIM (every variable away from ezdxf's own, its arrowheads ARCHTICK, DOT and OPEN, from R2007 its
+    /// linetypes) and OC_EMPTY, and a dimension of each kind: rotated (with overrides of every kind), aligned, radius,
     /// diameter, angular of two lines and of three points, ordinate along x and y, a rotated one in a tilted plane, and from
     /// R2000 an arc length and a jogged radius; from R2000 an ACAD_TABLE of three rows and two columns as well, written as
     /// AutoCAD writes one (its title merged across both columns, a cell of overrides and a block cell of BOLT), and read back
@@ -855,7 +855,7 @@ STYLE
   5
 2F
   2
-GH_TXT
+OC_TXT
  70
 0
  40
@@ -877,7 +877,7 @@ STYLE
   5
 30
   2
-GH_TXT2
+OC_TXT2
  70
 0
  40
@@ -1041,7 +1041,7 @@ DIMSTYLE
 105
 31
   2
-GH_DIM
+OC_DIM
  70
 0
   3
@@ -1127,7 +1127,7 @@ DIMSTYLE
 105
 4E
   2
-GH_EMPTY
+OC_EMPTY
  70
 0
   3
@@ -3335,7 +3335,7 @@ DIMS
   2
 *D1
   3
-GH_DIM
+OC_DIM
  10
 -10.490381056766577
  20
@@ -3519,7 +3519,7 @@ DIMS
   2
 *D4
   3
-GH_DIM
+OC_DIM
  10
 232.99038105676658
  20
@@ -5357,7 +5357,7 @@ AcDbSymbolTableRecord
 100
 AcDbTextStyleTableRecord
   2
-GH_TXT
+OC_TXT
  70
 0
  40
@@ -5385,7 +5385,7 @@ AcDbSymbolTableRecord
 100
 AcDbTextStyleTableRecord
   2
-GH_TXT2
+OC_TXT2
  70
 0
  40
@@ -5645,7 +5645,7 @@ AcDbSymbolTableRecord
 100
 AcDbDimStyleTableRecord
   2
-GH_DIM
+OC_DIM
  70
 0
   3
@@ -5789,7 +5789,7 @@ AcDbSymbolTableRecord
 100
 AcDbDimStyleTableRecord
   2
-GH_EMPTY
+OC_EMPTY
  70
 0
   3
@@ -6947,7 +6947,7 @@ AcDbMText
   1
 \A0;121 TYP{\H0.80x;\S+0.1^ -0.05;}
   7
-GH_TXT2
+OC_TXT2
   0
 POINT
   5
@@ -7683,7 +7683,7 @@ AcDbMText
   1
 \A0;%%c37,5 mm{\H0.80x;\S+0,1^ -0,05;}
   7
-GH_TXT
+OC_TXT
   0
 POINT
   5
@@ -9659,7 +9659,7 @@ AcDbDimension
   2
 *D1
   3
-GH_DIM
+OC_DIM
  10
 -10.490381056766577
  20
@@ -9853,7 +9853,7 @@ AcDbDimension
   2
 *D4
   3
-GH_DIM
+OC_DIM
  10
 232.99038105676658
  20
@@ -10345,7 +10345,7 @@ Parts
   1
 Mark
   7
-GH_TXT
+OC_TXT
 140
 3.5
 170
@@ -13217,7 +13217,7 @@ AcDbSymbolTableRecord
 100
 AcDbTextStyleTableRecord
   2
-GH_TXT
+OC_TXT
  70
 0
  40
@@ -13245,7 +13245,7 @@ AcDbSymbolTableRecord
 100
 AcDbTextStyleTableRecord
   2
-GH_TXT2
+OC_TXT2
  70
 0
  40
@@ -13509,7 +13509,7 @@ AcDbSymbolTableRecord
 100
 AcDbDimStyleTableRecord
   2
-GH_DIM
+OC_DIM
  70
 0
  40
@@ -13665,7 +13665,7 @@ AcDbSymbolTableRecord
 100
 AcDbDimStyleTableRecord
   2
-GH_EMPTY
+OC_EMPTY
  70
 0
  40
@@ -14963,7 +14963,7 @@ AcDbMText
   1
 \A0;121 TYP{\H0.80x;\S+0.1^ -0.05;}
   7
-GH_TXT2
+OC_TXT2
  45
 1.1
  90
@@ -15705,7 +15705,7 @@ AcDbMText
   1
 \A0;%%c37,5 mm{\H0.80x;\S+0,1^ -0,05;}
   7
-GH_TXT
+OC_TXT
  45
 1.1
  90
@@ -17689,7 +17689,7 @@ AcDbDimension
   2
 *D1
   3
-GH_DIM
+OC_DIM
  10
 -10.490381056766577
  20
@@ -17893,7 +17893,7 @@ AcDbDimension
   2
 *D4
   3
-GH_DIM
+OC_DIM
  10
 232.99038105676658
  20
@@ -18501,7 +18501,7 @@ Mark
 304
 ACVALUE_END
   7
-GH_TXT
+OC_TXT
 140
 3.5
 170

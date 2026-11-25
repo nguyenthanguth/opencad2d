@@ -149,7 +149,7 @@ namespace OpenCAD2D.Remote.UnitTest
 
         public Harness()
         {
-            Folder = Path.Combine(Path.GetTempPath(), "GeometryHelper.RemoteTests", Guid.NewGuid().ToString("N"));
+            Folder = Path.Combine(Path.GetTempPath(), "OpenCAD2D.RemoteTests", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(Folder);
         }
 

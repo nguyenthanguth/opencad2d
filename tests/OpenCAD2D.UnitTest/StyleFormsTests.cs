@@ -21,17 +21,17 @@ namespace OpenCAD2D.UnitTest
             CadCommandSession session = Session(document);
             string before = document.Database.ToText();
 
-            Run(session, "-STYLE", "GH_NOTES", "romans.shx", "0", "0.8", "15", "Y", "Y", "N");
+            Run(session, "-STYLE", "OC_NOTES", "romans.shx", "0", "0.8", "15", "Y", "Y", "N");
 
-            DxfTextStyleTableRecord style = document.Database.TextStyleTable["GH_NOTES"];
+            DxfTextStyleTableRecord style = document.Database.TextStyleTable["OC_NOTES"];
             Assert.Equal("romans.shx", style.FileName);
             Assert.Equal(0.0, style.TextSize);
             Assert.Equal(0.8, style.XScale, 12);
             Assert.Equal(15.0, style.ObliquingAngle * 180.0 / Math.PI, 9);
             Assert.Equal(6, style.FlagBits);
             Assert.False(style.IsVertical);
-            Assert.Equal("GH_NOTES", document.Database.Textstyle);
-            Assert.Contains("\"GH_NOTES\" is now the current text style.", session.History);
+            Assert.Equal("OC_NOTES", document.Database.Textstyle);
+            Assert.Contains("\"OC_NOTES\" is now the current text style.", session.History);
             AssertReopens(document);
 
             Assert.True(document.Undo());
@@ -44,9 +44,9 @@ namespace OpenCAD2D.UnitTest
             CadDocument document = Blank();
             CadCommandSession session = Session(document);
 
-            Run(session, "-STYLE", "GH_ARIAL", "Arial", "2.5", Enter, Enter, Enter, Enter);
+            Run(session, "-STYLE", "OC_ARIAL", "Arial", "2.5", Enter, Enter, Enter, Enter);
 
-            DxfTextStyleTableRecord style = document.Database.TextStyleTable["GH_ARIAL"];
+            DxfTextStyleTableRecord style = document.Database.TextStyleTable["OC_ARIAL"];
             Assert.Equal(CadTrueTypeFonts.FileOf("Arial"), style.FileName);
             Assert.Equal("Arial", style.Font.TypeFace);
             Assert.Equal(2.5, style.TextSize);
@@ -62,11 +62,11 @@ namespace OpenCAD2D.UnitTest
         {
             CadDocument document = Blank();
             CadCommandSession session = Session(document);
-            Run(session, "-STYLE", "GH_NOTES", "romans.shx", "3.5", "1", "0", "Y", "N", "N");
+            Run(session, "-STYLE", "OC_NOTES", "romans.shx", "3.5", "1", "0", "Y", "N", "N");
 
             Run(session, "-STYLE", "?", Enter);
 
-            Assert.Contains("Style name: \"GH_NOTES\"  Font files: romans.shx", session.History);
+            Assert.Contains("Style name: \"OC_NOTES\"  Font files: romans.shx", session.History);
             Assert.Contains("   Height: 3.5000  Width factor: 1.0000  Obliquing angle: 0", session.History);
             Assert.Contains("   Generation: Backwards", session.History);
         }
@@ -76,12 +76,12 @@ namespace OpenCAD2D.UnitTest
         {
             CadDocument document = Blank();
             CadCommandSession session = Session(document);
-            Run(session, "-STYLE", "GH_FIXED", "romans.shx", "5", "0.7", "10", "Y", "N", "N");
+            Run(session, "-STYLE", "OC_FIXED", "romans.shx", "5", "0.7", "10", "Y", "N", "N");
 
             Run(session, "DT", P(0, 0), "0", "BEAM B-12", Enter);
 
             DxfDBText text = Assert.Single(All<DxfDBText>(document.ModelSpace));
-            Assert.Equal("GH_FIXED", text.TextStyleName);
+            Assert.Equal("OC_FIXED", text.TextStyleName);
             Assert.Equal(5.0, text.Height);
             Assert.Equal(0.7, text.WidthFactor, 12);
             Assert.Equal(10.0, text.Oblique * 180.0 / Math.PI, 9);
@@ -94,17 +94,17 @@ namespace OpenCAD2D.UnitTest
         {
             CadDocument document = Blank();
             CadCommandSession session = Session(document);
-            Run(session, "-STYLE", "GH_NOTES", "romans.shx", "0", "1", "0", "N", "N", "N");
+            Run(session, "-STYLE", "OC_NOTES", "romans.shx", "0", "1", "0", "N", "N", "N");
             Run(session, "DT", P(0, 0), "2.5", "0", "A", "B", Enter);
             Assert.True(CadTextStyleEditor.SetCurrent(document, "Standard").Succeeded);
 
-            CadEditResult delete = CadTextStyleEditor.Delete(document, "GH_NOTES");
-            CadEditResult rename = CadTextStyleEditor.Rename(document, "GH_NOTES", "GH_LABELS");
+            CadEditResult delete = CadTextStyleEditor.Delete(document, "OC_NOTES");
+            CadEditResult rename = CadTextStyleEditor.Rename(document, "OC_NOTES", "OC_LABELS");
 
             Assert.True(delete.Refused);
-            Assert.Equal("Style \"GH_NOTES\" is in use by 2 texts, and cannot be deleted.", delete.Message);
+            Assert.Equal("Style \"OC_NOTES\" is in use by 2 texts, and cannot be deleted.", delete.Message);
             Assert.True(rename.Succeeded);
-            Assert.All(All<DxfDBText>(document.ModelSpace), t => Assert.Equal("GH_LABELS", t.TextStyleName));
+            Assert.All(All<DxfDBText>(document.ModelSpace), t => Assert.Equal("OC_LABELS", t.TextStyleName));
             Assert.True(CadTextStyleEditor.Delete(document, "Standard").Refused);
             AssertReopens(document);
         }
@@ -158,7 +158,7 @@ namespace OpenCAD2D.UnitTest
                 CadDimStyleEditor
                     .Add(
                         document,
-                        "GH_25",
+                        "OC_25",
                         start,
                         new Dictionary<string, object>
                         {
@@ -168,20 +168,20 @@ namespace OpenCAD2D.UnitTest
                     )
                     .Succeeded
             );
-            Assert.True(CadDimStyleEditor.Add(document, "gh_25", start, null).Refused);
-            Assert.True(CadDimStyleEditor.SetCurrent(document, "GH_25").Succeeded);
+            Assert.True(CadDimStyleEditor.Add(document, "oc_25", start, null).Refused);
+            Assert.True(CadDimStyleEditor.SetCurrent(document, "OC_25").Succeeded);
             Run(session, "DLI", P(0, 0), P(300, 0), P(150, -30));
 
             DxfRotatedDimension dimension = Assert.Single(All<DxfRotatedDimension>(document.ModelSpace));
-            Assert.Equal("GH_25", dimension.DimensionStyleName);
-            Assert.Equal("GH_25", document.Database.Dimstyle);
+            Assert.Equal("OC_25", dimension.DimensionStyleName);
+            Assert.Equal("OC_25", document.Database.Dimstyle);
             Assert.Equal(1, document.Database.Dimdec);
             Assert.Contains(dimension.DimBlock.OfType<DxfLine>(), l => l.Color.ColorIndex == 1);
             Assert.Equal("300.0", dimension.DimBlock.OfType<DxfMText>().Single().Contents);
             Assert.Empty(
                 CadDimStyleEditor.Compare(
-                    CadDimStyleEditor.Read(document.Database.DimStyleTable["GH_25"]),
-                    CadDimStyleEditor.Read(document.Database.DimStyleTable["GH_25"])
+                    CadDimStyleEditor.Read(document.Database.DimStyleTable["OC_25"]),
+                    CadDimStyleEditor.Read(document.Database.DimStyleTable["OC_25"])
                 )
             );
             Assert.Equal(
@@ -189,11 +189,11 @@ namespace OpenCAD2D.UnitTest
                 CadDimStyleEditor
                     .Compare(
                         CadDimStyleEditor.Read(document.Database.DimStyleTable[start]),
-                        CadDimStyleEditor.Read(document.Database.DimStyleTable["GH_25"])
+                        CadDimStyleEditor.Read(document.Database.DimStyleTable["OC_25"])
                     )
                     .Select(d => d.Key)
             );
-            Assert.True(CadDimStyleEditor.Delete(document, "GH_25").Refused);
+            Assert.True(CadDimStyleEditor.Delete(document, "OC_25").Refused);
             AssertReopens(document);
         }
 

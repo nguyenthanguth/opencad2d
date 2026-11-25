@@ -45,7 +45,7 @@ namespace OpenCAD2D.UnitTest
         private DxfMText Measure(DxfMLeader like, string words)
         {
             var database = new DxfDatabase("AC1027") { FontSearchPath = _folder.FullPath };
-            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_SHX", FileName = "test.shx" });
+            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_SHX", FileName = "test.shx" });
             var probe = new DxfMText
             {
                 Contents = words,
@@ -53,7 +53,7 @@ namespace OpenCAD2D.UnitTest
                 Location = new GeoPoint3(0, 0, 0),
             };
             database.ModelSpace.AppendEntity(probe);
-            probe.TextStyleName = "GH_SHX";
+            probe.TextStyleName = "OC_SHX";
             return probe;
         }
 

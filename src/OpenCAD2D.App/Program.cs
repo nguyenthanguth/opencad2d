@@ -11,8 +11,7 @@ namespace OpenCAD2D.App
     /// out.png plan.dxf [--size 1600 960]</c> and the other options of <see cref="CadAppHost"/> draw the window or one of its
     /// dialogs into a PNG, with no window shown, and exit: 0 when written, 2 for arguments or a file it cannot read.
     /// <c>--register</c> and <c>--unregister</c> associate .dxf and .dwg files with the app for the user, or take that out. The
-    /// settings and the command plugins' list are kept in <c>%AppData%\OpenCAD2D</c>, which the first start fills from the
-    /// folders of GeometryHelper CAD (<see cref="CadOldFolders"/>); the icons are in <c>Icons</c>, written by
+    /// settings and the command plugins' list are kept in <c>%AppData%\OpenCAD2D</c>; the icons are in <c>Icons</c>, written by
     /// <c>make-icons.ps1</c>.
     /// </summary>
     public static class Program
@@ -28,13 +27,6 @@ namespace OpenCAD2D.App
 
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string folder = Path.Combine(appData, "OpenCAD2D");
-
-            // The first start of OpenCAD2D takes the settings of GeometryHelper CAD, as the app was called before; a
-            // screenshot or a registration leaves the user's folders alone.
-            if (CadAppHost.ShowsWindow(args))
-            {
-                CadOldFolders.CopyOnce(folder, CadOldFolders.Default);
-            }
 
             var host = new CadAppHost("OpenCAD2D", folder) { EnablePython = true };
 

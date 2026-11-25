@@ -88,18 +88,31 @@ namespace OpenCAD2D.UnitTest
         public void ATagComesBackFromTheFileLetterForLetter(string version)
         {
             var database = new DxfDatabase(version);
-            var tag = new CadOwnerTag("GeometryHelper.Drawing", @"B-12 \U+0041 50% Đường" + "\nống", "V-1 鋼 😀");
+            var tag = new CadOwnerTag("OpenCAD2D.Drawing", @"B-12 \U+0041 50% Đường" + "\nống", "V-1 鋼 😀");
             Line(database, 0, tag);
 
             DxfEntity line = Only(SavedAndOpened(database));
 
             Assert.True(CadOwnerTag.TryRead(line, out CadOwnerTag back));
-            Assert.Equal("GeometryHelper.Drawing", back.Owner);
+            Assert.Equal("OpenCAD2D.Drawing", back.Owner);
             Assert.Equal(tag.ObjectId, back.ObjectId);
             Assert.Equal(tag.ExtraId, back.ExtraId);
             IReadOnlyList<DxfTypedValue> data = line.GetXDataForApplication(CadOwnerTag.ApplicationName);
             Assert.Equal(new[] { 1001, 1000, 1000, 1000 }, data.Select(g => (int)g.TypeCode));
             Assert.Equal(@"B-12 %5CU+0041 50%25 Đường%0Aống", data[2].Value);
+        }
+
+        [Fact]
+        public void ATagIsWrittenUnderTheApplicationNameOpenCad2dOwner()
+        {
+            var database = new DxfDatabase("AC1027");
+            Line(database, 0, new CadOwnerTag("Owner", "L-1", "V-1"));
+
+            DxfDatabase back = SavedAndOpened(database);
+            DxfEntity line = Only(back);
+
+            Assert.Equal("OPENCAD2D_OWNER", CadOwnerTag.ApplicationName);
+            Assert.Equal("OPENCAD2D_OWNER", line.XData[0].Value);
         }
 
         [Fact]

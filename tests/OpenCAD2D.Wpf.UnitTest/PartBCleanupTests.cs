@@ -121,7 +121,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void TheModelDataOfGlobalSettings_IsKeptForGeometryHelperDrawing_AndNothingOfThePresenterAppliesIt()
+        public void TheModelDataOfGlobalSettings_IsKeptForOpenCad2dDrawing_AndNothingOfThePresenterAppliesIt()
         {
             var settings = new GlobalSettings
             {

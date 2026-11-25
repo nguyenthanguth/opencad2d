@@ -8,12 +8,12 @@ contract, and a model drawing is one owner of it.
 ## The tag
 
 An owned entity carries a [`CadOwnerTag`](xref:OpenCAD2D.CadOwnerTag) in its extended data under the
-application GH_OWNER: the owner's name, the id of the object the entity draws, and where the owner wants one a second id,
+application OPENCAD2D_OWNER: the owner's name, the id of the object the entity draws, and where the owner wants one a second id,
 such as the view it is in.
 
 ```csharp
 new CadOwnerTag("Acme.Labels", "A-1", "V-1").WriteTo(line);
-// line.XData: 1001 GH_OWNER, 1000 Acme.Labels, 1000 A-1, 1000 V-1
+// line.XData: 1001 OPENCAD2D_OWNER, 1000 Acme.Labels, 1000 A-1, 1000 V-1
 CadOwnerTag.TryRead(line, out CadOwnerTag tag);       // tag.Owner, tag.ObjectId, tag.ExtraId
 CadOwnerTag.Remove(line);                             // the data of other applications kept
 ```

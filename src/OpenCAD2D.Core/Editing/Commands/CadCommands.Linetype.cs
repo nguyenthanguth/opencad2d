@@ -358,7 +358,7 @@ namespace OpenCAD2D
             string name = (typed ?? string.Empty).Trim().Trim('"');
             path = null;
 
-            // The presenter's own set by its name or its old one, GeometryHelper.lin, with or without .lin.
+            // The presenter's own set by its name, with or without .lin.
             if (CadLinetypeFile.IsBuiltInName(name) || CadLinetypeFile.IsBuiltInName(name + ".lin"))
             {
                 path = CadLinetypeFile.BuiltInName;

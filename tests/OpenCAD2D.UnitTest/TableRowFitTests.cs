@@ -284,7 +284,7 @@ namespace OpenCAD2D.UnitTest
             // the text in opencad2d.shx: each data row, empty, 8 * 4 / 3 + 2 * 1.5 = 13.66667 high, where the style's 4.5 made
             // them 9; a header row 13.24 (13.66667 in ghsimplex.shx); 3 lines in one cell 38.1706; 'aaa bbb ccc ddd eee' in a
             // column 30 wide 64.83727, where the style's height made it 22.5. Here the data and the header of D33b's table are 9
-            // high in GH_TXT: AutoCAD gives the title 11, the header 14.52 and a data row 9 * 4 / 3 + 2 * the margin (1.5) = 15,
+            // high in OC_TXT: AutoCAD gives the title 11, the header 14.52 and a data row 9 * 4 / 3 + 2 * the margin (1.5) = 15,
             // as the editor lays it out.
             const string Head = " 93\n0\n 94\n0\n 95\n0\n 96\n0\n141\n10.0\n";
             Assert.Contains(Head, DxfDimensionDrawings.R2018, StringComparison.Ordinal);

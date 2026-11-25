@@ -17,7 +17,7 @@ namespace OpenCAD2D.UnitTest
 
         /// <summary>
         /// A metric drawing with three images of 40 by 30 along y = 0 (each a handle of the list) and a line, a fourth image on
-        /// the locked layer Locked, and a table style GH_SCHEDULE beside Standard.
+        /// the locked layer Locked, and a table style OC_SCHEDULE beside Standard.
         /// </summary>
         private static CadDocument WithImages(out List<string> images, out string locked)
         {
@@ -252,7 +252,7 @@ namespace OpenCAD2D.UnitTest
         {
             CadDocument document = CadDocument.From(CadTemplate.CreateMetric(), "metric.dxf");
             Assert.True(CadTableStyleEditor.AddStandard(document).Succeeded);
-            Assert.True(CadTableStyleEditor.Add(document, "GH_SCHEDULE", null).Succeeded);
+            Assert.True(CadTableStyleEditor.Add(document, "OC_SCHEDULE", null).Succeeded);
             return document;
         }
 
@@ -263,17 +263,17 @@ namespace OpenCAD2D.UnitTest
             CadCommandSession session = Run(Session(document), "CTABLESTYLE");
 
             Assert.Equal("Enter new value for CTABLESTYLE <\"Standard\">:", session.PromptText);
-            Run(session, "gh_schedule");
+            Run(session, "oc_schedule");
 
             Assert.False(session.IsRunning);
-            Assert.Equal("GH_SCHEDULE", CadTableStyleEditor.Current(document.Database));
+            Assert.Equal("OC_SCHEDULE", CadTableStyleEditor.Current(document.Database));
             AssertReopens(document);
             Assert.True(document.Undo());
             Assert.Equal("Standard", CadTableStyleEditor.Current(document.Database));
 
             // The alias and SETVAR reach the same variable.
-            Run(session, "CT", "GH_SCHEDULE");
-            Assert.Equal("GH_SCHEDULE", CadTableStyleEditor.Current(document.Database));
+            Run(session, "CT", "OC_SCHEDULE");
+            Assert.Equal("OC_SCHEDULE", CadTableStyleEditor.Current(document.Database));
             Run(session, "SETVAR", "CTABLESTYLE", "Standard");
             Assert.Equal("Standard", CadTableStyleEditor.Current(document.Database));
         }

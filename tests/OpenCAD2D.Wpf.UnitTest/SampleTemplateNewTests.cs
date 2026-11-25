@@ -75,9 +75,9 @@ namespace OpenCAD2D.Wpf.UnitTest
                 database.LayerTable.Select(l => l.Name)
             );
             Assert.Equal(new[] { "Standard", "Notes", "Titles", "Arial" }, database.TextStyleTable.Select(t => t.Name));
-            Assert.Contains(database.DimStyleTable, s => s.Name == "GH");
-            Assert.Contains(database.DimStyleTable, s => s.Name == "GH-Annotative");
-            Assert.Equal("GH", database.Dimstyle);
+            Assert.Contains(database.DimStyleTable, s => s.Name == "OpenCAD2D");
+            Assert.Contains(database.DimStyleTable, s => s.Name == "OpenCAD2D-Annotative");
+            Assert.Equal("OpenCAD2D", database.Dimstyle);
             Assert.Equal("0", database.Clayer);
             Assert.Equal(DxfMeasurementValue.Metric, database.Measurement);
             Assert.Equal(DxfUnits.Millimeters, database.Insunits);

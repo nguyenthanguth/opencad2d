@@ -19,7 +19,7 @@ namespace OpenCAD2D
     public sealed class CadLayerTranslatorRequest
     {
         /// <summary>The name the mappings are kept under in the named objects dictionary of a standards file this writes.</summary>
-        internal const string MappingKey = "GH_LAYTRANS_MAP";
+        internal const string MappingKey = "OPENCAD2D_LAYTRANS_MAP";
 
         private readonly List<CadTranslateLayer> _from = new List<CadTranslateLayer>();
         private readonly List<CadTranslateLayer> _to = new List<CadTranslateLayer>();

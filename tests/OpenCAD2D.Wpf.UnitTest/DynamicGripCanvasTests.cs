@@ -23,7 +23,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         private const int Red = 0xF85149;
 
         /// <summary>
-        /// Runs a test on an STA thread: GH_PANEL, a rectangle 100 by 50 whose Width stretches its right edge, inserted at the
+        /// Runs a test on an STA thread: OC_PANEL, a rectangle 100 by 50 whose Width stretches its right edge, inserted at the
         /// origin and selected, under a canvas of 800 by 600 showing -20,-20 to 120,70; the test is given the pixel of the
         /// Width grip.
         /// </summary>
@@ -35,7 +35,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 try
                 {
                     DxfDatabase database = CadTemplate.CreateMetric();
-                    var panel = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+                    var panel = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
                     database.BlockTable.Add(panel);
                     DxfLine[] sides =
                     {

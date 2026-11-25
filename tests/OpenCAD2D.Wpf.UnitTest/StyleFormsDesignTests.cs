@@ -151,7 +151,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void TheManager_ListsItsStylesWithTheirMarks_DescribesTheOneSelected_AndSaysWhatOkDoes()
         {
             MainViewModel model = Opened(out CadDocument document);
-            Assert.True(CadDimStyleEditor.Add(document, "GH_MODEL_10", "Standard", null).Succeeded);
+            Assert.True(CadDimStyleEditor.Add(document, "OC_MODEL_10", "Standard", null).Succeeded);
             model.Execute("DLI");
             model.Execute("0,0");
             model.Execute("300,0");
@@ -180,12 +180,12 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void TheAnnotateStyleBoxes_TickTheCurrentStyle_MarkNoStyle_AndEndInTheDialogsItem()
         {
             MainViewModel model = Opened(out CadDocument document);
-            Assert.True(CadDimStyleEditor.Add(document, "GH_MODEL_10", "Standard", null).Succeeded);
-            model.CurrentDimStyle = "GH_MODEL_10";
+            Assert.True(CadDimStyleEditor.Add(document, "OC_MODEL_10", "Standard", null).Succeeded);
+            model.CurrentDimStyle = "OC_MODEL_10";
 
             IReadOnlyList<StyleBoxItemViewModel> items = model.DimStyleItems;
 
-            Assert.Equal(new[] { "Standard", "GH_MODEL_10", "Dimension style…" }, items.Select(i => i.Name));
+            Assert.Equal(new[] { "Standard", "OC_MODEL_10", "Dimension style…" }, items.Select(i => i.Name));
             Assert.Equal(new[] { false, true, false }, items.Select(i => i.IsCurrent));
             Assert.Equal(new[] { string.Empty, string.Empty, string.Empty }, items.Select(i => i.Hint));
             Assert.True(items.Last().IsDialog);
@@ -197,7 +197,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void TheTextStyleDialog_ShowsEachStylesFont_AndAChangeNotAppliedIsNoticed()
         {
             MainViewModel model = Opened(out CadDocument document);
-            Assert.True(CadTextStyleEditor.Add(document, "GH_NOTES", "Standard").Succeeded);
+            Assert.True(CadTextStyleEditor.Add(document, "OC_NOTES", "Standard").Succeeded);
             TextStyleViewModel dialog = model.CreateTextStyle();
 
             Assert.Equal("Text style · styles.dxf", dialog.Title);
@@ -205,12 +205,12 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal(new[] { "txt.shx", "txt.shx" }, dialog.Styles.Select(s => s.Detail));
             Assert.False(dialog.HasNotice);
 
-            dialog.SelectedStyle = dialog.Styles.Single(s => s.Name == "GH_NOTES");
+            dialog.SelectedStyle = dialog.Styles.Single(s => s.Name == "OC_NOTES");
             dialog.WidthFactor = "0.8";
 
-            Assert.Equal("Preview · GH_NOTES", dialog.PreviewTitle);
+            Assert.Equal("Preview · OC_NOTES", dialog.PreviewTitle);
             Assert.Equal(
-                "Unsaved changes to GH_NOTES. Apply redraws the 0 texts that use it, as one undo step.",
+                "Unsaved changes to OC_NOTES. Apply redraws the 0 texts that use it, as one undo step.",
                 dialog.Notice
             );
             Assert.True(dialog.IsNoticeWarning);

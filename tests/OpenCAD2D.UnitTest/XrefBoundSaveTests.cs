@@ -74,7 +74,7 @@ namespace OpenCAD2D.UnitTest
             d.DimStyleTable.Add(
                 new DxfDimStyleTableRecord
                 {
-                    Name = "GH_25",
+                    Name = "OC_25",
                     Dimasz = 2.5,
                     Dimtxt = 2.5,
                 }

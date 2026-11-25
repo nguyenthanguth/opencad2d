@@ -30,7 +30,7 @@ namespace OpenCAD2D.UnitTest
         {
             _folder.Write("test.shx", ShxFiles.Unifont());
             var database = new DxfDatabase(version);
-            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_SHX", FileName = "test.shx" });
+            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_SHX", FileName = "test.shx" });
             mtext = new DxfMText
             {
                 Contents = contents,
@@ -39,7 +39,7 @@ namespace OpenCAD2D.UnitTest
                 Width = width,
             };
             database.ModelSpace.AppendEntity(mtext);
-            mtext.TextStyleName = "GH_SHX";
+            mtext.TextStyleName = "OC_SHX";
             more?.Invoke(mtext);
             CadDocument document = CadDocument.From(database);
             document.Fonts = new CadFonts(new[] { _folder.FullPath }, null, null, f => f == "Arial");
@@ -246,7 +246,7 @@ namespace OpenCAD2D.UnitTest
             Assert.False(session.IsRunning);
             Assert.Empty(All<DxfMText>(document.ModelSpace));
             List<DxfDBText> texts = All<DxfDBText>(document.ModelSpace).ToList();
-            Assert.All(texts, t => Assert.Equal("GH_SHX", t.TextStyleName));
+            Assert.All(texts, t => Assert.Equal("OC_SHX", t.TextStyleName));
             Assert.Contains(texts, t => t.TextString == "%%UII");
             List<DxfDBText> stack = texts.Where(t => t.TextString == "I").OrderBy(t => t.Position.Y).ToList();
             Assert.Equal(2, stack.Count);

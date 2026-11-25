@@ -16,14 +16,14 @@ namespace OpenCAD2D.UnitTest
     public class DynamicBlockFollowUp4Tests
     {
         /// <summary>
-        /// A drawing with the block GH_POINTER, two lines from (0, 0) to (100, 0) and from (100, 0) to (90, 5) held by the end
+        /// A drawing with the block OC_POINTER, two lines from (0, 0) to (100, 0) and from (100, 0) to (90, 5) held by the end
         /// of a polar parameter from (0, 0) to (100, 0), and, where asked, a box and an edge above it stretched by the end of
         /// a linear parameter Width from (0, 100) to (100, 100); inserted at (1 000, 500).
         /// </summary>
         private static CadDocument Pointer(out string handle, bool width = false)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_POINTER", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_POINTER", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             var line = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(100, 0, 0));
             var tip = new DxfLine(new GeoPoint3(100, 0, 0), new GeoPoint3(90, 5, 0));
@@ -75,7 +75,7 @@ namespace OpenCAD2D.UnitTest
         private static CadDocument Panel(out string handle)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             var right = new DxfLine(new GeoPoint3(100, 0, 0), new GeoPoint3(100, 50, 0));
             var top = new DxfLine(new GeoPoint3(0, 50, 0), new GeoPoint3(100, 50, 0));

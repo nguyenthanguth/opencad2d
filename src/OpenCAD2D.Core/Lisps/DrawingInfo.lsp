@@ -1,6 +1,6 @@
-;;; GH-DrawingInfo.lsp -- a sample routine: GHINFO writes what the drawing holds.
+;;; DrawingInfo.lsp -- a sample routine: LSPINFO writes what the drawing holds.
 ;;;
-;;; Type GHINFO at the command line. It only reads; the drawing is not changed. It uses
+;;; Type LSPINFO at the command line. It only reads; the drawing is not changed. It uses
 ;;; standard AutoLISP only, so the same file runs in AutoCAD 2021 as well.
 ;;;
 ;;; The output for a drawing of two circles and a line, a layer Steel and a block BOLT:
@@ -14,7 +14,7 @@
 ;;;   Layers: 2, blocks: 1
 ;;;   Extents: (-10.00,-10.00) to (120.00,80.00)
 
-(defun c:GHINFO (/ ss i name entry counts layers blocks rec lo hi)
+(defun c:LSPINFO (/ ss i name entry counts layers blocks rec lo hi)
   (princ (strcat "\nDrawing: " (getvar "DWGNAME") " in " (getvar "DWGPREFIX")))
   (princ
     (strcat "\nUnits: INSUNITS " (itoa (getvar "INSUNITS"))

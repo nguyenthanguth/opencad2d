@@ -25,7 +25,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         /// <summary>
-        /// GH_PANEL, a dynamic rectangle 100 by 50 whose Width (100, 150 or 200) stretches its right edge, a short line from
+        /// OC_PANEL, a dynamic rectangle 100 by 50 whose Width (100, 150 or 200) stretches its right edge, a short line from
         /// (10, 10) to (20, 10), and a cross line from (40, 20) to (60, 30) its visibility state Cross shows and Blank hides;
         /// INSERTs at (1 000, 500) given Width 150, at (2 000, 500) given Width 200 and Blank, at (3 000, 500) left as it is,
         /// and a copy of the first at (4 000, 500), which shares its *U block.
@@ -33,7 +33,7 @@ namespace OpenCAD2D.UnitTest
         private static CadDocument Panel(out string[] inserts)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             DxfLine[] lines =
             {
@@ -144,7 +144,7 @@ namespace OpenCAD2D.UnitTest
         /// The panel given a circle of radius 10 at (50, 25) and its short line erased in the Block Editor, and saved: AutoCAD
         /// 2021 made *U3 for the two INSERTs of *U1 (Width 150) and *U4 for the one of *U2 (Width 200, Blank), each from the
         /// new definition at those values, its cross hidden in *U4, and left *U1 and *U2 placed by none; the INSERT of the
-        /// block's own values still placed GH_PANEL.
+        /// block's own values still placed OC_PANEL.
         /// </summary>
         [Fact]
         public void ADynamicBlockSavedFromTheBlockEditor_HasItsAnonymousBlocksWorkedOutAnew_AsAutoCADUpdatesThem()
@@ -154,7 +154,7 @@ namespace OpenCAD2D.UnitTest
             string first = Entity<DxfBlockReference>(document, inserts[0]).Name;
             string second = Entity<DxfBlockReference>(document, inserts[1]).Name;
 
-            Start(document, "-BEDIT", "GH_PANEL", "CIRCLE", P(50, 25), "10", "ERASE", P(15, 10), Enter, "BCLOSE", "S");
+            Start(document, "-BEDIT", "OC_PANEL", "CIRCLE", P(50, 25), "10", "ERASE", P(15, 10), Enter, "BCLOSE", "S");
 
             Assert.Null(document.BlockEditor);
             var a = Entity<DxfBlockReference>(document, inserts[0]);
@@ -167,7 +167,7 @@ namespace OpenCAD2D.UnitTest
             Assert.StartsWith("*U", b.Name, StringComparison.Ordinal);
             Assert.NotEqual(second, b.Name);
             Assert.NotEqual(a.Name, b.Name);
-            Assert.Equal("GH_PANEL", c.Name);
+            Assert.Equal("OC_PANEL", c.Name);
             Assert.Equal(
                 new[]
                 {
@@ -200,7 +200,7 @@ namespace OpenCAD2D.UnitTest
                 (string)b.DynamicBlockReferencePropertyCollection.Single(p => p.PropertyName == "Mark").Value
             );
 
-            DxfBlockTableRecord dynamic = document.Database.BlockTable["GH_PANEL"];
+            DxfBlockTableRecord dynamic = document.Database.BlockTable["OC_PANEL"];
             Assert.Equal(
                 new[] { first, second, a.Name, b.Name },
                 dynamic.GetAnonymousBlocks().Select(r => r.Name).ToArray()
@@ -222,12 +222,12 @@ namespace OpenCAD2D.UnitTest
         public void ASecondSave_MakesAnewOnlyTheAnonymousBlocksAnInsertPlaces()
         {
             CadDocument document = Panel(out string[] inserts);
-            Start(document, "-BEDIT", "GH_PANEL", "CIRCLE", P(50, 25), "10", "BCLOSE", "S");
-            int count = document.Database.BlockTable["GH_PANEL"].GetAnonymousBlocks().Count;
+            Start(document, "-BEDIT", "OC_PANEL", "CIRCLE", P(50, 25), "10", "BCLOSE", "S");
+            int count = document.Database.BlockTable["OC_PANEL"].GetAnonymousBlocks().Count;
 
-            Start(document, "-BEDIT", "GH_PANEL", "CIRCLE", P(80, 25), "3", "BCLOSE", "S");
+            Start(document, "-BEDIT", "OC_PANEL", "CIRCLE", P(80, 25), "3", "BCLOSE", "S");
 
-            Assert.Equal(count + 2, document.Database.BlockTable["GH_PANEL"].GetAnonymousBlocks().Count);
+            Assert.Equal(count + 2, document.Database.BlockTable["OC_PANEL"].GetAnonymousBlocks().Count);
             Assert.Equal(8, Entity<DxfBlockReference>(document, inserts[0]).BlockTableRecord.Count(e => !e.IsErased));
         }
     }

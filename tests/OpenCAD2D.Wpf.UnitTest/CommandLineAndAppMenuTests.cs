@@ -945,7 +945,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- The start screen of each app
 
         [Fact]
-        public void WithNoExtensionOfferingANewDocument_TheStartScreenIsGeometryHelperDxfs_AndCtrlNMakesANewDrawing()
+        public void WithNoExtensionOfferingANewDocument_TheStartScreenIsOpenCad2dDxfs_AndCtrlNMakesANewDrawing()
         {
             var model = new MainViewModel();
 

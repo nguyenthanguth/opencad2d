@@ -13,7 +13,7 @@ namespace OpenCAD2D.UnitTest
     /// the routines JL, JR and JC of the maintainer's file set it: the words move back by half their width for the centre and by
     /// all of it for the right, and down by half the height for the middle. AutoCAD 2021 gave, for "short", "a longer text" and
     /// "mid" 2.5 high in txt.shx, held at x 50 by JC, 44.1667, 34.7917 and 47.5, and by JR 38.3333, 19.5833 and 45.0 (probe
-    /// l8/probe/fonts-jc and fonts-jr). The tests with the real txt.shx run where the machine has one (GH_FONTS, or AutoCAD 2021's
+    /// l8/probe/fonts-jc and fonts-jr). The tests with the real txt.shx run where the machine has one (OC_FONTS, or AutoCAD 2021's
     /// own Fonts folder) and end at once where it has none: AutoCAD's font files are not in this repository.
     /// </summary>
     public sealed class LispTextAlignTests : IDisposable
@@ -33,7 +33,7 @@ namespace OpenCAD2D.UnitTest
         {
             string[] places =
             {
-                Environment.GetEnvironmentVariable("GH_FONTS"),
+                Environment.GetEnvironmentVariable("OC_FONTS"),
                 "D:/Autodesk/AutoCAD/AutoCAD 2021/Fonts",
                 "C:/Program Files/Autodesk/AutoCAD 2021/Fonts",
             };

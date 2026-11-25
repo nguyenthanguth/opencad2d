@@ -6,7 +6,7 @@ dialog as files to take a pattern from.
 
 OpenCAD2D.pat is the built-in set of 48 patterns, written out in the .pat format as a
 model for your own files. It is a copy: changing it changes nothing, because the name
-OpenCAD2D.pat always means the built-in set, as does its old name GeometryHelper.pat. Copy it
+OpenCAD2D.pat always means the built-in set. Copy it
 under another name to edit it.
 
 Search order for a pattern file:

@@ -12,7 +12,7 @@ using GeometryHelper;
 namespace OpenCAD2D
 {
     /// <summary>
-    /// The JSON of the tool palettes. A file is an object with <c>format</c> (<c>GeometryHelper.ToolPalettes</c>),
+    /// The JSON of the tool palettes. A file is an object with <c>format</c> (<c>OpenCAD2D.ToolPalettes</c>),
     /// <c>version</c> (1), <c>active</c> (the place of the palette shown, from 0) and <c>palettes</c>, a list of objects with
     /// <c>name</c>, <c>view</c> (<c>icons</c>, <c>iconsAndText</c> or <c>list</c>), <c>iconSize</c> (16 to 96) and <c>tools</c>.
     /// A tool has <c>kind</c> (<c>block</c>, <c>hatch</c>, <c>command</c>, <c>text</c> or <c>separator</c>), <c>name</c> and
@@ -25,7 +25,7 @@ namespace OpenCAD2D
     public sealed partial class CadToolPalettes
     {
         /// <summary>The <c>format</c> a file of tool palettes has.</summary>
-        public const string Format = "GeometryHelper.ToolPalettes";
+        public const string Format = "OpenCAD2D.ToolPalettes";
 
         /// <summary>The <c>version</c> this writes; a file of a later version is read as far as it is understood.</summary>
         public const int Version = 1;

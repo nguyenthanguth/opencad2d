@@ -94,7 +94,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void ALonePyDropped_IsRefusedWithTheLineThatSaysHowToMakeItATool_AndRaisesNoDragAndDropBox()
         {
             MainViewModel model = Opened(out FakePythonFiles python);
-            string lone = _folder.WriteText("GH-DrawingInfo.py", "pass\n");
+            string lone = _folder.WriteText("DrawingInfo.py", "pass\n");
             var boxes = new List<string>();
             model.ShowDropMessage = (title, text) => boxes.Add(text);
             int before = model.History.Count;
@@ -106,7 +106,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal(
                 new[]
                 {
-                    "GH-DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\\GH-DrawingInfo\\ as __init__.py (see the Python guide).",
+                    "DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\\DrawingInfo\\ as __init__.py (see the Python guide).",
                 },
                 Since(model, before)
             );

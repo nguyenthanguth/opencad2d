@@ -207,8 +207,8 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal("0", database.Clayer);
             Assert.Equal("ByLayer", database.Celtype);
             Assert.Equal("Standard", database.Textstyle);
-            Assert.Equal("GH", database.Dimstyle);
-            Assert.Equal("GH", database.MLeaderstyle);
+            Assert.Equal("OpenCAD2D", database.Dimstyle);
+            Assert.Equal("OpenCAD2D", database.MLeaderstyle);
         }
 
         [Fact]
@@ -265,16 +265,16 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
-        public void TheSampleTemplate_HoldsTheDimensionStylesGhAndGhAnnotative_ForMillimetres()
+        public void TheSampleTemplate_HoldsTheDimensionStylesOpenCad2dAndOpenCad2dAnnotative_ForMillimetres()
         {
             DxfDatabase database = Open();
 
             Assert.Equal(
-                new[] { "GH", "GH-Annotative", "Standard" },
+                new[] { "OpenCAD2D", "OpenCAD2D-Annotative", "Standard" },
                 database.DimStyleTable.Select(s => s.Name).OrderBy(n => n, StringComparer.Ordinal)
             );
 
-            foreach (string name in new[] { "GH", "GH-Annotative" })
+            foreach (string name in new[] { "OpenCAD2D", "OpenCAD2D-Annotative" })
             {
                 DxfDimStyleTableRecord style = database.DimStyleTable[name];
                 Assert.Equal("Standard", style.Dimtxsty.Name);
@@ -294,26 +294,26 @@ namespace OpenCAD2D.UnitTest
                 Assert.Equal(DxfColor.ByLayer, style.Dimclrt);
             }
 
-            Assert.Equal(DxfAnnotativeStates.False, database.DimStyleTable["GH"].Annotative);
-            Assert.Equal(DxfAnnotativeStates.True, database.DimStyleTable["GH-Annotative"].Annotative);
+            Assert.Equal(DxfAnnotativeStates.False, database.DimStyleTable["OpenCAD2D"].Annotative);
+            Assert.Equal(DxfAnnotativeStates.True, database.DimStyleTable["OpenCAD2D-Annotative"].Annotative);
 
-            // The variables of the header are those of GH, the style that is current.
+            // The variables of the header are those of OpenCAD2D, the style that is current.
             DxfDimStyleTableRecord header = database.GetDimstyleData();
             Assert.Equal(2.5, header.Dimtxt, 6);
             Assert.Equal(0, header.Dimdec);
         }
 
         [Fact]
-        public void TheSampleTemplate_HoldsTheMultileaderStyleGh_MatchingTheDimensionStyle()
+        public void TheSampleTemplate_HoldsTheMultileaderStyleOpenCad2d_MatchingTheDimensionStyle()
         {
             DxfDatabase database = Open();
 
             var names = database.MLeaderStyleDictionary.Cast<DxfDBDictionaryEntry>().Select(e => e.Key).ToList();
-            Assert.Equal(new[] { "GH", "Standard" }, names.OrderBy(n => n, StringComparer.Ordinal));
-            var gh = (DxfMLeaderStyle)database.MLeaderStyleDictionary.GetAt("GH");
-            Assert.Equal(2.5, gh.TextHeight, 6);
-            Assert.Equal(2.5, gh.ArrowSize, 6);
-            Assert.Equal("Standard", gh.TextStyle.Name);
+            Assert.Equal(new[] { "OpenCAD2D", "Standard" }, names.OrderBy(n => n, StringComparer.Ordinal));
+            var style = (DxfMLeaderStyle)database.MLeaderStyleDictionary.GetAt("OpenCAD2D");
+            Assert.Equal(2.5, style.TextHeight, 6);
+            Assert.Equal(2.5, style.ArrowSize, 6);
+            Assert.Equal("Standard", style.TextStyle.Name);
         }
 
         [Fact]

@@ -381,21 +381,21 @@ Startup Suite entry.
   trusts, so its files load with no question at SECURELOAD 1 and 2. A test or a host that places `Lisps` elsewhere gets the
   gate's answer for that folder.
 - **Every drawing.** What is here runs for every drawing you open; ship nothing here that you would not want everywhere.
-  The presenter ships one sample routine in it, `GH-DrawingInfo.lsp`, [below](#the-sample-routine), and a `README.txt`. The Python wheel has no `Lisps` folder and runs no
+  The presenter ships one sample routine in it, `DrawingInfo.lsp`, [below](#the-sample-routine), and a `README.txt`. The Python wheel has no `Lisps` folder and runs no
   startup.
 
 Global settings, Folder preference shows the folder read-only under the other default folders, with Open folder.
 
 #### The sample routine
 
-`GH-DrawingInfo.lsp` ships in the folder. Loading it defines the command `GHINFO` and writes nothing. `GHINFO` only reads: it
+`DrawingInfo.lsp` ships in the folder. Loading it defines the command `LSPINFO` and writes nothing. `LSPINFO` only reads: it
 writes the drawing's name and folder (`DWGNAME`, `DWGPREFIX`), `INSUNITS` and `LUNITS`, the current layer and text style, the
 objects of model space counted by type (a selection of the whole database filtered by group 410), the number of layers and of
 blocks (`tblnext`), and the extents (`EXTMIN`, `EXTMAX`). A drawing of two circles and a line in model space, with the layer
 Steel current and the block BOLT, gives
 
 ```
-Command: GHINFO
+Command: LSPINFO
 Drawing: Plan.dwg in C:\Projects\
 Units: INSUNITS 4, LUNITS 2
 Current layer: Steel, text style: Standard

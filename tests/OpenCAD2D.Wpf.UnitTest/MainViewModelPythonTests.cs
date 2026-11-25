@@ -324,9 +324,9 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void ALonePy_InPythonsOrTheSuite_OrGivenToPyload_IsRefusedWithTheLineThatSaysHowToMakeItATool()
         {
             MainViewModel model = Using();
-            string lone = _folder.WriteText("GH-DrawingInfo.py", "pass\n");
+            string lone = _folder.WriteText("DrawingInfo.py", "pass\n");
             string line =
-                "GH-DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\\GH-DrawingInfo\\ as __init__.py (see the Python guide).";
+                "DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\\DrawingInfo\\ as __init__.py (see the Python guide).";
 
             AppLoadResult byLoad = model.LoadApplication(lone);
             ((PythonToolFiles)model.PythonFiles).Startup(model.Session, new string[0], new[] { lone });

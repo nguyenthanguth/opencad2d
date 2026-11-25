@@ -64,10 +64,8 @@ and a style naming `opencad2d.shx` draws there as it does here; AutoCAD 2021 giv
 `Hatches` holds
 `OpenCAD2D.pat` and `Linetypes` holds `OpenCAD2D.lin`, the 48 patterns and the 39 linetypes of the built-in sets in
 AutoCAD's `.pat` and `.lin` formats, as models for your own files; the name `opencad2d`, `OpenCAD2D.pat` or `OpenCAD2D.lin` always
-means the built-in font or set (and so do the names the sets had before the program was called OpenCAD2D, `GeometryHelper.pat`
-and `GeometryHelper.lin`, typed or given by a routine), so editing the copy changes nothing, and a test keeps the files equal to the font and the sets. The linetypes that carry the names AutoCAD users type (BORDER, CENTER, DASHDOT, DASHED, DIVIDE, DOT, HIDDEN and PHANTOM, each with its `2` and `X2`, and GAS_LINE) have the dash lengths AutoCAD gives them, so that a drawing looks the same in both programs: the file is in millimetres (CENTER `31.75, -6.35, 6.35, -6.35`, HIDDEN `6.35, -3.175`), and loading one into a drawing whose MEASUREMENT is 0 writes it in inches (CENTER `1.25, -0.25, 0.25, -0.25`, HIDDEN `0.25, -0.125`), as AutoCAD takes `acad.lin` for such a drawing and `acadiso.lin` for a metric one. A linetype the drawing has already is never changed, and the `ACAD_ISO` types stay in millimetres in both. `Lisps` ships with one sample routine, `GH-DrawingInfo.lsp`,: every `.lsp` file in it, at any depth, is loaded into each drawing when it opens, after `acaddoc.lsp` and before the Startup Suite, in the order of the walk (the folder's own files by name, then its subfolders), and the folder itself is on the AutoLISP search path after the support folders (see [The Lisps folder](lisp.md#the-lisps-folder)); it is under the program folder, so SECURELOAD always trusts it. `Plugins` holds command plugins and no search path: every `.dll` directly in it, and every folder below it that holds `.dll` files as one plugin, is loaded once when the app starts, in the order of the walk, with no question, as [Command plugins](plugins.md#where-a-plugin-lives) says; the Plugin manager shows it first among the trusted folders. It ships with one sample plugin, the subfolder `DrawingInfo`, whose command `GHDWGINFO` writes what the drawing holds ([the sample plugin](plugins.md#the-sample-plugin)). `DrawingTemplates` is where a drawing saved as a `.dwt` is
-put to be used as a template, and ships with the sample `OpenCAD2D-mm.dwt` (see [Drawing templates](#drawing-templates); a
-Default template for QNEW saved under its old name, `GeometryHelper-mm.dwt`, finds it where no file of that name is there). Each folder has a
+means the built-in font or set, so editing the copy changes nothing, and a test keeps the files equal to the font and the sets. The linetypes that carry the names AutoCAD users type (BORDER, CENTER, DASHDOT, DASHED, DIVIDE, DOT, HIDDEN and PHANTOM, each with its `2` and `X2`, and GAS_LINE) have the dash lengths AutoCAD gives them, so that a drawing looks the same in both programs: the file is in millimetres (CENTER `31.75, -6.35, 6.35, -6.35`, HIDDEN `6.35, -3.175`), and loading one into a drawing whose MEASUREMENT is 0 writes it in inches (CENTER `1.25, -0.25, 0.25, -0.25`, HIDDEN `0.25, -0.125`), as AutoCAD takes `acad.lin` for such a drawing and `acadiso.lin` for a metric one. A linetype the drawing has already is never changed, and the `ACAD_ISO` types stay in millimetres in both. `Lisps` ships with one sample routine, `DrawingInfo.lsp`: every `.lsp` file in it, at any depth, is loaded into each drawing when it opens, after `acaddoc.lsp` and before the Startup Suite, in the order of the walk (the folder's own files by name, then its subfolders), and the folder itself is on the AutoLISP search path after the support folders (see [The Lisps folder](lisp.md#the-lisps-folder)); it is under the program folder, so SECURELOAD always trusts it. `Plugins` holds command plugins and no search path: every `.dll` directly in it, and every folder below it that holds `.dll` files as one plugin, is loaded once when the app starts, in the order of the walk, with no question, as [Command plugins](plugins.md#where-a-plugin-lives) says; the Plugin manager shows it first among the trusted folders. It ships with one sample plugin, the subfolder `DrawingInfo`, whose command `CSINFO` writes what the drawing holds ([the sample plugin](plugins.md#the-sample-plugin)). `DrawingTemplates` is where a drawing saved as a `.dwt` is
+put to be used as a template, and ships with the sample `OpenCAD2D-mm.dwt` (see [Drawing templates](#drawing-templates)). Each folder has a
 `README.txt` that says the same.
 
 The crosshair size (`CrosshairPercent`, CURSORSIZE) is a share of the canvas: at 5 % each line is 5 % of the larger side of
@@ -352,10 +350,10 @@ AutoCAD's `.dwt` is a DWG with that extension; a `.dwg` or a `.dxf` is as good a
   colour index, lineweight in millimetres): 0; Axis 1, CENTER, 0.18; Outline 7, 0.50; Thin 8, 0.18; Hidden 6, HIDDEN, 0.25;
   Dimension 3, 0.18; Text 2, 0.25; Hatch 9, 0.13; Rebar 4, 0.35; Title block 7, 0.35; Viewport 8, not plotted; Defpoints 7,
   not plotted; the linetypes are those of `OpenCAD2D.lin`, so CENTER is `31.75, -6.35, 6.35, -6.35` and HIDDEN `6.35, -3.175`. Its text styles are Standard, Notes and Titles in `opencad2d.shx`
-  (height 0, width factor 0.8) and Arial in `arial.ttf`; no font of Autodesk is named. Its dimension styles are GH, the
+  (height 0, width factor 0.8) and Arial in `arial.ttf`; no font of Autodesk is named. Its dimension styles are OpenCAD2D, the
   current one (arrowheads closed and filled 2.5, text 2.5 in Standard above the line, extension lines offset 1.5 and
-  extended 1.5, no decimals, DIMLUNIT 2, every colour and lineweight by layer), GH-Annotative (GH made annotative) and
-  Standard, given the look of GH so that none is in inches. Its multileader style GH (text and arrowheads 2.5) is current,
+  extended 1.5, no decimals, DIMLUNIT 2, every colour and lineweight by layer), OpenCAD2D-Annotative (OpenCAD2D made annotative) and
+  Standard, given the look of OpenCAD2D so that none is in inches. Its multileader style OpenCAD2D (text and arrowheads 2.5) is current,
   and its layouts are Model and A3, a sheet of 420 by 297 millimetres on its side. The file is written by the library, not by
   hand: `CadTemplate.CreateSample()` makes the drawing and `SaveAsTemplate` writes it, and a test keeps the shipped file equal
   to it in every layer, style, layout and variable (handles and times are not compared). To write it again, set the
@@ -754,7 +752,7 @@ file, one palette or all) and **Import Palette…** reads it, adding the palette
 
 | Member | Meaning |
 |---|---|
-| `format`, `version`, `active` | `"GeometryHelper.ToolPalettes"`, `1`, the place of the palette shown, from 0 |
+| `format`, `version`, `active` | `"OpenCAD2D.ToolPalettes"`, `1`, the place of the palette shown, from 0 |
 | `palettes[]` | `name`, `view` (`icons`, `iconsAndText` or `list`), `iconSize` (16 to 96), `tools[]` |
 | every tool | `kind` (`command`, `block`, `hatch`, `text` or `separator`), `name` (the words of a text), `description` |
 | command | `command` (the command line), `icon` (a name of the presenter's icons: `Line`, `Circle`, `Dimension` and the others of the ribbon) |
@@ -936,8 +934,7 @@ no administrator is asked for:
 An extension another program has (AutoCAD's `.dwg`, say) is left to it, and the app is one choice of Open with; Windows keeps
 the choice "Always use this app" itself. It writes one line, `.dxf and .dwg files open with OpenCAD2D: …`, and
 exits with 0, or with 1 and the reason where the registry refuses. `--unregister` takes out the ProgID and its Open with
-entries, and the default of an extension only where it is the app's; what other programs wrote stays. Both take out
-`GeometryHelper.Drawing` too, the ProgID of the app before it was named OpenCAD2D, so Open with lists it once. Run it
+entries, and the default of an extension only where it is the app's; what other programs wrote stays. Run it
 again after moving the app, since the command names the exe where it was. A host built on `CadAppHost` takes the same two
 switches and writes the same ProgID, so the app registered last is the one that opens the files.
 

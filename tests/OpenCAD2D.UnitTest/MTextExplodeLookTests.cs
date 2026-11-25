@@ -25,7 +25,7 @@ namespace OpenCAD2D.UnitTest
             _folder.Write("test.shx", ShxFiles.Unifont());
             _folder.Write("other.shx", ShxFiles.Unifont());
             var database = new DxfDatabase("AC1027");
-            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_SHX", FileName = "test.shx" });
+            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_SHX", FileName = "test.shx" });
             var mtext = new DxfMText
             {
                 Contents =
@@ -34,7 +34,7 @@ namespace OpenCAD2D.UnitTest
                 TextHeight = 10.0,
             };
             database.ModelSpace.AppendEntity(mtext);
-            mtext.TextStyleName = "GH_SHX";
+            mtext.TextStyleName = "OC_SHX";
             mtext.ColorIndex = 5;
             CadDocument document = CadDocument.From(database);
             document.Fonts = new CadFonts(new[] { _folder.FullPath }, null, null, f => f == "Arial");
@@ -51,7 +51,7 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal("other.shx", database.TextStyleTable["MtXpl_other_shx"].FileName);
 
             // The rest in the MTEXT's style, Arial's run too.
-            Assert.All(texts.Where(t => t.Key != "CD"), t => Assert.Equal("GH_SHX", t.Value.TextStyleName));
+            Assert.All(texts.Where(t => t.Key != "CD"), t => Assert.Equal("OC_SHX", t.Value.TextStyleName));
 
             // Colours of their own; the rest the MTEXT's.
             Assert.Equal(1, texts["EF"].Color.ColorIndex);

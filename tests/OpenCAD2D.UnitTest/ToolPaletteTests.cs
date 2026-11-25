@@ -220,7 +220,7 @@ namespace OpenCAD2D.UnitTest
             Assert.NotEqual(0xEF, bytes[0]);
             string text = File.ReadAllText(path);
             Assert.DoesNotContain("\r", text);
-            Assert.StartsWith("{\n  \"format\": \"GeometryHelper.ToolPalettes\",\n  \"version\": 1,", text);
+            Assert.StartsWith("{\n  \"format\": \"OpenCAD2D.ToolPalettes\",\n  \"version\": 1,", text);
             Assert.Equal(set.ToJson(), CadToolPalettes.Load(path).ToJson());
         }
 
@@ -238,14 +238,14 @@ namespace OpenCAD2D.UnitTest
             File.WriteAllText(json, "{ \"format\": \"something else\" }");
             Assert.Equal(expected, CadToolPalettes.Load(json).ToJson());
             Assert.False(CadToolPalettes.TryParse("{ \"format\": \"something else\" }", out _, out string problem));
-            Assert.Contains("GeometryHelper.ToolPalettes", problem);
+            Assert.Contains("OpenCAD2D.ToolPalettes", problem);
         }
 
         [Fact]
         public void AValueThatIsNotValid_FallsBackToItsDefault_AndAToolOfAnUnknownKindIsLeftOut()
         {
             string json =
-                "{ \"format\": \"GeometryHelper.ToolPalettes\", \"version\": 1, \"active\": 9, \"palettes\": ["
+                "{ \"format\": \"OpenCAD2D.ToolPalettes\", \"version\": 1, \"active\": 9, \"palettes\": ["
                 + "{ \"name\": \"Mine\", \"view\": \"nonsense\", \"iconSize\": 5, \"tools\": ["
                 + "{ \"kind\": \"block\", \"name\": \"B\", \"block\": \"B\", \"scale\": 0, \"angle\": 30 },"
                 + "{ \"kind\": \"hologram\", \"name\": \"H\" },"

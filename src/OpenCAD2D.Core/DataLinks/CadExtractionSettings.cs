@@ -114,7 +114,7 @@ namespace OpenCAD2D
     /// sorts, filters, columns renamed) and where the data goes (a table in the drawing, a file of .xlsx, .csv or .txt).
     /// </summary>
     /// <remarks>
-    /// The file is XML of the presenter's own, <c>GeometryHelperDataExtraction</c>, not the .dxe AutoCAD writes, which is a
+    /// The file is XML of the presenter's own, <c>OpenCAD2DDataExtraction</c>, not the .dxe AutoCAD writes, which is a
     /// serialised .NET object of AutoCAD's own assemblies that only AutoCAD reads; a .dxe of AutoCAD is not read here and the
     /// presenter's is not read by AutoCAD. The data link of a table made from a data extraction names the file by its
     /// connection string, as AutoCAD's names its own.
@@ -265,7 +265,7 @@ namespace OpenCAD2D
                 throw new InvalidDataException("The file is not a data extraction file.", exception);
             }
 
-            if (root == null || root.Name.LocalName != "GeometryHelperDataExtraction")
+            if (root == null || root.Name.LocalName != "OpenCAD2DDataExtraction")
             {
                 throw new InvalidDataException(
                     "The file is not a data extraction file of this program: a .dxe that AutoCAD wrote is not read here."
@@ -489,7 +489,7 @@ namespace OpenCAD2D
             return new XDocument(
                 new XDeclaration("1.0", "utf-8", null),
                 new XElement(
-                    "GeometryHelperDataExtraction",
+                    "OpenCAD2DDataExtraction",
                     new XAttribute("version", "1"),
                     source,
                     objects,

@@ -37,12 +37,6 @@ namespace OpenCAD2D.Wpf
         /// <summary>The ProgID of a drawing the app opens.</summary>
         internal const string ProgId = "OpenCAD2D.Drawing";
 
-        /// <summary>
-        /// The ProgID the app had as GeometryHelper CAD, before it was OpenCAD2D: taken out wherever the association is written
-        /// or taken out, so that "Open with" does not list the app twice.
-        /// </summary>
-        internal const string OldProgId = "GeometryHelper.Drawing";
-
         /// <summary>The extensions associated.</summary>
         internal static readonly string[] Extensions = { ".dxf", ".dwg" };
 
@@ -53,7 +47,6 @@ namespace OpenCAD2D.Wpf
         /// <param name="iconPath">The icon of a drawing file: a .ico file, or an exe and the index of its icon.</param>
         internal static void Register(ICadUserClasses classes, string appName, string exePath, string iconPath)
         {
-            Remove(classes, OldProgId);
             classes.SetValue(ProgId, "", "Drawing (" + appName + ")");
             classes.SetValue(ProgId + @"\DefaultIcon", "", iconPath);
             classes.SetValue(ProgId + @"\shell\open\command", "", "\"" + exePath + "\" \"%1\"");
@@ -76,7 +69,6 @@ namespace OpenCAD2D.Wpf
         internal static void Unregister(ICadUserClasses classes)
         {
             Remove(classes, ProgId);
-            Remove(classes, OldProgId);
             classes.NotifyShell();
         }
 

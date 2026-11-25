@@ -113,17 +113,13 @@ namespace OpenCAD2D
 
         /// <summary>
         /// The file name of the sample template that ships in the DrawingTemplates folder, written from <see cref="CreateSample"/>.
-        /// Its old name, GeometryHelper-mm.dwt, still finds it (<see cref="Find"/>).
         /// </summary>
         public const string SampleFileName = "OpenCAD2D-mm.dwt";
-
-        /// <summary>The file name the sample template had before the program was called OpenCAD2D.</summary>
-        private const string OldSampleFileName = "GeometryHelper-mm.dwt";
 
         /// <summary>The description the sample template carries in its template section, the text Select Template shows under its name.</summary>
         public const string SampleDescription =
             "OpenCAD2D metric sample: millimetres, layers for a Tekla Structures detail, text styles in opencad2d and Arial, "
-            + "the dimension style GH (text 2.5) and an A3 layout.";
+            + "the dimension style OpenCAD2D (text 2.5) and an A3 layout.";
 
         /// <summary>
         /// Makes the drawing of the sample template <c>OpenCAD2D-mm.dwt</c>, for a detail drawn at 1:1 in millimetres and
@@ -140,10 +136,10 @@ namespace OpenCAD2D
         /// </para>
         /// <para>
         /// The text styles all draw in the presenter's own font or in Arial: Standard, Notes and Titles in opencad2d.shx, height
-        /// 0, width factor 0.8; Arial in arial.ttf. The dimension style GH, current, has arrowheads closed and filled 2.5 long,
+        /// 0, width factor 0.8; Arial in arial.ttf. The dimension style OpenCAD2D, current, has arrowheads closed and filled 2.5 long,
         /// text 2.5 in Standard above the line and aligned with it, extension lines 1.5 off the object and 1.5 past the line,
-        /// no decimal places, millimetres (DIMLUNIT 2) and every colour and lineweight by layer; GH-Annotative is GH made
-        /// annotative. The multileader style GH, current, has text and arrowheads 2.5 and Standard beside it. The layouts are
+        /// no decimal places, millimetres (DIMLUNIT 2) and every colour and lineweight by layer; OpenCAD2D-Annotative is OpenCAD2D
+        /// made annotative. The multileader style OpenCAD2D, current, has text and arrowheads 2.5 and Standard beside it. The layouts are
         /// Model and A3: a sheet of 420 by 297 on its side, in millimetres, with no plotter.
         /// </para>
         /// <para>
@@ -277,19 +273,19 @@ namespace OpenCAD2D
         private static void AddSampleDimensionStyles(DxfDatabase database)
         {
             DxfDimStyleTable styles = database.DimStyleTable;
-            DxfDimStyleTableRecord gh = SampleDimensionStyle(database, "GH");
-            DxfDimStyleTableRecord annotative = SampleDimensionStyle(database, "GH-Annotative");
+            DxfDimStyleTableRecord sample = SampleDimensionStyle(database, "OpenCAD2D");
+            DxfDimStyleTableRecord annotative = SampleDimensionStyle(database, "OpenCAD2D-Annotative");
 
-            // Standard stays, as AutoCAD always has one, given the look of GH so that no style in the file is in inches.
+            // Standard stays, as AutoCAD always has one, given the look of OpenCAD2D so that no style in the file is in inches.
             GiveSampleDimensionValues(database, styles["Standard"]);
-            styles.Add(gh);
+            styles.Add(sample);
             styles.Add(annotative);
             annotative.Annotative = DxfAnnotativeStates.True;
 
-            // GH is current, in the header too, as AutoCAD keeps the current style's variables there; ISO-25 of the library's new
+            // OpenCAD2D is current, in the header too, as AutoCAD keeps the current style's variables there; ISO-25 of the library's new
             // drawing can go once it is not.
-            database.SetDimstyleData(gh);
-            database.Dimstyle = "GH";
+            database.SetDimstyleData(sample);
+            database.Dimstyle = "OpenCAD2D";
             styles["ISO-25"].Erase();
         }
 
@@ -332,7 +328,7 @@ namespace OpenCAD2D
             DxfDBDictionary styles = database.MLeaderStyleDictionary;
             styles.SetAt("Standard", new DxfMLeaderStyle());
             styles.SetAt(
-                "GH",
+                "OpenCAD2D",
                 new DxfMLeaderStyle
                 {
                     TextHeight = 2.5,
@@ -342,7 +338,7 @@ namespace OpenCAD2D
                     TextStyle = database.TextStyleTable["Standard"],
                 }
             );
-            database.MLeaderstyle = "GH";
+            database.MLeaderstyle = "OpenCAD2D";
         }
 
         private static void SetUpSampleLayout(DxfDatabase database)
@@ -431,39 +427,12 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Finds the file of a template named as typed: as typed, else in the template folder, else, for a name with no folder, the
-        /// first of that name in the folder's subfolders; a name with no extension is given .dwt, as AutoCAD does. The sample
-        /// template by its old name, GeometryHelper-mm.dwt, as Global settings may have saved it for QNEW, is found by its name
-        /// now, OpenCAD2D-mm.dwt, in the same place, where no file of the old name is there.
+        /// first of that name in the folder's subfolders; a name with no extension is given .dwt, as AutoCAD does.
         /// </summary>
         /// <param name="typed">The name or path.</param>
         /// <param name="folder">The template folder.</param>
         /// <returns>The full path of the file; null where there is none.</returns>
         public static string Find(string typed, string folder)
-        {
-            string found = FindAsNamed(typed, folder);
-            string name = (typed ?? string.Empty).Trim().Trim('"');
-
-            if (found != null || name.Length == 0)
-            {
-                return found;
-            }
-
-            string leaf = Path.GetFileName(Path.HasExtension(name) ? name : name + ".dwt");
-
-            if (!string.Equals(leaf, OldSampleFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            string folderOf = Path.GetDirectoryName(name);
-            return FindAsNamed(
-                string.IsNullOrEmpty(folderOf) ? SampleFileName : Path.Combine(folderOf, SampleFileName),
-                folder
-            );
-        }
-
-        /// <summary>The file of a template named as typed, as <see cref="Find"/> looks for it, by that name alone.</summary>
-        private static string FindAsNamed(string typed, string folder)
         {
             string name = (typed ?? string.Empty).Trim().Trim('"');
 

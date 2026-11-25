@@ -209,7 +209,7 @@ COPY, MIRROR, ROTATE and SCALE with Copy and ARRAY copy what an application keep
 AutoCAD 2021's do (checked in its console on a LINE and a CIRCLE): the copy gets a dictionary of its own, owned by it, holding
 a new XRECORD for each XRECORD of the original's and a new dictionary for each dictionary of XRECORDs, under the same names,
 ordered by name as AutoCAD keeps them (the names compared as lower-case letters: "10" before "9", "_a" before "a", "AcDbX" before
-"GH_Y"). What a copied XRECORD points at (330, 340, 350 and 360 among its data) among the objects copied, the original entity
+"OC_Y"). What a copied XRECORD points at (330, 340, 350 and 360 among its data) among the objects copied, the original entity
 and the original's other entries, it points at the copies of; an ownership pointer (350, 360) at an XRECORD, or a dictionary of
 them, outside the objects copied names a clone of it, owned by the copied XRECORD and in no dictionary of the drawing, two
 pointers at one object sharing the clone; any other pointer, at an entity or by 330 or 340, stays. An entity whose dictionary is
@@ -2118,7 +2118,7 @@ extraction again from the .dxe on the drawing as it stands and makes the table's
 asks the same by the command line: `Enter name of an existing data extraction file or [New] <New>:`, what to extract from, the
 types and properties (names separated by commas, All, or ? to list), the combining and the Count and Name columns, a column to
 sort by, the table and its title, an output file, and the .dxe's name. The .dxe is XML of the presenter's own
-(`GeometryHelperDataExtraction`): the .dxe AutoCAD writes is a serialised .NET object that only AutoCAD reads, and is refused
+(`OpenCAD2DDataExtraction`): the .dxe AutoCAD writes is a serialised .NET object that only AutoCAD reads, and is refused
 in words, as the presenter's is not read by AutoCAD. A table of a drawing before AutoCAD 2007 is inserted with no link and
 the command line says so. Not built: sheet sets as a source, `.xls` and `.mdb` output, Link External Data, formula columns, totals
 footers, folder monitoring, an xref's own objects, the notifications of out-of-date tables.
@@ -2773,7 +2773,7 @@ step, `REFEDIT`, which one undo takes back. BEDIT says `** BEDIT command not all
 again `** Command not allowed, BOX already checked out for editing **`, QSAVE and SAVEAS `** Drawing save not allowed during
 reference editing **`, REFSET and REFCLOSE with no edit open `** Command not allowed unless a reference is checked out with
 REFEDIT command **`, and these commands say `Not allowed in the Block Editor.` inside it. An edit is kept in the drawing, in the XRECORD
-`GH_REFEDIT` of the named object dictionary, so that a drawing saved in the middle of one opens with the edit still open. The
+`OPENCAD2D_REFEDIT` of the named object dictionary, so that a drawing saved in the middle of one opens with the edit still open. The
 Refedit toolbar is not built, and a block array is refused (`A block array cannot be edited in place.`). The
 object menu of a block reference starts REFEDIT as Edit Block In-place, and that of one external reference as Edit Xref
 In-place. AutoCAD 2021's accoreconsole has no REFEDIT, REFSET or
@@ -4875,7 +4875,7 @@ changes the colour, linetype (Select Linetype), lineweight, transparency (0 to 9
 touching the file's layer, and **Remove** drops a mapping. The selection filter box and **Select** pick the layers of the
 left list that match a pattern. **Save…** writes the Translate To list as a `.dws` (a DWG, the extension AutoCAD gives its
 standards files) with the mappings kept in it, and Load reads them back for the layers of the drawing that are not mapped
-yet; the mappings are kept as an XRECORD `GH_LAYTRANS_MAP` of the file's named objects dictionary, which AutoCAD does not
+yet; the mappings are kept as an XRECORD `OPENCAD2D_LAYTRANS_MAP` of the file's named objects dictionary, which AutoCAD does not
 read (a `.dws` that AutoCAD writes loads as layers alone). **Settings…** has six switches, all on at first: Force object
 color, linetype and transparency to ByLayer (for the objects of the layers translated), Translate objects in blocks (off,
 the definitions of blocks are left as they are and a layer an object in a block is on is kept), Write transaction log and Show

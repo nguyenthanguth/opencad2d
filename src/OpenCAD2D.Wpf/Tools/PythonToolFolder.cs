@@ -58,7 +58,7 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>The line that refuses a lone <c>.py</c> file where a tool is wanted, and says how to make it one.</summary>
         /// <param name="path">The file.</param>
-        /// <returns>For <c>D:\x\GH-DrawingInfo.py</c>: <c>GH-DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\GH-DrawingInfo\ as __init__.py (see the Python guide).</c></returns>
+        /// <returns>For <c>D:\x\DrawingInfo.py</c>: <c>DrawingInfo.py is a lone Python file: a Python tool is a folder with requirements.txt. Put it in Pythons\DrawingInfo\ as __init__.py (see the Python guide).</c></returns>
         public static string LoneFileLine(string path)
         {
             string name = Path.GetFileName(path.Trim().Trim('"'));

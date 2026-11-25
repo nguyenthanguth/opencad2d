@@ -27,17 +27,17 @@ namespace OpenCAD2D.UnitTest
             document.Database.ModelSpace.AppendEntity(circle);
             line.CreateExtensionDictionary();
             DxfDBDictionary extension = line.ExtensionDictionary;
-            extension.SetAt("GH_PLAIN", new DxfXrecord { Data = new[] { V(1, "hello"), V(90, "7") } });
+            extension.SetAt("OC_PLAIN", new DxfXrecord { Data = new[] { V(1, "hello"), V(90, "7") } });
 
             // A pointer at the line itself, one at the circle (which is not copied with it) and one at the entry above.
             extension.SetAt(
-                "GH_POINTERS",
+                "OC_POINTERS",
                 new DxfXrecord { Data = new[] { V(330, line.Handle), V(340, circle.Handle), V(1, "points") } }
             );
             var inner = new DxfDBDictionary();
-            extension.SetAt("GH_SUB", inner);
-            inner.SetAt("GH_INNER", new DxfXrecord { Data = new[] { V(1, "inner") } });
-            inner.SetAt("GH_BACK", new DxfXrecord { Data = new[] { V(330, extension.GetAt("GH_PLAIN").Handle) } });
+            extension.SetAt("OC_SUB", inner);
+            inner.SetAt("OC_INNER", new DxfXrecord { Data = new[] { V(1, "inner") } });
+            inner.SetAt("OC_BACK", new DxfXrecord { Data = new[] { V(330, extension.GetAt("OC_PLAIN").Handle) } });
             return document;
         }
 
@@ -52,26 +52,26 @@ namespace OpenCAD2D.UnitTest
             Assert.NotEqual(original.Handle, extension.Handle);
             Assert.Equal(copy.Handle, extension.OwnerHandle);
             Assert.Empty(extension.GetPersistentReactorIds());
-            Assert.Equal(new[] { "GH_PLAIN", "GH_POINTERS", "GH_SUB" }, extension.Select(e => e.Key).ToArray());
+            Assert.Equal(new[] { "OC_PLAIN", "OC_POINTERS", "OC_SUB" }, extension.Select(e => e.Key).ToArray());
 
-            DxfDBObject plain = extension.GetAt("GH_PLAIN");
-            Assert.NotEqual(original.GetAt("GH_PLAIN").Handle, plain.Handle);
+            DxfDBObject plain = extension.GetAt("OC_PLAIN");
+            Assert.NotEqual(original.GetAt("OC_PLAIN").Handle, plain.Handle);
             Assert.Equal(extension.Handle, plain.OwnerHandle);
             Assert.Equal(new[] { "hello", "7" }, Data(plain).Select(g => g.Value.Trim()).ToArray());
 
             // The pointer at the line names the copy; the one at the circle, which was not copied, stays.
-            IReadOnlyList<DxfTypedValue> pointers = Data(extension.GetAt("GH_POINTERS"));
+            IReadOnlyList<DxfTypedValue> pointers = Data(extension.GetAt("OC_POINTERS"));
             Assert.Equal(copy.Handle, pointers[0].Value.Trim());
             Assert.Equal(circle.Handle, pointers[1].Value.Trim());
-            Assert.Equal(line.Handle, Data(original.GetAt("GH_POINTERS"))[0].Value.Trim());
+            Assert.Equal(line.Handle, Data(original.GetAt("OC_POINTERS"))[0].Value.Trim());
 
-            var inner = (DxfDBDictionary)extension.GetAt("GH_SUB");
+            var inner = (DxfDBDictionary)extension.GetAt("OC_SUB");
             Assert.Equal(extension.Handle, inner.OwnerHandle);
-            Assert.Equal(new[] { "GH_BACK", "GH_INNER" }, inner.Select(e => e.Key).OrderBy(k => k).ToArray());
-            Assert.Equal("inner", Data(inner.GetAt("GH_INNER"))[0].Value.Trim());
+            Assert.Equal(new[] { "OC_BACK", "OC_INNER" }, inner.Select(e => e.Key).OrderBy(k => k).ToArray());
+            Assert.Equal("inner", Data(inner.GetAt("OC_INNER"))[0].Value.Trim());
 
             // A pointer at a sibling entry names its copy.
-            Assert.Equal(plain.Handle, Data(inner.GetAt("GH_BACK"))[0].Value.Trim());
+            Assert.Equal(plain.Handle, Data(inner.GetAt("OC_BACK"))[0].Value.Trim());
         }
 
         [Fact]
@@ -152,7 +152,7 @@ namespace OpenCAD2D.UnitTest
             };
             document.Database.ModelSpace.AppendEntity(text);
             text.Annotative = DxfAnnotativeStates.True;
-            text.ExtensionDictionary.SetAt("GH_PLAIN", new DxfXrecord { Data = new[] { V(1, "kept") } });
+            text.ExtensionDictionary.SetAt("OC_PLAIN", new DxfXrecord { Data = new[] { V(1, "kept") } });
             var before = new HashSet<string>(All<DxfDBText>(document.ModelSpace).Select(e => e.Handle));
 
             Run(Session(document), "COPY", new[] { text.Handle }, Enter, P(0, 0), P(0, -100), Enter);
@@ -160,7 +160,7 @@ namespace OpenCAD2D.UnitTest
             DxfDBText copy = All<DxfDBText>(document.ModelSpace).Single(e => !before.Contains(e.Handle));
             DxfDBDictionary extension = copy.ExtensionDictionary;
             Assert.True(extension.Contains("AcDbContextDataManager"));
-            Assert.Equal("kept", Data(extension.GetAt("GH_PLAIN"))[0].Value.Trim());
+            Assert.Equal("kept", Data(extension.GetAt("OC_PLAIN"))[0].Value.Trim());
             Assert.Equal(copy.Handle, extension.OwnerHandle);
             AssertReopens(document);
         }

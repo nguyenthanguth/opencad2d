@@ -69,7 +69,7 @@
     <!--
     The sample Python tools, the folders Pythons\DrawingInfo and Pythons\HelloWorld beside the exe: a requirements.txt (empty), the
     __init__.py and the plugin.json of each. The app loads them at its start (no Python starts then), and their process starts at
-    the first GHPYINFO or PYHELLOWORLD.
+    the first PYINFO or PYHELLOWORLD.
   -->
     <ItemGroup>
         <None

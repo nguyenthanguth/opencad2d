@@ -35,7 +35,7 @@ the "Load at every start" list of the Plugin manager.
 Three folders here are sample C# source plugins that come with the app, each a .csproj and one .cs file:
 
   HelloWorld    its command HELLOWORLD writes "Hello, World!": the smallest plugin there can be.
-  DrawingInfo   its command GHDWGINFO writes the name, objects, layers, blocks and extents of the drawing.
+  DrawingInfo   its command CSINFO writes the name, objects, layers, blocks and extents of the drawing.
   Stairs        the example of the plugin guide; its command STAIRS writes "Steps: 18".
 
 The app compiles them at the first start after an install or an upgrade (1.1 to 1.3 s for the three)

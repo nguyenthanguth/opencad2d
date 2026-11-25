@@ -443,6 +443,7 @@ namespace OpenCAD2D.UnitTest
             DxfDatabase file = CadDrawingFile.Open(saved);
             Assert.Equal(3, file.LayerTable["WALL"].Color.ColorIndex);
             Assert.True(file.LinetypeTable.Has("DASHED"));
+            Assert.True(file.NamedObjectsDictionary.Contains("OPENCAD2D_LAYTRANS_MAP"));
 
             CadDocument other = CadDocument.From(ModernPlan(), "plan.dxf");
             CadLayerTranslatorRequest again = Request(other);

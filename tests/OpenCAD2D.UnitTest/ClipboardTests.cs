@@ -153,6 +153,7 @@ namespace OpenCAD2D.UnitTest
 
             CadClipboardData data = clipboard.GetData();
             Assert.Equal("NOTE", data.Text);
+            Assert.StartsWith("OpenCAD2D clipboard 1\n", data.ToFormat());
             CadClipboardData again = CadClipboardData.FromFormat(data.ToFormat(), data.Text);
             Assert.Equal(data.Drawing, again.Drawing);
             Assert.Equal(data.Source, again.Source);

@@ -10,8 +10,8 @@ using static OpenCAD2D.UnitTest.EditingDrawings;
 namespace OpenCAD2D.UnitTest
 {
     /// <summary>
-    /// The sample routine that ships in the Lisps folder, GH-DrawingInfo.lsp, as the build leaves it beside OpenCAD2D.Core.dll:
-    /// it defines GHINFO when a drawing opens and writes nothing, and GHINFO writes the drawing's name, units, current layer and
+    /// The sample routine that ships in the Lisps folder, DrawingInfo.lsp, as the build leaves it beside OpenCAD2D.Core.dll:
+    /// it defines LSPINFO when a drawing opens and writes nothing, and LSPINFO writes the drawing's name, units, current layer and
     /// text style, the objects of model space by type, the layers and blocks, and the extents. It changes nothing.
     /// </summary>
     public sealed class LispDrawingInfoSampleTests : IDisposable
@@ -47,26 +47,26 @@ namespace OpenCAD2D.UnitTest
         {
             string program = AppDomain.CurrentDomain.BaseDirectory;
 
-            Assert.True(File.Exists(Path.Combine(program, "Lisps", "GH-DrawingInfo.lsp")));
+            Assert.True(File.Exists(Path.Combine(program, "Lisps", "DrawingInfo.lsp")));
         }
 
         [Fact]
-        public void ANewDrawing_HasGhinfoDefined_AndNothingWasWrittenWhenTheFileLoaded()
+        public void ANewDrawing_HasLspinfoDefined_AndNothingWasWrittenWhenTheFileLoaded()
         {
             CadCommandSession session = Opened(Blank());
 
             Assert.Empty(session.History);
-            session.Feed("(boundp (quote c:ghinfo))");
+            session.Feed("(boundp (quote c:lspinfo))");
             Assert.Equal("T", session.History.Last().Trim());
         }
 
         [Fact]
-        public void Ghinfo_OnTwoCirclesAndALine_WritesTheNameUnitsLayerStyleObjectsLayersBlocksAndExtents()
+        public void Lspinfo_OnTwoCirclesAndALine_WritesTheNameUnitsLayerStyleObjectsLayersBlocksAndExtents()
         {
             CadDocument document = TwoCirclesAndALine();
             CadCommandSession session = Opened(document);
 
-            session.Feed("GHINFO");
+            session.Feed("LSPINFO");
 
             string[] lines = session.History.Skip(1).Select(l => l.TrimEnd()).Where(l => l.Length > 0).ToArray();
             Assert.StartsWith("Drawing: blank.dxf in ", lines[0]);
@@ -87,11 +87,11 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
-        public void Ghinfo_OnADrawingWithNothingInModelSpace_SaysZeroObjectsAndNoTypes()
+        public void Lspinfo_OnADrawingWithNothingInModelSpace_SaysZeroObjectsAndNoTypes()
         {
             CadCommandSession session = Opened(Blank());
 
-            session.Feed("GHINFO");
+            session.Feed("LSPINFO");
 
             string[] lines = session.History.Skip(1).Select(l => l.TrimEnd()).Where(l => l.Length > 0).ToArray();
             Assert.Equal("Model space: 0 objects", lines[3]);
