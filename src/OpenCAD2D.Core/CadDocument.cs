@@ -198,12 +198,23 @@ namespace OpenCAD2D
         internal double TextWidth(DxfDBText text) => _builder.WidthOf(text);
 
         /// <summary>Where a text's words start and their ink runs along its baseline from its point, as the display's fonts read them (<see cref="DisplayBuilder.InkOf"/>); false where they are not read.</summary>
-        internal bool TextInk(DxfDBText text, out double start, out double left, out double right) =>
-            _builder.InkOf(text, out start, out left, out right);
+        internal bool TextInk(DxfDBText text, out double start, out double left, out double right)
+        {
+            // An SHX font is measured in the document's fonts, as textbox is; a TrueType one by its own file.
+            using (_builder.IsInShx(text) ? new Lisp.LispActiveX.MeasuringScope(this) : null)
+            {
+                return _builder.InkOf(text, out start, out left, out right);
+            }
+        }
 
         /// <summary>How far below and above its baseline the ink of a text runs, as MIRROR measures it; false where the font's letters are not read.</summary>
-        internal bool TextInkHeight(DxfDBText text, out double bottom, out double top) =>
-            _builder.InkHeightOf(text, out bottom, out top);
+        internal bool TextInkHeight(DxfDBText text, out double bottom, out double top)
+        {
+            using (_builder.IsInShx(text) ? new Lisp.LispActiveX.MeasuringScope(this) : null)
+            {
+                return _builder.InkHeightOf(text, out bottom, out top);
+            }
+        }
 
         // The document that shows each drawing, which the grips and the pieces of an MTEXT ask its layout of: looked up only,
         // and weak, so that a drawing let go lets its document go.
