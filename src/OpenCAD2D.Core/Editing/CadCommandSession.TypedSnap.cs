@@ -224,7 +224,8 @@ namespace OpenCAD2D
                             best = found;
                             nearest = away;
                         }
-                    }
+                    },
+                    isTyped: true
                 );
             }
             catch (Exception exception)

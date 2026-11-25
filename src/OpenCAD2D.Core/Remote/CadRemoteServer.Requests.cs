@@ -57,7 +57,13 @@ namespace OpenCAD2D
 
                 // A request of a run holds up no other client and is held up by none: a question waits for the user, as long as
                 // they like, with no lock taken, and the rest are one dispatch each.
-                if (op == RemoteOps.Ask)
+                if (op == RemoteOps.ToolSetting || op == RemoteOps.SetToolSetting)
+                {
+                    // The settings of a tool are read and set without the dispatcher: a snap's finder or a command may ask while
+                    // the window's thread waits for it, or is busy.
+                    answer = ToolSettingRequest(op, request, token);
+                }
+                else if (op == RemoteOps.Ask)
                 {
                     answer = RunAsk(request, token);
                 }

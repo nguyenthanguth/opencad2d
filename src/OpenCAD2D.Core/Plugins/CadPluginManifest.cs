@@ -28,7 +28,9 @@ namespace OpenCAD2D.Plugins
     /// (<see cref="CommandEntries"/>); a Python tool, whose process the app starts only when a command is used, also declares
     /// what it adds to the ribbon: <c>"ribbon": [ { "id": "tools", "title": "Tools", "panels": [ { "title": "Draw", "buttons": [
     /// { "text": "Number", "command": "NUMCIRCLES", "icon": "number.png", "size": "large", "tooltip": "Numbers the circles" } ] } ] } ]</c>
-    /// (<see cref="Ribbon"/>).
+    /// (<see cref="Ribbon"/>), the object snaps it adds, <c>"snaps": [ { "keyword": "CTOP", "name": "Circle top", "entityTypes": [ "CIRCLE" ], "glyph": "quadrant", "onByDefault": true } ]</c>
+    /// (<see cref="Snaps"/>), and the settings the user may change, <c>"settings": [ { "name": "textHeight", "label": "Text height", "kind": "number", "default": 2.5, "minimum": 0.1, "maximum": 1000 } ]</c>
+    /// (<see cref="Settings"/>).
     /// </summary>
     public sealed class CadPluginManifest
     {
@@ -65,6 +67,8 @@ namespace OpenCAD2D.Plugins
             Commands = commands;
             CommandEntries = entries;
             Ribbon = RibbonOf(root.GetArray("ribbon"));
+            Snaps = SnapsOf(root.GetArray("snaps"));
+            Settings = SettingsOf(root.GetArray("settings"));
             Icon = string.IsNullOrWhiteSpace(data.Icon) ? null : data.Icon.Trim();
         }
 
@@ -94,6 +98,12 @@ namespace OpenCAD2D.Plugins
 
         /// <summary>Gets the tabs, panels and buttons the plugin declares for the ribbon, in the order written; none where it declares none.</summary>
         public IReadOnlyList<CadPluginRibbonTabEntry> Ribbon { get; }
+
+        /// <summary>Gets the object snaps a Python tool declares, in the order written; none where it declares none. A snap with no keyword or no name is passed over.</summary>
+        public IReadOnlyList<CadPluginSnapEntry> Snaps { get; }
+
+        /// <summary>Gets the settings a Python tool declares, in the order written; none where it declares none. A C# plugin's settings are declared in its code with <see cref="CadSettingAttribute"/>, and this list is ignored for it.</summary>
+        public IReadOnlyList<CadPluginSettingEntry> Settings { get; }
 
         /// <summary>Gets the path of the icon, relative to the manifest; null where not given.</summary>
         public string Icon { get; }
@@ -132,7 +142,7 @@ namespace OpenCAD2D.Plugins
         /// <param name="json">The text.</param>
         /// <returns>The manifest.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the text is null.</exception>
-        /// <exception cref="FormatException">Thrown when the text is not JSON, has no name, or has a minimum API version that is not a version.</exception>
+        /// <exception cref="FormatException">Thrown when the text is not JSON, has no name, has a minimum API version that is not a version, or has a snap's glyph or a setting that breaks a rule (the message says which).</exception>
         public static CadPluginManifest Parse(string json)
         {
             if (json == null)
@@ -218,6 +228,36 @@ namespace OpenCAD2D.Plugins
                     : declared.GetString("description").Trim(),
                 declared.GetBool("usesSelection")
             );
+        }
+
+        private static IReadOnlyList<CadPluginSnapEntry> SnapsOf(JsonArray declared)
+        {
+            var found = new List<CadPluginSnapEntry>();
+
+            foreach (object item in declared)
+            {
+                CadPluginSnapEntry entry = CadPluginSnapEntry.From(item);
+
+                if (entry != null)
+                {
+                    found.Add(entry);
+                }
+            }
+
+            return found;
+        }
+
+        private static IReadOnlyList<CadPluginSettingEntry> SettingsOf(JsonArray declared)
+        {
+            var found = new List<CadPluginSettingEntry>();
+            var names = new HashSet<string>(StringComparer.Ordinal);
+
+            for (int i = 0; i < declared.Count; i++)
+            {
+                found.Add(CadPluginSettingEntry.From(declared[i], i + 1, names));
+            }
+
+            return found;
         }
 
         private static IReadOnlyList<CadPluginRibbonTabEntry> RibbonOf(JsonArray tabs)

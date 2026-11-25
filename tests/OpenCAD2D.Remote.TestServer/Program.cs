@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using OpenCAD2D.Plugins;
 
 namespace OpenCAD2D.Remote.TestServer
 {
@@ -16,7 +17,9 @@ namespace OpenCAD2D.Remote.TestServer
     /// then work on it and not on the session's own console view), <c>tools</c> opens the private channel of the
     /// tools and answers <c>DONE &lt;pipe&gt; &lt;token&gt;</c> (a new token each time), <c>run &lt;NAME&gt; &lt;token&gt;</c> starts the run
     /// of a command of that name in the active drawing for the tool of that token and answers
-    /// <c>DONE &lt;run&gt; &lt;drawing&gt;</c>, <c>quit</c> stops it. It exits by itself
+    /// <c>DONE &lt;run&gt; &lt;drawing&gt;</c>, <c>toolsettings &lt;token&gt; &lt;JSON&gt;</c> gives the tool of that token the settings of a
+    /// plugin.json-shaped object (<c>{"name": "Circles", "settings": [ ... ]}</c>), kept in a settings store of the process, and
+    /// answers <c>DONE</c> (the tool then reads and sets them with <c>toolSetting</c> and <c>setToolSetting</c>), <c>quit</c> stops it. It exits by itself
     /// after <c>--minutes</c>, so a test run that died leaves nothing running.
     /// </summary>
     internal static class Program
@@ -45,11 +48,13 @@ namespace OpenCAD2D.Remote.TestServer
 
             Directory.CreateDirectory(folder);
             var host = new TestHost();
+            var settings = new GlobalSettings();
             var gate = new object();
             var server = (CadRemoteServer)
                 constructor.Invoke(new object[] { host, new InlineDispatcher(gate), folder, "pytest" });
             server.Start();
             CadRemoteServer tools = null;
+            var store = new CadPluginSettingStore(() => settings);
 
             // The timer ends the process from its own thread: the main one is waiting on the standard input.
             using (
@@ -80,8 +85,8 @@ namespace OpenCAD2D.Remote.TestServer
 
                     string rest = space < 0 ? "" : line.Substring(space + 1);
                     Console.Out.WriteLine(
-                        word == "tools" || word == "run"
-                            ? Tools(host, gate, ref tools, word, rest)
+                        word == "tools" || word == "run" || word == "toolsettings"
+                            ? Tools(host, gate, store, ref tools, word, rest)
                             : Answer(host, gate, word, rest)
                     );
                     Console.Out.Flush();
@@ -97,7 +102,14 @@ namespace OpenCAD2D.Remote.TestServer
         /// Opens the tools channel on the first call and gives a token (<c>tools</c>), or starts the run of a command for the tool of
         /// a token in the active drawing (<c>run NAME TOKEN</c>), and gives the line to answer with.
         /// </summary>
-        private static string Tools(TestHost host, object gate, ref CadRemoteServer tools, string word, string rest)
+        private static string Tools(
+            TestHost host,
+            object gate,
+            CadPluginSettingStore store,
+            ref CadRemoteServer tools,
+            string word,
+            string rest
+        )
         {
             try
             {
@@ -112,6 +124,24 @@ namespace OpenCAD2D.Remote.TestServer
                     if (word == "tools")
                     {
                         return "DONE " + tools.PipeName + " " + tools.IssueToken();
+                    }
+
+                    if (word == "toolsettings")
+                    {
+                        int at = rest.IndexOf(' ');
+
+                        if (at <= 0)
+                        {
+                            return "ERROR toolsettings needs a token and the JSON of a plugin.json";
+                        }
+
+                        CadPluginManifest manifest = CadPluginManifest.Parse(rest.Substring(at + 1));
+                        tools.SetToolSettings(
+                            rest.Substring(0, at),
+                            manifest.Name,
+                            store.Declare(manifest.Name, manifest.Settings)
+                        );
+                        return "DONE";
                     }
 
                     string[] parts = rest.Split(' ');

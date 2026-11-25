@@ -7,6 +7,7 @@ using System.Text;
 using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.Plugins;
 using OpenCAD2D.Remote;
 
 namespace OpenCAD2D
@@ -27,6 +28,7 @@ namespace OpenCAD2D
 
         private readonly bool _forTools;
         private readonly List<string> _tokens = new List<string>();
+        private readonly List<ToolSettings> _toolSettings = new List<ToolSettings>();
 
         // The runs, touched only on the dispatcher's thread.
         private readonly Dictionary<int, CadRemoteToolRun> _runs = new Dictionary<int, CadRemoteToolRun>();
@@ -93,7 +95,114 @@ namespace OpenCAD2D
             lock (_gate)
             {
                 _tokens.RemoveAll(t => SameToken(t, token));
+                _toolSettings.RemoveAll(t => SameToken(t.Token, token));
             }
+        }
+
+        /// <summary>The settings a tool declares, and the name of the tool as the Load/Unload Applications window shows it.</summary>
+        private sealed class ToolSettings
+        {
+            public string Token;
+            public string Plugin;
+            public IReadOnlyList<CadPluginSetting> Settings;
+        }
+
+        /// <summary>
+        /// Tells the server which settings the tool of a token declares, so that <c>toolSetting</c> and <c>setToolSetting</c> of
+        /// its connections read and set them, a value set kept by the settings store the settings are made over. A second call
+        /// for a token replaces the first; <see cref="RevokeToken"/> forgets them.
+        /// </summary>
+        /// <param name="token">The token of the tool process.</param>
+        /// <param name="pluginName">The tool's name, as the refusal of an unknown setting says it: <c>The tool Circles declares no setting textHeight.</c></param>
+        /// <param name="settings">The settings, none for a tool that declares none.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the token or the name is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown on the app's own server, which has no tools.</exception>
+        internal void SetToolSettings(string token, string pluginName, IReadOnlyList<CadPluginSetting> settings)
+        {
+            if (!_forTools)
+            {
+                throw new InvalidOperationException("Only the server of the tools has tool settings.");
+            }
+
+            if (token == null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
+            lock (_gate)
+            {
+                _toolSettings.RemoveAll(t => SameToken(t.Token, token));
+                _toolSettings.Add(
+                    new ToolSettings
+                    {
+                        Token = token,
+                        Plugin = pluginName ?? throw new ArgumentNullException(nameof(pluginName)),
+                        Settings = settings ?? Array.Empty<CadPluginSetting>(),
+                    }
+                );
+            }
+        }
+
+        /// <summary>
+        /// Reads or sets a setting of the tool whose token the connection carries. Answered on the connection's own thread, with no
+        /// dispatch and no lock of the requests: the store the settings are made over has a lock of its own.
+        /// </summary>
+        private JsonObject ToolSettingRequest(string op, JsonObject request, string token)
+        {
+            if (!_forTools)
+            {
+                throw new Refusal(op + " works on the channel of the tools only.");
+            }
+
+            ToolSettings tool = null;
+
+            lock (_gate)
+            {
+                foreach (ToolSettings known in _toolSettings)
+                {
+                    if (SameToken(known.Token, token))
+                    {
+                        tool = known;
+                    }
+                }
+            }
+
+            string name = request.GetString("name") ?? string.Empty;
+            CadPluginSetting setting = null;
+
+            foreach (CadPluginSetting declared in tool?.Settings ?? Array.Empty<CadPluginSetting>())
+            {
+                if (string.Equals(declared.Name, name, StringComparison.Ordinal))
+                {
+                    setting = declared;
+                }
+            }
+
+            if (setting == null)
+            {
+                throw new Refusal(
+                    (tool == null ? "This tool" : "The tool " + tool.Plugin) + " declares no setting " + name + "."
+                );
+            }
+
+            if (op == RemoteOps.SetToolSetting)
+            {
+                try
+                {
+                    setting.Value = request.Get("value");
+                }
+                catch (ArgumentException refusal)
+                {
+                    throw new Refusal(CadPluginSetting.WordsOf(refusal));
+                }
+
+                return new JsonObject();
+            }
+
+            object value = setting.Value;
+            return new JsonObject()
+                .Set("value", value is int whole ? (long)whole : value)
+                .Set("kind", setting.Kind.ToString().ToLowerInvariant());
         }
 
         private bool HasToken(string token)

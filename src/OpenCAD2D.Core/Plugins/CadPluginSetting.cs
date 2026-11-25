@@ -33,6 +33,8 @@ namespace OpenCAD2D.Plugins
     {
         private readonly PropertyInfo _property;
         private readonly object _target;
+        private readonly Func<object> _get;
+        private readonly Action<object> _set;
 
         internal CadPluginSetting(
             PropertyInfo property,
@@ -51,6 +53,24 @@ namespace OpenCAD2D.Plugins
             Maximum = attribute.Maximum;
             Choices = kind == CadSettingKind.Choice ? Enum.GetNames(property.PropertyType) : Array.Empty<string>();
             Default = Value;
+        }
+
+        /// <summary>
+        /// A setting a Python tool declares in its plugin.json, held by the settings store: its value is read through
+        /// <paramref name="get"/> and, once converted and checked as a property's is, written through <paramref name="set"/>.
+        /// </summary>
+        internal CadPluginSetting(CadPluginSettingEntry entry, Func<object> get, Action<object> set)
+        {
+            Name = entry.Name;
+            Label = entry.Label;
+            Description = entry.Description;
+            Kind = entry.Kind;
+            Default = entry.Default;
+            Minimum = entry.Minimum;
+            Maximum = entry.Maximum;
+            Choices = entry.Choices;
+            _get = get;
+            _set = set;
         }
 
         /// <summary>Gets the name of the property: TextHeight.</summary>
@@ -88,11 +108,31 @@ namespace OpenCAD2D.Plugins
         {
             get
             {
+                if (_get != null)
+                {
+                    return _get();
+                }
+
                 object value = _property.GetValue(_target, null);
                 return Kind == CadSettingKind.Choice ? value?.ToString() : value;
             }
-            set => _property.SetValue(_target, Convert(value), null);
+            set
+            {
+                object converted = Convert(value);
+
+                if (_set != null)
+                {
+                    _set(converted);
+                }
+                else
+                {
+                    _property.SetValue(_target, converted, null);
+                }
+            }
         }
+
+        /// <summary>Whether the setting is one a tool declares, whose value the settings store holds, rather than a property of a plugin's class.</summary>
+        internal bool IsDeclared => _get != null;
 
         /// <inheritdoc/>
         public override string ToString() =>
@@ -124,7 +164,11 @@ namespace OpenCAD2D.Plugins
             return type.IsEnum ? CadSettingKind.Choice : (CadSettingKind?)null;
         }
 
-        private object Convert(object value)
+        /// <summary>
+        /// The value as the setting holds it, converted and checked as <see cref="Value"/> does on being set, without setting it:
+        /// a <c>double</c>, an <c>int</c>, a <c>bool</c>, a <c>string</c> or, for a property's choice, the enumeration's value.
+        /// </summary>
+        internal object Convert(object value)
         {
             if (value == null)
             {
@@ -176,7 +220,7 @@ namespace OpenCAD2D.Plugins
                     {
                         if (string.Equals(choice, name, StringComparison.OrdinalIgnoreCase))
                         {
-                            return Enum.Parse(_property.PropertyType, choice);
+                            return _property == null ? choice : Enum.Parse(_property.PropertyType, choice);
                         }
                     }
 
@@ -222,6 +266,24 @@ namespace OpenCAD2D.Plugins
             }
 
             return number;
+        }
+
+        /// <summary>
+        /// The words a refusal of <see cref="Value"/> holds, "The setting Text height lies from 0.1 to 1000.", without the
+        /// parameter name and the actual value the framework appends to an argument exception's message.
+        /// </summary>
+        internal static string WordsOf(ArgumentException refusal)
+        {
+            string words = refusal.Message;
+            int end = words.IndexOfAny(new[] { '\r', '\n' });
+
+            if (end >= 0)
+            {
+                words = words.Substring(0, end);
+            }
+
+            end = words.IndexOf(" (Parameter '", StringComparison.Ordinal);
+            return end >= 0 ? words.Substring(0, end) : words;
         }
 
         private static string Text(object value) => System.Convert.ToString(value, CultureInfo.InvariantCulture);

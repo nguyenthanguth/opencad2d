@@ -107,6 +107,7 @@ namespace OpenCAD2D
             StringComparer.OrdinalIgnoreCase
         );
         private List<string> _pluginSnaps = new List<string>();
+        private List<string> _pluginSettings = new List<string>();
         private string _appLoadFolder = string.Empty;
         private double _revcloudMinimumArcLength;
         private double _revcloudMaximumArcLength;
@@ -372,6 +373,20 @@ namespace OpenCAD2D
         {
             get => _pluginSnaps;
             set => _pluginSnaps = value ?? new List<string>();
+        }
+
+        /// <summary>
+        /// Gets or sets the values the user gave to the settings plugins declare, one entry per setting as
+        /// <c>Circles/textHeight=2.5</c>: the plugin's name as the Load/Unload Applications window shows it, a slash, the
+        /// setting's name, an equals sign and the value in the invariant culture (<c>True</c> or <c>False</c> for a yes or no,
+        /// the name of a choice). A setting set to its default has no entry, and entries of plugins not loaded are kept, so
+        /// that the values are there when the plugin is loaded again. Empty by default; null sets an empty list. Saved in the
+        /// settings file.
+        /// </summary>
+        public List<string> PluginSettings
+        {
+            get => _pluginSettings;
+            set => _pluginSettings = value ?? new List<string>();
         }
 
         /// <summary>Gets or sets how near the cursor a snap is taken, in pixels, 2 to 50: 10 by default, as AutoCAD's APERTURE.</summary>
@@ -1138,6 +1153,7 @@ namespace OpenCAD2D
             copy._knownApplications = Copy(_knownApplications);
             copy._alwaysLoaded = new List<string>(_alwaysLoaded);
             copy._pluginSnaps = new List<string>(_pluginSnaps);
+            copy._pluginSettings = new List<string>(_pluginSettings);
             copy._fontSubstitutions = Copy(_fontSubstitutions);
             copy._lispEnvironment = Copy(_lispEnvironment);
             copy._aliases = Copy(_aliases);
@@ -1266,6 +1282,14 @@ namespace OpenCAD2D
             w.OpenList("pluginSnaps");
 
             foreach (string entry in _pluginSnaps)
+            {
+                w.Value(null, entry);
+            }
+
+            w.CloseList();
+            w.OpenList("pluginSettings");
+
+            foreach (string entry in _pluginSettings)
             {
                 w.Value(null, entry);
             }
@@ -1569,6 +1593,7 @@ namespace OpenCAD2D
                 Number("canvas", "shortcutMenu", v => _s.ShortcutMenu = Whole(v));
                 Text("canvas", "snaps", v => _s.Snaps = Snaps(v));
                 Take("canvas", "pluginSnaps", e => _s.PluginSnaps = e.Elements().Select(f => f.Value).ToList());
+                Take("canvas", "pluginSettings", e => _s.PluginSettings = e.Elements().Select(f => f.Value).ToList());
                 Number("canvas", "aperturePixels", v => _s.AperturePixels = Whole(v));
                 Number("canvas", "polarAngle", v => _s.PolarAngle = v);
                 Number("canvas", "polarMode", v => _s.PolarMode = Whole(v));

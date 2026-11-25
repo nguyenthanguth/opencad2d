@@ -91,6 +91,18 @@ namespace OpenCAD2D.Remote
         /// </summary>
         public const string Feed = "feed";
 
+        /// <summary>
+        /// Reads a setting the tool declares in its plugin.json (<c>name</c>): the answer holds its <c>value</c> and its <c>kind</c>.
+        /// Only on the channel of the tools, answered without waiting for the app's window thread.
+        /// </summary>
+        public const string ToolSetting = "toolSetting";
+
+        /// <summary>
+        /// Sets a setting the tool declares in its plugin.json (<c>name</c>, <c>value</c>); the app keeps it in the settings file.
+        /// Only on the channel of the tools, answered without waiting for the app's window thread.
+        /// </summary>
+        public const string SetToolSetting = "setToolSetting";
+
         /// <summary>Writes a line on the command line of the drawing a run works in.</summary>
         public const string Write = "write";
 

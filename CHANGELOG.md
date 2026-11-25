@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **NEW.** `CadPluginManifest.Snaps` and `Settings`: a Python tool declares object snaps and settings in `plugin.json`,
+  read without running it (PW3).
+- **NEW.** `GlobalSettings.PluginSettings` (`pluginSettings` in the settings file): the values of plugin settings, one
+  entry per setting, as `Circles/textHeight=2.5`.
+- **NEW.** `CadApplication.GetToolSetting` and `SetToolSetting`: a tool reads and sets its settings over the channel of
+  the tools, answered with no wait for the window.
 - **FIXED.** The Layer box of Home › Layers and the Color, Linetype and Lineweight boxes of Home › Properties follow the
   selection as AutoCAD 2021's do. With nothing selected they show, and a pick sets, the current layer and CECOLOR, CELTYPE
   and CELWEIGHT, as before. With one object selected, or several that agree, they show that object's layer, colour,
