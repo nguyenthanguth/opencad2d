@@ -143,6 +143,7 @@ namespace OpenCAD2D
             Document = document ?? throw new ArgumentNullException(nameof(document));
             Registry = registry ?? CadCommandRegistry.CreateDefault();
             Editor = new CadEditor(this);
+            Documents = new CadDocuments(null, document);
         }
 
         /// <summary>Raised when the prompt changes: a command started, a prompt answered, a command ended.</summary>
@@ -168,6 +169,13 @@ namespace OpenCAD2D
         /// plugin, a program driving the app through Remote, or a Python script uses them. Made once, with the session.
         /// </summary>
         public CadEditor Editor { get; }
+
+        /// <summary>
+        /// Gets the drawings open in the app, as AutoCAD's <c>DocumentManager</c> lists them: listed, opened, made, shown and
+        /// closed. The window gives its sessions the drawings of the window; a session with no window lists its own drawing
+        /// alone and refuses the calls that change what is open (see <see cref="CadDocuments.HasWindow"/>).
+        /// </summary>
+        public CadDocuments Documents { get; internal set; }
 
         /// <summary>Gets the commands it knows.</summary>
         public CadCommandRegistry Registry { get; }

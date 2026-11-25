@@ -398,22 +398,12 @@ namespace OpenCAD2D
         /// </summary>
         private JsonObject Close(CadDocument document, bool discard)
         {
-            if (document.IsModified && !discard)
-            {
-                throw new Refusal(document.Title + " has changes not saved: save it, or close it with discard.");
-            }
+            // The words are the ones a plugin's CadDocuments.Close is refused with.
+            string refusal = CadDocuments.CloseRefusal(document, _host.SessionOf(document), discard);
 
-            CadCommandSession session = _host.SessionOf(document);
-
-            if (document.IsInGroup || (session != null && (session.IsRunning || session.IsLispWaiting)))
+            if (refusal != null)
             {
-                throw new Refusal(
-                    "The drawing "
-                        + document.Title
-                        + " is busy with the command "
-                        + (session?.Current?.Name ?? "running in it")
-                        + ": end it, then close the drawing again."
-                );
+                throw new Refusal(refusal);
             }
 
             _host.Close(document);

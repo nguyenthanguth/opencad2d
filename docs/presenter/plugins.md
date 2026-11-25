@@ -138,11 +138,11 @@ A command is a name or an object, `{ "name": "NUMCIRCLES", "alias": "NC", "descr
 what a [Python tool](python.md#pluginjson) declares for the window; a C# plugin adds to the window in code, as
 [below](#what-a-plugin-adds-to-the-window).
 [`CadPluginManifest.Parse(json)`](xref:OpenCAD2D.Plugins.CadPluginManifest) reads it, and `Refusal()` says
-why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.3
-(`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.3: it needs a
+why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.4
+(`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.4: it needs a
 newer presenter.` A plugin that adds to the window, as [below](#what-a-plugin-adds-to-the-window), states 1.1; one that
 uses slide-outs, dialog launchers, macro buttons or `CadSnapRequest.BlockReferences` states 1.2; one that uses the
-[editor](#the-editor-the-view-selection-and-variables) states 1.3.
+[editor](#the-editor-the-view-selection-and-variables) states 1.3; one that uses the [open drawings](#the-open-drawings-open-add-show-and-close) states 1.4.
 
 A plugin targets netstandard2.0 and references `OpenCAD2D` only, without copying it: the presenter gives a
 plugin its own, so that the `CadCommandContext` it is handed is of the type it was built against.
@@ -674,6 +674,53 @@ public IEnumerable<CadPrompt> ZoomToPlan(CadCommandContext c)
   throw `ArgumentException`.
 - **The window** shows a view the editor moved at once, and a new canvas size no longer refits it, as it does not one moved by
   a typed ZOOM.
+
+## The open drawings: open, add, show and close
+
+A plugin reaches the drawings open in the app the way an AutoCAD plugin reaches `Application.DocumentManager`:
+`context.Documents` in a callback (`CadPluginContext.Documents`), `c.Documents` in a command (`CadCommandContext.Documents`)
+and `session.Documents` for a `CadCommandSession` of your own. It is a [`CadDocuments`](xref:OpenCAD2D.CadDocuments), one
+object for the whole window. It is the drawings of the window and not of one drawing, so it is on the context and not on the
+[editor](#the-editor-the-view-selection-and-variables), which is the one drawing's, as AutoCAD's `Editor` is. A plugin that
+uses it states `[assembly: CadPluginApi("1.4")]`. Each call does what the user's action does, through the window's own code,
+and what a Remote call does:
+
+| AutoCAD | `CadDocuments` | What it does |
+|---|---|---|
+| `DocumentCollection.Count`, the indexer, `foreach` | `Count`, `this[int]`, `foreach` | the drawings open, ordered by file name (a drawing with no file by its name), as Remote lists them |
+| `MdiActiveDocument` | `Active` (get, set) | the drawing shown, null with none; set, the drawing is shown as a click on its row of the DRAWINGS list shows it |
+| `Open(path, false)` | `Open(string path)` | File > Open; a file open already is shown, not read twice; a file that cannot be read throws with what the command line said |
+| `Add(template)` | `Add(string template = null)` | QNEW: Drawing1.dwg and then on, from the template given, or the app's own (the one Global settings name for QNEW, else the metric template) |
+| `Document.CloseAndDiscard()` | `CloseAndDiscard(CadDocument)` | closes without saving and without asking, as the x of a row does once the question is answered Don't save |
+| `Document.CloseAndSave(path)` | `CloseAndSave(CadDocument)` | saves to the drawing's file as Ctrl+S does, then closes; a drawing with no file yet is refused |
+| (none: AutoCAD asks) | `Close(CadDocument)` | closes a drawing that has no changes unsaved; one that has is refused |
+
+```csharp
+// in a plugin that states [assembly: CadPluginApi("1.4")], a ribbon button's callback: show the drawing named plan.dxf, opened where it is not open yet
+void ShowPlan(CadPluginContext context)
+{
+    CadDocument plan = context.Documents.FirstOrDefault(d => d.Title == "plan.dxf")
+        ?? context.Documents.Open(@"C:\Projects\plan.dxf");
+    context.Documents.Active = plan;
+}
+```
+
+- **Refusals.** A call that is refused throws `InvalidOperationException` and changes nothing. A drawing with changes not
+  saved is refused by `Close` with the words Remote's close uses, `A-101.dxf has changes not saved: save it, or close it
+  with discard.`; a drawing a command runs in (or a routine waits for the user in) is refused by every close, `The drawing
+  A-101.dxf is busy with the command LINE: end it, then close the drawing again.`, and `CloseAndSave` saves nothing then.
+  A drawing that is not open, or null, throws `ArgumentException` or `ArgumentNullException`.
+- **A command running.** Showing another drawing ends the command running in the one shown, as it does when the user clicks
+  another row. `Open`, `Add` and setting `Active` to another drawing are refused while a command runs there, so that a
+  plugin's command is not ended under its own body: `Cannot open a drawing. The drawing A-101.dxf is busy with the command
+  NUMCIRCLES: end it, then open the drawing again.` They belong to a button's, a menu item's or a DRAWINGS row's callback,
+  where no command runs. A command may read the list and close another drawing, and cannot close its own.
+- **After a call** that shows another drawing or closes the one shown, `context.Document` is still the drawing it was made
+  for: read `context.Documents.Active`, or ask for a new context in the next callback.
+- **No window.** In a session with no window (a test of your plugin) `HasWindow` is false: the list is the session's own
+  drawing and it is the active one, and `Open`, `Add`, `Active =` and the closes throw `InvalidOperationException`:
+  `Cannot open a drawing: this session has no OpenCAD2D window, which holds the open drawings.`
+- **Thread.** Call it on the window's thread, as every callback of a plugin is run.
 
 ## See also
 

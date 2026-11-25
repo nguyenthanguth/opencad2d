@@ -296,7 +296,8 @@ namespace OpenCAD2D.Wpf
                 IsCommandRunning,
                 Say,
                 StartPluginCommand,
-                document == null ? null : _current?.Session?.Editor
+                document == null ? null : _current?.Session?.Editor,
+                PluginDocuments
             );
 
         /// <summary>The handles of the objects selected that the drawing has, in ordinal order.</summary>
