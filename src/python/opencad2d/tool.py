@@ -3,7 +3,7 @@
 A tool is a folder with an ``__init__.py`` that defines commands with ``@command``. Where the first argument is a ``.py`` file
 instead of a folder, the process runs that file once as ``python file.py`` does, in the run the app began for PYRUN, and ends. The app starts this module in a
 ``python.exe`` of the tool's own, with the two ends of an anonymous pipe pair given as handles: the app writes lines of JSON
-on the first (``run``, ``cancel``, ``unload``) and the tool answers on the second (``ready``, ``ended``). Where the tool
+on the first (``run``, ``cancel``, ``snap``, ``unload``) and the tool answers on the second (``ready``, ``ended``, ``snapped``). Where the tool
 drives the app, it does so on the private channel of the tools (``OPENCAD2D_TOOL_PIPE`` and ``OPENCAD2D_TOOL_TOKEN``), through
 the functions of ``opencad2d.cad``, which are requests of the run the app began for the command.
 
@@ -210,10 +210,18 @@ def main(argv: list[str]) -> int:
         problem = None
     else:
         problem = _import_tool(folder)
-    control.send({"op": "ready", "pid": os.getpid(), "commands": [command.name for command in runtime.commands]})
+    control.send(
+        {
+            "op": "ready",
+            "pid": os.getpid(),
+            "commands": [command.name for command in runtime.commands],
+            "snaps": list(runtime.snaps),
+        }
+    )
 
     interrupt = _Interrupt()
     work: queue.Queue[dict[str, Any] | None] = queue.Queue()
+    questions: queue.Queue[dict[str, Any] | None] = queue.Queue()
 
     def listen() -> None:
         while True:
@@ -226,12 +234,27 @@ def main(argv: list[str]) -> int:
             op = message.get("op")
             if op == "cancel":
                 interrupt.cancel(int(message["run"]))
+            elif op == "snap":
+                questions.put(message)
             elif op == "unload":
+                questions.put(None)
                 work.put(None)
                 return
             else:
                 work.put(message)
 
+    def answer_snaps() -> None:
+        """Answers the snap questions in the order they came, on a thread of this tool's own, never the main thread or the
+        control listener: a finder may take as long as it likes and the listener must stay free for ``cancel``."""
+        _tool.finder_thread()
+        while True:
+            question = questions.get()
+            if question is None:
+                return
+            answers = _tool.answer_snap(runtime.snaps, question)
+            control.send({"op": "snapped", "id": question["id"], "answers": answers})
+
+    threading.Thread(target=answer_snaps, name="opencad2d.tool snaps", daemon=True).start()
     threading.Thread(target=listen, name="opencad2d.tool control", daemon=True).start()
     while True:
         try:

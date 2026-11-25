@@ -1,7 +1,7 @@
 """E0: no example without a row, a page section and a test, and every example in the shape D1002 gives (P5 D1001,
 D1002, D1007, D1008).
 
-The set of ``.py`` files under ``src/python/examples`` is the thirteen of D1002, three folders; a Python tool of
+The set of ``.py`` files under ``src/python/examples`` is the fourteen of D1002 and PW3 (the thirteen and the tool ``circle_marks``), three folders; a Python tool of
 ``tools`` is a folder (a ``requirements.txt``, an ``__init__.py`` and a ``plugin.json``), the example being its
 ``__init__.py``. The set equals the examples the README of the folder names in its table, equals the files the guide page
 ``python-examples.md`` includes with ``[!code-python[...](...)]``, and each example's name is in at least one test file.
@@ -29,7 +29,7 @@ EXPECTED = {
         "regions.py",
         "solids.py",
     ],
-    "tools": ["drawing_tools", "number_points", "selection_lengths"],
+    "tools": ["circle_marks", "drawing_tools", "number_points", "selection_lengths"],
     "remote": ["draw_and_read.py", "open_documents.py", "pick_and_mark.py"],
 }
 ON_DISK = sorted(EXAMPLES.rglob("*.py"))
@@ -58,7 +58,7 @@ def _function(tree: ast.Module, name: str) -> ast.FunctionDef | None:
     return next((n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name), None)
 
 
-def test_the_examples_are_the_thirteen_of_the_spec_each_in_its_place() -> None:
+def test_the_examples_are_the_fourteen_of_the_spec_each_in_its_place() -> None:
     assert [p.relative_to(EXAMPLES).as_posix() for p in ON_DISK] == [
         p.relative_to(EXAMPLES).as_posix() for p in _expected_paths()
     ]
@@ -145,9 +145,9 @@ def test_a_library_example_has_main_of_argv_and_ends_with_the_exit_guard(name: s
 @pytest.mark.parametrize(
     ("name", "arguments", "returns"),
     [
-        ("draw_and_read.py", ["app", "out"], "None"),
-        ("pick_and_mark.py", ["app"], "int"),
-        ("open_documents.py", ["app"], "None"),
+        ("draw_and_read.py", ["cad", "out"], "None"),
+        ("pick_and_mark.py", ["cad"], "int"),
+        ("open_documents.py", ["cad"], "None"),
     ],
 )
 def test_a_remote_example_has_a_main_that_takes_the_connection_and_a_guard_that_connects(
@@ -158,7 +158,7 @@ def test_a_remote_example_has_a_main_that_takes_the_connection_and_a_guard_that_
     main = _function(tree, "main")
     assert main is not None
     assert [a.arg for a in main.args.args] == arguments
-    assert ast.unparse(main.args.args[0].annotation) == "CadApplication"
+    assert ast.unparse(main.args.args[0].annotation) == "App"
     assert ast.unparse(main.returns) == returns
     guards = [
         n
@@ -166,7 +166,7 @@ def test_a_remote_example_has_a_main_that_takes_the_connection_and_a_guard_that_
         if isinstance(n, ast.If) and ast.unparse(n.test) in ("__name__ == '__main__'", '__name__ == "__main__"')
     ]
     assert len(guards) == 1
-    assert "with CadApplication() as app:" in ast.unparse(guards[0])
+    assert "with connect() as cad:" in ast.unparse(guards[0])
 
 
 def test_the_pick_example_has_its_time_limit_at_module_level() -> None:

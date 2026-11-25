@@ -564,7 +564,7 @@ the block, also when it raises. A tool of the app uses `opencad2d.cad`, whose `c
 | Page | What it covers |
 |---|---|
 | [How do I](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
-| [Python examples](python-examples.md) | thirteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
+| [Python examples](python-examples.md) | fourteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
 | [Python API](../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
 | [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md), [Reading and writing DWG files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) | the drawing, its tables and entities, read and written |
 | [The 2D presenter](presenter/index.md), [Editing as AutoCAD does](presenter/editing.md) | `CadDocument`, its command session and undo |

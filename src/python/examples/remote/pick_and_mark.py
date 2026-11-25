@@ -9,14 +9,13 @@ import sys
 
 from System import TimeSpan
 
-from opencad2d.cad import App
-from OpenCAD2D.Remote import CadApplication, CadRemoteException
+from opencad2d.cad import App, connect
+from OpenCAD2D.Remote import CadRemoteException
 
 PICK_TIMEOUT = TimeSpan.FromSeconds(60)  # a pick with no time limit would wait for ever, and Ctrl+C cannot end it
 
 
-def main(app: CadApplication) -> int:
-    cad = App(app)  # the Drawing API over the connection, as connect() gives it
+def main(cad: App) -> int:
     drawing = cad.active_drawing
     if drawing is None:  # the app has no drawing open
         drawing = cad.new()
@@ -36,5 +35,5 @@ def main(app: CadApplication) -> int:
 
 
 if __name__ == "__main__":
-    with CadApplication() as app:
-        sys.exit(main(app))
+    with connect() as cad:
+        sys.exit(main(cad))

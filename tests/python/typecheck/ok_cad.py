@@ -46,3 +46,24 @@ try:
     cad.get_point()
 except Cancelled:
     pass
+
+
+@cad.snap("CTOP")
+def circle_top(request: cad.SnapRequest) -> list[GeoPoint2]:
+    centre: GeoPoint2 = GeoPoint2(0, 0)
+    handle: str = request.handle
+    blocks: tuple[str, ...] = request.block_references
+    if blocks or not handle:
+        return []
+    return [centre]
+
+
+@cad.snap("MIDS")
+def midpoints(request: cad.SnapRequest) -> list[tuple[float, float]] | None:
+    return None
+
+
+text_height: float | int | bool | str | None = cad.setting("textHeight")
+cad.set_setting("textHeight", 2.5)
+cad.set_setting("marks", True)
+cad.set_setting("title", None)
