@@ -79,6 +79,8 @@ namespace OpenCAD2D.Wpf
             .Concat(Enumerable.Range(0, 10).Select(i => (i * 10).ToString(CultureInfo.InvariantCulture)))
             .ToList();
 
+        private CadSharedGeneral _selectedGeneral;
+        private bool _selectedGeneralKnown;
         private DelegateCommand _findTextCommand;
         private string _findWhatNext;
         private string _findText = string.Empty;
@@ -87,9 +89,10 @@ namespace OpenCAD2D.Wpf
         public IReadOnlyList<LineweightItemViewModel> LineweightItems => LineweightChoices;
 
         /// <summary>
-        /// Gets or sets the lineweight of new objects, the drawing's CELWEIGHT, as the Lineweight box of Properties shows it:
-        /// ByLayer, ByBlock, Default or a width as "0.25 mm"; empty with no drawing open. Setting one sets CELWEIGHT as one undo
-        /// step, and a name that is none of these is refused on the command line.
+        /// Gets or sets the lineweight the Lineweight box of Properties shows, as ByLayer, ByBlock, Default or a width as
+        /// "0.25 mm": with nothing selected the lineweight of new objects, the drawing's CELWEIGHT; with objects selected theirs,
+        /// blank (null) where they differ. Empty with no drawing open. Setting one sets CELWEIGHT, or sets the selected objects', as one
+        /// undo step, and a name that is none of these is refused on the command line.
         /// </summary>
         public string CurrentLineweight
         {
@@ -98,6 +101,11 @@ namespace OpenCAD2D.Wpf
                 if (_current == null)
                 {
                     return string.Empty;
+                }
+
+                if (SelectedGeneral() is CadSharedGeneral shared)
+                {
+                    return Shown(shared.Lineweight);
                 }
 
                 DxfLineWeight weight = _current.Document.Database.Celweight;
@@ -113,7 +121,7 @@ namespace OpenCAD2D.Wpf
                     return;
                 }
 
-                SayRefused(CadPropertyEditor.Set(_current.Document, null, "Lineweight", value));
+                SayRefused(CadPropertyEditor.Set(_current.Document, SelectedHandles(), "Lineweight", value));
                 RaiseRibbonBoxes();
             }
         }
@@ -256,6 +264,54 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(ImageFrameOption));
             Raise(nameof(SnapToUnderlaysLabel));
             Raise(nameof(SnapToUnderlaysOption));
+        }
+
+        /// <summary>
+        /// What the selected objects share of layer, colour, linetype and lineweight, which the combos of Home show in place of
+        /// the drawing's current settings; null with none selected. It is read once and kept until the selection or the drawing
+        /// changes, as the four combos and the swatch read it in turn.
+        /// </summary>
+        private CadSharedGeneral SelectedGeneral()
+        {
+            if (!_selectedGeneralKnown)
+            {
+                List<string> handles = SelectedHandles();
+                _selectedGeneral = handles == null ? null : CadProperties.SharedGeneral(_current.Document, handles);
+                _selectedGeneralKnown = true;
+            }
+
+            return _selectedGeneral;
+        }
+
+        /// <summary>The handles of the objects selected in the drawing shown, in order of their names; null with none, which the editor reads as the drawing's current settings.</summary>
+        private List<string> SelectedHandles()
+        {
+            if (_current == null)
+            {
+                return null;
+            }
+
+            List<string> handles = _current
+                .Document.Selection.Handles.Where(h => _current.Document.FindEntity(h) != null)
+                .ToList();
+            handles.Sort(StringComparer.OrdinalIgnoreCase);
+            return handles.Count == 0 ? null : handles;
+        }
+
+        /// <summary>What a combo shows of a value the selected objects share: the value, null (a blank box) where they differ.</summary>
+        private static string Shown(string shared) => shared == CadPropertyRow.VariesText ? null : shared;
+
+        /// <summary>The selection or the drawing changed: the combos of Home read what the selected objects share again.</summary>
+        private void ForgetSelectedGeneral() => _selectedGeneralKnown = false;
+
+        /// <summary>The selection changed: the layer, colour, linetype and lineweight combos show the selected objects' values, or the current settings with none selected.</summary>
+        private void RaiseSelectedGeneral()
+        {
+            ForgetSelectedGeneral();
+            Raise(nameof(CurrentLayer));
+            RaiseCurrentColor();
+            RaiseCurrentLinetype();
+            Raise(nameof(CurrentLineweight));
         }
 
         private IReadOnlyList<string> LayerChoices() =>

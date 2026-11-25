@@ -903,8 +903,9 @@
 
     <!--
     An entry of the list of a colour row, as AutoCAD 2021 draws it: a 12 by 12 swatch with a thin dark outline before the name,
-    the wheel before Select Color..., and none before *Varies*. The row the list belongs to (the data context of its combo
-    box) gives the colour of the layer that ByLayer is drawn in.
+    the wheel before Select Color... and More colors..., and none before *Varies*. The row the list belongs to (the data
+    context of its combo box, the view model for the colour box of the ribbon) gives the colour of the layer that ByLayer is
+    drawn in.
     -->
     <DataTemplate x:Key="ColorItem">
         <StackPanel Orientation="Horizontal">
@@ -914,12 +915,20 @@
                         <MultiBinding Converter="{StaticResource ColorTextSwatch}">
                             <Binding />
                             <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                            <Binding
+                                Path="DataContext.ByLayerRgb"
+                                RelativeSource="{RelativeSource AncestorType=ComboBox}"
+                            />
                         </MultiBinding>
                     </Border.Background>
                     <Border.Visibility>
                         <MultiBinding Converter="{StaticResource ColorTextSwatch}" ConverterParameter="Visibility">
                             <Binding />
                             <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                            <Binding
+                                Path="DataContext.ByLayerRgb"
+                                RelativeSource="{RelativeSource AncestorType=ComboBox}"
+                            />
                         </MultiBinding>
                     </Border.Visibility>
                 </Border>
@@ -929,6 +938,9 @@
         </StackPanel>
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding}" Value="Select Color...">
+                <Setter TargetName="Wheel" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding}" Value="More colors...">
                 <Setter TargetName="Wheel" Property="Visibility" Value="Visible" />
             </DataTrigger>
         </DataTemplate.Triggers>

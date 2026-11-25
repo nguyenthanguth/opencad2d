@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **FIXED.** The Layer box of Home › Layers and the Color, Linetype and Lineweight boxes of Home › Properties follow the
+  selection as AutoCAD 2021's do. With nothing selected they show, and a pick sets, the current layer and CECOLOR, CELTYPE
+  and CELWEIGHT, as before. With one object selected, or several that agree, they show that object's layer, colour,
+  linetype and lineweight (a red ByLayer circle on COLUMNS shows COLUMNS and ByLayer with a red swatch), and a pick is
+  applied to the selected objects as one undo step (the circle on COLUMNS, Lineweight 0.50 mm picked: the circle is
+  0.50 mm, CELWEIGHT is what it was); with several that differ the box is blank and a pick applies to all of them. Before,
+  the four boxes always showed the current settings, and a pick changed the current setting whatever was selected. The
+  boxes follow every change of the selection and of the drawing, and Esc brings the current values back. The Color box
+  draws a swatch before each colour, as the Properties palette does (ByLayer in the colour of the layer of the selected
+  objects, of the current layer with none selected, white where they are on several; ByBlock white; White split black and
+  white), and More colors... in its list has the colour wheel.
 - **NEW.** The blocks of the drawing of a loaded external reference (`grid|TAG` for the block TAG of the drawing `grid`),
   which AutoCAD 2021 holds in its block table while the reference is loaded and writes to no file (measured with
   accoreconsole: `tblnext` says `70 48`, -BLOCK ? says `Xdep: "grid"`, they go with -XREF Unload and Detach and come back

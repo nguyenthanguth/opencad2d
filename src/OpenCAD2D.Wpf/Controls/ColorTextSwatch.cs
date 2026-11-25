@@ -79,7 +79,9 @@ namespace OpenCAD2D.Wpf
 
     /// <summary>
     /// Turns a colour's text and the row it is in into its swatch (<see cref="ColorTextSwatch"/>): the first value is the text,
-    /// the second the <see cref="PropertyRowViewModel"/> whose layer ByLayer is drawn in; the brush is null where there is no swatch, and for a row that is no colour row.
+    /// the second the <see cref="PropertyRowViewModel"/> whose layer ByLayer is drawn in (the third, where there is one, is that
+    /// colour as a number, which makes the swatch drawn again where the layer of the objects changes, the text staying
+    /// ByLayer); the brush is null where there is no swatch, and for a row that is no colour row.
     /// With the parameter "Visibility" it gives whether there is one, Visible or Collapsed, instead of the brush.
     /// </summary>
     internal sealed class ColorTextSwatchConverter : IMultiValueConverter
@@ -89,7 +91,8 @@ namespace OpenCAD2D.Wpf
         {
             string text = values.Length > 0 ? values[0] as string : null;
             var row = values.Length > 1 ? values[1] as PropertyRowViewModel : null;
-            Brush brush = row != null && !row.IsColor ? null : ColorTextSwatch.Of(text, row?.ByLayerRgb ?? 0xFFFFFF);
+            int byLayer = values.Length > 2 && values[2] is int rgb ? rgb : row?.ByLayerRgb ?? 0xFFFFFF;
+            Brush brush = row != null && !row.IsColor ? null : ColorTextSwatch.Of(text, byLayer);
 
             return string.Equals(parameter as string, "Visibility", StringComparison.Ordinal)
                 ? (object)(brush == null ? Visibility.Collapsed : Visibility.Visible)

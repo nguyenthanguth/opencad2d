@@ -7772,7 +7772,7 @@ widths are those of the content: no panel has a floor of its own.
                                             SelectedItem="{Binding CurrentLayer, Mode=TwoWay}"
                                             ItemTemplate="{StaticResource LayerItem}"
                                             IsEnabled="{Binding HasDocument}"
-                                            ToolTip="The current layer: open the list to turn a layer on or off, freeze or thaw it, lock or unlock it, or make it current"
+                                            ToolTip="The layer of the selected objects, or the current layer with none selected: open the list to turn a layer on or off, freeze or thaw it, lock or unlock it, or make it current"
                                         />
                                         <StackPanel Orientation="Horizontal">
                                             <Button
@@ -8304,7 +8304,7 @@ widths are those of the content: no panel has a floor of its own.
                                                 Command="{Binding SelectCurrentColorCommand}"
                                                 IsEnabled="{Binding HasDocument}"
                                                 AutomationProperties.Name="Select Color"
-                                                ToolTip="Select Color for new objects"
+                                                ToolTip="Select Color for the selected objects, or for new objects with none selected"
                                             >
                                                 <local:IconView
                                                     Size="16"
@@ -8318,10 +8318,11 @@ widths are those of the content: no panel has a floor of its own.
                                                 x:Name="ColorBox"
                                                 Style="{StaticResource PropertyCombo}"
                                                 ItemsSource="{Binding CurrentColorOptions}"
+                                                ItemTemplate="{StaticResource ColorItem}"
                                                 SelectedItem="{Binding CurrentColor, Mode=TwoWay}"
                                                 IsEnabled="{Binding HasDocument}"
                                                 AutomationProperties.Name="Object Color"
-                                                ToolTip="Object Color: the colour of new objects (CECOLOR)"
+                                                ToolTip="Object Color: the colour of the selected objects, or of new objects with none selected (CECOLOR)"
                                             />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
@@ -8341,7 +8342,7 @@ widths are those of the content: no panel has a floor of its own.
                                                 SelectedValue="{Binding CurrentLineweight, Mode=TwoWay}"
                                                 IsEnabled="{Binding HasDocument}"
                                                 AutomationProperties.Name="Lineweight"
-                                                ToolTip="Lineweight: the lineweight of new objects (CELWEIGHT)"
+                                                ToolTip="Lineweight: the lineweight of the selected objects, or of new objects with none selected (CELWEIGHT)"
                                             >
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
@@ -8380,7 +8381,7 @@ widths are those of the content: no panel has a floor of its own.
                                                 SelectedItem="{Binding CurrentLinetype, Mode=TwoWay}"
                                                 IsEnabled="{Binding HasDocument}"
                                                 AutomationProperties.Name="Linetype"
-                                                ToolTip="Linetype: the linetype of new objects (CELTYPE); Other... shows the Linetype Manager"
+                                                ToolTip="Linetype: the linetype of the selected objects, or of new objects with none selected (CELTYPE); Other... shows the Linetype Manager"
                                             />
                                         </StackPanel>
                                     </StackPanel>

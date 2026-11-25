@@ -24,13 +24,17 @@ namespace OpenCAD2D.Wpf
         private CadDocument _hatchPickingOriginOf;
 
         /// <summary>
-        /// Gets or sets the linetype of new objects, the drawing's $CELTYPE, as the linetype box of the ribbon's Properties panel
-        /// shows it: ByLayer, ByBlock or a linetype loaded. Setting one sets it as one undo step; <see cref="OtherLinetypeOption"/>
-        /// shows the Linetype Manager. Empty with no drawing open.
+        /// Gets or sets the linetype the linetype box of the ribbon's Properties panel shows: ByLayer, ByBlock or a linetype
+        /// loaded. With nothing selected it is the linetype of new objects, the drawing's $CELTYPE; with objects selected it is
+        /// theirs, blank (null) where they differ. Setting one sets $CELTYPE, or sets the selected objects', as one undo step;
+        /// <see cref="OtherLinetypeOption"/> shows the Linetype Manager. Empty with no drawing open.
         /// </summary>
         public string CurrentLinetype
         {
-            get => _current == null ? string.Empty : _current.Document.Database.Celtype;
+            get =>
+                _current == null ? string.Empty
+                : SelectedGeneral() is CadSharedGeneral shared ? Shown(shared.Linetype)
+                : _current.Document.Database.Celtype;
             set
             {
                 if (_current == null || value == null || value == CurrentLinetype)
@@ -44,7 +48,12 @@ namespace OpenCAD2D.Wpf
                 }
                 else
                 {
-                    CadEditResult result = CadPropertyEditor.Set(_current.Document, null, "Linetype", value);
+                    CadEditResult result = CadPropertyEditor.Set(
+                        _current.Document,
+                        SelectedHandles(),
+                        "Linetype",
+                        value
+                    );
 
                     if (!result.Succeeded)
                     {

@@ -96,7 +96,7 @@ namespace OpenCAD2D.Wpf
         public int? SwatchRgb => IsColor ? ColorTextSwatch.Rgb(_value, _byLayerRgb) : null;
 
         /// <summary>Gets the colour of the layer of the objects, which a colour of ByLayer is drawn in: that of the one layer they are on, white where they differ.</summary>
-        internal int ByLayerRgb => _byLayerRgb;
+        public int ByLayerRgb => _byLayerRgb;
 
         /// <summary>Gets whether the row is a coordinate of a point that can be changed (the presenter's own, or one a plugin or an extension gave a setter), which shows a button to pick the point on the drawing while it is edited.</summary>
         public bool CanPickPoint => _pick != null;
