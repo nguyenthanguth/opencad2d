@@ -187,6 +187,11 @@
   with the solution. The command keeps its name, `GHDWGINFO`, and writes the same lines; the Python sample
   `Pythons\GH-DrawingInfo.py` is the folder `Pythons\DrawingInfo`, with `GHPYINFO` as before.
 
+- **FIXED.** An SHX octant arc (shape code 10) read its radius byte as unsigned, where AutoCAD 2021 reads it as a signed
+  byte: from 128 on the radius is negative and the arc is reflected through the pen. A quarter arc (start octant 0, two
+  octants, counter-clockwise) with the byte 200 now ends at (+56, -56), as AutoCAD measures it, where it ended at (-200,
+  +200); the byte 128 ends at (+128, -128) and 255 at (+1, -1), and their ink boxes, which AutoCAD's TEXTBOX gives as
+  -11.598 -67.598 to 56 0 for the byte 200, are the same. A radius byte below 128 draws as before.
 - **FIXED.** A .NET 8 plugin could fail with "AssemblyLoadContext is unloading or was already unloaded" when one of its
   commands first used a library of its folder after a garbage collection: the app held the plugin's collectible load
   context only weakly, so a collection began unloading it while the plugin still ran. The app now keeps every plugin's

@@ -565,7 +565,8 @@ namespace OpenCAD2D
                 }
                 else if (code == 10)
                 {
-                    int radius = c[i];
+                    // A signed byte, as AutoCAD reads it: from 128 on the radius is negative and the arc is reflected through the pen.
+                    int radius = (sbyte)c[i];
                     int octant = Octant(c[i + 1]);
                     i += 2;
                     int size = Math.Abs(octant);
