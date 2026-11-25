@@ -3383,13 +3383,18 @@ namespace OpenCAD2D
             ).EstimatedWidth;
         }
 
+        /// <summary>Whether the display draws a text in an SHX font.</summary>
+        internal bool IsInShx(DxfDBText text) => FaceOf(text.TextStyleName).Shx != null;
+
         /// <summary>
         /// Where the words of a text start and where their ink runs, along its baseline from the point it is placed by, in the
         /// text's own units, as AutoCAD 2021's MIRROR measures them with MIRRTEXT 0 (probed in its console): in an SHX font by the
-        /// strokes the display draws, the words justified by the box of their ink; in a TrueType font by the outlines of its
+        /// box <c>textbox</c> gives (<see cref="ShxBox"/>), in which an arc is reached by the points it bulges to and not by the
+        /// strokes the display draws, the words justified by that box; in a TrueType font by the outlines of its
         /// file, the ink read as though the words started after any spaces before them, as AutoCAD reads it, and the words
         /// justified by their advances, centred from the ink's left where it is left of their start. "ABC" of arial.ttf 2.5 high
-        /// on the left is inked from -0.0051 to 7.0430; centred, it starts at -3.5880. False where the font's letters are not read.
+        /// on the left is inked from -0.0051 to 7.0430; centred, it starts at -3.5880. "ABC123" of opencad2d.shx 10 high on the
+        /// left is inked from 1.0000 to 42.2488, the strokes of its 3 ending at 41.4954. False where the font's letters are not read.
         /// </summary>
         internal bool InkOf(DxfDBText text, out double start, out double left, out double right)
         {
@@ -3416,7 +3421,44 @@ namespace OpenCAD2D
 
             if (face.Shx != null)
             {
-                // The ink from where the words start, then from the point they are justified at: the difference is their start.
+                if (ShxBox(text, out double boxLeft, out double boxRight, out _, out _))
+                {
+                    // The words are justified by that box, or from their start to their last pen where they end in a space.
+                    double justifyLeft = boxLeft;
+                    double justifyRight = boxRight;
+
+                    if (value[value.Length - 1] == ' ')
+                    {
+                        ShxText.Strokes(
+                            face,
+                            value,
+                            0.0,
+                            0.0,
+                            text.Height,
+                            0.0,
+                            factor,
+                            0,
+                            0,
+                            0.0,
+                            false,
+                            0.0,
+                            out double run
+                        );
+                        justifyLeft = Math.Min(0.0, boxLeft);
+                        justifyRight = Math.Max(run, boxRight);
+                    }
+
+                    start =
+                        horizontal == 0 ? 0.0
+                        : horizontal == 1 ? -(justifyLeft + justifyRight) / 2.0
+                        : -justifyRight;
+                    left = start + boxLeft;
+                    right = start + boxRight;
+                    return true;
+                }
+
+                // The font the display draws in is not one the drawing's fonts find: by the strokes the display draws. The ink
+                // from where the words start, then from the point they are justified at: the difference is their start.
                 if (
                     !ShxInk(face, value, text.Height, factor, 0, out double from, out _)
                     || !ShxInk(face, value, text.Height, factor, horizontal, out left, out right)
@@ -3481,10 +3523,11 @@ namespace OpenCAD2D
 
         /// <summary>
         /// How far below and above its baseline the ink of a text runs, as AutoCAD 2021's MIRROR measures it with MIRRTEXT 0
-        /// (probed in its console, mirror-insert GHMI1): in an SHX font by the strokes the display draws, in a TrueType font by
-        /// the outlines of its file. "Q1" of arial.ttf 1.5 high reaches below its baseline by the tail of its Q, so that it is
-        /// turned over about a line 0.705 above its baseline, not 0.75. False where the font's letters are not read, and where
-        /// the words have no ink.
+        /// (probed in its console, mirror-insert GHMI1): in an SHX font by the box <c>textbox</c> gives (<see cref="ShxBox"/>), in
+        /// a TrueType font by the outlines of its file. "Q1" of arial.ttf 1.5 high reaches below its baseline by the tail of its
+        /// Q, so that it is turned over about a line 0.705 above its baseline, not 0.75; "ABC123" of opencad2d.shx 10 high is
+        /// boxed from -0.6299 to 10.7063, the arcs of its C, 2 and 3 reaching past the strokes' 0 and 10. False where the font's
+        /// letters are not read, and where the words have no ink.
         /// </summary>
         internal bool InkHeightOf(DxfDBText text, out double bottom, out double top)
         {
@@ -3526,6 +3569,14 @@ namespace OpenCAD2D
                 return bottom <= top;
             }
 
+            if (ShxBox(text, out _, out _, out bottom, out top))
+            {
+                return true;
+            }
+
+            // The font the display draws in is not one the drawing's fonts find: by the strokes the display draws.
+            bottom = double.MaxValue;
+            top = double.MinValue;
             double factor = text.WidthFactor <= 0.0 ? 1.0 : text.WidthFactor;
 
             foreach (
@@ -3577,6 +3628,46 @@ namespace OpenCAD2D
                     || !string.IsNullOrEmpty(record.Font.TypeFace);
             }
             catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// The box the words of a text fill in the SHX font of its style, upright and unslanted, from where they start, as the
+        /// drawing's fonts measure it for <c>textbox</c> and the bounding box of the text (its <c>GeometricExtents</c>), which
+        /// AutoCAD 2021 mirrors a text by: a box of the strokes and of the points the arcs bulge to, "ABC123" of opencad2d.shx
+        /// 10 high from (1.0000, -0.6299) to (42.2488, 10.7063) where its strokes run from y 0 to 10. False where the drawing's
+        /// fonts do not find the font (<see cref="CadDocument.TextInk"/> has them set to look in the document's folders), and
+        /// where the words have no ink.
+        /// </summary>
+        private static bool ShxBox(DxfDBText text, out double left, out double right, out double bottom, out double top)
+        {
+            left = right = bottom = top = 0.0;
+
+            try
+            {
+                // Measured on a copy turned back to nought, as the entity is not touched.
+                var copy = (DxfDBText)text.Clone();
+                copy.Rotation = 0.0;
+                copy.Oblique = 0.0;
+                copy.IsMirroredInX = false;
+                copy.IsMirroredInY = false;
+                GeoAabb3 box = copy.GeometricExtents;
+
+                if (box.IsEmpty || (box.Max - box.Min).Length <= GeometryHelper.Tolerance.Default.EqualPoint)
+                {
+                    return false;
+                }
+
+                GeoPoint3 at = copy.Position;
+                left = box.Min.X - at.X;
+                right = box.Max.X - at.X;
+                bottom = box.Min.Y - at.Y;
+                top = box.Max.Y - at.Y;
+                return true;
+            }
+            catch (InvalidOperationException)
             {
                 return false;
             }

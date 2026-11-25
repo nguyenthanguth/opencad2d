@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **FIXED.** MIRROR with MIRRTEXT 0 of a TEXT in an SHX font turns it over by the box AutoCAD 2021 measures (the box
+  `(textbox)` gives, where an arc is reached by the points it bulges to) and not by the strokes the display draws: the C,
+  2 and 3 of the built-in `opencad2d.shx` put the copy off. `ABC123` 10 high at the origin mirrored across `y = 50` now
+  starts at y = 89.9236, not 90.0; across `x = 50` at x = 56.7512, not 57.5046. Words with no arc (`HILT`), TrueType
+  fonts and fonts the drawing does not find are as before.
 - **NEW.** Python `Drawing.move`, `copy`, `rotate`, `scale`, `mirror` and `offset` (A8): the commands as calls on `Entity`
   objects, typed (`copy([circle], (0, 50))` is a `list[Entity[DxfCircle]]`, `offset` gives `list[Entity[DxfCurve]]`).
   What is queued goes with the edit in one undo step (`REMOTE` from outside the app, `PYTHON` for a file, the run's own in
