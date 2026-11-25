@@ -269,8 +269,18 @@ def put_setting(name: str, value: object) -> None:
     assert runtime is not None
     if value is not None and not isinstance(value, (bool, int, float, str)):
         raise TypeError(f"A setting is a number, a whole number, a bool or text, not {type(value).__name__}.")
+    # A Python int would reach the app as a PyInt it cannot read, so each kind is made the .NET value it is.
+    wire: Any = value
+    if isinstance(value, bool):
+        wire = _net.Boolean(value)
+    elif isinstance(value, int):
+        wire = _net.Int64(value)
+    elif isinstance(value, float):
+        wire = _net.Double(value)
+    elif isinstance(value, str):
+        wire = _net.String(value)
     try:
-        runtime.app.SetToolSetting(name, value)
+        runtime.app.SetToolSetting(name, wire)
     except (_remote.CadRemoteException, _net.ArgumentException) as error:
         raise _refused(error) from None
 
