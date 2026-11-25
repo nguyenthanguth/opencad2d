@@ -1,0 +1,107 @@
+<Window
+    x:Class="OpenCAD2D.Wpf.SheetSetPublishProgressWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="{Binding Title}"
+    Width="520"
+    Height="214"
+    WindowStyle="None"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    Background="#262B33"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/StyleDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- Design A12Publish, state 4: publishing, modal; Cancel stops the publish at the next sheet. -->
+    <Border
+        x:Name="Root"
+        Background="{StaticResource GhPanel}"
+        BorderBrush="{StaticResource GhBorder}"
+        BorderThickness="1"
+        TextElement.FontFamily="{StaticResource GhFont}"
+        TextElement.FontSize="12"
+        TextElement.Foreground="{StaticResource GhText}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+    >
+        <DockPanel>
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhHeader}"
+                Padding="16,10"
+                MouseLeftButtonDown="OnHeaderDown"
+            >
+                <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </Border>
+
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
+                <Button
+                    Style="{StaticResource GhDialogButton}"
+                    Content="Cancel"
+                    Padding="18,5"
+                    HorizontalAlignment="Right"
+                    IsCancel="True"
+                    IsEnabled="{Binding IsCancelEnabled}"
+                    Click="OnCancel"
+                />
+            </Border>
+
+            <StackPanel Margin="16,14">
+                <TextBlock Text="{Binding Heading}" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,2" />
+                <TextBlock
+                    Text="{Binding Target}"
+                    Foreground="{StaticResource GhTextMuted}"
+                    TextTrimming="CharacterEllipsis"
+                    ToolTip="{Binding Target}"
+                    Margin="0,0,0,12"
+                />
+                <ProgressBar
+                    Height="10"
+                    Minimum="0"
+                    Maximum="100"
+                    Value="{Binding Percent, Mode=OneWay}"
+                    Focusable="False"
+                    Margin="0,0,0,8"
+                >
+                    <ProgressBar.Template>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Border
+                                BorderBrush="{StaticResource GhBorder}"
+                                BorderThickness="1"
+                                CornerRadius="2"
+                                Background="{StaticResource GhInput}"
+                                ClipToBounds="True"
+                            >
+                                <Grid x:Name="PART_Track">
+                                    <Rectangle
+                                        x:Name="PART_Indicator"
+                                        HorizontalAlignment="Left"
+                                        Fill="{StaticResource GhAccent}"
+                                    />
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </ProgressBar.Template>
+                </ProgressBar>
+                <DockPanel>
+                    <TextBlock
+                        DockPanel.Dock="Right"
+                        Text="{Binding PercentText}"
+                        Foreground="{StaticResource GhTextMuted}"
+                        FontFamily="{StaticResource GhMonoFont}"
+                    />
+                    <TextBlock Text="{Binding Status}" TextTrimming="CharacterEllipsis" />
+                </DockPanel>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

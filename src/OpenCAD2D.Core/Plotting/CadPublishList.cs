@@ -90,6 +90,12 @@ namespace OpenCAD2D
         public bool PdfShx { get; set; }
 
         /// <summary>
+        /// Gets or sets the name of the sheet set the sheets are of, as the list a sheet set builds says; null for a list that is
+        /// of no sheet set. A list file saved from a sheet set's list says <c>IsSheetSet=TRUE</c> and <c>SheetSet Name=</c> this.
+        /// </summary>
+        public string SheetSetName { get; set; }
+
+        /// <summary>
         /// Adds the Model and the layouts of the drawing open, as the Publish dialog lists them when it opens: Model first and
         /// the layouts in the order of their tabs, each as the drawing's name and the space's joined by a hyphen
         /// (<c>plan-level2-Model</c>, <c>plan-level2-Layout1</c>), by <see cref="CadPublishOptions.IncludeModel"/> and
@@ -118,6 +124,58 @@ namespace OpenCAD2D
             CadDocument document = DocumentOf(path, out string status, out problem);
             return document == null ? new CadPublishSheet[0] : AddSheetsOf(document);
         }
+
+        /// <summary>
+        /// Adds one layout (or the Model) of a drawing file under a name of the caller's, as a sheet set's sheet is listed. The
+        /// sheet is added whatever happens to the drawing: where the file is not there, cannot be read or has no such layout, its
+        /// <see cref="CadPublishSheet.Status"/> says so and <see cref="Plan"/> passes it over. The drawing that is open is used as
+        /// it stands, any other is read from its file, once for all its sheets.
+        /// </summary>
+        /// <param name="path">The drawing's file.</param>
+        /// <param name="layoutName">The layout's name, or <c>Model</c>.</param>
+        /// <param name="name">The name in the list (<c>A-101 Ground floor plan</c>); another sheet's name already in the list makes it <c>A-101 Ground floor plan (2)</c>.</param>
+        /// <returns>The sheet, last in the list.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when an argument is null.</exception>
+        public CadPublishSheet AddLayout(string path, string layoutName, string name)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            if (layoutName == null)
+            {
+                throw new ArgumentNullException(nameof(layoutName));
+            }
+
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            string full = path;
+
+            try
+            {
+                full = Path.GetFullPath(path);
+            }
+            catch (Exception exception)
+                when (exception is ArgumentException
+                    || exception is NotSupportedException
+                    || exception is PathTooLongException
+                )
+            {
+                // A path that is no path is kept as it is: the sheet is then a drawing not found.
+            }
+
+            var sheet = new CadPublishSheet(UniqueName(name), full, layoutName);
+            Resolve(sheet, full);
+            _sheets.Add(sheet);
+            return sheet;
+        }
+
+        /// <summary>The drawing of a file as the list holds it (the open one, or one read once), null where it is not there or cannot be read.</summary>
+        internal CadDocument DrawingOf(string path) => DocumentOf(path, out _, out _);
 
         private IReadOnlyList<CadPublishSheet> AddSheetsOf(CadDocument document)
         {
@@ -563,6 +621,7 @@ namespace OpenCAD2D
 
                 settings.PlotStamp = PlotStamp?.Clone();
                 settings.PdfShx = PdfShx;
+                settings.PdfHyperlinks |= _options.IncludeHyperlinks;
                 string printer = toPlotter
                     ? known.FirstOrDefault(p =>
                         string.Equals(p, settings.SavedPlotter, StringComparison.OrdinalIgnoreCase)
@@ -856,6 +915,12 @@ namespace OpenCAD2D
                     int equals = line.IndexOf('=');
                     properties.Set(line.Substring(0, equals), line.Substring(equals + 1));
                 }
+            }
+
+            if (SheetSetName != null)
+            {
+                properties.Set("IsSheetSet", "TRUE");
+                properties.Set("SheetSet Name", SheetSetName);
             }
 
             properties.Set("NoOfCopies", _options.Copies.ToString(System.Globalization.CultureInfo.InvariantCulture));

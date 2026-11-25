@@ -233,6 +233,22 @@ namespace OpenCAD2D.SheetSets
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether the sheets in this group, and in the groups inside it, are published with the set: AutoCAD's
+        /// Publish Sheets in Subset, true until it is cleared. The file keeps the opposite, <c>OverrideSheetPublish</c>, and
+        /// leaves it out for a group that publishes. The palette does not offer it for the sheet set itself.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown, on set, outside <see cref="CadSheetSetFile.Change"/>.</exception>
+        public bool PublishSheets
+        {
+            get => !CadDstTree.GetBool(Element, "OverrideSheetPublish");
+            set
+            {
+                Edit();
+                CadDstTree.SetBool(Element, "OverrideSheetPublish", !value);
+            }
+        }
+
         /// <summary>Gets the subsets and sheets directly in this group, in set order.</summary>
         public IReadOnlyList<CadSheetComponent> Children => Components().Select(e => Wrap(File, e)).ToList();
 
@@ -479,6 +495,9 @@ namespace OpenCAD2D.SheetSets
                 SetFile("AltPageSetups", value);
             }
         }
+
+        /// <summary>Gets what the set keeps for publishing: the output folder, one file or a file each, the file name prompt and the publishing order.</summary>
+        public CadSheetSetPublishOptions PublishOptions => new CadSheetSetPublishOptions(this);
 
         /// <summary>Gets or sets the block that labels a view placed on a sheet (<c>DefLabelBlk</c>); null for none.</summary>
         public CadDrawingReference LabelBlock

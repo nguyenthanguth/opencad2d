@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Media;
 using GeometryHelper;
 
@@ -34,6 +35,26 @@ namespace OpenCAD2D.Wpf
         internal void Wrote(string file) => _files.Add(file);
     }
 
+    /// <summary>Where a publish is: the sheet it is drawing, which of how many, for a progress window.</summary>
+    public sealed class CadPublishProgress
+    {
+        internal CadPublishProgress(int sheet, int count, string name)
+        {
+            Sheet = sheet;
+            Count = count;
+            Name = name;
+        }
+
+        /// <summary>Gets the place of the sheet being drawn among those to publish, counted from 1.</summary>
+        public int Sheet { get; }
+
+        /// <summary>Gets the number of sheets to publish: those the plan does not pass over.</summary>
+        public int Count { get; }
+
+        /// <summary>Gets the sheet's name in the list.</summary>
+        public string Name { get; }
+    }
+
     /// <summary>
     /// Carries out a publish: the steps of a sheet list (<see cref="CadPublishList.Plan"/>) through the presenter's own
     /// writers. The sheets of a PDF go to <see cref="CadPdfWriter.WritePages(string, IReadOnlyList{CadDocument}, IReadOnlyList{CadPlotJob})"/>,
@@ -51,7 +72,28 @@ namespace OpenCAD2D.Wpf
         /// <param name="printers">The printers of Windows this computer has, for the sheets whose page setup names one; null for none.</param>
         /// <returns>What was done.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the list is null.</exception>
-        public static CadPublishResult Publish(CadPublishList list, IEnumerable<IPlotPrinter> printers)
+        public static CadPublishResult Publish(CadPublishList list, IEnumerable<IPlotPrinter> printers) =>
+            Publish(list, printers, null, CancellationToken.None);
+
+        /// <summary>
+        /// Publishes a sheet list as <see cref="Publish(CadPublishList, IEnumerable{IPlotPrinter})"/> does, telling the progress
+        /// before each sheet is drawn and stopping where cancelled. A cancel stops at the next sheet: the sheets already written
+        /// stay, a PDF of several sheets that is not finished is not written, and the report says the publish was canceled. Where
+        /// <see cref="CadPublishOptions.CreateBookmarks"/> is on, each PDF carries the outline of AutoCAD's published sheets: a
+        /// bookmark <c>Sheets and Views</c> and under it one for each page, named as the sheet is in the list.
+        /// </summary>
+        /// <param name="list">The sheet list and its options.</param>
+        /// <param name="printers">The printers of Windows this computer has, for the sheets whose page setup names one; null for none.</param>
+        /// <param name="progress">Told of each sheet before it is drawn; null for none. It is called on the thread that publishes.</param>
+        /// <param name="cancel">Asked before each sheet.</param>
+        /// <returns>What was done.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the list is null.</exception>
+        public static CadPublishResult Publish(
+            CadPublishList list,
+            IEnumerable<IPlotPrinter> printers,
+            IProgress<CadPublishProgress> progress,
+            CancellationToken cancel
+        )
         {
             if (list == null)
             {
@@ -62,26 +104,45 @@ namespace OpenCAD2D.Wpf
             IReadOnlyList<CadPublishStep> steps = list.Plan(known.Select(p => p.Name));
             var result = new CadPublishResult();
             var written = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int total = steps.Count(s => s.Skipped == null);
+            int done = 0;
 
-            foreach (CadPublishStep step in steps)
+            try
             {
-                if (step.Skipped != null)
+                foreach (CadPublishStep step in steps)
                 {
-                    result.Failed++;
-                    result.Say(step.Sheet.Name + ": " + step.Skipped.TrimEnd('.') + ". Not published.");
+                    cancel.ThrowIfCancellationRequested();
+
+                    if (step.Skipped != null)
+                    {
+                        result.Failed++;
+                        result.Say(step.Sheet.Name + ": " + step.Skipped.TrimEnd('.') + ". Not published.");
+                    }
+                    else if (step.Printer != null)
+                    {
+                        progress?.Report(new CadPublishProgress(done + 1, total, step.Sheet.Name));
+                        Print(list, step, known, result);
+                        done++;
+                    }
+                    else if (written.Add(step.File))
+                    {
+                        List<CadPublishStep> pages = steps
+                            .Where(s => s.File != null && SameFile(s.File, step.File))
+                            .ToList();
+                        int before = done;
+                        WritePdf(list, step.File, pages, result, i =>
+                        {
+                            cancel.ThrowIfCancellationRequested();
+                            progress?.Report(new CadPublishProgress(before + i + 1, total, pages[i].Sheet.Name));
+                        });
+                        done += pages.Count;
+                    }
                 }
-                else if (step.Printer != null)
-                {
-                    Print(list, step, known, result);
-                }
-                else if (written.Add(step.File))
-                {
-                    WritePdf(
-                        step.File,
-                        steps.Where(s => s.File != null && SameFile(s.File, step.File)).ToList(),
-                        result
-                    );
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                result.Say("The publishing operation was canceled.");
+                return result;
             }
 
             result.Say(
@@ -99,7 +160,13 @@ namespace OpenCAD2D.Wpf
         private static string Count(int n, string what) =>
             n.ToString(CultureInfo.InvariantCulture) + " " + what + (n == 1 ? string.Empty : "s");
 
-        private static void WritePdf(string file, List<CadPublishStep> pages, CadPublishResult result)
+        private static void WritePdf(
+            CadPublishList list,
+            string file,
+            List<CadPublishStep> pages,
+            CadPublishResult result,
+            Action<int> beforePage
+        )
         {
             try
             {
@@ -113,7 +180,9 @@ namespace OpenCAD2D.Wpf
                 CadPdfWriter.WritePages(
                     file,
                     pages.Select(p => p.Sheet.Document).ToList(),
-                    pages.Select(p => new CadPlotJob(p.Sheet.Space, p.Settings, DisplayBox.Empty, file)).ToList()
+                    pages.Select(p => new CadPlotJob(p.Sheet.Space, p.Settings, DisplayBox.Empty, file)).ToList(),
+                    list.Options.CreateBookmarks ? Bookmarks(pages) : null,
+                    beforePage
                 );
                 result.Written += pages.Count;
                 result.Wrote(file);
@@ -125,6 +194,22 @@ namespace OpenCAD2D.Wpf
                 result.Failed += pages.Count;
                 result.Say(file + " was not written: " + exception.Message);
             }
+        }
+
+        /// <summary>
+        /// The outline AutoCAD writes for published sheets: one bookmark, <c>Sheets and Views</c>, going nowhere, and under it a
+        /// bookmark for each page, named as its sheet is in the list.
+        /// </summary>
+        private static List<CadPdfBookmark> Bookmarks(List<CadPublishStep> pages)
+        {
+            var root = new CadPdfBookmark("Sheets and Views", -1);
+
+            for (int i = 0; i < pages.Count; i++)
+            {
+                root.Children.Add(new CadPdfBookmark(pages[i].Sheet.Name, i));
+            }
+
+            return new List<CadPdfBookmark> { root };
         }
 
         private static void Print(

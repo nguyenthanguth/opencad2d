@@ -34,6 +34,8 @@ namespace OpenCAD2D.SheetSets
         internal const string ViewCategoryClass = "AcSmViewCategory";
         internal const string CalloutBlockReferencesClass = "AcSmCalloutBlockReferences";
         internal const string ResourcesClass = "AcSmResources";
+        internal const string PublishOptionsClass = "AcSmPublishOptions";
+        internal const string SimpleFileReferenceClass = "AcSmSimpleFileReferece";
 
         /// <summary>The fixed class identifier of an element name (the GUID a file must carry for AutoCAD to read the object).</summary>
         internal static string ClassId(string className)
@@ -68,8 +70,10 @@ namespace OpenCAD2D.SheetSets
                     return "B6E09611-4659-4F0D-981D-D62B11FD8426";
                 case ResourcesClass:
                     return "3F0FAF10-09DE-4EBA-AED1-C4E4D6FECF5D";
-                case "AcSmPublishOptions":
+                case PublishOptionsClass:
                     return "F57F96E7-0F16-4DC9-8F09-52F7BB389AB6";
+                case SimpleFileReferenceClass:
+                    return "D15A03C2-C39B-428A-9BBA-C031347C496F";
                 case "AcSmSheetSelSets":
                     return "444780B8-6527-43A8-8DC4-FAB41B7E48BB";
                 case ViewCategoriesClass:

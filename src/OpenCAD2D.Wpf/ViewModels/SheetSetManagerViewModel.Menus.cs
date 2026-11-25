@@ -53,11 +53,37 @@ namespace OpenCAD2D.Wpf
             return items;
         }
 
-        /// <summary>Publish to PDF of the toolbar: not built yet (A12 package 5a).</summary>
-        public void PublishToPdf() => NotBuilt("Publish to PDF", "5a");
+        /// <summary>Publish to PDF of the toolbar: the selected sheets, or the whole set where the set or nothing is selected (<see cref="MainViewModel.PublishSheetSet"/>).</summary>
+        public void PublishToPdf() => Publish(CadPublishTo.Pdf, null, SelectedNodes);
 
-        /// <summary>Publish to Plotter of the toolbar: not built yet (A12 package 5a).</summary>
-        public void PublishToPlotter() => NotBuilt("Publish to Plotter", "5a");
+        /// <summary>Publish to Plotter of the toolbar: the selected sheets, or the whole set where the set or nothing is selected, each to the plotter its page setup names.</summary>
+        public void PublishToPlotter() => Publish(CadPublishTo.PlotterNamedInPageSetup, null, SelectedNodes);
+
+        /// <summary>
+        /// Publishes the sheets under rows of the Sheet List through the main view model, which says what is published and what
+        /// is left out on the command line.
+        /// </summary>
+        /// <param name="to">PDF, or the plotter each sheet's page setup names.</param>
+        /// <param name="pageSetupOverride">The page setup of the set's overrides file to publish with; null for each sheet's own.</param>
+        /// <param name="nodes">The rows; the set's row, or none, is the whole set.</param>
+        private void Publish(CadPublishTo to, string pageSetupOverride, IEnumerable<SheetSetNodeViewModel> nodes)
+        {
+            if (_current != null)
+            {
+                _main.PublishSheetSet(_current, Components(nodes), to, pageSetupOverride);
+            }
+        }
+
+        /// <summary>The parts of the set the rows stand for, found again by their IDs in the file as it is now; a row no longer in the set is left out.</summary>
+        private IReadOnlyList<CadSheetComponent> Components(IEnumerable<SheetSetNodeViewModel> nodes)
+        {
+            CadSheetSet set = _current.SheetSet;
+            return nodes.Select(n => set.Find(n.Id)).Where(c => c != null).ToList();
+        }
+
+        /// <summary>Publish in Reverse Order: the set's order of publishing, saved in its file.</summary>
+        private void ToggleReverseOrder() =>
+            Change(set => set.PublishOptions.ReverseOrder = !set.PublishOptions.ReverseOrder);
 
         /// <summary>
         /// Makes the list a drop-down of the toolbar opens: the page setups of the set's overrides file for Publish Using Page Setup
@@ -153,18 +179,27 @@ namespace OpenCAD2D.Wpf
                     true,
                     new List<CadMenuItemViewModel>
                     {
-                        Item("Publish to PDF", () => NotBuilt("Publish to PDF", "5a")),
-                        Item("Publish to Plotter", () => NotBuilt("Publish to Plotter", "5a")),
-                        OverrideItem(overrides),
+                        Item("Publish to PDF", () => Publish(CadPublishTo.Pdf, null, new[] { node })),
+                        Item("Publish to Plotter", () =>
+                            Publish(CadPublishTo.PlotterNamedInPageSetup, null, new[] { node })
+                        ),
+                        OverrideItem(overrides, new[] { node }),
                         CadMenuItemViewModel.Separator(),
                         Item(
                             "Publish in Reverse Order",
-                            () => NotBuilt("Publish in Reverse Order", "5a"),
-                            isChecked: false
+                            ToggleReverseOrder,
+                            change,
+                            isChecked: _current.SheetSet.PublishOptions.ReverseOrder
                         ),
                         CadMenuItemViewModel.Separator(),
-                        Item("Sheet Set PDF Publish Options…", () => NotBuilt("Sheet Set PDF Publish Options", "5a")),
-                        Item("Publish Dialog Box…", () => _main.StartCommand("PUBLISH")),
+                        Item(
+                            "Sheet Set PDF Publish Options…",
+                            () => _main.EditSheetSetPublishOptions(_current),
+                            change
+                        ),
+                        Item("Publish Dialog Box…", () =>
+                            _main.PublishSheetSetDialog(_current, Components(new[] { node }))
+                        ),
                     }
                 ),
                 Item("eTransmit…", () => NotBuilt("eTransmit", "5b")),
@@ -197,22 +232,33 @@ namespace OpenCAD2D.Wpf
                     true,
                     new List<CadMenuItemViewModel>
                     {
-                        Item("Publish to PDF", () => NotBuilt("Publish to PDF", "5a")),
-                        Item("Publish to Plotter", () => NotBuilt("Publish to Plotter", "5a")),
-                        OverrideItem(overrides),
+                        Item("Publish to PDF", () => Publish(CadPublishTo.Pdf, null, new[] { node })),
+                        Item("Publish to Plotter", () =>
+                            Publish(CadPublishTo.PlotterNamedInPageSetup, null, new[] { node })
+                        ),
+                        OverrideItem(overrides, new[] { node }),
                         CadMenuItemViewModel.Separator(),
                         Item(
                             "Publish Sheets in Subset",
-                            () => NotBuilt("Publish Sheets in Subset", "5a"),
-                            isChecked: true
+                            () =>
+                                Change(set =>
+                                {
+                                    CadSheetSubset subset = Live<CadSheetSubset>(set, node);
+                                    subset.PublishSheets = !subset.PublishSheets;
+                                }),
+                            change,
+                            isChecked: (_current.SheetSet.Find(node.Id) as CadSheetSubset)?.PublishSheets ?? true
                         ),
                         Item(
                             "Publish in Reverse Order",
-                            () => NotBuilt("Publish in Reverse Order", "5a"),
-                            isChecked: false
+                            ToggleReverseOrder,
+                            change,
+                            isChecked: _current.SheetSet.PublishOptions.ReverseOrder
                         ),
                         CadMenuItemViewModel.Separator(),
-                        Item("Publish Dialog Box…", () => _main.StartCommand("PUBLISH")),
+                        Item("Publish Dialog Box…", () =>
+                            _main.PublishSheetSetDialog(_current, Components(new[] { node }))
+                        ),
                     }
                 ),
                 Item("eTransmit…", () => NotBuilt("eTransmit", "5b")),
@@ -249,9 +295,9 @@ namespace OpenCAD2D.Wpf
                     true,
                     new List<CadMenuItemViewModel>
                     {
-                        Item("Publish to PDF", () => NotBuilt("Publish to PDF", "5a")),
-                        Item("Publish to Plotter", () => NotBuilt("Publish to Plotter", "5a")),
-                        OverrideItem(overrides),
+                        Item("Publish to PDF", () => Publish(CadPublishTo.Pdf, null, chosen)),
+                        Item("Publish to Plotter", () => Publish(CadPublishTo.PlotterNamedInPageSetup, null, chosen)),
+                        OverrideItem(overrides, chosen),
                         CadMenuItemViewModel.Separator(),
                         Item(
                             "Include for Publish",
@@ -260,7 +306,7 @@ namespace OpenCAD2D.Wpf
                             isChecked: included
                         ),
                         CadMenuItemViewModel.Separator(),
-                        Item("Publish Dialog Box…", () => _main.StartCommand("PUBLISH")),
+                        Item("Publish Dialog Box…", () => _main.PublishSheetSetDialog(_current, Components(chosen))),
                     }
                 ),
                 Item("eTransmit…", () => NotBuilt("eTransmit", "5b")),
@@ -272,7 +318,7 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>Publish Using Page Setup Override: the page setups of the set's overrides file, greyed where the set names none.</summary>
-        private CadMenuItemViewModel OverrideItem(bool overrides)
+        private CadMenuItemViewModel OverrideItem(bool overrides, IReadOnlyList<SheetSetNodeViewModel> nodes)
         {
             const string header = "Publish Using Page Setup Override";
 
@@ -290,7 +336,7 @@ namespace OpenCAD2D.Wpf
                 true,
                 _current
                     .SheetSet.PageSetupOverrideNames()
-                    .Select(name => Item(name, () => NotBuilt("Publish Using Page Setup Override", "5a")))
+                    .Select(name => Item(name, () => Publish(CadPublishTo.Pdf, name, nodes)))
                     .ToList()
             );
         }

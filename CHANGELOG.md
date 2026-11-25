@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **NEW.** Publish a sheet set (A12): the Publish items of the Sheet List write the sheets of the set, a subset or the
+  selected sheets to one multi-sheet PDF or a PDF for each sheet, in set order, as the set's Sheet Set PDF Publish
+  Options say (folder, one file or a file each, file name asked for or not). A sheet left out of publishing, and the
+  sheets of a subset whose Publish Sheets in Subset is off, are told on the command line and not written. A file for
+  each sheet is named "A-101 Ground Floor Plan.pdf" as AutoCAD names it. The PDF carries AutoCAD's bookmarks: "Sheets
+  and Views" with a bookmark for each page. Publish Using Page Setup Override and Publish in Reverse Order work; the
+  progress window's Cancel stops at the next sheet. The `.dsd` of Publish Dialog Box… says `IsSheetSet=TRUE`. New
+  public members: `CadSheetSetPublish`, `CadSheetSet.PublishOptions`, `CadSheetSubset.PublishSheets`,
+  `CadPublishOptions.CreateBookmarks` / `IncludeHyperlinks`, `CadPublishList.AddLayout` / `SheetSetName`,
+  `CadPdfBookmark`, and overloads of `CadPdfWriter.WritePages` and `CadPublisher.Publish` (with progress and cancel).
+  An existing publish writes the same bytes as before (18 pages, same SHA-256).
 - **NEW.** The Sheet Set Manager (A12, the palette): SHEETSET shows it as a floating window beside the drawing and
   SHEETSETHIDE closes it. The sheet set control lists the sets open (the current one ticked), Recent (the last ten `.dst`
   files, newest first) and New Sheet Set… / Open…; the Sheet List tab shows the set, its subsets and its sheets in set order
