@@ -249,6 +249,56 @@ namespace OpenCAD2D
             }
         }
 
+        // The system of model space when the Block Editor opened, and the earlier ones then kept with it on top.
+        private CadUcs _beforeEditor;
+        private CadUcs _modelBeforeEditor;
+        private CadUcs[] _previousInEditor;
+        private bool _wasModifiedBeforeEditor;
+
+        /// <summary>
+        /// The Block Editor opens, as AutoCAD 2021's does: model space works in the World UCS, the system it had kept for
+        /// <see cref="Previous"/>. It is no step of undo: the editor's own steps are, and closing it puts the system back.
+        /// </summary>
+        internal void EnterBlockEditor()
+        {
+            _wasModifiedBeforeEditor = IsModified;
+            _modelBeforeEditor = Model;
+            Remember(true, Model);
+            _beforeEditor = Model.Name == null ? Model : Model.WithName(null);
+            _previousInEditor = _modelPrevious.ToArray();
+            Put(true, CadUcs.World);
+        }
+
+        /// <summary>
+        /// The Block Editor closes, saved or not: the system model space had when it opened is current again, with the name
+        /// dropped as AutoCAD's UCSNAME is, and UCS Previous gives the World UCS first, then that system. The earlier systems
+        /// are those kept when the editor opened, whatever a discard replayed since. A drawing that was unmodified, and whose system
+        /// had no name, stays unmodified.
+        /// </summary>
+        internal void LeaveBlockEditor()
+        {
+            if (_beforeEditor == null)
+            {
+                return;
+            }
+
+            _modelPrevious.Clear();
+            _modelPrevious.AddRange(_previousInEditor);
+            Remember(true, CadUcs.World);
+            Put(true, _beforeEditor);
+
+            // The earlier systems are kept in memory and written nowhere: an editor that left the system as it found it, and
+            // the drawing as unmodified, leaves it so.
+            if (!_wasModifiedBeforeEditor && ReferenceEquals(Model, _modelBeforeEditor))
+            {
+                _saved = Capture();
+            }
+
+            _beforeEditor = null;
+            _modelBeforeEditor = null;
+            _previousInEditor = null;
+        }
+
         /// <summary>Makes the system current before the last change current again in the space the canvas shows, as UCS Previous.</summary>
         /// <returns>False where there is none.</returns>
         public bool Previous()

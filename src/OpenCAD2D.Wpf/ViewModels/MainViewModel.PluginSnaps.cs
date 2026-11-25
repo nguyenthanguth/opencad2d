@@ -197,6 +197,7 @@ namespace OpenCAD2D.Wpf
             session.SnapOverride = null;
             // Any change of the prompt ends it (OnPromptChanged), as it ends the override of a built-in snap.
             Snap.CustomOverride = snap;
+            session.CustomSnapOverride = snap;
             session.Write(session.Prompt.Text + " " + word + " of");
             SyncHistory();
             return true;

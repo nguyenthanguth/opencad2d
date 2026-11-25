@@ -293,7 +293,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       with a glyph); described without WPF in GeometryHelper.Cad.Plugins, drawn by the window, gone when unloaded
 - [ ] A2 parked: colour swatches in the Color rows of Properties (the presenter's and a plugin's; the A2Properties board
       to match), collapsing plugin panels, slide-outs, dialog launchers, macros, a pick-point button, and plugin snaps
-      through a viewport, inside a block and for typed points
+      through a viewport, inside a block and for typed points. Snaps done 2026-11-25 (A2P T2, plan .claude/scratch/a2p);
+      the rest is A2P T1
 - [x] A3. Asked for 2026-11-22/23, done: the first STYLE and the Font box no longer stall (font lists read ahead,
       long drop-downs virtualized); Remove Vertex from a grip's menu acts at once; UCS P after UCS W returns to World
       (the CD routine) and UCS changes are undo steps as in AutoCAD; the DRAWINGS right-click menu as AutoCAD's file
@@ -303,8 +304,10 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       LISPLOAD for .lsp files, NETLOAD for .dll, Manage > Load Manager/Load Lisp/Load Plugin/Load Python; Unload only
       unticks, unloaded files kept across restarts with their commands, Remove takes a file out; the load-error line;
       the Plugins ribbon tab and .ghplugin packages removed; the sample plugin in examples/
-- [ ] A4 parked: a UCS change inside the Block Editor and then BCLOSE discard not put back; the UCS dialog's changes
-      one step each, not one per dialog
+- [x] A4 parked: a UCS change inside the Block Editor and then BCLOSE discard not put back. Done 2026-11-25 as AutoCAD
+      2021 does it (measured): BEDIT in the World UCS, UCS/UCSMAN refused inside, BCLOSE puts the UCS back unnamed. The
+      UCS dialog half was moot: the presenter has no UCSMAN dialog (new item below)
+- [ ] A5. The UCS dialog (UCSMAN) as AutoCAD's, design first; its changes one undo step per dialog
 
 #### Parked follow-ups
 

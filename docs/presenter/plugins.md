@@ -588,7 +588,11 @@ typed at a point prompt, `CTOP` or `_ctop`, takes it for the next point alone: "
 is FROM, TT, M2P or MTP, is refused. A point of a plugin's snap competes with the built-in snaps by distance, the built-in
 one taken at a tie: "Circle top" is the circle's 90 degree quadrant, so it shows with Quadrant off, or typed. A finder that
 throws switches its snap off with one line, `The snap CTOP of Circle tools failed and is off: ...`, until it is chosen on
-again. A plugin's snap is not tried through a viewport of a layout, inside a block, or for a point typed after it.
+again. A snap is asked about model space seen through a viewport of a layout (in model coordinates, layers frozen in the
+viewport left out), about the entities inside blocks under the aperture (each as a copy placed where the references draw
+it, up to eight levels, `CadSnapRequest.BlockReferences` naming the references outermost first; external references and
+arrays are not gone into), and about a point typed after its keyword (the entities within the aperture of the typed
+point, the nearest point taken however far; `No Circle top found for specified point.` where there is none).
 
 Two plugins that add a tab of the same id, or snaps of the same keyword, keep the first loaded; the second's is left out
 with a line in its `Problems`. After PLUGINUNLOAD the window shows Home where the plugin's tab was shown, and its panels,

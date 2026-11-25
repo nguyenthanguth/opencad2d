@@ -57,10 +57,17 @@ namespace OpenCAD2D
         /// <summary>
         /// UCS, as AutoCAD 2021 asks it: an origin, then a point on the X axis and one in the XY plane, each Enter keeping what
         /// it would change; or an option. M (Move), 3 (3point), S, R, D, ? and G (orthoGraphic) of the older prompts are taken
-        /// as well.
+        /// as well. Refused in the Block Editor.
         /// </summary>
         private static IEnumerable<CadPrompt> Ucs(CadCommandContext c)
         {
+            // The Block Editor works in the World UCS and refuses to change it, as AutoCAD 2021's does.
+            if (c.Document.BlockEditor != null)
+            {
+                c.Write("** UCS command not allowed in block editor. **");
+                yield break;
+            }
+
             CadUcsManager systems = c.Document.Ucs;
             c.Write("Current ucs name:  " + UcsName(systems.Current));
 
@@ -508,6 +515,12 @@ namespace OpenCAD2D
         /// <summary>UCSMAN: the UCS dialog of a window that has one; else the named systems listed on the command line.</summary>
         private static IEnumerable<CadPrompt> UcsManager(CadCommandContext c)
         {
+            if (c.Document.BlockEditor != null)
+            {
+                c.Write("** UCSMAN command not allowed in block editor. **");
+                yield break;
+            }
+
             if (!c.Session.Request("UCSMAN"))
             {
                 c.Write(

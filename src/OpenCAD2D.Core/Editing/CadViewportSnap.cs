@@ -36,7 +36,8 @@ namespace OpenCAD2D
         /// The object snap of model space seen through the viewports of the layout shown, where it lies nearer the cursor than
         /// the snap of the paper's own objects; the paper's where it does not or none is seen. Model space is snapped in model
         /// units, the aperture in the viewport's scale, and the point taken to the paper by the viewport's view, twist and
-        /// scale. The result names no object: the object is of model space, the point is the paper's.
+        /// scale. The result names no object: the object is of model space, the point is the paper's. A snap of a plugin is
+        /// worked out in model units as the built-in ones are, and the result names it, for its glyph and its tip.
         /// </summary>
         /// <param name="document">The document.</param>
         /// <param name="space">The layout shown.</param>
@@ -106,7 +107,7 @@ namespace OpenCAD2D
                 if (reach < best && Reaches(viewport, at, Tolerance.Default.EqualPoint))
                 {
                     best = reach;
-                    found = new CadSnapResult(seen.Kind, at, null);
+                    found = new CadSnapResult(seen.Kind, at, null, null, null, seen.CustomSnap);
                 }
             }
 

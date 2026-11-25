@@ -537,5 +537,155 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal(before, document.Database.ToText());
             Assert.Equal("Front", saved.Ucsname);
         }
+
+        /// <summary>A metric drawing with the block DOOR (a sill 900 long) placed once, for the tests of the Block Editor.</summary>
+        private static CadDocument DoorDrawing()
+        {
+            DxfDatabase database = CadTemplate.CreateMetric();
+            var door = new DxfBlockTableRecord { Name = "DOOR", Origin = GeoPoint3.Origin };
+            database.BlockTable.Add(door);
+            door.AppendEntity(new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(900, 0, 0)));
+            database.ModelSpace.AppendEntity(new DxfBlockReference(GeoPoint3.Origin, door));
+            return CadDocument.From(database, "door.dxf");
+        }
+
+        /// <summary>The door drawing with the UCS "Front" turned 30 degrees at (100, 50) current, and the Block Editor open on DOOR.</summary>
+        private static CadCommandSession InTheEditorFrom(out CadDocument document)
+        {
+            document = DoorDrawing();
+            CadCommandSession session = Session(document);
+            Run(session, "UCS", "100,50", Enter, "UCS", "Z", "30", "UCS", "NA", "S", "Front");
+            Assert.Equal("Front", document.Ucs.Current.Name);
+            Run(session, "-BEDIT", "DOOR");
+            Assert.NotNull(document.BlockEditor);
+            return session;
+        }
+
+        private static void AssertFront(CadDocument document, CadCommandSession session)
+        {
+            Assert.Null(document.Ucs.Current.Name);
+            Assert.Equal(Math.PI / 6.0, document.Ucs.Current.Angle, 12);
+            Near(P(100, 50), P(document.Ucs.Current.Origin.X, document.Ucs.Current.Origin.Y));
+            Assert.Equal(Math.PI / 6.0, session.Ucs.Angle, 12);
+        }
+
+        [Fact]
+        public void TheBlockEditor_OpensInTheWorldUcs_WhateverTheUcsWas()
+        {
+            CadCommandSession session = InTheEditorFrom(out CadDocument document);
+
+            Assert.True(document.Ucs.Current.IsWorld);
+            Assert.True(session.Ucs.IsWorld);
+        }
+
+        [Theory]
+        [InlineData("UCS", "** UCS command not allowed in block editor. **")]
+        [InlineData("UCSMAN", "** UCSMAN command not allowed in block editor. **")]
+        [InlineData("DDUCS", "** UCSMAN command not allowed in block editor. **")]
+        public void UcsAndUcsmanInTheBlockEditor_AreRefused_AndChangeNothing(string command, string refusal)
+        {
+            CadCommandSession session = InTheEditorFrom(out CadDocument document);
+            int steps = document.UndoPosition;
+
+            Run(session, command);
+
+            Assert.Equal(refusal, session.History.Last());
+            Assert.False(session.IsRunning);
+            Assert.True(document.Ucs.Current.IsWorld);
+            Assert.Equal(steps, document.UndoPosition);
+        }
+
+        [Fact]
+        public void UcsTypedInALispCommandInTheBlockEditor_IsRefusedToo()
+        {
+            CadCommandSession session = InTheEditorFrom(out CadDocument document);
+
+            Run(session, "(command \"_.UCS\" \"Z\" \"45\")");
+
+            Assert.Contains("** UCS command not allowed in block editor. **", session.History);
+            Assert.True(document.Ucs.Current.IsWorld);
+        }
+
+        [Fact]
+        public void BcloseDiscard_PutsTheUcsBackUnnamed()
+        {
+            CadCommandSession session = InTheEditorFrom(out CadDocument document);
+            Run(session, "LINE", P(0, 0), P(0, 2100), Enter, "BCLOSE", "D");
+
+            Assert.Null(document.BlockEditor);
+            AssertFront(document, session);
+        }
+
+        [Fact]
+        public void BcloseSave_PutsTheUcsBackUnnamed()
+        {
+            CadCommandSession session = InTheEditorFrom(out CadDocument document);
+            Run(session, "LINE", P(0, 0), P(0, 2100), Enter, "BCLOSE", "S");
+
+            Assert.Null(document.BlockEditor);
+            AssertFront(document, session);
+        }
+
+        [Fact]
+        public void BcloseWithNoEdit_PutsTheUcsBackUnnamed()
+        {
+            CadCommandSession session = InTheEditorFrom(out CadDocument document);
+            Run(session, "BCLOSE");
+
+            Assert.Null(document.BlockEditor);
+            AssertFront(document, session);
+        }
+
+        [Fact]
+        public void UcsPreviousAfterBclose_GivesWorld_ThenTheUcsBeforeBedit()
+        {
+            CadCommandSession session = InTheEditorFrom(out CadDocument document);
+            Run(session, "LINE", P(0, 0), P(0, 2100), Enter, "BCLOSE", "D");
+
+            Run(session, "UCS", "P");
+            Assert.True(document.Ucs.Current.IsWorld);
+
+            Run(session, "UCS", "P");
+            Assert.Equal(Math.PI / 6.0, document.Ucs.Current.Angle, 12);
+            Near(P(100, 50), P(document.Ucs.Current.Origin.X, document.Ucs.Current.Origin.Y));
+        }
+
+        [Fact]
+        public void TheEarlierSystems_AreKeptAsTheyWereBeforeBedit_BelowTheTwoAddedByIt()
+        {
+            CadDocument document = DoorDrawing();
+            CadCommandSession session = Session(document);
+            Run(session, "UCS", "Z", "10", "UCS", "Z", "20", "-BEDIT", "DOOR", "BCLOSE");
+
+            // The stack was World, 10 degrees; BEDIT kept the 30 degrees one, BCLOSE the World.
+            Run(session, "UCS", "P");
+            Assert.True(document.Ucs.Current.IsWorld);
+            Run(session, "UCS", "P");
+            Assert.Equal(Math.PI / 6.0, document.Ucs.Current.Angle, 12);
+            Run(session, "UCS", "P");
+            Assert.Equal(Math.PI / 18.0, document.Ucs.Current.Angle, 12);
+            Run(session, "UCS", "P");
+            Assert.True(document.Ucs.Current.IsWorld);
+        }
+
+        [Fact]
+        public void ADiscardThatReplaysTheSystemsOfEarlierSteps_LeavesTheStackAsBedit()
+        {
+            // A drawing step after the systems were set: the discard replays settings, which must not touch the systems.
+            CadDocument document = DoorDrawing();
+            CadCommandSession session = Session(document);
+            Run(session, "UCS", "Z", "30");
+            Run(session, "-BEDIT", "DOOR", "LINE", P(0, 0), P(0, 2100), Enter, "BCLOSE", "D");
+
+            Assert.Equal(Math.PI / 6.0, document.Ucs.Current.Angle, 12);
+            Run(session, "UCS", "P");
+            Assert.True(document.Ucs.Current.IsWorld);
+            Run(session, "UCS", "P");
+            Assert.Equal(Math.PI / 6.0, document.Ucs.Current.Angle, 12);
+            Run(session, "UCS", "P");
+            Assert.True(document.Ucs.Current.IsWorld);
+            Run(session, "UCS", "P");
+            Assert.Equal("No previous coordinate system saved.", session.History.Last());
+        }
     }
 }
