@@ -327,10 +327,8 @@ namespace OpenCAD2D.Wpf
             CadCommandSession session = _current.Session;
             AttachTiles(_current);
 
-            // A macro writes a snap as AutoCAD's menus do, with the underscore: _END and _CTOP.
-            session.RunMacro(macro, plugin, word =>
-                (word.Length > 0 && TakeSnapOverride(session, word.TrimStart('_'))) || session.Feed(word)
-            );
+            // A macro writes a snap as AutoCAD's menus do, with the underscore (_END, _CTOP); Feed takes it as typed.
+            session.RunMacro(macro, plugin, session.FeedTyped);
             SyncHistory();
             RunAfterCommand();
         }

@@ -296,7 +296,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       through a viewport, inside a block and for typed points. Snaps done 2026-11-25 (A2P T2, plan .claude/scratch/a2p);
       the rest done 2026-11-25 (A2P T1): swatches as AutoCAD (measured), plugin panels Medium/Collapsed, slide-outs,
       dialog launchers, macro buttons (API 1.2), a pick button on point rows. Left: whether a macro's last ";" adds an
-      Enter (AutoCAD GUI check); `_END` typed on the command line; the presenter's own point rows get no pick button
+      Enter (AutoCAD GUI check); the presenter's own point rows get no pick button
 - [x] A3. Asked for 2026-11-22/23, done: the first STYLE and the Font box no longer stall (font lists read ahead,
       long drop-downs virtualized); Remove Vertex from a grip's menu acts at once; UCS P after UCS W returns to World
       (the CD routine) and UCS changes are undo steps as in AutoCAD; the DRAWINGS right-click menu as AutoCAD's file

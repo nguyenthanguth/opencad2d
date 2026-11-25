@@ -65,6 +65,21 @@ namespace OpenCAD2D
         internal Plugins.CadCustomSnap CustomSnapOverride { get; set; }
 
         /// <summary>
+        /// Takes a word typed through <see cref="FeedTyped"/> before the prompt does, and says whether it did: the window sets it
+        /// to take an object snap word, END or _END, as the override of the next point. Null for none (a session with no window).
+        /// </summary>
+        internal Func<string, bool> TypedWordTaker { get; set; }
+
+        /// <summary>
+        /// Feeds a word as the command line takes it: an object snap word, END or _END, is the override of the next point
+        /// (<see cref="TypedWordTaker"/>), any other is <see cref="Feed(string)"/>'s. The command line, a plugin's macro, a
+        /// routine's <c>command</c>, a script and Remote type their words through it.
+        /// </summary>
+        /// <param name="text">The word.</param>
+        /// <returns>Whether it was taken.</returns>
+        internal bool FeedTyped(string text) => (TypedWordTaker != null && TypedWordTaker(text)) || Feed(text);
+
+        /// <summary>
         /// Gets or sets the aperture of the object snap in drawing units, 10 pixels over the zoom as the canvas sets it with the
         /// cursor: how near an object must lie to a point typed after an override (<see cref="SnapOverride"/>) to be snapped.
         /// </summary>

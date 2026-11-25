@@ -164,7 +164,18 @@ namespace OpenCAD2D
                 _lispPrefix = null;
             }
 
+            // A snap word of the routine is the override of its next argument: the refresh the window makes here must not end it.
+            CadSnapModes? snap = SnapOverride;
+            Plugins.CadCustomSnap custom = CustomSnapOverride;
+            CadPrompt at = Prompt;
             Changed();
+
+            if (ReferenceEquals(Prompt, at) && (snap != null || custom != null))
+            {
+                SnapOverride = snap;
+                CustomSnapOverride = custom;
+            }
+
             return fed;
         }
 
@@ -300,7 +311,7 @@ namespace OpenCAD2D
                         took = Refeed(LispAnswer(argument));
                         break;
                     case string text:
-                        took = Feed(text);
+                        took = FeedTyped(text);
                         break;
                     default:
                         took = Feed(LispNumber(argument));
