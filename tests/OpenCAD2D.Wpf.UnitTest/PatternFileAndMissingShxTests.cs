@@ -241,7 +241,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                     new DxfTextStyleTableRecord
                     {
                         Name = "HZ",
-                        FileName = "ghsimplex.shx",
+                        FileName = "opencad2d.shx",
                         BigFontFileName = "hztxt.shx",
                     }
                 );
@@ -258,7 +258,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                     MissingShxRowViewModel big = dialog.Rows.Single(r => r.File == "hztxt.shx");
                     Assert.Equal("Dims, TITLE", romand.Styles);
                     Assert.False(romand.IsBigFont);
-                    Assert.Equal("ghsimplex", romand.DrawnInText);
+                    Assert.Equal("opencad2d", romand.DrawnInText);
                     Assert.True(romand.IsDrawnByFontAlt);
                     Assert.True(big.IsBigFont);
                     Assert.Equal("HZ", big.Styles);
@@ -270,13 +270,13 @@ namespace OpenCAD2D.Wpf.UnitTest
                         dialog.Explanation
                     );
                     Assert.Equal(
-                        "Text stays in the FONTALT replacement, OpenCAD2D Simplex; a big font's letters are drawn as question marks.",
+                        "Text stays in the FONTALT replacement, OpenCAD2D ISO; a big font's letters are drawn as question marks.",
                         dialog.IgnoreDetail
                     );
 
-                    // The list: the heading, ghsimplex first, then the line and Browse…; ghsimplex chosen, as it draws the file now.
+                    // The list: the heading, opencad2d first, then the line and Browse…; opencad2d chosen, as it draws the file now.
                     Assert.Equal(MissingShxOptionKind.Heading, romand.Options[0].Kind);
-                    Assert.Equal("ghsimplex", romand.Options[1].Name);
+                    Assert.Equal("opencad2d", romand.Options[1].Name);
                     Assert.Equal(MissingShxOptionKind.Browse, romand.Options.Last().Kind);
                     Assert.Same(romand.Options[1], romand.Replacement);
 

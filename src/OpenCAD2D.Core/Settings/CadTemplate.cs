@@ -122,7 +122,7 @@ namespace OpenCAD2D
 
         /// <summary>The description the sample template carries in its template section, the text Select Template shows under its name.</summary>
         public const string SampleDescription =
-            "OpenCAD2D metric sample: millimetres, layers for a Tekla Structures detail, text styles in ghsimplex and Arial, "
+            "OpenCAD2D metric sample: millimetres, layers for a Tekla Structures detail, text styles in opencad2d and Arial, "
             + "the dimension style GH (text 2.5) and an A3 layout.";
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace OpenCAD2D
         /// of <see cref="CadLinetypeFile.BuiltIn"/> (OpenCAD2D.lin), nothing of Autodesk's.
         /// </para>
         /// <para>
-        /// The text styles all draw in the presenter's own font or in Arial: Standard, Notes and Titles in ghsimplex.shx, height
+        /// The text styles all draw in the presenter's own font or in Arial: Standard, Notes and Titles in opencad2d.shx, height
         /// 0, width factor 0.8; Arial in arial.ttf. The dimension style GH, current, has arrowheads closed and filled 2.5 long,
         /// text 2.5 in Standard above the line and aligned with it, extension lines 1.5 off the object and 1.5 past the line,
         /// no decimal places, millimetres (DIMLUNIT 2) and every colour and lineweight by layer; GH-Annotative is GH made
@@ -184,7 +184,7 @@ namespace OpenCAD2D
         {
             DxfTextStyleTable styles = database.TextStyleTable;
 
-            styles["Standard"].FileName = "ghsimplex.shx";
+            styles["Standard"].FileName = CadFonts.BuiltInName + ".shx";
             styles["Standard"].XScale = 0.8;
 
             foreach (string name in new[] { "Notes", "Titles" })
@@ -193,7 +193,7 @@ namespace OpenCAD2D
                     new DxfTextStyleTableRecord
                     {
                         Name = name,
-                        FileName = "ghsimplex.shx",
+                        FileName = CadFonts.BuiltInName + ".shx",
                         XScale = 0.8,
                     }
                 );

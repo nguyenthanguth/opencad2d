@@ -40,13 +40,13 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets what the item is.</summary>
         public MissingShxOptionKind Kind { get; }
 
-        /// <summary>Gets the words shown: a font's file name (romans.shx), ghsimplex, the heading or Browse….</summary>
+        /// <summary>Gets the words shown: a font's file name (romans.shx), opencad2d, the heading or Browse….</summary>
         public string Name { get; }
 
         /// <summary>Gets the tag shown after a font: "big font", "built-in", or empty.</summary>
         public string Tag { get; }
 
-        /// <summary>Gets the font a missing one is drawn in once chosen: a file name, a full path, or ghsimplex; null for the heading, the line and Browse….</summary>
+        /// <summary>Gets the font a missing one is drawn in once chosen: a file name, a full path, or opencad2d; null for the heading, the line and Browse….</summary>
         public string Font { get; }
 
         /// <summary>Gets whether the item can be chosen: a font or Browse….</summary>
@@ -97,12 +97,12 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the names of the text styles that use it, in the order of the drawing's style table: "Dims, TITLE".</summary>
         public string Styles { get; }
 
-        /// <summary>Gets what it is drawn in now, as the replacement names it (OpenCAD2D Simplex, simplex.shx); empty for none.</summary>
+        /// <summary>Gets what it is drawn in now, as the replacement names it (OpenCAD2D ISO, simplex.shx); empty for none.</summary>
         public string DrawnInNow { get; }
 
         /// <summary>
-        /// Gets the Drawn in column while the missing files are ignored: the font as a file is named (simplex.shx, ghsimplex for
-        /// OpenCAD2D Simplex), or the drawing font, or question marks for a big font.
+        /// Gets the Drawn in column while the missing files are ignored: the font as a file is named (simplex.shx, opencad2d for
+        /// OpenCAD2D ISO), or the drawing font, or question marks for a big font.
         /// </summary>
         public string DrawnInText =>
             DrawnInNow.Length == 0 ? (IsBigFont ? "question marks" : "the drawing font")
@@ -184,7 +184,7 @@ namespace OpenCAD2D.Wpf
             return option;
         }
 
-        /// <summary>The item of the font that draws the missing one now: the presenter's own for OpenCAD2D Simplex, else the item of its name, made where the list has none.</summary>
+        /// <summary>The item of the font that draws the missing one now: the presenter's own for OpenCAD2D ISO, else the item of its name, made where the list has none.</summary>
         private MissingShxOption Pick(CadMissingFont font)
         {
             string drawn = font.DrawnIn ?? string.Empty;
@@ -253,8 +253,8 @@ namespace OpenCAD2D.Wpf
     /// <summary>
     /// AutoCAD's Missing SHX files dialog, shown once as a drawing opens whose text styles name SHX fonts or big fonts that
     /// are not found: a row per file with the styles that use it and what it is drawn in, and the choice of a replacement for
-    /// each (a font of the font folders, the presenter's own ghsimplex first, or a file chosen by Browse…) or of keeping the
-    /// FONTALT replacement. A drawing whose styles Dims and TITLE name romand.shx, not found, is drawn in ghsimplex until
+    /// each (a font of the font folders, the presenter's own opencad2d first, or a file chosen by Browse…) or of keeping the
+    /// FONTALT replacement. A drawing whose styles Dims and TITLE name romand.shx, not found, is drawn in opencad2d until
     /// romans.shx is chosen for it; OK then draws every text of those styles in romans.shx (<see cref="Apply"/>). Where
     /// TrueType fonts the machine has not are named too, by a style or an MTEXT's font code, a read-only list of them
     /// follows, with what each is drawn in, and the dialog is titled Missing Fonts; with those alone, only that list is shown.
@@ -345,7 +345,7 @@ namespace OpenCAD2D.Wpf
             + " not in the font search folders (Global settings › Fonts). Until you choose otherwise, text in those styles is drawn in the replacement shown.";
 
         /// <summary>
-        /// Gets the words of the second choice: "Text stays in the FONTALT replacement, OpenCAD2D Simplex, and gbcbig.shx
+        /// Gets the words of the second choice: "Text stays in the FONTALT replacement, OpenCAD2D ISO, and gbcbig.shx
         /// for big fonts.", from the replacement of the document's fonts.
         /// </summary>
         public string IgnoreDetail
@@ -471,7 +471,7 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
-        /// The list of a replacement box: the heading, ghsimplex, the SHX files of the drawing's folder and the font folders
+        /// The list of a replacement box: the heading, opencad2d, the SHX files of the drawing's folder and the font folders
         /// in the order of their names, the first folder's where two have one name, a line and Browse….
         /// </summary>
         private static List<MissingShxOption> Options(CadDocument document)

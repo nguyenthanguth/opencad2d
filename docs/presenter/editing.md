@@ -1517,7 +1517,7 @@ middle (13.3614, 0.7327), a gap and half their width past it.
 The words are measured in the font of the dimension's text style, laid out as the canvas lays out an MTEXT, as AutoCAD
 measures them: "R20" of arial.ttf 2.5 high is 5.965 wide and 2.553 high, "100" of ghsimplex 6.071 wide and widened 1.5
 times 9.107. A TrueType font is read from the Fonts folders of Windows, an SHX font where the fonts set on the document
-find it, the canvas's own ghsimplex wherever fonts are on; the style's width factor and oblique angle count. An SHX
+find it, the canvas's own opencad2d wherever fonts are on; the style's width factor and oblique angle count. An SHX
 letter is measured as AutoCAD measures its ink: an arc of less than a half circle reaches the rectangle of its chord
 and of the line along it touching the arc, a longer one the square about its circle, so that isocp.shx's 3 is 0.441421
 of the height wide where its strokes are 0.4; where the pen is put down counts though it moves no further (monotxt.shx's

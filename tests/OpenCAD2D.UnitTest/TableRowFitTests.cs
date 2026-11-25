@@ -9,7 +9,7 @@ namespace OpenCAD2D.UnitTest
 {
     /// <summary>
     /// A table's rows grow to hold their cells' words as AutoCAD 2021 lays a table out: each cell's text wrapped at the cell's
-    /// width less its margins, in the presenter's ghsimplex, and its row as high as the tallest cell needs, never lower than it
+    /// width less its margins, in the presenter's opencad2d, and its row as high as the tallest cell needs, never lower than it
     /// was. The numbers are those AutoCAD 2021 gave the same tables (GenerateLayout and RecomputeTableBlock, ghsimplex.shx).
     /// </summary>
     public class TableRowFitTests
@@ -17,12 +17,12 @@ namespace OpenCAD2D.UnitTest
         // AutoCAD's numbers as its probe printed them, to five places.
         private const int Places = 5;
 
-        /// <summary>A drawing of millimetres whose Standard text style is ghsimplex, with AutoCAD's Standard table style.</summary>
+        /// <summary>A drawing of millimetres whose Standard text style is opencad2d, with AutoCAD's Standard table style.</summary>
         private static DxfDatabase Drawing()
         {
             var db = new DxfDatabase("AC1032");
             db.SetHeader("$MEASUREMENT", new DxfTypedValue(70, "1"));
-            db.TextStyleTable["Standard"].FileName = "ghsimplex.shx";
+            db.TextStyleTable["Standard"].FileName = "opencad2d.shx";
 
             if (db.TableStyleDictionary == null)
             {

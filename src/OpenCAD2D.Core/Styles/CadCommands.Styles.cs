@@ -210,7 +210,7 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Takes a font typed, as AutoCAD's -STYLE does: an SHX where it is named .shx, is one of AutoCAD's own SHX files (romans,
-        /// txt), is the presenter's own (ghsimplex, written ghsimplex.shx) or is found by the fonts of the drawing; a TrueType
+        /// txt), is the presenter's own (opencad2d, written opencad2d.shx) or is found by the fonts of the drawing; a TrueType
         /// family where one of that exact name is installed (Arial) or the file is named .ttf, .ttc or .otf; else an SHX file by
         /// the name typed (nosuchfont.shx), which the presenter draws in its substitute.
         /// </summary>

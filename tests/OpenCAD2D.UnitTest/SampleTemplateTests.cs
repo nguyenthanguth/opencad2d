@@ -250,7 +250,7 @@ namespace OpenCAD2D.UnitTest
             DxfDatabase database = Open();
 
             Assert.Equal(
-                new[] { "Standard|ghsimplex.shx|0|0.8", "Notes|ghsimplex.shx|0|0.8", "Titles|ghsimplex.shx|0|0.8" },
+                new[] { "Standard|opencad2d.shx|0|0.8", "Notes|opencad2d.shx|0|0.8", "Titles|opencad2d.shx|0|0.8" },
                 database
                     .TextStyleTable.Where(t => t.Name != "Arial")
                     .Select(t => string.Join("|", t.Name, t.FileName, t.TextSize, t.XScale))
@@ -260,7 +260,7 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal("Arial", arial.Font.TypeFace);
             Assert.Equal(4, database.TextStyleTable.Count());
             Assert.All(database.TextStyleTable, t =>
-                Assert.Contains(t.FileName, new[] { "ghsimplex.shx", "arial.ttf" }, StringComparer.OrdinalIgnoreCase)
+                Assert.Contains(t.FileName, new[] { "opencad2d.shx", "arial.ttf" }, StringComparer.OrdinalIgnoreCase)
             );
         }
 

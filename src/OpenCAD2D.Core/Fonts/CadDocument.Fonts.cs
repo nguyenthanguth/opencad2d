@@ -9,14 +9,14 @@ namespace OpenCAD2D
     public sealed class CadFontMissingEventArgs : EventArgs
     {
         /// <summary>Makes the arguments.</summary>
-        /// <param name="message">The line to show: "Font romans.shx not found: using OpenCAD2D Simplex."</param>
+        /// <param name="message">The line to show: "Font romans.shx not found: using OpenCAD2D ISO."</param>
         public CadFontMissingEventArgs(string message)
         {
             Message = message ?? string.Empty;
         }
 
         /// <summary>
-        /// Gets the line to show on the command line: "Missing SHX files: romans.shx drawn in OpenCAD2D Simplex." the first
+        /// Gets the line to show on the command line: "Missing SHX files: romans.shx drawn in OpenCAD2D ISO." the first
         /// time, "Font No Such Face not found: using Arial." for a font met after it.
         /// </summary>
         public string Message { get; }
