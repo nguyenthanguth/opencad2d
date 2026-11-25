@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **FIXED.** `(textbox)` of a TEXT in the built-in font `opencad2d.shx` gave `nil`, and so did the other measures that take
+  a text's box from the drawing's fonts the same way (`vla-GetBoundingBox` of a TEXT or MTEXT, the breaks of a dimension
+  or a multileader, MLEADERALIGN): they looked in the folders a user set and Windows' Fonts folder but not in
+  the Fonts folder shipped beside the program, where `opencad2d.shx` is. `ABC123` 10 high gives (1.0, -0.6299) to
+  (42.2488, 10.7063) and 100 high (10.0, -6.2992) to (422.4882, 107.063), as AutoCAD 2021 does.
 - **NEW.** `CadEditor.Move`, `Copy`, `Rotate`, `Scale`, `Mirror`, `Offset` and `Erase` (A8): the edits as calls for
   plugins, each doing what the command of its name does, through the code the command runs; refused whole with the
   object's words; one undo step named as the command, or joining the running command's step.
