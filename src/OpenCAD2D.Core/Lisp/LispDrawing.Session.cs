@@ -332,7 +332,7 @@ namespace OpenCAD2D.Lisp
         {
             lisp.OnOwner(() =>
             {
-                session.ShowAlert(text);
+                session.ShowAlert(LispPrinter.Display(text));
                 return null;
             });
             return null;

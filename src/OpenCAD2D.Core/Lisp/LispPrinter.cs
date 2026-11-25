@@ -52,6 +52,25 @@ namespace OpenCAD2D.Lisp
                     ).ToString()
                 );
 
+        /// <summary>
+        /// Makes the text a string becomes where a routine hands it to the drawing, as AutoCAD 2021 does: each <c>\U+XXXX</c> is
+        /// the character, and a <c>\U+0000</c> ends the text (<c>"x\U+0000y"</c> is <c>x</c>). The text of a TEXT or MTEXT, a
+        /// layer or block name, extended data, a system variable and a name looked up all take it.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <returns>The text with the characters.</returns>
+        internal static string Store(string text)
+        {
+            if (text == null || text.IndexOf('\\') < 0)
+            {
+                return text;
+            }
+
+            string shown = Display(text);
+            int end = shown.IndexOf('\0');
+            return end < 0 ? shown : shown.Substring(0, end);
+        }
+
         /// <summary>Writes a real as AutoCAD does.</summary>
         /// <param name="value">The real.</param>
         /// <returns>The text: <c>1.0</c>, <c>-nan(ind).0</c>, <c>inf.0</c>.</returns>

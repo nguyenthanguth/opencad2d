@@ -1566,7 +1566,8 @@ namespace OpenCAD2D.Lisp
                 }
                 else
                 {
-                    pairs.Add(Pair(code, value));
+                    // A string handed to the drawing holds the characters of its \U+XXXX escapes, names and texts alike.
+                    pairs.Add(Pair(code, value is string text ? LispPrinter.Store(text) : value));
                 }
 
                 cell = item.Cdr;
@@ -1692,7 +1693,7 @@ namespace OpenCAD2D.Lisp
                         groups.Add(new KeyValuePair<int, string>(code, name.Handle));
                         break;
                     default:
-                        groups.Add(new KeyValuePair<int, string>(code, (string)pair.Value));
+                        groups.Add(new KeyValuePair<int, string>(code, LispPrinter.Store((string)pair.Value)));
                         break;
                 }
             }

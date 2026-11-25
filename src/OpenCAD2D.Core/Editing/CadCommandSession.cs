@@ -832,7 +832,11 @@ namespace OpenCAD2D
                 return (!_refeeding && StartPointModifier(text)) || OptionText(text.Trim());
             }
 
-            string typed = Prompt.Kind == CadPromptKind.String ? text : text.Trim();
+            // Text for a command (a TEXT, a layer name) shows \U+0111 as the character; what a get function of AutoLISP is typed stays.
+            string typed =
+                Prompt.Kind != CadPromptKind.String ? text.Trim()
+                : ReferenceEquals(Prompt, _lispAskPrompt) ? text
+                : LispPrinter.Store(text);
             string echo = _refeeding ? null : Prompt.Echo(typed);
 
             if (Prompt.Kind != CadPromptKind.String)
