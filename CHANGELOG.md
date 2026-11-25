@@ -14,6 +14,18 @@
   100 high, as are `\H;`, `\Hx;`, `\H2`, `\W`, `\Q15` and `\T`. `\H2B` is `\H2;B` (B 2 high), `\Hab;A` is `\H` and the
   text "ab;A", `\H2xA` doubles the height. A `\W` with no number or one below 0.1 sets the width factor 0.1, and a `\T`
   below 0.75 the tracking 0.75, as AutoCAD does.
+- **FIXED.** Every reader of an MTEXT's format codes (the layout, the display's font and width, FIND, REPLACE and SPELL)
+  now reads them as AutoCAD 2021 does, through one tokenizer, so they cannot disagree. `\C`, `\c` and `\A` take digits and
+  no semicolon: `\C1A` shows A in colour 1 (it showed "C1A" and needed `\C1;A`), `\c255A` in true colour 255,0,0, and
+  `\A1B` stands B in the middle of the line. No digits is 0 (`\CA` is ByBlock, `\cA` black); a colour above 255 or
+  below 0, a true colour above 16 777 215 and an `\A` other than 1 or 2 now reset to ByLayer or the baseline, where the app
+  kept the one before. `\f`, `\F`, `\S` and `\p` run to the next semicolon wherever it is, and to the end of the text where
+  there is none (`\fArialA` shows nothing, `\SA/B` is a stack), where the app showed the letter and went on. FIND, REPLACE
+  and SPELL found no word after `\H2xWord` or `\C1Word`; they do. An integer after `\H`, `\W`, `\Q` or `\T` that is
+  followed by a space, a hyphen or a slash is a fraction (`\H2 1/2B` is 2.5 high, `\H2-1/2B` the same, `\H2/3B` 0.667) or
+  no number: `\H2 B` is `\H` and the text "2 B" at the height of the MTEXT, where the app made B 2 high. MTextFormatCodeTests
+  and MTextCodeReadersTests: 266 cases at AutoCAD's numbers, 184 failed before the fix. Laying out 10 000 MTEXTs takes
+  about 490 ms, where it took 640 to 990 ms.
 - **FIXED.** MIRROR with a second point 1E-8 to 2E-5 from the first no longer ends with "Cannot normalize a zero-length
   vector." after the Erase prompt: it says "Invalid point: the mirror line is too short." and asks again.
 - **BREAKING.** The built-in font is now OpenCAD2D ISO (`opencad2d.shx`; `CadFonts.BuiltInName` is `"opencad2d"`,

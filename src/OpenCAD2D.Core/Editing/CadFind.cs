@@ -518,6 +518,12 @@ namespace OpenCAD2D
 
                         break;
                     default:
+                        if (CadMTextCodes.TryRead(contents, i, out CadMTextCode read))
+                        {
+                            i = read.End - 1;
+                            break;
+                        }
+
                         int end = contents.IndexOf(';', i + 2);
 
                         if (char.IsLetter(code) && end > 0)

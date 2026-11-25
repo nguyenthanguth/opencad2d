@@ -3797,21 +3797,19 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                int end = contents.IndexOf(';', i + 2);
-
-                if ("ACcFfHQTWp".IndexOf(code) < 0 || end < 0)
+                if (code == 'S' || !CadMTextCodes.TryRead(contents, i, out CadMTextCode read))
                 {
                     break;
                 }
 
                 if (code == 'f' || code == 'F')
                 {
-                    string font = contents.Substring(i + 2, end - i - 2).Split('|')[0].Trim();
+                    string font = read.Value.Split('|')[0].Trim();
                     name = font.Length > 0 ? font : name;
                     shx = font.Length > 0 ? code == 'F' : shx;
                 }
 
-                i = end + 1;
+                i = read.End;
             }
 
             return name;
@@ -3848,31 +3846,18 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                int end = contents.IndexOf(';', i + 2);
-
-                if ("ACcFfHQTWp".IndexOf(code) < 0 || end < 0)
+                if (code == 'S' || !CadMTextCodes.TryRead(contents, i, out CadMTextCode read))
                 {
                     break;
                 }
 
-                string number = contents.Substring(i + 2, end - i - 2);
-                bool times = number.EndsWith("x", StringComparison.OrdinalIgnoreCase);
-
-                if (
-                    code == 'W'
-                    && double.TryParse(
-                        times ? number.Substring(0, number.Length - 1) : number,
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out double read
-                    )
-                    && read > 0.0
-                )
+                if (code == 'W')
                 {
-                    factor = times ? factor * read : read;
+                    // As the content reads it: no number is the narrowest, 0.1, and so is any below it.
+                    factor = read.HasNumber ? Math.Max(0.1, read.Times ? factor * read.Number : read.Number) : 0.1;
                 }
 
-                i = end + 1;
+                i = read.End;
             }
 
             return factor;
