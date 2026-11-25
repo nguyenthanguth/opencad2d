@@ -365,7 +365,7 @@ namespace OpenCAD2D
                         break;
 
                     case DxfDimKind.Text:
-                        yield return CadPrompt.ForString(ask, (string)shown);
+                        yield return CadPrompt.ForString(ask, (string)shown).AllowingSpaces();
 
                         if (c.Input.Kind == CadInputKind.Text)
                         {

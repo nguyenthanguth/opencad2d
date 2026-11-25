@@ -44,7 +44,9 @@ namespace OpenCAD2D
 
                 if (c.Input.Is("Delete"))
                 {
-                    yield return CadPrompt.ForString("Enter scale name to delete or * to delete all unused scales");
+                    yield return CadPrompt
+                        .ForString("Enter scale name to delete or * to delete all unused scales")
+                        .AllowingSpaces();
                     DeleteScales(c, (c.Input.Text ?? string.Empty).Trim());
                     continue;
                 }
@@ -76,7 +78,7 @@ namespace OpenCAD2D
 
                 while (true)
                 {
-                    yield return CadPrompt.ForString("Enter name for new scale");
+                    yield return CadPrompt.ForString("Enter name for new scale").AllowingSpaces();
                     name = (c.Input.Text ?? string.Empty).Trim();
 
                     if (name.Length == 0)
@@ -116,7 +118,7 @@ namespace OpenCAD2D
 
                 while (true)
                 {
-                    yield return CadPrompt.ForString("Enter scale ratio");
+                    yield return CadPrompt.ForString("Enter scale ratio").AllowingSpaces();
 
                     if (c.Input.IsNone || TryReadRatio(c.Input.Text, out paper, out drawing))
                     {

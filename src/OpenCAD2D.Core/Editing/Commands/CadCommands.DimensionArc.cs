@@ -120,7 +120,7 @@ namespace OpenCAD2D
 
                 if (c.Input.Is("Mtext") || c.Input.Is("Text"))
                 {
-                    yield return CadPrompt.ForString("Enter dimension text", "<>");
+                    yield return CadPrompt.ForString("Enter dimension text", "<>").AllowingSpaces();
 
                     if (c.Input.Kind == CadInputKind.Text)
                     {

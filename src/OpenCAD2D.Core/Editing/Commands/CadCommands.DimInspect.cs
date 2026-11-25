@@ -98,7 +98,7 @@ namespace OpenCAD2D
                 : c.Input.Is("None") ? CadInspectionShape.None
                 : CadInspectionShape.Round;
 
-            yield return CadPrompt.ForString("Enter label data or", "None");
+            yield return CadPrompt.ForString("Enter label data or", "None").AllowingSpaces();
             string label = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : string.Empty;
             bool shown = label.Length > 0;
             yield return CadPrompt.ForString("Enter inspection rate", "100%");

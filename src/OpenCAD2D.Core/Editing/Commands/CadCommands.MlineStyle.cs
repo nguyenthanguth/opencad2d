@@ -229,7 +229,7 @@ namespace OpenCAD2D
 
                 if (c.Input.Is("Description"))
                 {
-                    yield return CadPrompt.ForString("Enter description", settings.Description);
+                    yield return CadPrompt.ForString("Enter description", settings.Description).AllowingSpaces();
 
                     if (c.Input.Kind == CadInputKind.Text)
                     {

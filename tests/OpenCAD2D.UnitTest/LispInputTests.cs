@@ -467,8 +467,9 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void OnlyAPromptForTextTakesSpaces()
         {
-            // spec section 2: TakesSpaces is true for a prompt for text and false for every other kind
-            Assert.True(CadPrompt.ForString("Name:").TakesSpaces);
+            // spec section 2: TakesSpaces is true for a prompt for a line of text and false for every other kind, a name among them
+            Assert.True(CadPrompt.ForString("Text:").AllowingSpaces().TakesSpaces);
+            Assert.False(CadPrompt.ForString("Name:").TakesSpaces);
             Assert.False(CadPrompt.ForInteger("Count:").TakesSpaces);
             Assert.False(CadPrompt.ForDistance("Distance:").TakesSpaces);
             Assert.False(CadPrompt.ForSelection().TakesSpaces);

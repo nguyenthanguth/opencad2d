@@ -1614,7 +1614,7 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                yield return CadPrompt.ForString(PromptOf(definitions[i]), definitions[i].TextString);
+                yield return CadPrompt.ForString(PromptOf(definitions[i]), definitions[i].TextString).AllowingSpaces();
 
                 if (c.Input.Kind == CadInputKind.Text)
                 {
@@ -1636,7 +1636,7 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                yield return CadPrompt.ForString(PromptOf(definitions[i]), values[i]);
+                yield return CadPrompt.ForString(PromptOf(definitions[i]), values[i]).AllowingSpaces();
 
                 if (c.Input.Kind == CadInputKind.Text)
                 {
@@ -2193,13 +2193,13 @@ namespace OpenCAD2D
 
             if (!request.Constant)
             {
-                yield return CadPrompt.ForString("Enter attribute prompt");
+                yield return CadPrompt.ForString("Enter attribute prompt").AllowingSpaces();
                 request.Prompt = c.Input.Kind == CadInputKind.Text ? c.Input.Text : string.Empty;
             }
 
-            yield return CadPrompt.ForString(
-                request.Constant ? "Enter attribute value" : "Enter default attribute value"
-            );
+            yield return CadPrompt
+                .ForString(request.Constant ? "Enter attribute value" : "Enter default attribute value")
+                .AllowingSpaces();
             request.Default = c.Input.Kind == CadInputKind.Text ? c.Input.Text : string.Empty;
 
             // The justification chosen is kept for the next -ATTDEF, and shown as typed ("MC"), as AutoCAD 2021 does.
@@ -2447,10 +2447,9 @@ namespace OpenCAD2D
                     for (int i = 0; i < request.Rows.Count; i++)
                     {
                         CadAttributeRow row = request.Rows[i];
-                        yield return CadPrompt.ForString(
-                            "Enter new value for attribute \"" + row.Tag + "\"",
-                            row.Value
-                        );
+                        yield return CadPrompt
+                            .ForString("Enter new value for attribute \"" + row.Tag + "\"", row.Value)
+                            .AllowingSpaces();
 
                         if (c.Input.Kind == CadInputKind.Text)
                         {
@@ -2834,7 +2833,7 @@ namespace OpenCAD2D
             Regex blocks = Wildcard(c.Input.Kind == CadInputKind.Text ? c.Input.Text : "*");
             yield return CadPrompt.ForString("Enter attribute tag specification", "*");
             Regex tags = Wildcard(c.Input.Kind == CadInputKind.Text ? c.Input.Text : "*");
-            yield return CadPrompt.ForString("Enter attribute value specification", "*");
+            yield return CadPrompt.ForString("Enter attribute value specification", "*").AllowingSpaces();
             Regex values = Wildcard(c.Input.Kind == CadInputKind.Text ? c.Input.Text : "*");
             yield return CadPrompt.ForSelection("Select Attributes");
             List<KeyValuePair<string, string>> found = MatchingAttributes(
@@ -2878,9 +2877,9 @@ namespace OpenCAD2D
 
                         if (c.Input.Is("Change"))
                         {
-                            yield return CadPrompt.ForString("Enter string to change");
+                            yield return CadPrompt.ForString("Enter string to change").AllowingSpaces();
                             string from = c.Input.Kind == CadInputKind.Text ? c.Input.Text : string.Empty;
-                            yield return CadPrompt.ForString("Enter new string");
+                            yield return CadPrompt.ForString("Enter new string").AllowingSpaces();
                             string to = c.Input.Kind == CadInputKind.Text ? c.Input.Text : string.Empty;
                             int at = from.Length == 0 ? -1 : row.Value.IndexOf(from, StringComparison.Ordinal);
 
@@ -2894,7 +2893,7 @@ namespace OpenCAD2D
                         }
                         else if (c.Input.Is("Replace"))
                         {
-                            yield return CadPrompt.ForString("Enter new attribute value");
+                            yield return CadPrompt.ForString("Enter new attribute value").AllowingSpaces();
                             row.Value = c.Input.Kind == CadInputKind.Text ? c.Input.Text : string.Empty;
                         }
                     }

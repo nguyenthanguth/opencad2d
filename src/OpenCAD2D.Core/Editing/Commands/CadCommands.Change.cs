@@ -326,7 +326,7 @@ namespace OpenCAD2D
                     }
                 }
 
-                yield return CadPrompt.ForString("Enter new prompt", definition.Prompt);
+                yield return CadPrompt.ForString("Enter new prompt", definition.Prompt).AllowingSpaces();
 
                 if (c.Input.Kind == CadInputKind.Text && c.Input.Text.Length > 0)
                 {
@@ -335,10 +335,9 @@ namespace OpenCAD2D
                 }
             }
 
-            yield return CadPrompt.ForString(
-                definition != null ? "Enter new default value" : "Enter new text",
-                text.TextString
-            );
+            yield return CadPrompt
+                .ForString(definition != null ? "Enter new default value" : "Enter new text", text.TextString)
+                .AllowingSpaces();
 
             if (c.Input.Kind == CadInputKind.Text && c.Input.Text.Length > 0)
             {

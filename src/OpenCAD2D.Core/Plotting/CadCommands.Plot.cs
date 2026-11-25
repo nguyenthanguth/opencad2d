@@ -152,7 +152,7 @@ namespace OpenCAD2D
             {
                 while (true)
                 {
-                    yield return CadPrompt.ForString("Enter a page setup name");
+                    yield return CadPrompt.ForString("Enter a page setup name").AllowingSpaces();
 
                     if (c.Input.Kind != CadInputKind.Text || c.Input.Text.Trim().Length == 0)
                     {

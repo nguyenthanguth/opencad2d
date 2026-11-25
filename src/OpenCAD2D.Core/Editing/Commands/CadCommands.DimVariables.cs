@@ -124,13 +124,15 @@ namespace OpenCAD2D
                                 : "Cannot set " + name + " to that value."
                     );
                 case DxfDimKind.Text:
-                    return CadSystemVariable.Optional(
-                        name,
-                        "none",
-                        s => (string)DimValue(s, variable),
-                        (c, typed) => DimChange(c, name, variable, typed, d => typed),
-                        true
-                    );
+                    return CadSystemVariable
+                        .Optional(
+                            name,
+                            "none",
+                            s => (string)DimValue(s, variable),
+                            (c, typed) => DimChange(c, name, variable, typed, d => typed),
+                            true
+                        )
+                        .AllowingSpaces();
                 case DxfDimKind.Block:
                     return CadSystemVariable.Optional(
                         name,

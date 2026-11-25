@@ -122,7 +122,7 @@ namespace OpenCAD2D
             }
 
             var lines = new List<string>();
-            yield return CadPrompt.ForString("Enter first line of annotation text or", "options");
+            yield return CadPrompt.ForString("Enter first line of annotation text or", "options").AllowingSpaces();
 
             if (c.Input.Kind == CadInputKind.Text && c.Input.Text.Length > 0)
             {
@@ -403,7 +403,7 @@ namespace OpenCAD2D
             }
 
             var lines = new List<string>();
-            yield return CadPrompt.ForString("Enter first line of annotation text", "Mtext");
+            yield return CadPrompt.ForString("Enter first line of annotation text", "Mtext").AllowingSpaces();
 
             if (c.Input.Kind == CadInputKind.Text && c.Input.Text.Length > 0)
             {
@@ -601,7 +601,7 @@ namespace OpenCAD2D
         {
             while (true)
             {
-                yield return CadPrompt.ForString("Enter next line of annotation text");
+                yield return CadPrompt.ForString("Enter next line of annotation text").AllowingSpaces();
 
                 if (c.Input.Kind != CadInputKind.Text || c.Input.Text.Length == 0)
                 {

@@ -351,6 +351,7 @@ namespace OpenCAD2D
                 // The words typed so far are drawn where the line will stand, as AutoCAD writes them in place.
                 yield return CadPrompt
                     .ForString("Enter text")
+                    .AllowingSpaces()
                     .Previewing(
                         CadPreview.MakingOne(c, input => string.IsNullOrEmpty(input.Text) ? null : Line(input.Text))
                     );
@@ -848,7 +849,7 @@ namespace OpenCAD2D
 
                 while (true)
                 {
-                    yield return CadPrompt.ForString("MText");
+                    yield return CadPrompt.ForString("MText").AllowingSpaces();
 
                     if (c.Input.Kind != CadInputKind.Text || c.Input.Text.Length == 0)
                     {

@@ -271,7 +271,7 @@ namespace OpenCAD2D
             file = file.Length == 0 ? suggested : file;
             file = CadDrawingFile.IsTemplateName(file) ? file : Path.ChangeExtension(file, ".dwt");
 
-            yield return CadPrompt.ForString("Enter template description");
+            yield return CadPrompt.ForString("Enter template description").AllowingSpaces();
             string description = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : string.Empty;
 
             bool metric = c.Document.Database.Measurement == DxfMeasurementValue.Metric;

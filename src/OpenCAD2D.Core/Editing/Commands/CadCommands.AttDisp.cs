@@ -75,7 +75,7 @@ namespace OpenCAD2D
             Regex blocks = Wildcard(c.Input.Kind == CadInputKind.Text ? c.Input.Text : "*");
             yield return CadPrompt.ForString("Enter attribute tag specification", "*");
             Regex tags = Wildcard(c.Input.Kind == CadInputKind.Text ? c.Input.Text : "*");
-            yield return CadPrompt.ForString("Enter attribute value specification", "*");
+            yield return CadPrompt.ForString("Enter attribute value specification", "*").AllowingSpaces();
             Regex values = Wildcard(c.Input.Kind == CadInputKind.Text ? c.Input.Text : "*");
             List<KeyValuePair<string, string>> found;
 
@@ -96,9 +96,9 @@ namespace OpenCAD2D
                 yield break;
             }
 
-            yield return CadPrompt.ForString("Enter string to change");
+            yield return CadPrompt.ForString("Enter string to change").AllowingSpaces();
             string from = c.Input.Kind == CadInputKind.Text ? c.Input.Text : string.Empty;
-            yield return CadPrompt.ForString("Enter new string");
+            yield return CadPrompt.ForString("Enter new string").AllowingSpaces();
             string to = c.Input.Kind == CadInputKind.Text ? c.Input.Text : string.Empty;
 
             // The attributes of each INSERT together, the INSERTs in the order they were found.

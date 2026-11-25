@@ -149,9 +149,9 @@ namespace OpenCAD2D
                 yield break;
             }
 
-            yield return CadPrompt.ForString("Descriptive text");
+            yield return CadPrompt.ForString("Descriptive text").AllowingSpaces();
             string description = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : string.Empty;
-            yield return CadPrompt.ForString("Enter linetype pattern (on next line)", "A,");
+            yield return CadPrompt.ForString("Enter linetype pattern (on next line)", "A,").AllowingSpaces();
             CadLinetypeDefinition linetype = CadLinetypeFile.ParsePattern(
                 name,
                 description,

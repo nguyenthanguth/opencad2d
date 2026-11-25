@@ -216,16 +216,18 @@ namespace OpenCAD2D
                 )
             );
             registry.AddVariable(
-                CadSystemVariable.Optional(
-                    "HPLAYER",
-                    "use current",
-                    s => s.Document.HatchSettings.Layer ?? "use current",
-                    (c, typed) =>
-                    {
-                        c.Document.HatchSettings.Layer = typed.Length == 0 ? null : typed;
-                        return null;
-                    }
-                )
+                CadSystemVariable
+                    .Optional(
+                        "HPLAYER",
+                        "use current",
+                        s => s.Document.HatchSettings.Layer ?? "use current",
+                        (c, typed) =>
+                        {
+                            c.Document.HatchSettings.Layer = typed.Length == 0 ? null : typed;
+                            return null;
+                        }
+                    )
+                    .AllowingSpaces()
             );
             registry.AddVariable(
                 CadSystemVariable.Whole(
@@ -281,30 +283,34 @@ namespace OpenCAD2D
 
             // The layer new dimensions go on, which DIM's LAyer sets too; "." for the current layer.
             registry.AddVariable(
-                CadSystemVariable.Optional(
-                    "DIMLAYER",
-                    "use current",
-                    s => s.DimLayer ?? "use current",
-                    (c, typed) =>
-                    {
-                        c.Session.DimLayer = typed.Length == 0 ? null : typed;
-                        return null;
-                    }
-                )
+                CadSystemVariable
+                    .Optional(
+                        "DIMLAYER",
+                        "use current",
+                        s => s.DimLayer ?? "use current",
+                        (c, typed) =>
+                        {
+                            c.Session.DimLayer = typed.Length == 0 ? null : typed;
+                            return null;
+                        }
+                    )
+                    .AllowingSpaces()
             );
 
             // The layer new text goes on, as DIMLAYER is for dimensions; "." for the current layer. TEXT and MTEXT take it.
             registry.AddVariable(
-                CadSystemVariable.Optional(
-                    "TEXTLAYER",
-                    "use current",
-                    s => s.TextLayer ?? "use current",
-                    (c, typed) =>
-                    {
-                        c.Session.TextLayer = typed.Length == 0 ? null : typed;
-                        return null;
-                    }
-                )
+                CadSystemVariable
+                    .Optional(
+                        "TEXTLAYER",
+                        "use current",
+                        s => s.TextLayer ?? "use current",
+                        (c, typed) =>
+                        {
+                            c.Session.TextLayer = typed.Length == 0 ? null : typed;
+                            return null;
+                        }
+                    )
+                    .AllowingSpaces()
             );
 
             // What the commands measured and the last point, for the user to read.

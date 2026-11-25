@@ -985,7 +985,7 @@ namespace OpenCAD2D
                 }
                 else if (option == "Description")
                 {
-                    yield return CadPrompt.ForString("Enter layer description");
+                    yield return CadPrompt.ForString("Enter layer description").AllowingSpaces();
 
                     if (c.Input.Kind != CadInputKind.Text)
                     {

@@ -22,16 +22,18 @@ namespace OpenCAD2D
                 )
             );
             registry.AddVariable(
-                CadSystemVariable.Text(
-                    "TRUSTEDPATHS",
-                    false,
-                    s => s.LoadSecurity.TrustedPaths,
-                    (c, typed) =>
-                    {
-                        c.Session.LoadSecurity.TrustedPaths = typed;
-                        return null;
-                    }
-                )
+                CadSystemVariable
+                    .Text(
+                        "TRUSTEDPATHS",
+                        false,
+                        s => s.LoadSecurity.TrustedPaths,
+                        (c, typed) =>
+                        {
+                            c.Session.LoadSecurity.TrustedPaths = typed;
+                            return null;
+                        }
+                    )
+                    .AllowingSpaces()
             );
             registry.AddVariable(
                 CadSystemVariable.Whole(

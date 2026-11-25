@@ -760,7 +760,7 @@ namespace OpenCAD2D
             }
             else if (!none)
             {
-                yield return CadPrompt.ForString("Enter text");
+                yield return CadPrompt.ForString("Enter text").AllowingSpaces();
 
                 if (c.Input.Kind != CadInputKind.Text || c.Input.Text.Length == 0)
                 {

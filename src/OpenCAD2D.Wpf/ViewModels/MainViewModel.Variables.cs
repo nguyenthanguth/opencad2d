@@ -104,7 +104,9 @@ namespace OpenCAD2D.Wpf
                 CadSystemVariable.Integer("POLARMODE", 0, 15, () => _settings.PolarMode, SetPolarMode)
             );
             registry.AddVariable(
-                CadSystemVariable.Text("POLARADDANG", () => _settings.PolarAddedAngles, SetPolarAddedAngles)
+                CadSystemVariable
+                    .Text("POLARADDANG", () => _settings.PolarAddedAngles, SetPolarAddedAngles)
+                    .AllowingSpaces()
             );
             registry.AddVariable(CadSystemVariable.Integer("AUTOSNAP", 0, 63, Autosnap, SetAutosnap));
             registry.AddVariable(CadSystemVariable.Integer("DYNMODE", -3, 3, DynamicMode, SetDynamicMode));

@@ -325,9 +325,9 @@ namespace OpenCAD2D
                 }
                 else if (c.Input.Is("User Fields") || c.Input.Is("User"))
                 {
-                    yield return CadPrompt.ForString("Enter user field 1", stamp.UserField1);
+                    yield return CadPrompt.ForString("Enter user field 1", stamp.UserField1).AllowingSpaces();
                     stamp.UserField1 = UserField(c, stamp.UserField1);
-                    yield return CadPrompt.ForString("Enter user field 2", stamp.UserField2);
+                    yield return CadPrompt.ForString("Enter user field 2", stamp.UserField2).AllowingSpaces();
                     stamp.UserField2 = UserField(c, stamp.UserField2);
                 }
                 else if (c.Input.Is("Log file"))
