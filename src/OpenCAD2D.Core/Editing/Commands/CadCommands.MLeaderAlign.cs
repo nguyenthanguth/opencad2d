@@ -988,22 +988,21 @@ namespace OpenCAD2D
 
         private sealed class MeasuringScope : IDisposable
         {
-            private readonly DxfDatabase _database;
-            private readonly string _searched;
+            private readonly IDisposable _borrowed;
 
             public MeasuringScope(CadDocument document)
             {
-                _database = document.Database;
-                _searched = _database.FontSearchPath;
-                _database.FontSearchPath = string.Join(
-                    ";",
-                    document.Fonts.FontFolders.Concat(
-                        new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) }
+                _borrowed = document.BorrowFonts(
+                    string.Join(
+                        ";",
+                        document.Fonts.FontFolders.Concat(
+                            new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) }
+                        )
                     )
                 );
             }
 
-            public void Dispose() => _database.FontSearchPath = _searched;
+            public void Dispose() => _borrowed.Dispose();
         }
     }
 }

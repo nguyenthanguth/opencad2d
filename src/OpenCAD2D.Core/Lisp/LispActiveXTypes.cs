@@ -297,16 +297,11 @@ namespace OpenCAD2D.Lisp
 
         internal sealed class MeasuringScope : IDisposable
         {
-            private readonly DxfDatabase _database;
-            private readonly string _searched;
-            private readonly bool _set;
+            private readonly IDisposable _borrowed;
 
             internal MeasuringScope(CadDocument document)
             {
-                _database = document.Database;
-                _searched = _database.FontSearchPath;
-
-                if (!string.IsNullOrEmpty(_searched))
+                if (!string.IsNullOrEmpty(document.Database.FontSearchPath))
                 {
                     return;
                 }
@@ -323,18 +318,11 @@ namespace OpenCAD2D.Lisp
 
                 if (path.Trim().Length > 0)
                 {
-                    _database.FontSearchPath = path;
-                    _set = true;
+                    _borrowed = document.BorrowFonts(path);
                 }
             }
 
-            public void Dispose()
-            {
-                if (_set)
-                {
-                    _database.FontSearchPath = _searched;
-                }
-            }
+            public void Dispose() => _borrowed?.Dispose();
         }
 
         /// <summary>

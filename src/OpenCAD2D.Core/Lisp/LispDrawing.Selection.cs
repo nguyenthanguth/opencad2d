@@ -540,31 +540,23 @@ namespace OpenCAD2D.Lisp
         /// </summary>
         private static void MeasureWords(CadDocument document, DxfMText text, out double width, out double height)
         {
-            DxfDatabase database = document.Database;
-            string searched = database.FontSearchPath;
-            bool borrow = document.Fonts != null && string.IsNullOrEmpty(searched);
+            bool borrow = document.Fonts != null && string.IsNullOrEmpty(document.Database.FontSearchPath);
 
-            try
-            {
-                if (borrow)
-                {
-                    database.FontSearchPath = string.Join(
-                        ";",
-                        document.Fonts.Folders.Concat(
-                            new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) }
+            using (
+                borrow
+                    ? document.BorrowFonts(
+                        string.Join(
+                            ";",
+                            document.Fonts.Folders.Concat(
+                                new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) }
+                            )
                         )
-                    );
-                }
-
+                    )
+                    : null
+            )
+            {
                 width = text.ActualWidth;
                 height = text.ActualHeight;
-            }
-            finally
-            {
-                if (borrow)
-                {
-                    database.FontSearchPath = searched;
-                }
             }
         }
 

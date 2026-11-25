@@ -28,6 +28,7 @@ namespace OpenCAD2D
         private readonly object _fontLock = new object();
         private CadFonts _fonts = new CadFonts(null, null, null);
         private bool _missingListed;
+        private int _fontReads;
 
         /// <summary>
         /// Raised the first time a font a text style names is not found and is replaced, as the spaces are drawn. The first time
@@ -56,6 +57,8 @@ namespace OpenCAD2D
                     throw new ArgumentNullException(nameof(value));
                 }
 
+                _fontReads++;
+
                 if (!value.IsSetAs(_fonts))
                 {
                     lock (_fontLock)
@@ -68,6 +71,19 @@ namespace OpenCAD2D
                 }
             }
         }
+
+        /// <summary>
+        /// Lets the drawing measure words in the fonts of a search path for as long as the scope lives
+        /// (<see cref="GeometryHelper.Dxf.DxfDatabase.BorrowFonts(string)"/>): each font of the path is read once, not once a text measured, and the
+        /// drawing's own path is put back when the scope is disposed. The database keeps a set of fonts by the path as it is spelled,
+        /// so the path is given a trailing semicolon (no folder, as the library passes it over) for each time <see cref="Fonts"/>
+        /// has been set, as Apply in Global settings sets it: a font added to a folder is read from then on, as it was when
+        /// every measure read the files anew, and no sooner. A path of no folder borrows none.
+        /// </summary>
+        /// <param name="path">The folders of the fonts, separated by semicolons, in the order they are looked in.</param>
+        /// <returns>The scope; dispose it to put back what the drawing measured in before.</returns>
+        internal IDisposable BorrowFonts(string path) =>
+            Database.BorrowFonts(path.Trim().Length == 0 ? path : path + new string(';', _fontReads));
 
         /// <summary>The folder of the drawing's file, looked in first for its fonts; null for a drawing of no file.</summary>
         internal string FontFolder =>

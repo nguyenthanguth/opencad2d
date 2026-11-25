@@ -949,19 +949,18 @@ namespace OpenCAD2D
                 return;
             }
 
-            string searched = database.FontSearchPath;
-
-            try
+            using (
+                document.BorrowFonts(
+                    string.Join(
+                        ";",
+                        document.Fonts.Folders.Concat(
+                            new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) }
+                        )
+                    )
+                )
+            )
             {
-                database.FontSearchPath = string.Join(
-                    ";",
-                    document.Fonts.Folders.Concat(new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) })
-                );
                 measure();
-            }
-            finally
-            {
-                database.FontSearchPath = searched;
             }
         }
 

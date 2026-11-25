@@ -112,28 +112,20 @@ namespace OpenCAD2D
                     // An annotative multileader has the change made in the context of each scale as well as in its record, as
                     // AutoCAD 2021's MLEADEREDIT makes it.
                     var mleader = (DxfMLeader)s.Document.FindEntity(handle);
-                    string searched = s.Database.FontSearchPath;
-
-                    try
-                    {
-                        if (measured)
-                        {
-                            s.Database.FontSearchPath = string.Join(
-                                ";",
-                                s.Document.Fonts.Folders.Concat(
-                                    new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) }
+                    using (
+                        measured
+                            ? s.Document.BorrowFonts(
+                                string.Join(
+                                    ";",
+                                    s.Document.Fonts.Folders.Concat(
+                                        new[] { Environment.GetFolderPath(Environment.SpecialFolder.Fonts) }
+                                    )
                                 )
-                            );
-                        }
-
-                        mleader.EditMLeaderAtEachScale(() => change(mleader));
-                    }
-                    finally
+                            )
+                            : null
+                    )
                     {
-                        if (measured)
-                        {
-                            s.Database.FontSearchPath = searched;
-                        }
+                        mleader.EditMLeaderAtEachScale(() => change(mleader));
                     }
                 }
             });

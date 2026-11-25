@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **CHANGED.** Measuring a text, an MTEXT or an attribute in the document's fonts (`(textbox)`, `vla-GetBoundingBox`,
+  MIRROR, MLEADERALIGN, MLEADEREDIT, the table editor) borrows one set of fonts for each path (`DxfDatabase.BorrowFonts`)
+  and keeps it for the life of the drawing, where each text read the font file again: `(textbox)` of 2000 texts in an SHX
+  font took 212 ms and takes 126 ms (.NET Framework 4.8), MIRROR of 2000 texts 69 ms and 62 ms, and MLEADERALIGN of 200
+  multileaders 45 ms and 40 ms, every result the same to the bit. A font file added to a folder the drawing already
+  measured in is read again once the document's fonts are set, which Apply in Global settings does. The core library is
+  updated to GeometryHelper 13.12.1 (core commit 4f575b09), which brings `DxfDatabase.BorrowFonts`.
 - **FIXED.** Copying to the Windows clipboard (Copy Full File Path, the text window's Copy, the command line's Copy,
   copying objects) failed on a machine where a program watches the clipboard (clipboard history, a remote-desktop or phone
   sync): the watcher opens the clipboard at the change and asks the app for the text, and the app answers only while its
