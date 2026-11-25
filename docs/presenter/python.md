@@ -421,13 +421,17 @@ curves = drawing.offset(line, 5.0, (50, 10))        # a line from (0, 5) to (100
   `CadRemoteException` from outside the app and in a tool: a locked, erased or block object, an owner that will not allow the
   change, an offset that makes no curve; a mirror line or an offset distance under the tolerance is a `ValueError` on a file
   and a `CadRemoteException` from the app. On a file, inside an `undo_group` of the script, a refusal does not end the group and
-  leaves the edits before it in it.
+  leaves the edits before it in it. On a file the edit is checked before anything queued is applied, by the editor's own dry
+  run (`CadEditor.Check`: the numbers, the objects, the plan and the owner's gate), so that an `offset` that makes no curve
+  (`Cannot offset that object.`), one whose side point is on the curve, or one of a distance under the tolerance applies none of
+  what was queued with it, inside an `undo_group` of the script as outside one.
 - **The numbers are the world's.** A displacement is a `GeoVector2` or a tuple of two numbers (three are a `ValueError`); a
   point is a `GeoPoint2`, a `GeoPoint3` or a tuple, a z dropped; angles are in radians, whatever ANGDIR and ANGBASE say. A mirror
   keeps a text readable under MIRRTEXT 0, as MIRROR does. The user's selection stays as it was.
 - **One call is one commit.** A call costs one request in a tool or from outside the app (about 17 ms) whatever the number of
-  objects, and one more for each object added in the same step, whose handle is asked once the commit is made: move a thousand
-  objects in one call, not a call for each.
+  objects, and no more for the objects added in the same step, whose handles come in the commit's answer: a thousand
+  `add_line` and a `copy` take about 0.07 s from outside the app (0.7 s when each handle was asked for). Move a thousand objects
+  in one call, not a call for each.
 
 ### A drawing made and saved in code
 

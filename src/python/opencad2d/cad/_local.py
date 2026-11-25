@@ -249,16 +249,14 @@ class _LocalBackend:
         self, ops: list[Op], how: str, items: list[Entity], args: tuple[Any, ...]
     ) -> tuple[list[str | None], list[tuple[str, Any, Any]]]:
         """What is queued and one call of the ``CadEditor`` as one undo step, PYTHON, or inside the group the script has open.
-        Everything an edit refuses is looked at first, so that a refused edit applies none of what was queued with it; what the
-        editor decides in the writing (an owner's gate, an offset that makes no curve) cancels the group of its own and, inside
-        the script's, is the refusal of any commit."""
+        The edit is checked first by the editor's own dry run (``CadEditor.Check``: its numbers, its objects, its plan and the
+        owner's gate), so that a refused edit applies none of what was queued with it. What the editor can only find in the
+        writing (an owner that does not take the edit itself) cancels the group of its own and, inside the script's, is the
+        refusal of any commit."""
         document = self.document
         handles = list(dict.fromkeys(item.handle for item in items))
-        for handle in handles:
-            entity = self._existing(handle)
-            if _cad.CadLayerEditor.IsLocked(document.Database, entity.Layer):
-                raise RuntimeError(f"The object {handle} is on the locked layer {entity.Layer}.")
-        self._edited(how, [], args)  # the numbers, which the editor takes from an empty list as it takes them from any
+        entities = [self._found(handle) for handle in handles]
+        self._check(how, entities, args)
         own = not document.IsInGroup
         if own:
             document.BeginGroup("PYTHON")
@@ -273,10 +271,34 @@ class _LocalBackend:
             document.EndGroup()
         return inserted, self._pack(made)
 
-    def _edited(self, how: str, entities: list[Any], args: tuple[Any, ...]) -> list[Any]:
-        """One call of the editor for an edit, its refusals as Python's: ``ValueError`` for the arguments, ``RuntimeError``
-        for what the drawing refuses. Gives the objects of the drawing the call gave back."""
-        editor = self._editor
+    def _found(self, handle: str) -> Any:
+        """The object of the drawing that has the handle, which the editor is given; it is the editor that refuses one that is
+        erased, inside a block or on a locked layer."""
+        entity = self.document.FindEntity(handle)
+        if entity is None:
+            raise RuntimeError(f"The drawing {self.name} has no object {handle}.")
+        return entity
+
+    def _check(self, how: str, entities: list[Any], args: tuple[Any, ...]) -> None:
+        """Runs the edit through ``CadEditor.Check``, which makes every check the call makes and writes nothing, and raises what
+        the call would raise. The exception is caught inside the editor's callback and raised here, so that none crosses it."""
+        refused: list[Exception] = []
+
+        def probe(editor: Any) -> None:
+            try:
+                self._edited(how, entities, args, editor)
+            except (ValueError, RuntimeError) as error:
+                refused.append(error)
+
+        self._editor.Check(_net.Action[_cad.CadEditor](probe))
+        if refused:
+            raise refused[0]
+
+    def _edited(self, how: str, entities: list[Any], args: tuple[Any, ...], editor: Any = None) -> list[Any]:
+        """One call of the editor (the session's, or the one a check hands over) for an edit, its refusals as Python's:
+        ``ValueError`` for the arguments, ``RuntimeError`` for what the drawing refuses. Gives the objects of the drawing the
+        call gave back."""
+        editor = self._editor if editor is None else editor
         given: Any = _net.Array[_dxf.DxfEntity](entities)
         try:
             if how == "offset":

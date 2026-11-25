@@ -172,7 +172,7 @@ namespace OpenCAD2D.Plugins.UnitTest
 
             Assert.Equal("Needs two", refused.PluginName);
             Assert.Equal(
-                "The plugin Needs two needs version 2.0 of the plugin API, and this presenter has 1.4: it needs a newer presenter.",
+                "The plugin Needs two needs version 2.0 of the plugin API, and this presenter has 1.5: it needs a newer presenter.",
                 refused.Message
             );
         }

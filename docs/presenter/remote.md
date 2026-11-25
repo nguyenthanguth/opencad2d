@@ -58,7 +58,8 @@ and `CommitChanges()` sends the lot:
   the reason: a layer that exists, an object that is gone, a command running in the drawing, or an
   [owner](owners.md) that does not take the change (a dimension of a model drawing, say) with its own words;
 - the handles come back in the order of the `Insert` calls. Until then `Insert` returns a ticket (`~1`, `~2`...) that stands
-  for the object in `Delete`, `GetObject` and `Select` once the commit is done.
+  for the object in `Delete`, `GetObject` and `Select` once the commit is done; `HandleOfTicket(ticket)` gives its handle
+  after a commit or an [edit call](#edits-in-one-call) with no request of its own.
 
 A layer the drawing lacks is made when an object on it is inserted, white and continuous; `AddLayer` makes it the way the
 program wants. A dimension made in code is drawn by the app with the drawing's current dimension style, unless it names one.
@@ -201,6 +202,11 @@ IReadOnlyList<DxfCurve> offsets = drawing.Offset(line, 5.0, new GeoPoint2(50, 10
   distance, x, y}`. The answer adds `edited`, one list of handles per edit operation in order (the objects it gives back), and
   `objects`, what `get` answers for all of them. A ticket of an object not committed is refused as a handle the drawing has
   not, as `Delete` refuses it in the client.
+- **The handles of what was queued.** The answer to a `commit` carries the handles of the objects inserted in it, in the order
+  of the `Insert` calls, with an edit as without one. After `Copy`, `Offset` or any edit, `drawing.HandleOfTicket(ticket)` gives
+  the handle of an `Insert` sent with it, from that answer and with no request, where `GetObject(ticket)` and `HandleOf` ask
+  the app once for each: a thousand inserts and a `Copy` are one request, and their thousand handles are read in under a
+  millisecond (about 280 ms by `GetObject`).
 
 ## Commands
 
