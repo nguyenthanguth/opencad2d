@@ -334,6 +334,13 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       Done 2026-11-25: CadDocuments (List, Active, Open, Add, Close/CloseAndDiscard/CloseAndSave), plugin API 1.4.
       Parked: a [CadCommand] cannot open, add or show a drawing (showing ends its command); a session-context flag
       as AutoCAD's CommandFlags.Session would allow it
+- [x] A11. Our own technical font (maintainer 2026-11-25): OpenCAD2D ISO, opencad2d.shx, type B as ISO 3098 /
+      TCVN 7284, drawn clean-room on the type B grid (board FontIso), 242 code points with the 134 Vietnamese letters,
+      replacing ghsimplex outright (BREAKING, no alias; a saved FONTALT of ghsimplex read as opencad2d). Checked in
+      AutoCAD 2021 by accoreconsole: 241/242 text boxes equal to 4 decimals before the `&` fix, all after; every
+      AutoCAD number of the tests re-measured with the new font. Two reader faults fixed on the way (code 10 radius
+      signed; a code 12 half circle measured by its chord's rectangle) and the MTEXT stack gap 0.1 h for this font.
+      Plan .claude/scratch/font/spec.md, numbers .claude/scratch/font/p2p3-report.md
 - [ ] A10. The last GeometryHelper/GH names out of what OpenCAD2D writes and shows (maintainer 2026-11-25, no compatibility
       kept, as for the font): XRECORD/XData GH_REFEDIT, GH_LAYTRANS_MAP, GH_OWNER (public CadOwnerTag.ApplicationName),
       the template's dimension styles GH and GH-Annotative, the formats GeometryHelperDataExtraction,

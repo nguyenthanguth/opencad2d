@@ -27,13 +27,13 @@ namespace OpenCAD2D
     public sealed class CadFonts
     {
         /// <summary>
-        /// The name the presenter's own font goes by, as a replacement or a style's font: ghsimplex, with or without .shx. No
+        /// The name the presenter's own font goes by, as a replacement or a style's font: opencad2d, with or without .shx. No
         /// file has it on disk; a file of that name in a folder looked in is passed over for it.
         /// </summary>
-        public const string BuiltInName = "ghsimplex";
+        public const string BuiltInName = "opencad2d";
 
-        /// <summary>The title of the presenter's own font, as the line saying a font not found names it: OpenCAD2D Simplex.</summary>
-        public const string BuiltInTitle = "OpenCAD2D Simplex";
+        /// <summary>The title of the presenter's own font, as the line saying a font not found names it: OpenCAD2D ISO.</summary>
+        public const string BuiltInTitle = "OpenCAD2D ISO";
 
         private const int MostFonts = 48;
 
@@ -59,7 +59,7 @@ namespace OpenCAD2D
             StringComparer.OrdinalIgnoreCase
         );
         private static readonly HashSet<string> Unread = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Lazy<ShxFont> Own = new Lazy<ShxFont>(() => ShxFont.Read(HersheySimplex.Unifont()));
+        private static readonly Lazy<ShxFont> Own = new Lazy<ShxFont>(() => ShxFont.Read(OpenCad2dIso.Unifont()));
         private static long _clock;
 
         private readonly Func<string, bool> _familyExists;
@@ -113,10 +113,13 @@ namespace OpenCAD2D
         public static IReadOnlyList<string> DefaultFolders { get; } = Array.Empty<string>();
 
         /// <summary>
-        /// Gets the presenter's own single-stroke font, OpenCAD2D Simplex (<see cref="BuiltInName"/>), drawn as an SHX font
-        /// is: the Roman Simplex letters of the Hershey fonts of the U.S. National Bureau of Standards, 1967, ASCII 32 to 126
-        /// with the degree, plus-minus and diameter signs, 98 letters. Its capitals reach <see cref="ShxFont.Above"/> 21 units
-        /// above the baseline and its descenders 7 below, as romans.shx's: "ABC123" 10 high is 10 high and about 42 wide.
+        /// Gets the presenter's own single-stroke font, OpenCAD2D ISO (<see cref="BuiltInName"/>), drawn as an SHX font is:
+        /// upright lettering in the proportions of ISO 3098 type B (TCVN 7284), ASCII 32 to 126 with the degree, plus-minus,
+        /// square, diameter and dash signs and the Vietnamese letters, 242 letters. Its capitals reach <see cref="ShxFont.Above"/>
+        /// 100 units above the baseline and its descenders 30 below: "ABC123" 10 high is 10 high and its advances add to 42.5
+        /// (A 8, B 7, C 6.5, each digit 7); the compiled file is 8 685 bytes. AutoCAD 2021's textbox of TEXT "ABC123" in it,
+        /// from the point the text starts at, is (1.0000, -0.6299) to (42.2488, 10.7063) at 10 high and (10.0000, -6.2992) to
+        /// (422.4882, 107.0630) at 100 high: the arcs of the C, 2 and 3 reach past the baseline and the capitals' top.
         /// </summary>
         public static ShxFont BuiltIn => Own.Value;
 
@@ -676,7 +679,7 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Gets whether a font's name is that of the presenter's own font, as a text style, FONTALT or a font typed names it:
-        /// ghsimplex or ghsimplex.shx, letters of either case the same, the spaces around it left out; no file on disk is
+        /// opencad2d or opencad2d.shx, letters of either case the same, the spaces around it left out; no file on disk is
         /// looked for.
         /// </summary>
         /// <param name="name">The font's name or file; null for none.</param>
@@ -864,7 +867,7 @@ namespace OpenCAD2D
 
     /// <summary>
     /// An SHX font or big font a text style names that is not found, as AutoCAD's list of missing SHX files gives it: romans.shx
-    /// drawn in OpenCAD2D Simplex, gbcbig.shx a big font whose letters are drawn as question marks.
+    /// drawn in OpenCAD2D ISO, gbcbig.shx a big font whose letters are drawn as question marks.
     /// </summary>
     public sealed class CadMissingFont
     {
@@ -884,7 +887,7 @@ namespace OpenCAD2D
         public bool IsBigFont { get; }
 
         /// <summary>
-        /// Gets the font it is drawn in, as the replacement names it (OpenCAD2D Simplex, simplex.shx, gbcbig.shx); empty
+        /// Gets the font it is drawn in, as the replacement names it (OpenCAD2D ISO, simplex.shx, gbcbig.shx); empty
         /// where none is found, a font then drawn in the drawing font and a big font's letters as question marks.
         /// </summary>
         public string DrawnIn { get; }
@@ -908,7 +911,7 @@ namespace OpenCAD2D
         /// <summary>Whether the style names it as an SHX file rather than a TrueType file or typeface.</summary>
         internal bool IsShx { get; }
 
-        /// <summary>Gets the font as the list of missing SHX files gives it: "romans.shx drawn in OpenCAD2D Simplex".</summary>
+        /// <summary>Gets the font as the list of missing SHX files gives it: "romans.shx drawn in OpenCAD2D ISO".</summary>
         /// <returns>The text.</returns>
         public override string ToString() =>
             Name

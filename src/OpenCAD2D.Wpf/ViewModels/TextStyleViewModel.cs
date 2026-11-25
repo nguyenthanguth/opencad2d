@@ -127,7 +127,7 @@ namespace OpenCAD2D.Wpf
 
     /// <summary>
     /// AutoCAD's Text Style dialog (STYLE, ST): the styles of the drawing (all, or those in use), a preview of the one
-    /// selected, Set Current, New, Delete and Rename, its font (the presenter's own OpenCAD2D Simplex, the SHX files of the
+    /// selected, Set Current, New, Delete and Rename, its font (the presenter's own OpenCAD2D ISO, the SHX files of the
     /// font folders and the TrueType families of the machine, a font style for TrueType, a big font for SHX), its height, and
     /// the effects upside down, backwards, vertical, width factor and oblique angle. Apply writes the style, one undo step, every text written in it drawn again;
     /// a change not applied is asked about before another style is shown or the dialog closes, as AutoCAD asks.
@@ -141,8 +141,8 @@ namespace OpenCAD2D.Wpf
         public const string StylesInUse = "Styles in use";
 
         /// <summary>
-        /// The name the Font Name list gives the presenter's own font, first in the list: OpenCAD2D Simplex (built-in). A
-        /// style given it names the file ghsimplex.shx (<see cref="CadFonts.BuiltInName"/>).
+        /// The name the Font Name list gives the presenter's own font, first in the list: OpenCAD2D ISO (built-in). A
+        /// style given it names the file opencad2d.shx (<see cref="CadFonts.BuiltInName"/>).
         /// </summary>
         public const string BuiltInFont = CadFonts.BuiltInTitle + " (built-in)";
 
@@ -264,7 +264,7 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>
         /// Gets the fonts: the presenter's own first (<see cref="BuiltInFont"/>), then the SHX files of the font folders and the
-        /// TrueType families, in the order of their names; a file ghsimplex.shx of a folder is passed over for the presenter's own.
+        /// TrueType families, in the order of their names; a file opencad2d.shx of a folder is passed over for the presenter's own.
         /// Where the style shown names a font this machine lacks, the font is listed too, as the style stores it and marked
         /// (<see cref="FontItemViewModel.IsInstalled"/>), so that the box always shows the style's own font.
         /// </summary>

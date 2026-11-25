@@ -206,6 +206,39 @@ namespace OpenCAD2D.UnitTest
         private static DisplayText2 Shown(CadDocument document) =>
             document.GetDisplay(document.ModelSpace).Items.OfType<DisplayText2>().Single();
 
+        /// <summary>
+        /// The box of the ink of "ABC123" in the built-in font at the given height, from where the pen starts, as AutoCAD 2021
+        /// measures a textbox: left, bottom, right, top. It is the box of the letters' strokes and of the points their arcs
+        /// reach (CadTextInk), not of the polylines the display draws for the arcs.
+        /// </summary>
+        private static double[] InkOfAbc123(double height)
+        {
+            CadTextInk ink = CadTextInk.Of(
+                new CadFontFace(CadFonts.BuiltInName, CadFonts.BuiltIn, null, null),
+                false,
+                false
+            );
+            const string Words = "ABC123";
+            double pen = 0.0;
+            double left = double.MaxValue;
+            double bottom = double.MaxValue;
+            double right = double.MinValue;
+            double top = double.MinValue;
+
+            for (int i = 0; i < Words.Length; )
+            {
+                CadTextInk.Letter letter = ink.Next(Words, ref i);
+                Assert.True(letter.HasInk);
+                left = Math.Min(left, pen + letter.Left);
+                right = Math.Max(right, pen + letter.Right);
+                bottom = Math.Min(bottom, letter.Bottom);
+                top = Math.Max(top, letter.Top);
+                pen += letter.Advance;
+            }
+
+            return new[] { left * height, bottom * height, right * height, top * height };
+        }
+
         private CadFonts Fonts(
             string replacement = null,
             IEnumerable<KeyValuePair<string, string>> substitutions = null,
@@ -491,6 +524,21 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void ADrawingNamingTheRemovedGhsimplex_TakesTheMissingFontPath_NoAliasToTheBuiltInFont()
+        {
+            _folder.Write("test.shx", ShxFiles.Unifont());
+            CadDocument document = Drawing("ghsimplex.shx", null, Text("I", 5.0));
+            var said = new List<string>();
+            document.FontMissing += (s, e) => said.Add(e.Message);
+            document.Fonts = Fonts("test.shx");
+
+            DisplayText2 shown = Shown(document);
+
+            Assert.Equal("test.shx", shown.FontName);
+            Assert.Equal(new[] { "Missing SHX files: ghsimplex.shx drawn in test.shx; txt drawn in test.shx." }, said);
+        }
+
+        [Fact]
         public void AFontNotFoundWithNoReplacementFoundIsDrawnInTheDrawingFontAsBefore()
         {
             CadDocument document = Drawing("romans.shx", null, Text("I", 5.0));
@@ -630,8 +678,9 @@ namespace OpenCAD2D.UnitTest
                 }
             }
 
-            // Hershey's Roman Simplex: capitals 21 above the baseline, descenders 7 below, as romans.shx; ABC123 is 18 + 21 + 21
-            // + 20 + 20 + 20 = 120 units wide, 5.7 heights, inked from the baseline to the capitals' top.
+            // OpenCAD2D ISO: capitals 100 above the baseline, descenders 30 below; ABC123 is 80 + 70 + 65 + 70 + 70 + 70 = 425 units
+            // wide, 4.25 heights. The arcs of C, 2 and 3 are drawn by bulges and AutoCAD measures one by its chord's rectangle or
+            // its circle's square, so its textbox of the ink runs 6.3 below the baseline (C) and 7.06 above the capitals' top (2).
             _output.WriteLine(
                 "ABC123: "
                     + advance
@@ -643,41 +692,44 @@ namespace OpenCAD2D.UnitTest
                     + top
             );
             Assert.Equal(ShxFontKind.Unifont, font.Kind);
-            Assert.Equal(98, font.Count);
-            Assert.Equal(21.0, font.Above);
-            Assert.Equal(7.0, font.Below);
-            Assert.Equal(120.0, advance, 9);
-            Assert.Equal(21.0, top, 9);
-            Assert.Equal(0.0, bottom, 9);
+            Assert.Equal(242, font.Count);
+            Assert.Equal(100.0, font.Above);
+            Assert.Equal(30.0, font.Below);
+            Assert.Equal(425.0, advance, 9);
+
+            // AutoCAD 2021's textbox of TEXT "ABC123" at 100 high: (10.0000, -6.2992)-(422.4882, 107.0630).
+            double[] ink = InkOfAbc123(100.0);
+            Assert.Equal(10.0000, ink[0], 4);
+            Assert.Equal(-6.2992, ink[1], 4);
+            Assert.Equal(422.4882, ink[2], 4);
+            Assert.Equal(107.0630, ink[3], 4);
             Assert.True(font.Has(0xB0));
             Assert.True(font.Has(0xB1));
             Assert.True(font.Has(0x2205));
-            Assert.Equal(-7.0, font.GlyphOf('g').Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).Min(), 9);
+            Assert.Equal(-30.0, font.GlyphOf('g').Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).Min(), 9);
         }
 
         [Fact]
         public void ATextInTheBuiltInFontHasItsCapitalsAsHighAsTheText()
         {
-            CadDocument document = Drawing(
-                CadFonts.BuiltInName,
-                null,
-                Text("ABC123", 2.5, t => t.Position = new GeoPoint3(10, 20, 0))
-            );
+            DxfDBText text = Text("ABC123", 10.0, t => t.Position = new GeoPoint3(10, 20, 0));
+            CadDocument document = Drawing(CadFonts.BuiltInName, null, text);
             var said = new List<string>();
             document.FontMissing += (s, e) => said.Add(e.Message);
             document.Fonts = new CadFonts(new[] { _folder.FullPath }, null, null);
 
             DisplayText2 shown = Shown(document);
-            double[] ys = shown.Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).ToArray();
-            double[] xs = shown.Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 0)).ToArray();
 
-            // 2.5 high in a font 21 above: the ink from the baseline at 20 to 22.5; 120 units across at 2.5 / 21 is 14.286, the
-            // ink a little within it, from the foot of the A 1 unit in to the right of the 3 at 117.
+            // 10 high in a font 100 above, placed at (10, 20): AutoCAD 2021's textbox of TEXT "ABC123" is (1.0000, -0.6299) to
+            // (42.2488, 10.7063) from the point, the ink from the foot of the A 1 in to the right of the 3, the arcs of the
+            // bulges 0.63 below the baseline and 0.71 above the capitals' top, as AutoCAD measures an arc by its chord's
+            // rectangle or its circle's square; 4.25 heights of advance, 42.5.
             Assert.Equal(CadFonts.BuiltInName, shown.FontName);
-            Assert.Equal(20.0, ys.Min(), 9);
-            Assert.Equal(22.5, ys.Max(), 9);
-            Assert.Equal(10.0 + (2.5 / 21.0), xs.Min(), 9);
-            Assert.Equal(10.0 + (117.0 * 2.5 / 21.0), xs.Max(), 9);
+            double[] ink = InkOfAbc123(10.0);
+            Assert.Equal(1.0000, ink[0], 4);
+            Assert.Equal(-0.6299, ink[1], 4);
+            Assert.Equal(42.2488, ink[2], 4);
+            Assert.Equal(10.7063, ink[3], 4);
             Assert.Empty(said);
         }
 
@@ -698,7 +750,7 @@ namespace OpenCAD2D.UnitTest
                 Assert.Equal(5.0, t.Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).Max(), 9)
             );
             Assert.Equal(
-                new[] { "Missing SHX files: romans.shx drawn in OpenCAD2D Simplex; txt drawn in OpenCAD2D Simplex." },
+                new[] { "Missing SHX files: romans.shx drawn in OpenCAD2D ISO; txt drawn in OpenCAD2D ISO." },
                 said
             );
         }
@@ -778,10 +830,7 @@ namespace OpenCAD2D.UnitTest
             document.Regen();
             document.GetDisplay(document.ModelSpace);
 
-            Assert.Contains(
-                "isocp.shx drawn in OpenCAD2D Simplex; romans.shx drawn in OpenCAD2D Simplex",
-                Assert.Single(said)
-            );
+            Assert.Contains("isocp.shx drawn in OpenCAD2D ISO; romans.shx drawn in OpenCAD2D ISO", Assert.Single(said));
             Assert.Equal(
                 new[] { "isocp.shx", "romans.shx" },
                 document.FindMissingFonts().Select(f => f.Name).Where(n => n != "txt")

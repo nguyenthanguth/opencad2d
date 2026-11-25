@@ -1161,13 +1161,13 @@ is broken about them by DIMGAP (0), above it (1, and JIS, 3), on the side away f
 (4); DIMJUST puts them in the middle, next to an extension line or over one; and where the words and the arrowheads do
 not both fit, DIMTIX, DIMSOXD, DIMATFIT and DIMTOFL say what moves outside, DIMTIH and DIMTOH whether the words stay
 level. With ISO-25's sizes a dimension of 100 has its words "100" in the middle, one of 5 its words inside and its
-arrowheads outside, and one of 7 its arrowheads inside and its words 3.9 past the second extension line. The arrowheads
+arrowheads outside, and one of 7 its arrowheads inside and its words 3.75 past the second extension line. The arrowheads
 need two lengths and two gaps between the extension lines, 6.25 with those sizes (outside at 6.24, inside at 6.26), and
 words their width and a gap each side, above the line as on it. The line starts
 at the back of each arrowhead, 2.5 in from its tip, but for the ticks, Dot small, Dot small blank, Integral and None,
 which take no room and never move out. Words on the line (DIMTAD 0) fit between the arrowheads with two gaps each side:
-"9" of ghsimplex, 1.548 wide, moves out of a dimension of 9. Under DIMATFIT 3 words wider than the arrowheads' room stay
-inside and the arrowheads go out: "12" of ghsimplex widened 1.5 times, 5.536 wide, stays between extension lines 12
+"8" of opencad2d moves out of a dimension of 8. Under DIMATFIT 3 words wider than the arrowheads' room stay
+inside and the arrowheads go out: "12" of opencad2d widened 1.8 times, 5.188 wide, stays between extension lines 12
 apart. DIMTVP lifts the words of DIMTAD 0 by that many times their height, the line
 broken about them below 0.7; a DIMGAP below nought draws a box round the words, the gap clear of them.
 
@@ -1515,9 +1515,9 @@ arrowheads, outside the rim and in: "R20" of Arial 0.18 high, a circle of 20, pu
 origin, DIMTIH on, DIMTAD 0, has its line end at the point itself, (13.9808, 0.7327), which is group 11, and its words'
 middle (13.3614, 0.7327), a gap and half their width past it.
 The words are measured in the font of the dimension's text style, laid out as the canvas lays out an MTEXT, as AutoCAD
-measures them: "R20" of arial.ttf 2.5 high is 5.965 wide and 2.553 high, "100" of ghsimplex 6.071 wide and widened 1.5
-times 9.107. A TrueType font is read from the Fonts folders of Windows, an SHX font where the fonts set on the document
-find it, the canvas's own ghsimplex wherever fonts are on; the style's width factor and oblique angle count. An SHX
+measures them: "R20" of arial.ttf 2.5 high is 5.965 wide and 2.553 high, "100" of opencad2d 4.5 wide and widened 1.5
+times 6.75. A TrueType font is read from the Fonts folders of Windows, an SHX font where the fonts set on the document
+find it, the canvas's own opencad2d wherever fonts are on; the style's width factor and oblique angle count. An SHX
 letter is measured as AutoCAD measures its ink: an arc of less than a half circle reaches the rectangle of its chord
 and of the line along it touching the arc, a longer one the square about its circle, so that isocp.shx's 3 is 0.441421
 of the height wide where its strokes are 0.4; where the pen is put down counts though it moves no further (monotxt.shx's
@@ -2022,8 +2022,8 @@ width, and need their actual height and the margins above and below; a row is as
 made lower, and never lower than one line, four thirds of the text height, of its first cell: in a table whose data is 8 high a
 first cell given a height of 6 makes its row 11, not the 13.67 the cells beside it at 8 would (a second cell of 12 holding one
 word makes 15, its word and the margins, and an empty cell beside the first adds nothing). In AutoCAD's Standard, "HEA300 S355 with end
-plates both sides" in ghsimplex in a column 30 wide takes six lines and makes its row 45.43 high, as AutoCAD 2021 laid it
-out, and the row keeps 45.43 when the words are made short again. Cells merged across rows grow the rows they span
+plates both sides" in opencad2d in a column 30 wide takes four lines (HEA300, S355 with, end plates, both sides) and makes its row 30.41 high, as AutoCAD 2021 laid it
+out, and the row keeps 30.41 when the words are made short again. Cells merged across rows grow the rows they span
 together: the rows are first as high as their own cells need, then each block, taken in the order of its top left cell,
 row by row, shares its need among its rows in proportion to the heights they stand at, as AutoCAD 2021's GenerateLayout
 did (12 lines in two rows of 9 need 90.43 and make 45.21 each, not 9 and 81.43; in rows of 12 and 20 they make 33.91 and

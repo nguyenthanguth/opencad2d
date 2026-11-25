@@ -47,6 +47,9 @@ namespace OpenCAD2D
         /// <summary>Whether the face is an SHX font.</summary>
         internal bool IsShx => _face.Shx != null;
 
+        /// <summary>Whether the face is the presenter's own font, <see cref="CadFonts.BuiltIn"/>, the one SHX font whose stack gap is measured against AutoCAD.</summary>
+        internal bool IsBuiltIn => _face.Shx != null && CadFonts.IsBuiltIn(_face.Name);
+
         /// <summary>The TrueType file the letters are read from; null for an SHX font and where no file is found.</summary>
         internal DxfTrueTypeFont TrueType => _file;
 
@@ -140,7 +143,7 @@ namespace OpenCAD2D
 
         /// <summary>
         /// The left and right of a letter's ink when it leans: each point moved along the line by its height times the lean
-        /// (the tangent of the oblique angle over the width factor). At 15 degrees ghsimplex's t reaches 0.18 of the height
+        /// (the tangent of the oblique angle over the width factor). At 15 degrees opencad2d's t reaches 0.1376 of the height
         /// further right. Left as given where the letter's points are not known.
         /// </summary>
         internal void Lean(string text, int i, double lean, ref double left, ref double right)

@@ -660,8 +660,10 @@ namespace OpenCAD2D
         /// <summary>
         /// Gets or sets the font text is drawn in where its style's font is not found, as AutoCAD's FONTALT: an SHX file, a
         /// TrueType file or a typeface, and after a comma the big font a style's big font not found is drawn in
-        /// (simplex.shx,gbcbig.shx); by default the presenter's own single-stroke font, OpenCAD2D Simplex
-        /// (<see cref="CadFonts.BuiltInName"/>). Empty, or a font not found either, draws it in <see cref="DrawingFont"/>.
+        /// (simplex.shx,gbcbig.shx); by default the presenter's own single-stroke font, OpenCAD2D ISO
+        /// (<see cref="CadFonts.BuiltInName"/>). Empty, or a font not found either, draws it in <see cref="DrawingFont"/>. A
+        /// settings file that saved exactly ghsimplex or ghsimplex.shx, the name of the built-in font before OpenCAD2D ISO, is
+        /// read as opencad2d as it loads; set in code, any value is kept as it is.
         /// </summary>
         public string ReplacementFont
         {
@@ -1593,7 +1595,7 @@ namespace OpenCAD2D
                 Number("text", "titleTextHeight", v => _s.TitleTextHeight = v);
                 Number("text", "widthFactor", v => _s.WidthFactor = v);
                 Text("hiddenMessages", "mtextUnsavedChanges", v => _s.MTextUnsavedChanges = v);
-                Text("fonts", "replacement", v => _s.ReplacementFont = v);
+                Text("fonts", "replacement", v => _s.ReplacementFont = Replacement(v));
                 Text("fonts", "fontMap", v => _s.FontMapFile = v);
                 Flag("fonts", "showMissingShxDialog", v => _s.ShowMissingShxDialog = v);
                 Take("fonts", "searchFolders", e => _s.FontSearchFolders = e.Elements().Select(f => f.Value).ToList());
@@ -1654,6 +1656,19 @@ namespace OpenCAD2D
                 value == Math.Floor(value) && value >= int.MinValue && value <= int.MaxValue
                     ? (int)value
                     : throw new ArgumentException("A whole number is needed.");
+
+            // A FONTALT saved as exactly ghsimplex or ghsimplex.shx, the built-in font before OpenCAD2D ISO, is read as the
+            // built-in font now; any other value, a list with a big font too among them, is read as it was.
+            private static string Replacement(string saved)
+            {
+                string trimmed = saved.Trim();
+
+                return
+                    string.Equals(trimmed, "ghsimplex", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(trimmed, "ghsimplex.shx", StringComparison.OrdinalIgnoreCase)
+                    ? CadFonts.BuiltInName
+                    : saved;
+            }
 
             private static CadSnapModes Snaps(string names)
             {

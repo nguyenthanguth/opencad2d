@@ -327,24 +327,24 @@ namespace OpenCAD2D.UnitTest
         }
 
         /// <summary>
-        /// To write the file again after a change to HersheySimplex: set GH_WRITE_GHSIMPLEX to the full path of
-        /// src\OpenCAD2D.Core\Fonts\ghsimplex.shx and run this test once; it writes the bytes there and still compares the
+        /// To write the file again after a change to OpenCad2dIso or its glyph data: set OPENCAD2D_WRITE_FONT to the full path of
+        /// src\OpenCAD2D.Core\Fonts\opencad2d.shx and run this test once; it writes the bytes there and still compares the
         /// copy beside the dll, which the next build refreshes.
         /// </summary>
         [Fact]
         public void TheShippedShxFile_EqualsTheBytesOfTheBuiltInFont()
         {
-            byte[] built = HersheySimplex.Unifont();
-            string target = Environment.GetEnvironmentVariable("GH_WRITE_GHSIMPLEX");
+            byte[] built = OpenCad2dIso.Unifont();
+            string target = Environment.GetEnvironmentVariable("OPENCAD2D_WRITE_FONT");
 
             if (!string.IsNullOrWhiteSpace(target))
             {
                 File.WriteAllBytes(target, built);
             }
 
-            string path = Path.Combine(CadSupportFolders.Default.FolderOf(CadSupportKind.Fonts), "ghsimplex.shx");
+            string path = Path.Combine(CadSupportFolders.Default.FolderOf(CadSupportKind.Fonts), "opencad2d.shx");
 
-            Assert.True(File.Exists(path), "ghsimplex.shx is not in the Fonts folder.");
+            Assert.True(File.Exists(path), "opencad2d.shx is not in the Fonts folder.");
             Assert.Equal(built, File.ReadAllBytes(path));
         }
     }

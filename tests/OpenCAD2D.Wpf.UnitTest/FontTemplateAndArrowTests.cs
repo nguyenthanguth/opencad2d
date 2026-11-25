@@ -21,13 +21,13 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void TheBuiltInFontIsFirstInTheList_AndChosenIsWrittenAsGhsimplexShx()
+        public void TheBuiltInFontIsFirstInTheList_AndChosenIsWrittenAsOpencad2dShx()
         {
             MainViewModel model = Opened(out CadDocument document);
             TextStyleViewModel dialog = model.CreateTextStyle();
 
             FontItemViewModel first = dialog.FontNames[0];
-            Assert.Equal("OpenCAD2D Simplex (built-in)", first.Name);
+            Assert.Equal("OpenCAD2D ISO (built-in)", first.Name);
             Assert.Equal(TextStyleViewModel.BuiltInFont, first.Name);
             Assert.False(first.IsTrueType);
             Assert.Single(dialog.FontNames, f => f.Name == TextStyleViewModel.BuiltInFont);
@@ -38,7 +38,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.True(dialog.IsVerticalEnabled);
             Assert.True(dialog.Apply());
             DxfTextStyleTableRecord standard = document.Database.TextStyleTable["Standard"];
-            Assert.Equal("ghsimplex.shx", standard.FileName);
+            Assert.Equal("opencad2d.shx", standard.FileName);
             Assert.Equal(string.Empty, standard.Font.TypeFace);
 
             TextStyleViewModel again = model.CreateTextStyle();

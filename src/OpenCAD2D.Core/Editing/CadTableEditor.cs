@@ -1327,8 +1327,8 @@ namespace OpenCAD2D
         /// cell; a row is as high as the
         /// most any of its cells needs, and never lower than it was. A block of merged cells across rows grows the rows it spans
         /// in proportion to their heights until they hold it (<see cref="Wanted"/>). In AutoCAD's Standard (text 4.5, margins 1.5) a row of nothing but one-line words is 9 high, and
-        /// "HEA300 S355 with end plates both sides" in a column 30 wide, wrapped to five lines of ghsimplex, makes its row
-        /// 45.42857, as AutoCAD 2021 laid them out. A block cell not fitted to its cell asks the box its block's extents fill at the
+        /// "HEA300 S355 with end plates both sides" in a column 30 wide, wrapped to four lines of opencad2d, makes its row
+        /// 30.41031 (the lines 27.41031 high and the margins 3), as AutoCAD 2021 laid them out. A block cell not fitted to its cell asks the box its block's extents fill at the
         /// cell's scale and turn, 43 high for a block 10 by 40 at scale 1, and widens its columns first where it is wider
         /// (<see cref="ColumnAsks"/>); a fitted one asks nothing, but where its definitions' words are wider or higher in Arial
         /// than in their own fonts, which it widens its cell by (<see cref="FittedAsks"/>).
