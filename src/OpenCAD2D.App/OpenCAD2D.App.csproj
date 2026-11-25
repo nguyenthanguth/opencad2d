@@ -28,10 +28,9 @@
     </ItemGroup>
 
     <!--
-    The sample source plugins, the folders Plugins\DrawingInfo, Plugins\HelloWorld and Plugins\Stairs beside the exe: a
-    .csproj and the source each, which the app compiles at its first start and keeps the build of. Stairs is the example of
-    the plugin guide, which a test of the Plugins suite holds byte for byte to the guide. Each a plugin of its own, never
-    inside another.
+    The sample source plugins, the folders Plugins\DrawingInfo, Plugins\DrawRandom and Plugins\HelloWorld beside the exe: a
+    .csproj and the source each, which the app compiles at its first start and keeps the build of. Each a plugin of its own,
+    never inside another.
   -->
     <ItemGroup>
         <None
@@ -45,6 +44,16 @@
             CopyToOutputDirectory="PreserveNewest"
         />
         <None
+            Include="..\..\examples\DrawRandom\DrawRandom.csproj"
+            Link="Plugins\DrawRandom\DrawRandom.csproj"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
+            Include="..\..\examples\DrawRandom\DrawRandomCommands.cs"
+            Link="Plugins\DrawRandom\DrawRandomCommands.cs"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
             Include="..\..\examples\HelloWorld\HelloWorld.csproj"
             Link="Plugins\HelloWorld\HelloWorld.csproj"
             CopyToOutputDirectory="PreserveNewest"
@@ -54,27 +63,22 @@
             Link="Plugins\HelloWorld\HelloWorldCommands.cs"
             CopyToOutputDirectory="PreserveNewest"
         />
-        <None
-            Include="..\..\examples\Stairs\Stairs.csproj"
-            Link="Plugins\Stairs\Stairs.csproj"
-            CopyToOutputDirectory="PreserveNewest"
-        />
-        <None
-            Include="..\..\examples\Stairs\StairsCommands.cs"
-            Link="Plugins\Stairs\StairsCommands.cs"
-            CopyToOutputDirectory="PreserveNewest"
-        />
     </ItemGroup>
 
     <!--
-    The sample Python tools, the folders Pythons\DrawingInfo and Pythons\HelloWorld beside the exe: a requirements.txt (empty), the
-    __init__.py and the plugin.json of each. The app loads them at its start (no Python starts then), and their process starts at
-    the first PYINFO or PYHELLOWORLD.
+    The sample Python tools, the folders Pythons\DrawingInfo, Pythons\DrawRandom and Pythons\HelloWorld beside the exe: a
+    requirements.txt (empty), the __init__.py and the plugin.json of each. The app loads them at its start (no Python starts
+    then), and their process starts at the first PYINFO, PYRANDOM or PYHELLOWORLD.
   -->
     <ItemGroup>
         <None
             Include="..\..\examples\Pythons\DrawingInfo\*"
             Link="Pythons\DrawingInfo\%(Filename)%(Extension)"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
+            Include="..\..\examples\Pythons\DrawRandom\*"
+            Link="Pythons\DrawRandom\%(Filename)%(Extension)"
             CopyToOutputDirectory="PreserveNewest"
         />
         <None

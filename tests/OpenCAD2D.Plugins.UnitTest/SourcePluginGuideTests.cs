@@ -11,7 +11,7 @@ namespace OpenCAD2D.Plugins.UnitTest
 {
     /// <summary>
     /// The example of the plugin guide, "A plugin as C# source", read out of the guide itself and loaded with the real
-    /// compiler, and the sample the app ships as Plugins\Stairs, so that neither drifts from what the app does.
+    /// compiler, so that it does not drift from what the app does.
     /// </summary>
     public sealed class SourcePluginGuideTests : IDisposable
     {
@@ -38,44 +38,12 @@ namespace OpenCAD2D.Plugins.UnitTest
             return string.Join("\n", lines.Skip(open + 1).Take(close - open - 1)) + "\n";
         }
 
-        /// <summary>A file of the sample as the build of the tests left it beside them.</summary>
-        private static string Sample(string file) =>
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Stairs", file);
-
-        [Fact]
-        public void TheGuidesExample_IsTheSampleTheAppShipsAsPluginsStairs_ByteForByte()
-        {
-            // examples/Stairs, which the build of OpenCAD2D.App copies to Plugins\Stairs.
-            Assert.True(File.Exists(Sample("StairsCommands.cs.txt")), Sample("StairsCommands.cs.txt"));
-            Assert.True(File.Exists(Sample("Stairs.csproj.txt")), Sample("Stairs.csproj.txt"));
-
-            Assert.Equal(
-                new UTF8Encoding(false).GetBytes(GuidesBlock("csharp")),
-                File.ReadAllBytes(Sample("StairsCommands.cs.txt"))
-            );
-            Assert.Equal(
-                new UTF8Encoding(false).GetBytes(GuidesBlock("xml")),
-                File.ReadAllBytes(Sample("Stairs.csproj.txt"))
-            );
-        }
-
         [Fact]
         public void TheGuidesExample_SavedAsPluginsStairs_LoadsAtStartAndWritesSteps18()
         {
             string folder = Path.Combine(_files.PluginFolder, "Stairs");
             SourceProject.Write(folder, "StairsCommands.cs", GuidesBlock("csharp"));
             SourceProject.Write(folder, "Stairs.csproj", GuidesBlock("xml"));
-
-            Assert.Equal(new[] { "Steps: 18" }, LoadAtStartAndRun());
-        }
-
-        [Fact]
-        public void TheSampleOfTheApp_FromItsFolder_LoadsAtStartAndWritesSteps18_WithTheCommandsItHadAsOneFile()
-        {
-            string folder = Path.Combine(_files.PluginFolder, "Stairs");
-            Directory.CreateDirectory(folder);
-            File.Copy(Sample("StairsCommands.cs.txt"), Path.Combine(folder, "StairsCommands.cs"));
-            File.Copy(Sample("Stairs.csproj.txt"), Path.Combine(folder, "Stairs.csproj"));
 
             Assert.Equal(new[] { "Steps: 18" }, LoadAtStartAndRun());
         }

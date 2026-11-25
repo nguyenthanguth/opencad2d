@@ -188,7 +188,7 @@ holds: MTEXT 1.` The DWG writer says nothing of what it leaves out: it logs it.
 
 ## Tools of the app
 
-The two tools that ship with the app, `DrawingInfo` (PYINFO) and `HelloWorld` (PYHELLOWORLD), are not among the thirteen: they
+The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the thirteen: they
 are in the app's `Pythons` folder and in `examples\Pythons` of the repository, and [Python commands and
 tools](presenter/python.md#where-tools-load-from) shows what they write. Each tool below is run in a `python.exe` of its own, with a
 venv of its own that its `requirements.txt` fills (these need no package, so their files are empty).

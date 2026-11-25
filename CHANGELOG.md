@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **NEW.** A sample that draws ships with the app, as a C# plugin and as a Python tool: `Plugins\DrawRandom` (`CSRANDOM`) and
+  `Pythons\DrawRandom` (`PYRANDOM`), from `examples/DrawRandom` and `examples/Pythons/DrawRandom`. Each asks `Number of objects
+  <50>:` (1 to 10000) and the two corners of an area (Enter at the first takes the view shown, or the extents of the drawing
+  where there is no window), makes the layers `RANDOM-1` to `RANDOM-5` where they are missing, each of a random colour, and
+  draws that many LINEs, CIRCLEs, ARCs, LWPOLYLINEs (3 to 6 vertices, closed or open), TEXTs and rectangles inside the area, on a
+  random one of the layers, ByLayer half the time and else of a random colour from 1 to 255. The layers and the objects are one
+  undo step, and it ends with `Drew 50 objects on 5 layers.` Setting the environment variable `OPENCAD2D_RANDOM_SEED` to a whole
+  number makes the same drawing every time.
+- **CHANGED.** The `Stairs` sample plugin is no longer shipped: the app's `Plugins` folder holds `HelloWorld`, `DrawingInfo`
+  and `DrawRandom`, and `examples/Stairs` is gone. The example of the plugin guide (a plugin named Stairs, command STAIRS) stays
+  in the guide, and a test still compiles and runs it from the guide's text; it is no longer a folder of the app. The README of
+  the `Plugins` folder no longer gives the compile and start times of the three samples, which were measured for the old three.
 - **NEW.** The blocks of the drawing of a loaded external reference (`grid|TAG` for the block TAG of the drawing `grid`),
   which AutoCAD 2021 holds in its block table while the reference is loaded and writes to no file (measured with
   accoreconsole: `tblnext` says `70 48`, -BLOCK ? says `Xdep: "grid"`, they go with -XREF Unload and Detach and come back
