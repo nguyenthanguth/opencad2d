@@ -52510,6 +52510,12 @@
         <member name="M:GeometryHelper.Dwg.DwgTranscoder.ShapeFile(System.String)">
             <summary>The names of the shapes of the file of shapes <paramref name="named"/>, as <see cref="M:GeometryHelper.Dwg.DwgTranscoder.ShapeName(GeometryHelper.Dwg.DwgShapeName)"/> looks for it; null where it is not found.</summary>
         </member>
+        <member name="M:GeometryHelper.Dwg.DwgTranscoder.NameWhereNoneIsNamed(System.String)">
+            <summary>
+            The name a header variable gets where its handle names no record: AutoCAD 2021 refuses a DXF whose current layer,
+            text style or linetype has no name ("Invalid or incomplete DXF input"), so those are the ones every drawing has.
+            </summary>
+        </member>
         <member name="M:GeometryHelper.Dwg.DwgTranscoder.WriteSummaryInfo">
             <summary>
             The properties the section <c>AcDb:SummaryInfo</c> holds, as the variables of the header AutoCAD writes them in:

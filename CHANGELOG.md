@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **FIXED.** A DXF saved from a drawing opened from a DWG that OpenCAD2D wrote (a new sheet, an imported layout) is
+  no longer refused by AutoCAD 2021 ("Invalid or incomplete DXF input -- drawing discarded"): the current linetype of
+  the DWG is now written and read back as ByLayer, and an empty current layer or text style reads as `0` or
+  `Standard` (GeometryHelper ac9b4f96).
 - **NEW.** Sheet set data files: `CadSheetSetFile` opens, changes and saves AutoCAD 2021's own `.dst` (UTF-8 XML under a
   one-byte cipher), with a typed model over it: the set, its subsets and sheets in set order, a sheet's drawing and
   layout in four forms of the path (found again after the folder is moved), custom properties by owner, resource
