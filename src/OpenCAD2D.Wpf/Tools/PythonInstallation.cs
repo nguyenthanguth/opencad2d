@@ -40,7 +40,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets what the app shows when no Python can be used, or null when one can.</summary>
         public string Problem { get; private set; }
 
-        /// <summary>Gets each candidate that was left out and why, in the order they were looked at: <c>3.13: D:\Python313\python.exe is missing</c>.</summary>
+        /// <summary>Gets each candidate that was left out and why, in the order they were looked at: <c>3.13: D:\Python313\python.exe is missing</c>; <c>3.10 (HKLM): no InstallPath</c> where both hives register the tag.</summary>
         public IReadOnlyList<string> PassedOver => _passedOver;
 
         /// <summary>Gets whether a Python can be used: there is no <see cref="Problem"/>.</summary>
@@ -162,7 +162,7 @@ namespace OpenCAD2D.Wpf
 
                 if (reason != null)
                 {
-                    _passedOver.Add(entry.Tag + ": " + reason);
+                    _passedOver.Add(Name(entry, registered) + ": " + reason);
                 }
                 else
                 {
@@ -190,7 +190,12 @@ namespace OpenCAD2D.Wpf
             {
                 if (!ReferenceEquals(candidate, chosen))
                 {
-                    _passedOver.Add(candidate.Entry.Tag + ": " + chosen.Entry.Tag + " was chosen instead");
+                    _passedOver.Add(
+                        Name(candidate.Entry, registered)
+                            + ": "
+                            + Name(chosen.Entry, registered)
+                            + " was chosen instead"
+                    );
                 }
             }
 
@@ -206,6 +211,27 @@ namespace OpenCAD2D.Wpf
             Version = chosen.Entry.Version ?? "3." + chosen.Minor.ToString(CultureInfo.InvariantCulture);
             Problem = null;
             return this;
+        }
+
+        /// <summary>
+        /// How a line of <see cref="PassedOver"/> names an entry: its tag, <c>3.10</c>, and the hive after it, <c>3.10 (HKLM)</c>,
+        /// where the same tag is registered in both hives and the tag alone would name two entries.
+        /// </summary>
+        private static string Name(PythonRegistration entry, IReadOnlyList<PythonRegistration> registered)
+        {
+            foreach (PythonRegistration other in registered)
+            {
+                if (
+                    !ReferenceEquals(other, entry)
+                    && string.Equals(other.Tag, entry.Tag, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(other.Hive, entry.Hive, StringComparison.Ordinal)
+                )
+                {
+                    return entry.Tag + " (" + entry.Hive + ")";
+                }
+            }
+
+            return entry.Tag;
         }
 
         /// <summary>A registered Python that passed every check, with the numbers the choice needs.</summary>

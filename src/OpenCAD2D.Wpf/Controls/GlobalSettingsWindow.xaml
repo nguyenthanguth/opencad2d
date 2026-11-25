@@ -188,19 +188,19 @@
                 <Setter Property="Margin" Value="8,6" />
             </Style>
 
-            <!-- A default support folder beside the dll, read-only: its kind and full path, "(default)" (and "not found"), and Open folder. -->
+            <!-- A default support folder beside the dll, read-only: its kind and full path, "(default)" (and "not found"), and Open folder. The kind column is as wide as the longest kind of the page (the rows share it). -->
             <DataTemplate x:Key="DefaultFolderRow" DataType="{x:Type local:DefaultFolderRow}">
                 <Border BorderBrush="{StaticResource GhHeader}" BorderThickness="0,1,0,0">
                     <Grid Margin="0,4">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="96" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="DefaultFolderKind" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock
                             Foreground="{StaticResource GhTextMuted}"
                             VerticalAlignment="Center"
-                            Margin="8,0,0,0"
+                            Margin="8,0,16,0"
                             Text="{Binding Kind}"
                         />
                         <TextBlock
@@ -658,6 +658,7 @@
                         <StackPanel
                             Visibility="{Binding IsFolderPreferencePage, Converter={StaticResource Shown}}"
                             Margin="0,8,0,0"
+                            Grid.IsSharedSizeScope="True"
                         >
                             <Border BorderBrush="{StaticResource GhBorder}" BorderThickness="1" CornerRadius="4">
                                 <StackPanel>
