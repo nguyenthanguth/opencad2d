@@ -71,6 +71,12 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 ; Writes the ProgID and the Open with entries under HKEY_CURRENT_USER\Software\Classes; shows no window and exits at once.
 Filename: "{app}\{#AppExe}"; Parameters: "--register"; Flags: runhidden; Tasks: associate; StatusMsg: "Associating .dxf and .dwg files..."
 
+[UninstallDelete]
+; The compiled copies Python writes beside the package opencad2d when a tool imports it from here: made by the app, not by this
+; setup, so the uninstaller would leave them (and the python folder) behind.
+Type: filesandordirs; Name: "{app}\python\opencad2d\__pycache__"
+Type: filesandordirs; Name: "{app}\python\opencad2d\cad\__pycache__"
+
 [UninstallRun]
 ; Takes the association out, but only where it names this install: an OpenCAD2D registered from another folder (a copy
 ; run from a USB stick, a build folder) keeps its own.

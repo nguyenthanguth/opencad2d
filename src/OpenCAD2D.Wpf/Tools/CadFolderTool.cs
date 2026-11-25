@@ -276,7 +276,8 @@ namespace OpenCAD2D.Wpf
             {
                 ["PYTHONUTF8"] = "1",
                 ["PYTHONUNBUFFERED"] = "1",
-                ["OPENCAD2D_RUNTIME"] = "coreclr",
+                // The app carries its own .NET, so a machine may have none: auto is .NET 8 or later where it is installed, else the .NET Framework 4.8 of Windows.
+                ["OPENCAD2D_RUNTIME"] = "auto",
                 ["OPENCAD2D_LIB"] = _host.Library,
                 ["OPENCAD2D_TOOL_PIPE"] = _host.Server.PipeName,
                 ["OPENCAD2D_TOOL_TOKEN"] = _token,

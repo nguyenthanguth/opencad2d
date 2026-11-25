@@ -100,6 +100,8 @@ The environment variable `OPENCAD2D_RUNTIME` says which .NET runs the script. It
 | `coreclr` | .NET 8 or later; an `ImportError` when none is installed |
 | `netfx` | .NET Framework 4.8 |
 
+With no .NET installed at all, `auto` is .NET Framework 4.8 and `coreclr` is the same `ImportError`.
+
 Any other value is an `ImportError`: `OPENCAD2D_RUNTIME is 'bogus': use auto, coreclr or netfx.` With `coreclr` and
 no .NET 8, it says `OPENCAD2D_RUNTIME is coreclr but no .NET 8 or later is installed: install the .NET 8 runtime from
 https://dotnet.microsoft.com/download or set OPENCAD2D_RUNTIME=netfx.` The package does not read `PYTHONNET_RUNTIME`.

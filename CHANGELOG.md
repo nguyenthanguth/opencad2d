@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **FIXED.** A Python tool did not run on a Windows with no .NET 8 installed (the app brings its own .NET, a tool's
+  process did not): it now runs on the .NET Framework 4.8 of Windows, and importing `opencad2d` with no .NET at all
+  chooses it under `auto` instead of raising "Can not determine dotnet root". Found by the setup's test in Windows
+  Sandbox.
+- **FIXED.** Uninstalling OpenCAD2D left `python\opencad2d\__pycache__` and `python\opencad2d\cad\__pycache__` in the
+  install folder.
 - **CHANGED.** The ribbon's icons are drawn in colour (A13), one drawing for each of 378 commands in AutoCAD 2021's dark
   look and the program's own hand: light lines, blue points and arrows, teal windows and data, yellow results, red for
   delete and markup, green for add and ok. Each has a large drawing for 32 pixels and a small one for 16, lines whole

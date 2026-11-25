@@ -219,8 +219,19 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
         `%AppData%\OpenCAD2D` and no file under the install folder that the setup wrote.
      Checked on this machine (2026-11-23): `/VERYSILENT /TASKS=""` into a temporary folder, exit 0, 509 files; the
      installed exe draws `--screenshot` of a DXF, exit 0; the silent uninstall leaves only a file added to `Lisps`; the
-     Start menu entry and the uninstall key gone; the maintainer's association unchanged. Not yet: a Sandbox with no
-     .NET, a DWG, LISP and `.py` in the installed app, the association task, an upgrade over a running app.
+     Start menu entry and the uninstall key gone; the maintainer's association unchanged.
+     Checked in a Windows Sandbox (2026-11-26): Windows 10.0.26100 with no .NET, Python 3.12 x64, a standard user and
+     an administrator through scheduled tasks (no interactive session headless): the 1.0.0 setup, then the new one over
+     it (a running app closed by CloseApplications, the added Lisp kept, exit 0 in 6-8 s); --screenshot of a DXF and a
+     DWG (1.3 s, exit 0); a Lisp of the Lisps folder loaded and its command run; a Python tool run; the .dxf
+     association written and "cmd /c start file.dxf" launched OpenCAD2D; the silent uninstall leaves only the user's
+     Lisps and %AppData%\OpenCAD2D, no Start menu entry, key or association. Faults fixed: Python tools failed with
+     "Can not determine dotnet root" with no .NET 8 (they now run on .NET Framework 4.8); the uninstaller left
+     python\opencad2d\__pycache__. Setup 83 886 219 bytes. Not covered: an interactive session (shortcut and Explorer
+     icon, SmartScreen), CloseApplications for a standard user (Restart Manager is denied in a batch session), a Python
+     tool with network packages. Seen and left: `--screenshot --run "(load ...)"` of a file outside a trusted folder
+     waits forever on the SECURELOAD question; empty `OpenWithProgids` keys stay after --unregister;
+     `drawing.entities(layout="Model")` right after `add_line` in the same tool command gave 10, not 11.
   4. CI: a job that builds the setup and keeps it as a workflow artifact (not a release).
      -> verify: the CI run is green and the artifact downloads and installs.
      DONE: `.github/workflows/publish-installer.yml`, on a published release (attaches the setup) or by hand (`tag`).
