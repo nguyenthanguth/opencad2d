@@ -176,7 +176,7 @@ namespace OpenCAD2D.Wpf
 
                 foreach (string token in c.Input.Text.Split(','))
                 {
-                    string typed = token.Trim().ToUpperInvariant();
+                    string typed = WithoutUnderscore(token.Trim().ToUpperInvariant());
 
                     if (typed.Length >= 3 && "NONE".StartsWith(typed, StringComparison.Ordinal))
                     {

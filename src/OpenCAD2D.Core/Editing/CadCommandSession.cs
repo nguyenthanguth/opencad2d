@@ -1956,7 +1956,7 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                if (!Feed(lines[i]))
+                if (!FeedTyped(lines[i]))
                 {
                     Write(
                         "Script stopped at line "

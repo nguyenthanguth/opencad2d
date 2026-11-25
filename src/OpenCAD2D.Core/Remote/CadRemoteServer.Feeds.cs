@@ -217,7 +217,7 @@ namespace OpenCAD2D
                     session.Enter();
                     return true;
                 case string text:
-                    return session.Feed(text);
+                    return session.FeedTyped(text);
                 case GeoPoint2 point:
                     return session.Feed(point);
                 case List<string> handles:

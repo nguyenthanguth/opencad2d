@@ -4047,7 +4047,9 @@ typed at "Select objects:" that lies on no object starts the window as well, `Se
 corner:`.
 
 A point typed after an object snap override, `END` or any of the others typed or chosen from the menu, is snapped as AutoCAD
-2021's console snaps it, at a point prompt, at "Select objects:" and at a prompt for one object (`CadCommandSession.SnapOverride`
+2021's console snaps it; a word takes AutoCAD's international underscore, `_END` and `_mid` being END and mid, and is taken
+wherever it is typed or fed: the command line, a plugin's macro, a routine's `(command "_LINE" "_END" '(60 1))`, a script
+line, `-OSNAP`'s list (`_END,_MID`) and Remote; `'_END` is the transparent form and no snap, as in AutoCAD, at a point prompt, at "Select objects:" and at a prompt for one object (`CadCommandSession.SnapOverride`
 and `SnapAperture`, which the window sets with the snap's own and the cursor's aperture): the objects within the aperture of
 the point are looked at, and the snap point of any of them nearest the point is the answer, wherever it lies on the object,
 so with END, an aperture of 1.3 and a line from (0, 0) to (100, 0), 60,1 is (100, 0); with no object within the aperture

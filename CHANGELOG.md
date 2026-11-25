@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **FIXED.** An object snap word typed with AutoCAD's underscore, `_END`, `_mid`, `_CEN`, `_NONE`, is the override of the
+  next point as `END` is (it was refused): on the command line, in `-OSNAP`'s list, in a plugin's macro (which trimmed
+  the underscore itself), and now also where a word is fed as typed, which took no snap word at all: a routine's
+  `(command "_LINE" "_END" '(60 1))`, a script line and Remote. With END and a line from (0, 0) to (100, 0), 60,1 is
+  (100, 0) in each. `TAN` typed at CIRCLE's 3P is now the circle's own tangent, as `_tan` is, so Tan, Tan, Tan typed
+  with `tan` draws the circle (it took the snap and drew none).
 - **CHANGED.** Measuring a text, an MTEXT or an attribute in the document's fonts (`(textbox)`, `vla-GetBoundingBox`,
   MIRROR, MLEADERALIGN, MLEADEREDIT, the table editor) borrows one set of fonts for each path (`DxfDatabase.BorrowFonts`)
   and keeps it for the life of the drawing, where each text read the font file again: `(textbox)` of 2000 texts in an SHX

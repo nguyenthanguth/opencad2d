@@ -506,8 +506,8 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
-        /// A word typed at a point prompt, or at "Select objects:", that names an object snap, END or ENDPOINT, takes it for the
-        /// next point; one not built yet is said so. The keyword of a plugin's snap (CTOP, ctop, _CTOP), typed whole, is tried
+        /// A word typed at a point prompt, or at "Select objects:", that names an object snap, END or ENDPOINT, or _END with
+        /// AutoCAD's underscore, takes it for the next point; one not built yet is said so. The keyword of a plugin's snap (CTOP, ctop, _CTOP), typed whole, is tried
         /// first. A keyword of the prompt itself wins, as in AutoCAD.
         /// </summary>
         private bool TakeSnapOverride(CadCommandSession session, string word)
@@ -530,7 +530,14 @@ namespace OpenCAD2D.Wpf
                 return OverridePluginSnap(plugin.Snap);
             }
 
-            string typed = word.Trim().ToUpperInvariant();
+            string typed = WithoutUnderscore(word.Trim().ToUpperInvariant());
+
+            // CIRCLE's Tan, Tan, Tan takes TAN itself, as the tangent point of the circle ("to", the object touched), not as a snap.
+            if (typed == "TAN" && session.Prompt.AcceptsText && session.Current?.Name == "CIRCLE")
+            {
+                return false;
+            }
+
             bool none = typed.Length >= 3 && "NONE".StartsWith(typed, StringComparison.Ordinal);
             SnapModeInfo info = SnapModeTable.FirstOrDefault(i =>
                 typed.StartsWith(i.Keyword, StringComparison.Ordinal)
@@ -556,6 +563,10 @@ namespace OpenCAD2D.Wpf
 
             return OverrideSnap(info.Mode);
         }
+
+        /// <summary>The word without the underscore AutoCAD takes in front of an English name, as "_END" is END.</summary>
+        private static string WithoutUnderscore(string word) =>
+            word.StartsWith("_", StringComparison.Ordinal) ? word.Substring(1) : word;
 
         /// <summary>An object snap of AutoCAD's: its marker, its flag (none where not built), its keyword and the word it starts.</summary>
         internal sealed class SnapModeInfo

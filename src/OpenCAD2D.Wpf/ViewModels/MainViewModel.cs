@@ -1244,10 +1244,7 @@ namespace OpenCAD2D.Wpf
                 {
                     foreach (string word in line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        if (!TakeSnapOverride(session, word))
-                        {
-                            session.Feed(word);
-                        }
+                        session.FeedTyped(word);
                     }
                 }
             }
@@ -1887,6 +1884,8 @@ namespace OpenCAD2D.Wpf
             file.Drafting = ReadDrafting(document);
             file.Session = new CadCommandSession(document, Commands());
             file.Session.PromptChanged += OnPromptChanged;
+            file.Session.TypedWordTaker = word =>
+                ReferenceEquals(_current?.Session, file.Session) && TakeSnapOverride(file.Session, word);
             file.Session.UiRequested += OnUiRequested;
             file.Session.ViewChanged += OnSessionViewChanged;
             file.Session.Documents = PluginDocuments;
