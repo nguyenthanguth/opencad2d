@@ -68,7 +68,7 @@ namespace OpenCAD2D.UnitTest
         {
             _folder.Write("ink.shx", Font());
             var database = new DxfDatabase("AC1027");
-            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_INK", FileName = "ink.shx" });
+            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_INK", FileName = "ink.shx" });
             var mtext = new DxfMText
             {
                 Contents = contents,
@@ -76,7 +76,7 @@ namespace OpenCAD2D.UnitTest
                 TextHeight = 10.0,
             };
             database.ModelSpace.AppendEntity(mtext);
-            mtext.TextStyleName = "GH_INK";
+            mtext.TextStyleName = "OC_INK";
             CadDocument document = CadDocument.From(database);
             document.Fonts = new CadFonts(new[] { _folder.FullPath }, null, null, f => f == "Arial");
             return document.GetDisplay(document.ModelSpace).Items.OfType<DisplayText2>().Single();
@@ -125,7 +125,7 @@ namespace OpenCAD2D.UnitTest
             // dimension's words stand on is broken a gap either side of their middle, not 0.7 of their height a letter.
             _folder.Write("ink.shx", Font());
             CadDocument document = Blank();
-            document.Database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_INK", FileName = "ink.shx" });
+            document.Database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_INK", FileName = "ink.shx" });
             DxfDimStyleTableRecord style = document.Database.DimStyleTable["Standard"];
             style.Dimscale = 1.0;
             style.Dimasz = 2.5;
@@ -134,7 +134,7 @@ namespace OpenCAD2D.UnitTest
             style.Dimdec = 0;
             style.Dimtad = 0;
             style.Dimlfac = 0.01;
-            style.Dimtxsty = document.Database.TextStyleTable["GH_INK"];
+            style.Dimtxsty = document.Database.TextStyleTable["OC_INK"];
             StandardCurrent(document.Database);
             document.Fonts = new CadFonts(new[] { _folder.FullPath }, null, null);
 

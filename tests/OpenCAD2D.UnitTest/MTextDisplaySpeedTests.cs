@@ -89,7 +89,7 @@ namespace OpenCAD2D.UnitTest
             {
                 folder.Write("test.shx", ShxFiles.Unifont());
                 var database = new DxfDatabase("AC1027");
-                var style = new DxfTextStyleTableRecord { Name = "GH_SHX", FileName = "test.shx" };
+                var style = new DxfTextStyleTableRecord { Name = "OC_SHX", FileName = "test.shx" };
                 database.TextStyleTable.Add(style);
                 var mtext = new DxfMText
                 {
@@ -99,12 +99,12 @@ namespace OpenCAD2D.UnitTest
                     Width = 20.0,
                 };
                 database.ModelSpace.AppendEntity(mtext);
-                mtext.TextStyleName = "GH_SHX";
+                mtext.TextStyleName = "OC_SHX";
                 CadDocument document = CadDocument.From(database);
                 document.Fonts = new CadFonts(new[] { folder.FullPath }, null, null, f => f == "Arial");
                 Assert.Equal(new[] { "II II", "II" }, Lines(document));
 
-                database.TextStyleTable["GH_SHX"].XScale = 2.0;
+                database.TextStyleTable["OC_SHX"].XScale = 2.0;
                 document.Regen();
                 Assert.Equal(new[] { "II", "II", "II" }, Lines(document));
             }
@@ -118,7 +118,7 @@ namespace OpenCAD2D.UnitTest
             {
                 folder.Write("test.shx", ShxFiles.Unifont());
                 var database = new DxfDatabase("AC1027");
-                database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_SHX", FileName = "test.shx" });
+                database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_SHX", FileName = "test.shx" });
                 var mtext = new DxfMText
                 {
                     Contents = "II II II",
@@ -127,7 +127,7 @@ namespace OpenCAD2D.UnitTest
                     Width = 20.0,
                 };
                 database.ModelSpace.AppendEntity(mtext);
-                mtext.TextStyleName = "GH_SHX";
+                mtext.TextStyleName = "OC_SHX";
                 CadDocument document = CadDocument.From(database);
                 document.Fonts = new CadFonts(new[] { folder.FullPath }, null, null, f => f == "Arial");
                 Assert.Equal(new[] { "II II", "II" }, Lines(document));

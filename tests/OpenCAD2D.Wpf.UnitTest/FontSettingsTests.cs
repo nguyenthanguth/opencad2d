@@ -134,7 +134,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             };
             model.ApplySettings(settings);
             var database = new DxfDatabase("AC1018");
-            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_ROMANS", FileName = "romans.shx" });
+            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_ROMANS", FileName = "romans.shx" });
             var text = new DxfDBText
             {
                 TextString = "A",
@@ -142,7 +142,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 Height = 5,
             };
             database.ModelSpace.AppendEntity(text);
-            text.TextStyleName = "GH_ROMANS";
+            text.TextStyleName = "OC_ROMANS";
             CadDocument document = CadDocument.From(database);
 
             model.OpenDocument(document);

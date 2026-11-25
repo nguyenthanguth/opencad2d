@@ -10,7 +10,7 @@ using OpenCAD2D.Plugins;
 namespace OpenCAD2D.Plugins.DrawingInfo
 {
     /// <summary>
-    /// The sample plugin that ships with the app: GHDWGINFO writes what the drawing holds, and changes nothing. It is the
+    /// The sample plugin that ships with the app: CSINFO writes what the drawing holds, and changes nothing. It is the
     /// smallest useful plugin, one command that reads the document and writes lines on the command line.
     /// </summary>
     public sealed class DrawingInfoCommands
@@ -23,7 +23,7 @@ namespace OpenCAD2D.Plugins.DrawingInfo
         /// </summary>
         /// <param name="c">The command's context.</param>
         /// <returns>No prompts: the command asks nothing.</returns>
-        [CadCommand("GHDWGINFO", Description = "Write the name, objects, layers, blocks and extents of the drawing")]
+        [CadCommand("CSINFO", Description = "Write the name, objects, layers, blocks and extents of the drawing")]
         public IEnumerable<CadPrompt> DrawingInfo(CadCommandContext c)
         {
             DxfDatabase database = c.Database;

@@ -355,7 +355,7 @@ namespace OpenCAD2D
         /// and the named object dictionary first where the drawing was written without it.
         /// </summary>
         /// <param name="document">The document.</param>
-        /// <param name="name">The new name, as GH_SCHEDULE.</param>
+        /// <param name="name">The new name, as OC_SCHEDULE.</param>
         /// <param name="from">The style whose settings it takes; AutoCAD's Standard of the drawing's units where null or none.</param>
         /// <returns>What came of it.</returns>
         public static CadEditResult Add(CadDocument document, string name, string from)

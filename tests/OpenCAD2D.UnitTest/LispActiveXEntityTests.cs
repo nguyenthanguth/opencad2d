@@ -850,7 +850,7 @@ namespace OpenCAD2D.UnitTest
         public void TheEffectiveNameOfADynamicBlocksReference_IsTheDynamicBlock()
         {
             var database = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
             database.BlockTable.Add(block);
             DxfLine[] lines =
             {
@@ -885,7 +885,7 @@ namespace OpenCAD2D.UnitTest
 
             // reference: Name is the anonymous block's (*U...), EffectiveName the dynamic block it is made from, IsDynamicBlock true.
             Assert.StartsWith("\"*U", Value(session, "(vla-get-Name d)"), StringComparison.Ordinal);
-            Assert.Equal("\"GH_PANEL\"", Value(session, "(vla-get-EffectiveName d)"));
+            Assert.Equal("\"OC_PANEL\"", Value(session, "(vla-get-EffectiveName d)"));
             Assert.Equal(":vlax-true", Value(session, "(vla-get-IsDynamicBlock d)"));
         }
 

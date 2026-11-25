@@ -231,7 +231,7 @@ namespace OpenCAD2D.Plugins.Net8Runner
         }
 
         /// <summary>
-        /// Loads the sample that ships in Plugins\DrawingInfo from a Plugins folder at start, runs GHDWGINFO on a drawing of
+        /// Loads the sample that ships in Plugins\DrawingInfo from a Plugins folder at start, runs CSINFO on a drawing of
         /// three circles, and unloads it; gives its load contexts.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -272,9 +272,9 @@ namespace OpenCAD2D.Plugins.Net8Runner
                 contexts.AddRange(Contexts());
 
                 var session = new CadCommandSession(Circles(), registry);
-                session.Feed("GHDWGINFO");
+                session.Feed("CSINFO");
                 Check(
-                    "GHDWGINFO writes the objects by type: " + string.Join(" | ", session.History),
+                    "CSINFO writes the objects by type: " + string.Join(" | ", session.History),
                     session.History.Contains("Model space: 3 objects") && session.History.Contains("  Circle   3")
                 );
                 CadPluginResult unloaded = manager.Unload("DrawingInfo");

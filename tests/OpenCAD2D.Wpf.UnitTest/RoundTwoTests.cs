@@ -65,18 +65,18 @@ namespace OpenCAD2D.Wpf.UnitTest
                 using (LayerManagerViewModel manager = model.CreateLayerManager())
                 {
                     LayerRowViewModel columns = manager.Rows.Single(r => r.Name == "COLUMNS");
-                    Assert.Contains("GH_DASH", columns.LinetypeOptions);
+                    Assert.Contains("OC_DASH", columns.LinetypeOptions);
                     Assert.DoesNotContain("ByLayer", columns.LinetypeOptions);
 
-                    columns.Linetype = "GH_DASH";
+                    columns.Linetype = "OC_DASH";
 
-                    Assert.Equal("GH_DASH", manager.Rows.Single(r => r.Name == "COLUMNS").Linetype);
-                    Assert.Equal("GH_DASH", model.Document.Database.LayerTable["COLUMNS"].LinetypeName);
+                    Assert.Equal("OC_DASH", manager.Rows.Single(r => r.Name == "COLUMNS").Linetype);
+                    Assert.Equal("OC_DASH", model.Document.Database.LayerTable["COLUMNS"].LinetypeName);
 
                     manager.Rows.Single(r => r.Name == "COLUMNS").Linetype = "NO_SUCH";
 
                     Assert.Contains("no linetype \"NO_SUCH\"", model.History.Last());
-                    Assert.Equal("GH_DASH", manager.Rows.Single(r => r.Name == "COLUMNS").Linetype);
+                    Assert.Equal("OC_DASH", manager.Rows.Single(r => r.Name == "COLUMNS").Linetype);
 
                     Assert.Equal("Default", manager.Rows.Single(r => r.Name == "COLUMNS").Weight);
                     manager.Rows.Single(r => r.Name == "COLUMNS").Weight = "0.50";

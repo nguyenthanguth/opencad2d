@@ -29,7 +29,7 @@ namespace OpenCAD2D.UnitTest
         )
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             var entities = new List<DxfEntity>
             {
@@ -137,7 +137,7 @@ namespace OpenCAD2D.UnitTest
                 out string[] inserts
             );
 
-            Start(document, "-BEDIT", "GH_PANEL", "ERASE", P(50, 0), Enter, "BCLOSE", "S");
+            Start(document, "-BEDIT", "OC_PANEL", "ERASE", P(50, 0), Enter, "BCLOSE", "S");
 
             var a = Entity<DxfBlockReference>(document, inserts[0]);
             var b = Entity<DxfBlockReference>(document, inserts[1]);
@@ -179,7 +179,7 @@ namespace OpenCAD2D.UnitTest
                 out string[] inserts
             );
 
-            Start(document, "-BEDIT", "GH_PANEL", "ERASE", P(15, 10), Enter, "BCLOSE", "S");
+            Start(document, "-BEDIT", "OC_PANEL", "ERASE", P(15, 10), Enter, "BCLOSE", "S");
 
             var a = Entity<DxfBlockReference>(document, inserts[0]);
             var b = Entity<DxfBlockReference>(document, inserts[1]);
@@ -227,7 +227,7 @@ namespace OpenCAD2D.UnitTest
                 out string[] inserts
             );
 
-            Start(document, "-BEDIT", "GH_PANEL", "ERASE", P(100, 25), P(50, 0), P(50, 50), Enter, "BCLOSE", "S");
+            Start(document, "-BEDIT", "OC_PANEL", "ERASE", P(100, 25), P(50, 0), P(50, 50), Enter, "BCLOSE", "S");
 
             var a = Entity<DxfBlockReference>(document, inserts[0]);
             var b = Entity<DxfBlockReference>(document, inserts[1]);
@@ -252,7 +252,7 @@ namespace OpenCAD2D.UnitTest
             );
             string first = Entity<DxfBlockReference>(document, inserts[0]).Name;
 
-            Start(document, "-BEDIT", "GH_PANEL", "ERASE", P(50, 0), Enter, "BCLOSE", "S");
+            Start(document, "-BEDIT", "OC_PANEL", "ERASE", P(50, 0), Enter, "BCLOSE", "S");
 
             var a = Entity<DxfBlockReference>(document, inserts[0]);
             Assert.Equal(first, a.Name);

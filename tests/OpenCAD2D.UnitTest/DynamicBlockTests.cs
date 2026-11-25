@@ -18,7 +18,7 @@ namespace OpenCAD2D.UnitTest
     public class DynamicBlockTests
     {
         /// <summary>
-        /// A drawing of R2018 with the block GH_PANEL, a rectangle 100 by 50 whose Width from (0, 0) to (100, 0), a list of 100,
+        /// A drawing of R2018 with the block OC_PANEL, a rectangle 100 by 50 whose Width from (0, 0) to (100, 0), a list of 100,
         /// 150 and 200, stretches its right edge, and an INSERT of it at (1 000, 500) on layer Doors.
         /// </summary>
         private static CadDocument Panel(
@@ -28,7 +28,7 @@ namespace OpenCAD2D.UnitTest
         {
             var db = new DxfDatabase("AC1032");
             db.LayerTable.Add(new DxfLayerTableRecord { Name = "Doors" });
-            var block = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             DxfLine[] lines =
             {
@@ -59,11 +59,11 @@ namespace OpenCAD2D.UnitTest
             return CadDocument.From(db, "panel.dxf");
         }
 
-        /// <summary>A drawing with the block GH_DOOR, a leaf from (0, 0) to (90, 0) flipped by Hand about the y axis, inserted at the origin.</summary>
+        /// <summary>A drawing with the block OC_DOOR, a leaf from (0, 0) to (90, 0) flipped by Hand about the y axis, inserted at the origin.</summary>
         private static CadDocument Door(out string handle)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_DOOR", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_DOOR", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             var leaf = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(90, 0, 0));
             block.AppendEntity(leaf);
@@ -80,11 +80,11 @@ namespace OpenCAD2D.UnitTest
             return CadDocument.From(db, "door.dxf");
         }
 
-        /// <summary>A drawing with the block GH_SIGN, a frame, a cross and a tick, of the states Cross, Tick and Blank, inserted at the origin.</summary>
+        /// <summary>A drawing with the block OC_SIGN, a frame, a cross and a tick, of the states Cross, Tick and Blank, inserted at the origin.</summary>
         private static CadDocument Sign(out string handle)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_SIGN", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_SIGN", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             DxfLine[] lines =
             {
@@ -115,11 +115,11 @@ namespace OpenCAD2D.UnitTest
             return CadDocument.From(db, "sign.dxf");
         }
 
-        /// <summary>A drawing with the block GH_ARROW, a line from (50, 25) to (80, 25) turned by Angle about (50, 25), inserted at the origin.</summary>
+        /// <summary>A drawing with the block OC_ARROW, a line from (50, 25) to (80, 25) turned by Angle about (50, 25), inserted at the origin.</summary>
         private static CadDocument Arrow(out string handle)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_ARROW", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_ARROW", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             var arrow = new DxfLine(new GeoPoint3(50, 25, 0), new GeoPoint3(80, 25, 0));
             block.AppendEntity(arrow);
@@ -177,7 +177,7 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal(200.0, (double)ValueOf(document, handle, "Width"), 9);
             DxfBlockReference insert = Insert(document, handle);
             Assert.True(insert.BlockTableRecord.IsAnonymous);
-            Assert.Equal("GH_PANEL", insert.DynamicBlockTableRecord.Name);
+            Assert.Equal("OC_PANEL", insert.DynamicBlockTableRecord.Name);
             Assert.Contains(insert.BlockTableRecord.OfType<DxfLine>(), l =>
                 l.StartPoint.IsEqualTo(new GeoPoint3(200, 0, 0), Tight)
                 && l.EndPoint.IsEqualTo(new GeoPoint3(200, 50, 0), Tight)
@@ -187,7 +187,7 @@ namespace OpenCAD2D.UnitTest
 
             Assert.True(document.Undo());
             Assert.Equal(100.0, (double)ValueOf(document, handle, "Width"), 9);
-            Assert.Equal("GH_PANEL", Insert(document, handle).Name);
+            Assert.Equal("OC_PANEL", Insert(document, handle).Name);
             Assert.False(document.CanUndo);
         }
 
@@ -240,7 +240,7 @@ namespace OpenCAD2D.UnitTest
             Assert.True(result.Succeeded, result.Message);
             Assert.Equal(150.0, (double)ValueOf(document, handle, "Width"), 9);
             Assert.Equal("150.0000", Row(Group(document, handle, CadProperties.CustomGroup), "Width").Value);
-            Assert.Equal("GH_PANEL", Row(Group(document, handle, "Misc"), "Name").Value);
+            Assert.Equal("OC_PANEL", Row(Group(document, handle, "Misc"), "Name").Value);
             Assert.StartsWith("*U", Insert(document, handle).Name, StringComparison.Ordinal);
             Assert.Equal("Properties", document.NextUndo.Name);
 
@@ -326,7 +326,7 @@ namespace OpenCAD2D.UnitTest
             Run(session, "RESETBLOCK", new[] { handle }, Enter);
 
             Assert.Equal("1 block reset.", session.History.Last());
-            Assert.Equal("GH_PANEL", Insert(document, handle).Name);
+            Assert.Equal("OC_PANEL", Insert(document, handle).Name);
             Assert.Equal(100.0, (double)ValueOf(document, handle, "Width"), 9);
             Assert.Equal("RESETBLOCK", document.NextUndo.Name);
 
@@ -361,9 +361,9 @@ namespace OpenCAD2D.UnitTest
         public void TheBlockEditor_ShowsTheFirstVisibilityState_AndAnotherChosenHidesWhatItDoesNotList()
         {
             CadDocument document = Sign(out _);
-            DxfBlockTableRecord block = document.Database.BlockTable["GH_SIGN"];
+            DxfBlockTableRecord block = document.Database.BlockTable["OC_SIGN"];
             string[] lines = block.OfType<DxfLine>().Select(l => l.Handle).ToArray();
-            Assert.True(document.OpenBlockEditor("GH_SIGN").Succeeded);
+            Assert.True(document.OpenBlockEditor("OC_SIGN").Succeeded);
             CadBlockEditor editor = document.BlockEditor;
 
             Assert.Equal(new[] { "Cross", "Tick", "Blank" }, editor.VisibilityStates);
@@ -389,7 +389,7 @@ namespace OpenCAD2D.UnitTest
         public void ABlockOfNoVisibilityParameter_HasNoStatesInTheBlockEditor()
         {
             CadDocument document = Panel(out _);
-            Assert.True(document.OpenBlockEditor("GH_PANEL").Succeeded);
+            Assert.True(document.OpenBlockEditor("OC_PANEL").Succeeded);
 
             Assert.Empty(document.BlockEditor.VisibilityStates);
             Assert.Null(document.BlockEditor.VisibilityState);
@@ -397,7 +397,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         /// <summary>
-        /// A drawing with the block GH_PLATE, a rectangle 100 by 50 whose XY parameter Width and Height from (0, 0) to (100, 50)
+        /// A drawing with the block OC_PLATE, a rectangle 100 by 50 whose XY parameter Width and Height from (0, 0) to (100, 50)
         /// stretches its right and top edges at the far corner, inserted at (1 000, 500).
         /// </summary>
         private static CadDocument Plate(out string handle) => Plate(false, out handle);
@@ -410,7 +410,7 @@ namespace OpenCAD2D.UnitTest
         private static CadDocument Plate(bool baseStretch, out string handle)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_PLATE", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_PLATE", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             var right = new DxfLine(new GeoPoint3(100, 0, 0), new GeoPoint3(100, 50, 0));
             var top = new DxfLine(new GeoPoint3(0, 50, 0), new GeoPoint3(100, 50, 0));

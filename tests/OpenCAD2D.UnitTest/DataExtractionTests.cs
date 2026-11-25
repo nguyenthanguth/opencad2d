@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using Xunit;
@@ -371,6 +372,7 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal(CadFilterCondition.Between, back.Filters.Single().Condition);
             Assert.Equal("M", back.Filters.Single().Second);
             Assert.False(File.ReadAllBytes(path).Take(3).SequenceEqual(new byte[] { 0xEF, 0xBB, 0xBF }));
+            Assert.Equal("OpenCAD2DDataExtraction", XDocument.Load(path).Root.Name.LocalName);
             Assert.Equal(settings.ToXml().ToString(), settings.Clone().ToXml().ToString());
         }
 

@@ -153,7 +153,7 @@ namespace OpenCAD2D.UnitTest
         private static CadDocument Door(out DxfBlockReference door)
         {
             var db = new DxfDatabase("AC1027");
-            var block = new DxfBlockTableRecord { Name = "GH_DOOR", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_DOOR", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             var leaf = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(90, 0, 0));
             block.AppendEntity(leaf);

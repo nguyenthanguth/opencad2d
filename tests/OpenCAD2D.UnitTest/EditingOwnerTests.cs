@@ -46,7 +46,7 @@ namespace OpenCAD2D.UnitTest
 
         private static string Recorded(CadDocument document, string handle)
         {
-            IReadOnlyList<DxfTypedValue> data = document.FindEntity(handle).GetXDataForApplication("GH_TESTREC");
+            IReadOnlyList<DxfTypedValue> data = document.FindEntity(handle).GetXDataForApplication("OC_TESTREC");
             return data == null || data.Count < 2 ? null : data[1].Value;
         }
 
@@ -198,7 +198,7 @@ namespace OpenCAD2D.UnitTest
         /// <summary>
         /// An owner as Part B's: MOVE- objects may only be moved, EDIT- objects take every edit, NOPE- objects are Edit but
         /// every edit is refused. An edit taken is applied by the owner itself in an edit of the document, the edit written into
-        /// the entity's extended data (GH_TESTREC) as the owner's record of it.
+        /// the entity's extended data (OC_TESTREC) as the owner's record of it.
         /// </summary>
         private sealed class FakeOwner : ICadEntityOwner
         {
@@ -273,7 +273,7 @@ namespace OpenCAD2D.UnitTest
 
                     owned.XData = new[]
                     {
-                        new DxfTypedValue(1001, "GH_TESTREC"),
+                        new DxfTypedValue(1001, "OC_TESTREC"),
                         new DxfTypedValue(1000, edit.ToString()),
                     };
                 });

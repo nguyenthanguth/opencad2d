@@ -406,14 +406,14 @@ namespace OpenCAD2D.UnitTest
         }
 
         /// <summary>
-        /// GH_PANEL, a dynamic rectangle whose Width stretches its right edge, with the definition TAG, inserted at (1 000, 500)
+        /// OC_PANEL, a dynamic rectangle whose Width stretches its right edge, with the definition TAG, inserted at (1 000, 500)
         /// and given a Width of 150, so that the INSERT places an anonymous *U block standing for it.
         /// </summary>
         [Fact]
         public void AttSyncBySelect_OfAnInsertOfADynamicBlock_NamesTheDynamicBlock_NotItsAnonymousBlock()
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             DxfLine[] lines =
             {
@@ -447,7 +447,7 @@ namespace OpenCAD2D.UnitTest
 
             CadCommandSession session = Start(document, "ATTSYNC", Enter, new[] { handle });
 
-            Assert.Equal("ATTSYNC block GH_PANEL? [Yes/No] <Yes>:", session.PromptText);
+            Assert.Equal("ATTSYNC block OC_PANEL? [Yes/No] <Yes>:", session.PromptText);
             Run(session, Esc);
             Assert.False(session.IsRunning);
         }

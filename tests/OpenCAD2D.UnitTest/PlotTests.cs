@@ -362,7 +362,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
-        public void DashPlotToGeometryHelperPng_AsksAnImageSizeInPixels_AndHandsAPngFileToTheWindow_ThePageSetupKeepingThePixels()
+        public void DashPlotToOpenCad2dPng_AsksAnImageSizeInPixels_AndHandsAPngFileToTheWindow_ThePageSetupKeepingThePixels()
         {
             CadDocument document = Plan();
             CadCommandSession session = Session(document);
@@ -381,7 +381,7 @@ namespace OpenCAD2D.UnitTest
             Run(session, "?");
             Assert.Contains("OpenCAD2D PNG", session.History);
             Assert.Contains("OpenCAD2D JPG", session.History);
-            Run(session, "geometryhelper png");
+            Run(session, "opencad2d png");
             Assert.Equal("Enter paper size or [?] <1920 x 1080 Pixels (Full HD)>:", session.PromptText);
             Run(session, "9000 x 10");
             Assert.Contains("not found", session.History.Last());

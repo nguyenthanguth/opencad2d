@@ -125,14 +125,14 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         /// <summary>
-        /// The room with a linetype GH_DASH (dashes of 100 with gaps of 50) loaded from a file written in the folder, and its
+        /// The room with a linetype OC_DASH (dashes of 100 with gaps of 50) loaded from a file written in the folder, and its
         /// Layout1 holding a viewport 200 by 150 about (150, 100) on the sheet showing the room at 1:20.
         /// </summary>
         public static DxfDatabase RoomWithViewport(TestFolder folder, out string bottom, out string viewport)
         {
             DxfDatabase db = Room(out bottom, out _);
-            string lin = folder.WriteText("gh.lin", "*GH_DASH,Dashes for millimetre drawings __ __ __\nA,100,-50\n");
-            db.LoadLineTypeFile("GH_DASH", lin);
+            string lin = folder.WriteText("gh.lin", "*OC_DASH,Dashes for millimetre drawings __ __ __\nA,100,-50\n");
+            db.LoadLineTypeFile("OC_DASH", lin);
             DxfLayout layout = null;
 
             foreach (DxfLayout candidate in db.Layouts)

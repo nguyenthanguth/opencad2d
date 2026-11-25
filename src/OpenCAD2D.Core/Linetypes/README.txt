@@ -6,7 +6,7 @@ Put linetype files (.lin) in this folder. LINETYPE and -LINETYPE find a file her
 
 OpenCAD2D.lin is the built-in set of 39 linetypes, written out in the .lin format as a
 model for your own files. It is a copy: changing it changes nothing, because the name
-OpenCAD2D.lin always means the built-in set, as does its old name GeometryHelper.lin. Copy it
+OpenCAD2D.lin always means the built-in set. Copy it
 under another name to edit it.
 
 Search order for a linetype file:

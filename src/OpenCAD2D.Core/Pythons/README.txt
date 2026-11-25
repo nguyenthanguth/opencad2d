@@ -22,7 +22,7 @@ requirements.txt. PYRUN still runs a single .py file once.
 Two folders here are sample tools that come with the app:
 
   HelloWorld    its command PYHELLOWORLD writes "Hello, World!": the smallest tool there can be.
-  DrawingInfo   its command GHPYINFO writes the name, objects, layers, blocks and extents of the drawing.
+  DrawingInfo   its command PYINFO writes the name, objects, layers, blocks and extents of the drawing.
 
 Delete the folder of one if you do not want it, or copy one under another name to start a tool of your
 own. The sources are also in examples\Pythons of https://github.com/nguyenthanguth/opencad2d.

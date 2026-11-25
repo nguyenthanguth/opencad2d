@@ -170,7 +170,7 @@ namespace OpenCAD2D.UnitTest
         private CadDocument Drawing(string fontFile, Action<DxfDatabase> more, params DxfEntity[] entities)
         {
             var database = new DxfDatabase("AC1018");
-            var style = new DxfTextStyleTableRecord { Name = "GH_SHX", FileName = fontFile };
+            var style = new DxfTextStyleTableRecord { Name = "OC_SHX", FileName = fontFile };
             database.TextStyleTable.Add(style);
             more?.Invoke(database);
 
@@ -180,11 +180,11 @@ namespace OpenCAD2D.UnitTest
 
                 if (entity is DxfDBText text)
                 {
-                    text.TextStyleName = "GH_SHX";
+                    text.TextStyleName = "OC_SHX";
                 }
                 else if (entity is DxfMText mtext)
                 {
-                    mtext.TextStyleName = "GH_SHX";
+                    mtext.TextStyleName = "OC_SHX";
                 }
             }
 
@@ -379,7 +379,7 @@ namespace OpenCAD2D.UnitTest
             _folder.Write("gbcbig.shx", ShxFiles.Big());
             CadDocument document = Drawing(
                 "test.shx",
-                d => d.TextStyleTable["GH_SHX"].BigFontFileName = "gbcbig.shx",
+                d => d.TextStyleTable["OC_SHX"].BigFontFileName = "gbcbig.shx",
                 Text("I中", 4.0)
             );
             document.Fonts = Fonts();
@@ -405,7 +405,7 @@ namespace OpenCAD2D.UnitTest
             };
             CadDocument document = Drawing(
                 "arial.ttf",
-                d => d.TextStyleTable["GH_SHX"].Font = new DxfFontDescriptor("Arial", false, false, 0, 34),
+                d => d.TextStyleTable["OC_SHX"].Font = new DxfFontDescriptor("Arial", false, false, 0, 34),
                 mtext
             );
             document.Fonts = Fonts();
@@ -572,12 +572,12 @@ namespace OpenCAD2D.UnitTest
         {
             CadDocument arial = Drawing(
                 "arial.ttf",
-                d => d.TextStyleTable["GH_SHX"].Font = new DxfFontDescriptor("Arial", false, false, 0, 34),
+                d => d.TextStyleTable["OC_SHX"].Font = new DxfFontDescriptor("Arial", false, false, 0, 34),
                 Text("I", 5.0)
             );
             CadDocument missing = Drawing(
                 "nofont.ttf",
-                d => d.TextStyleTable["GH_SHX"].Font = new DxfFontDescriptor("No Such Face", false, false, 0, 34),
+                d => d.TextStyleTable["OC_SHX"].Font = new DxfFontDescriptor("No Such Face", false, false, 0, 34),
                 Text("I", 5.0)
             );
             var said = new List<string>();
@@ -762,7 +762,7 @@ namespace OpenCAD2D.UnitTest
         {
             _folder.Write("test.shx", ShxFiles.Unifont());
             _folder.Write("gbcbig.shx", ShxFiles.Big());
-            Action<DxfDatabase> big = d => d.TextStyleTable["GH_SHX"].BigFontFileName = "nobig.shx";
+            Action<DxfDatabase> big = d => d.TextStyleTable["OC_SHX"].BigFontFileName = "nobig.shx";
             CadDocument halved = Drawing("test.shx", big, Text("I中", 4.0));
             CadDocument plain = Drawing("test.shx", big, Text("I中", 4.0));
             var said = new List<string>();
@@ -818,7 +818,7 @@ namespace OpenCAD2D.UnitTest
             };
             CadDocument document = Drawing(
                 "romans.shx",
-                d => d.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_ISO", FileName = "isocp.shx" }),
+                d => d.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_ISO", FileName = "isocp.shx" }),
                 Text("I", 5.0),
                 mtext
             );

@@ -12,7 +12,7 @@ namespace OpenCAD2D.Plugins.UnitTest
     /// <summary>
     /// The sample plugin that ships in the Plugins folder, Drawing info, as C# source: it is the folder <c>Plugins\DrawingInfo</c> with
     /// <c>DrawingInfo.csproj</c> and <c>DrawingInfoCommands.cs</c>, which the app compiles at start as its own folder does, and its
-    /// command GHDWGINFO writes what the drawing holds and changes nothing. On .NET 8 only: .NET Framework does not compile source.
+    /// command CSINFO writes what the drawing holds and changes nothing. On .NET 8 only: .NET Framework does not compile source.
     /// </summary>
     public sealed class SourcePluginDrawingInfoTests : IDisposable
     {
@@ -51,8 +51,8 @@ namespace OpenCAD2D.Plugins.UnitTest
                 Assert.Equal("1.0.0", started.Plugin.Plugin.Version);
                 Assert.True(started.Plugin.IsTrusted);
                 Assert.True(started.Plugin.IsSource);
-                Assert.Equal(new[] { "GHDWGINFO" }, started.Plugin.Plugin.Commands.Select(c => c.Name));
-                Assert.NotNull(registry.Find("GHDWGINFO"));
+                Assert.Equal(new[] { "CSINFO" }, started.Plugin.Plugin.Commands.Select(c => c.Name));
+                Assert.NotNull(registry.Find("CSINFO"));
             }
         }
 
@@ -71,7 +71,7 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
         [Fact]
-        public void Ghdwginfo_OnThreeCirclesAndALine_WritesTheNameTheObjectsByTypeTheLayersTheBlocksAndTheExtents()
+        public void Csinfo_OnThreeCirclesAndALine_WritesTheNameTheObjectsByTypeTheLayersTheBlocksAndTheExtents()
         {
             Install();
             CadDocument document = PluginFiles.Circles();
@@ -85,7 +85,7 @@ namespace OpenCAD2D.Plugins.UnitTest
                 manager.LoadAtStart();
                 CadCommandSession session = PluginFiles.Session(document, registry);
 
-                session.Feed("GHDWGINFO");
+                session.Feed("CSINFO");
 
                 Assert.Equal(CadCommandOutcome.Completed, session.LastOutcome);
                 Assert.Equal(

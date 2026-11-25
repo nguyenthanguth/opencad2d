@@ -74,7 +74,7 @@ namespace OpenCAD2D.UnitTest
         public void ATextCarriesItsStylesTypefaceAndItsOwnSlant()
         {
             var database = new DxfDatabase("AC1018");
-            var style = new DxfTextStyleTableRecord { Name = "GH_ARIAL", FileName = "arial.ttf" };
+            var style = new DxfTextStyleTableRecord { Name = "OC_ARIAL", FileName = "arial.ttf" };
             database.TextStyleTable.Add(style);
             style.Font = new DxfFontDescriptor("Arial", false, false, 0, 34);
             var text = new DxfDBText
@@ -84,7 +84,7 @@ namespace OpenCAD2D.UnitTest
                 Height = 5,
             };
             database.ModelSpace.AppendEntity(text);
-            text.TextStyleName = "GH_ARIAL";
+            text.TextStyleName = "OC_ARIAL";
             text.Oblique = 15.0 * Math.PI / 180.0;
             CadDocument document = CadDocument.From(database);
 
@@ -101,10 +101,10 @@ namespace OpenCAD2D.UnitTest
         {
             DisplayText2 shown = MText("ROMANS", (database, mtext) =>
             {
-                var style = new DxfTextStyleTableRecord { Name = "GH_ROMANS", FileName = "romans.shx" };
+                var style = new DxfTextStyleTableRecord { Name = "OC_ROMANS", FileName = "romans.shx" };
                 database.TextStyleTable.Add(style);
                 style.ObliquingAngle = 10.0 * Math.PI / 180.0;
-                mtext.TextStyleName = "GH_ROMANS";
+                mtext.TextStyleName = "OC_ROMANS";
             });
 
             Assert.Equal("romans.shx", shown.FontName);
@@ -122,10 +122,10 @@ namespace OpenCAD2D.UnitTest
         {
             DisplayText2 shown = MText(contents, (database, mtext) =>
             {
-                var style = new DxfTextStyleTableRecord { Name = "GH_NARROW", FileName = "romans.shx" };
+                var style = new DxfTextStyleTableRecord { Name = "OC_NARROW", FileName = "romans.shx" };
                 database.TextStyleTable.Add(style);
                 style.XScale = 0.75;
-                mtext.TextStyleName = "GH_NARROW";
+                mtext.TextStyleName = "OC_NARROW";
             });
 
             // ROMANS 2.5 high, six letters each 0.6 of the height wide at a width factor of 1: 9 wide, 6.75 at the style's 0.75.

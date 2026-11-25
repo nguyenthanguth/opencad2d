@@ -39,13 +39,13 @@ namespace OpenCAD2D.UnitTest
             CadDocument document = Blank();
             CadCommandSession session = Session(document);
 
-            Run(session, "-STYLE", "GH_OWN", "opencad2d", "0", "1", "0", "N", "N", "N");
+            Run(session, "-STYLE", "OC_OWN", "opencad2d", "0", "1", "0", "N", "N", "N");
 
-            DxfTextStyleTableRecord style = document.Database.TextStyleTable["GH_OWN"];
+            DxfTextStyleTableRecord style = document.Database.TextStyleTable["OC_OWN"];
             Assert.Equal("opencad2d.shx", style.FileName);
             Assert.Equal(string.Empty, style.Font.TypeFace);
             Assert.False(session.IsRunning);
-            Assert.Equal("\"GH_OWN\" is now the current text style.", session.History.Last());
+            Assert.Equal("\"OC_OWN\" is now the current text style.", session.History.Last());
         }
     }
 }

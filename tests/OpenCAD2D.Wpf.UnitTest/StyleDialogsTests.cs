@@ -83,7 +83,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void AChangeNotApplied_IsAskedAbout_YesAppliesIt_NoDropsIt_CancelStays()
         {
             MainViewModel model = Opened(out CadDocument document);
-            Assert.True(CadTextStyleEditor.Add(document, "GH_NOTES", "Standard").Succeeded);
+            Assert.True(CadTextStyleEditor.Add(document, "OC_NOTES", "Standard").Succeeded);
             TextStyleViewModel dialog = model.CreateTextStyle();
             dialog.SelectedStyle = dialog.Styles.Single(s => s.Name == "Standard");
             bool? answer = null;
@@ -95,13 +95,13 @@ namespace OpenCAD2D.Wpf.UnitTest
             };
 
             dialog.Height = "3.5";
-            dialog.SelectedStyle = dialog.Styles.Single(s => s.Name == "GH_NOTES");
+            dialog.SelectedStyle = dialog.Styles.Single(s => s.Name == "OC_NOTES");
             Assert.Equal("Standard", dialog.SelectedStyle.Name);
             Assert.False(dialog.Close());
 
             answer = false;
-            dialog.SelectedStyle = dialog.Styles.Single(s => s.Name == "GH_NOTES");
-            Assert.Equal("GH_NOTES", dialog.SelectedStyle.Name);
+            dialog.SelectedStyle = dialog.Styles.Single(s => s.Name == "OC_NOTES");
+            Assert.Equal("OC_NOTES", dialog.SelectedStyle.Name);
             Assert.Equal(0.0, document.Database.TextStyleTable["Standard"].TextSize);
 
             answer = true;
@@ -111,7 +111,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.True(dialog.Close());
 
             Assert.True(closed);
-            Assert.Equal(5.0, document.Database.TextStyleTable["GH_NOTES"].TextSize);
+            Assert.Equal(5.0, document.Database.TextStyleTable["OC_NOTES"].TextSize);
             Assert.Equal(4, asked.Count);
             Assert.Equal("The current style has been modified.\nDo you want to save your changes?", asked[0]);
         }
@@ -145,12 +145,12 @@ namespace OpenCAD2D.Wpf.UnitTest
             {
                 Assert.Equal("Copy of " + start, ask.Name);
                 Assert.True(ask.AsksStartWith);
-                ask.Name = "GH_25";
+                ask.Name = "OC_25";
                 return ask.Ok() ? ask.Name : null;
             };
             manager.ShowEditor = editor =>
             {
-                Assert.Equal("New dimension style: GH_25", editor.Title);
+                Assert.Equal("New dimension style: OC_25", editor.Title);
                 editor.Tab = "Symbols and arrows";
                 editor.Fields.Single(f => f.Label == "First").SelectedChoice = editor
                     .Fields.Single(f => f.Label == "First")
@@ -165,8 +165,8 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             manager.NewCommand.Execute(null);
 
-            Assert.Equal("GH_25", manager.SelectedStyle.Name);
-            DxfDimStyleTableRecord style = document.Database.DimStyleTable["GH_25"];
+            Assert.Equal("OC_25", manager.SelectedStyle.Name);
+            DxfDimStyleTableRecord style = document.Database.DimStyleTable["OC_25"];
             Assert.Equal("_ArchTick", style.Dimblk.Name);
             Assert.Equal(3.0, style.Dimasz);
             Assert.Equal(1, style.Dimdec);
@@ -179,7 +179,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             modify.Tab = "Text";
             modify.Fields.Single(f => f.Label == "Draw frame around text").IsChecked = true;
             Assert.True(modify.Ok());
-            Assert.True(document.Database.DimStyleTable["GH_25"].Dimgap < 0.0);
+            Assert.True(document.Database.DimStyleTable["OC_25"].Dimgap < 0.0);
         }
 
         [Fact]
@@ -187,7 +187,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         {
             MainViewModel model = Opened(out CadDocument document);
             string start = CadDimStyleEditor.Current(document.Database);
-            Assert.True(CadDimStyleEditor.Add(document, "GH_MODEL_10", start, null).Succeeded);
+            Assert.True(CadDimStyleEditor.Add(document, "OC_MODEL_10", start, null).Succeeded);
             model.Execute("DLI");
             model.Execute("0,0");
             model.Execute("300,0");
@@ -195,7 +195,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             string handle = document.Database.ModelSpace.OfType<DxfRotatedDimension>().Single().Handle;
             DimStyleManagerViewModel manager = model.CreateDimStyleManager();
 
-            manager.SelectedStyle = manager.Styles.Single(s => s.Name == "GH_MODEL_10");
+            manager.SelectedStyle = manager.Styles.Single(s => s.Name == "OC_MODEL_10");
             Assert.False(manager.HasNotice);
             Assert.Equal(string.Empty, manager.Notice);
             Assert.StartsWith(
@@ -221,15 +221,15 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void TheStyleBoxes_ShowAndSetTheCurrentStyles_TheirLastItemAsksForTheDialog()
         {
             MainViewModel model = Opened(out CadDocument document);
-            Assert.True(CadTextStyleEditor.Add(document, "GH_NOTES", "Standard").Succeeded);
+            Assert.True(CadTextStyleEditor.Add(document, "OC_NOTES", "Standard").Succeeded);
             var asked = new List<string>();
             model.StyleDialogRequested += (s, name) => asked.Add(name);
 
-            Assert.Equal(new[] { "Standard", "GH_NOTES", MainViewModel.ManageTextStyles }, model.TextStyleNames);
-            model.CurrentTextStyle = "GH_NOTES";
-            Assert.Equal("GH_NOTES", document.Database.Textstyle);
+            Assert.Equal(new[] { "Standard", "OC_NOTES", MainViewModel.ManageTextStyles }, model.TextStyleNames);
+            model.CurrentTextStyle = "OC_NOTES";
+            Assert.Equal("OC_NOTES", document.Database.Textstyle);
             model.CurrentTextStyle = MainViewModel.ManageTextStyles;
-            Assert.Equal("GH_NOTES", model.CurrentTextStyle);
+            Assert.Equal("OC_NOTES", model.CurrentTextStyle);
             model.CurrentDimStyle = MainViewModel.ManageDimensionStyles;
             model.TextHeight = "3.5";
             Assert.Equal(3.5, model.Session.Remembered["text.height"]);

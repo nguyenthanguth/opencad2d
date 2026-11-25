@@ -109,12 +109,12 @@ namespace OpenCAD2D.UnitTest
         public void TableTyped_AsksColumnsRowsAndThePoint_WidthAndStyleChangedFirst()
         {
             CadDocument document = Metric();
-            CadCommandSession session = Run(Session(document), "-TABLE", "3", "2", "W", "40", "S", "GH_NONE", P(0, 0));
+            CadCommandSession session = Run(Session(document), "-TABLE", "3", "2", "W", "40", "S", "OC_NONE", P(0, 0));
 
             Assert.Contains(session.History, line =>
                 line.Contains("Current table style: \"Standard\"  Cell width: 63.5  Cell height: 1 line(s)")
             );
-            Assert.Contains(session.History, line => line.Contains("Cannot find table style \"GH_NONE\"."));
+            Assert.Contains(session.History, line => line.Contains("Cannot find table style \"OC_NONE\"."));
             DxfTable table = Assert.Single(All<DxfTable>(document.ModelSpace));
             Assert.Equal(4, table.NumRows);
             Assert.Equal(3, table.NumColumns);
@@ -127,13 +127,13 @@ namespace OpenCAD2D.UnitTest
         public void ATableOfAStyleNotCurrent_IsMadeInIt_AndTheStyleIsMadeCurrent_InADrawingMadeNew_Too()
         {
             CadDocument document = Metric();
-            Assert.True(CadTableStyleEditor.Add(document, "GH_SCHEDULE", null).Succeeded);
-            Run(Session(document), "-TABLE", "2", "1", "S", "GH_SCHEDULE", P(0, 0));
+            Assert.True(CadTableStyleEditor.Add(document, "OC_SCHEDULE", null).Succeeded);
+            Run(Session(document), "-TABLE", "2", "1", "S", "OC_SCHEDULE", P(0, 0));
 
             DxfTable table = Assert.Single(All<DxfTable>(document.ModelSpace));
-            Assert.Equal("GH_SCHEDULE", table.TableStyleName);
+            Assert.Equal("OC_SCHEDULE", table.TableStyleName);
             // A drawing made new is given the class DICTIONARYVAR as AutoCAD 2021 lists it, so CTABLESTYLE takes the style.
-            Assert.Equal("GH_SCHEDULE", CadTableStyleEditor.Current(document.Database));
+            Assert.Equal("OC_SCHEDULE", CadTableStyleEditor.Current(document.Database));
         }
 
         /// <summary>A new drawing of R2013 written without its OBJECTS section, as a program that writes only the tables, blocks and entities saves one.</summary>
@@ -156,10 +156,10 @@ namespace OpenCAD2D.UnitTest
             CadDocument document = NoObjects();
 
             Assert.True(CadTableStyleEditor.AddStandard(document).Succeeded);
-            Assert.True(CadTableStyleEditor.Add(document, "GH_SCHEDULE", "Standard").Succeeded);
+            Assert.True(CadTableStyleEditor.Add(document, "OC_SCHEDULE", "Standard").Succeeded);
 
             Assert.Equal(
-                new[] { "GH_SCHEDULE", "Standard" },
+                new[] { "OC_SCHEDULE", "Standard" },
                 CadTableStyleEditor.Styles(document.Database).OrderBy(n => n, StringComparer.Ordinal)
             );
             AssertReopens(document);
@@ -379,14 +379,14 @@ namespace OpenCAD2D.UnitTest
             string handle = Schedule(document);
             CadTableEditor.SetText(document, handle, 2, 0, "b1");
 
-            Assert.True(CadTableStyleEditor.Add(document, "GH_SCHEDULE", "Standard").Succeeded);
-            Assert.Equal(new[] { "GH_SCHEDULE", "Standard" }, CadTableStyleEditor.Styles(document.Database).ToArray());
-            Assert.False(CadTableStyleEditor.Add(document, "gh_schedule", null).Succeeded);
+            Assert.True(CadTableStyleEditor.Add(document, "OC_SCHEDULE", "Standard").Succeeded);
+            Assert.Equal(new[] { "OC_SCHEDULE", "Standard" }, CadTableStyleEditor.Styles(document.Database).ToArray());
+            Assert.False(CadTableStyleEditor.Add(document, "oc_schedule", null).Succeeded);
             Assert.Equal(
                 "The Standard table style cannot be deleted.",
                 CadTableStyleEditor.WhyNotDeleted(document.Database, "Standard")
             );
-            Assert.Null(CadTableStyleEditor.WhyNotDeleted(document.Database, "GH_SCHEDULE"));
+            Assert.Null(CadTableStyleEditor.WhyNotDeleted(document.Database, "OC_SCHEDULE"));
             Assert.Equal(1, CadTableStyleEditor.CountUses(document.Database, "Standard"));
 
             CadTableStyleSettings settings = CadTableStyleSettings.Of(
@@ -402,7 +402,7 @@ namespace OpenCAD2D.UnitTest
             Assert.True(CadTableStyleEditor.Apply(document, "Standard", settings).Succeeded);
             Assert.Equal("TABLESTYLE", document.NextUndo.Name);
 
-            Assert.True(CadTableStyleEditor.Delete(document, "GH_SCHEDULE").Succeeded);
+            Assert.True(CadTableStyleEditor.Delete(document, "OC_SCHEDULE").Succeeded);
             Assert.Equal(new[] { "Standard" }, CadTableStyleEditor.Styles(document.Database).ToArray());
             AssertReopens(document);
         }

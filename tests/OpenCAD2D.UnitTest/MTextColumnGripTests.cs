@@ -32,7 +32,7 @@ namespace OpenCAD2D.UnitTest
         {
             _folder.Write("test.shx", ShxFiles.Unifont());
             var database = new DxfDatabase("AC1027");
-            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GH_SHX", FileName = "test.shx" });
+            database.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "OC_SHX", FileName = "test.shx" });
             mtext = new DxfMText
             {
                 Contents = contents,
@@ -42,7 +42,7 @@ namespace OpenCAD2D.UnitTest
                 Attachment = attachment,
             };
             database.ModelSpace.AppendEntity(mtext);
-            mtext.TextStyleName = "GH_SHX";
+            mtext.TextStyleName = "OC_SHX";
             columns(mtext);
             CadDocument document = CadDocument.From(database);
             document.Fonts = new CadFonts(new[] { _folder.FullPath }, null, null, f => f == "Arial");

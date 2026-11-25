@@ -137,19 +137,19 @@ def draw_it():
         private string Sample(string name) => Path.Combine(_python.Root, "examples", "Pythons", name);
 
         [Fact]
-        public void Ghpyinfo_FromPythonsDrawingInfo_GivesTheSameLinesAsTheFileDid_ExtentsIncluded()
+        public void Pyinfo_FromPythonsDrawingInfo_GivesTheSameLinesAsTheFileDid_ExtentsIncluded()
         {
             // The sample as it ships: the folder Pythons\DrawingInfo with a requirements.txt, an __init__.py and a plugin.json, whose
-            // command is GHPYINFO. Its Extents line reads the header of the drawing over the channel (CadRemoteDocument.Extents).
+            // command is PYINFO. Its Extents line reads the header of the drawing over the channel (CadRemoteDocument.Extents).
             using (var scene = new Scene(_python))
             {
                 string folder = Sample("DrawingInfo");
                 CadPluginManifest manifest = CadPluginManifest.Read(Path.Combine(folder, "plugin.json"));
                 CadFolderTool tool = scene.Host.Add(folder, _python.Python, manifest.Commands, null);
                 scene.App.OnApp(() => scene.Host.AddCommandsTo(scene.Session.Registry));
-                Assert.Equal(new[] { "GHPYINFO" }, tool.Commands.Select(c => c.Name));
+                Assert.Equal(new[] { "PYINFO" }, tool.Commands.Select(c => c.Name));
 
-                List<string> lines = scene.Run("GHPYINFO");
+                List<string> lines = scene.Run("PYINFO");
 
                 Assert.Equal(
                     new[]
@@ -162,7 +162,7 @@ def draw_it():
                         "Layers: 2, blocks: 1",
                         "Extents: (-10.00,-10.00) to (120.00,80.00)",
                     },
-                    lines.Where(l => !l.StartsWith("Command:", StringComparison.Ordinal) && l != "GHPYINFO")
+                    lines.Where(l => !l.StartsWith("Command:", StringComparison.Ordinal) && l != "PYINFO")
                 );
                 Assert.False(scene.App.OnApp(() => scene.Document.CanUndo));
                 Assert.Equal(3, scene.Entities);

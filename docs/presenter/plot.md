@@ -333,11 +333,6 @@ which their names are taken.
 A page setup that names a printer of Windows (group 2) is chosen in the Plot dialog when the computer has the printer; AutoCAD's
 `DWG To PDF.pc3` and a printer this computer lacks are read as OpenCAD2D PDF.
 
-The built-in plotters were called GeometryHelper PDF, GeometryHelper PNG and GeometryHelper JPG before the program was named
-OpenCAD2D. A layout or page setup that names one of those (group 1, either case) is read as OpenCAD2D PDF, PNG or JPG, a raster
-one on its size in pixels, and `-PLOT` and `CadPlotSettings.UseDevice` take the old names too. Saving the drawing writes the new
-names into every layout and page setup that held an old one; a printer's name is written as it was.
-
 ## Plotting to an image
 
 PLOT and -PLOT offer two raster devices beside OpenCAD2D PDF: OpenCAD2D PNG, which writes a PNG, lossless, and

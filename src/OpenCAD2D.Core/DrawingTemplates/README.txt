@@ -13,8 +13,8 @@ OpenCAD2D-mm.dwt is a sample template, metric and in millimetres, made by the pr
 writer. It holds the layers Axis, Outline, Thin, Hidden, Dimension, Text, Hatch, Rebar, Title
 block, Viewport and Defpoints (colours, linetypes and lineweights set; Viewport and Defpoints are
 not plotted), the text styles Standard, Notes and Titles in opencad2d.shx and Arial in Arial, the
-dimension styles GH (current; text and arrowheads 2.5), GH-Annotative and Standard, the multileader
-style GH, and the layouts Model and A3 (420 by 297 on its side). Use it as it is, or save your own
+dimension styles OpenCAD2D (current; text and arrowheads 2.5), OpenCAD2D-Annotative and Standard, the multileader
+style OpenCAD2D, and the layouts Model and A3 (420 by 297 on its side). Use it as it is, or save your own
 next to it.
 
 Where to find it: Global settings > Folder preference lists this folder, with Open folder.

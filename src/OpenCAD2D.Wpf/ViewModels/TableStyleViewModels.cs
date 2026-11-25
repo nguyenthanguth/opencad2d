@@ -387,7 +387,7 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>Gets the line over the preview: Preview of: GH_SCHEDULE.</summary>
+        /// <summary>Gets the line over the preview: Preview of: OC_SCHEDULE.</summary>
         public string PreviewTitle => _selected == null ? "Preview" : "Preview of: " + _selected.Name;
 
         /// <summary>Gets the settings of the style selected, which the preview draws; null for none.</summary>
@@ -636,7 +636,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Raised when the dialog is to close: true for OK.</summary>
         public event EventHandler<bool> CloseRequested;
 
-        /// <summary>Gets the title: Modify Table Style: GH_SCHEDULE, or New Table Style: and the name.</summary>
+        /// <summary>Gets the title: Modify Table Style: OC_SCHEDULE, or New Table Style: and the name.</summary>
         public string Title { get; }
 
         /// <summary>Gets the settings shown, which the previews draw.</summary>

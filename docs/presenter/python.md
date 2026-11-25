@@ -68,7 +68,7 @@ tools load with no question; a tool elsewhere goes through the gate as PYLOAD do
 
 Two samples ship in the Pythons folder, and in `examples\Pythons` of the repository:
 
-- `DrawingInfo`: its command `GHPYINFO` writes the drawing's name and folder, the current layer, the objects of model space
+- `DrawingInfo`: its command `PYINFO` writes the drawing's name and folder, the current layer, the objects of model space
   counted by type, the number of layers and blocks, and the extents, and changes nothing. For a drawing of two circles and a line:
 
   ```text

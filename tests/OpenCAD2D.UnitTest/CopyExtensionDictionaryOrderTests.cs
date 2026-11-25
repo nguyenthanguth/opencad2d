@@ -10,7 +10,7 @@ namespace OpenCAD2D.UnitTest
     /// <summary>
     /// The extension dictionary of a COPY, as AutoCAD 2021 writes it (probed in its console, mirror-5 GHM5SORT, GHM5PTR and GHM5,
     /// written by DxfOut): its entries stand ordered by name, the names compared as lower-case letters ("10" before "9", "_under"
-    /// before "a", "AcDbX" before "GH_Y"); and an XRECORD of the copy whose ownership pointer (350, 360) names an XRECORD or a
+    /// before "a", "AcDbX" before "OC_Y"); and an XRECORD of the copy whose ownership pointer (350, 360) names an XRECORD or a
     /// dictionary outside the copy names a clone of it, owned by the copied XRECORD, in no dictionary of the drawing.
     /// </summary>
     public class CopyExtensionDictionaryOrderTests
@@ -33,7 +33,7 @@ namespace OpenCAD2D.UnitTest
             var line = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(10, 0, 0));
             document.Database.ModelSpace.AppendEntity(line);
             line.CreateExtensionDictionary();
-            string[] names = { "zz_last", "GH_PLAIN", "AA_FIRST", "9", "AcDbX", "_under", "10", "GH_SUB" };
+            string[] names = { "zz_last", "OC_PLAIN", "AA_FIRST", "9", "AcDbX", "_under", "10", "OC_SUB" };
 
             foreach (string name in names)
             {
@@ -49,14 +49,14 @@ namespace OpenCAD2D.UnitTest
 
             // AutoCAD's order: the lower-case letters compared as code units, so "_" (95) falls before "a" (97).
             Assert.Equal(
-                new[] { "10", "9", "_under", "AA_FIRST", "AcDbX", "Beta", "GH_PLAIN", "GH_SUB", "zz_last" },
+                new[] { "10", "9", "_under", "AA_FIRST", "AcDbX", "Beta", "OC_PLAIN", "OC_SUB", "zz_last" },
                 Keys(copy.ExtensionDictionary)
             );
             Assert.Equal(new[] { "Alpha", "zeta" }, Keys((DxfDBDictionary)copy.ExtensionDictionary.GetAt("Beta")));
 
             // The original's own order is left as it was.
             Assert.Equal(
-                new[] { "zz_last", "GH_PLAIN", "AA_FIRST", "9", "AcDbX", "_under", "10", "GH_SUB", "Beta" },
+                new[] { "zz_last", "OC_PLAIN", "AA_FIRST", "9", "AcDbX", "_under", "10", "OC_SUB", "Beta" },
                 Keys(line.ExtensionDictionary)
             );
             AssertReopens(document);
@@ -84,7 +84,7 @@ namespace OpenCAD2D.UnitTest
             );
             document.Database.ModelSpace.AppendEntity(hatch);
             hatch.Annotative = DxfAnnotativeStates.True;
-            hatch.ExtensionDictionary.SetAt("GH_PLAIN", new DxfXrecord { Data = new[] { V(1, "kept") } });
+            hatch.ExtensionDictionary.SetAt("OC_PLAIN", new DxfXrecord { Data = new[] { V(1, "kept") } });
             hatch.ExtensionDictionary.SetAt("AA_FIRST", new DxfXrecord { Data = new[] { V(1, "first") } });
             var before = new HashSet<string>(All<DxfHatch>(document.ModelSpace).Select(e => e.Handle));
 
@@ -92,9 +92,9 @@ namespace OpenCAD2D.UnitTest
 
             DxfHatch copy = All<DxfHatch>(document.ModelSpace).Single(e => !before.Contains(e.Handle));
 
-            // AutoCAD 2021 (GHM5, x-cp1): AA_FIRST, AcDbContextDataManager, GH_PLAIN, as the names compare; and in the manager
+            // AutoCAD 2021 (GHM5, x-cp1): AA_FIRST, AcDbContextDataManager, OC_PLAIN, as the names compare; and in the manager
             // the view contexts before the contexts of the scales.
-            Assert.Equal(new[] { "AA_FIRST", "AcDbContextDataManager", "GH_PLAIN" }, Keys(copy.ExtensionDictionary));
+            Assert.Equal(new[] { "AA_FIRST", "AcDbContextDataManager", "OC_PLAIN" }, Keys(copy.ExtensionDictionary));
             Assert.Equal(
                 new[] { "ACDB_ANNOTATIONSCALE_VIEW_COLLECTION", "ACDB_ANNOTATIONSCALES" },
                 Keys((DxfDBDictionary)copy.ExtensionDictionary.GetAt("AcDbContextDataManager"))
@@ -107,20 +107,20 @@ namespace OpenCAD2D.UnitTest
         {
             CadDocument document = Blank();
             DxfDBDictionary root = document.Database.NamedObjectsDictionary;
-            root.SetAt("GH_OUT1", new DxfXrecord { Data = new[] { V(1, "one") } });
-            root.SetAt("GH_OUT2", new DxfXrecord { Data = new[] { V(1, "two") } });
+            root.SetAt("OC_OUT1", new DxfXrecord { Data = new[] { V(1, "one") } });
+            root.SetAt("OC_OUT2", new DxfXrecord { Data = new[] { V(1, "two") } });
             var outer = new DxfDBDictionary();
-            root.SetAt("GH_OUTD", outer);
+            root.SetAt("OC_OUTD", outer);
             outer.SetAt("INNER", new DxfXrecord { Data = new[] { V(1, "inner") } });
             var line = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(10, 0, 0));
             document.Database.ModelSpace.AppendEntity(line);
             var circle = new DxfCircle(new GeoPoint3(50, 50, 0), new GeoVector3(0, 0, 1), 5);
             document.Database.ModelSpace.AppendEntity(circle);
             line.CreateExtensionDictionary();
-            string one = root.GetAt("GH_OUT1").Handle;
-            string two = root.GetAt("GH_OUT2").Handle;
+            string one = root.GetAt("OC_OUT1").Handle;
+            string two = root.GetAt("OC_OUT2").Handle;
             line.ExtensionDictionary.SetAt(
-                "GH_PTRS",
+                "OC_PTRS",
                 new DxfXrecord
                 {
                     Data = new[]
@@ -140,8 +140,8 @@ namespace OpenCAD2D.UnitTest
 
             DxfLine copy = Copied(document, line);
 
-            IReadOnlyList<DxfTypedValue> data = ((DxfXrecord)copy.ExtensionDictionary.GetAt("GH_PTRS")).Data;
-            string made = copy.ExtensionDictionary.GetAt("GH_PTRS").Handle;
+            IReadOnlyList<DxfTypedValue> data = ((DxfXrecord)copy.ExtensionDictionary.GetAt("OC_PTRS")).Data;
+            string made = copy.ExtensionDictionary.GetAt("OC_PTRS").Handle;
             Assert.Equal(copy.Handle, data[1].Value.Trim());
             Assert.Equal(circle.Handle, data[2].Value.Trim());
 
@@ -171,10 +171,10 @@ namespace OpenCAD2D.UnitTest
             // The objects outside are as they were, the clones in no dictionary of the drawing.
             Assert.Equal(entries, root.Count);
             Assert.Equal(
-                new[] { "GH_OUT1", "GH_OUT2", "GH_OUTD" },
-                Keys(root).Where(k => k.StartsWith("GH_OUT")).ToArray()
+                new[] { "OC_OUT1", "OC_OUT2", "OC_OUTD" },
+                Keys(root).Where(k => k.StartsWith("OC_OUT")).ToArray()
             );
-            Assert.Equal(one, ((DxfXrecord)line.ExtensionDictionary.GetAt("GH_PTRS")).Data[3].Value.Trim());
+            Assert.Equal(one, ((DxfXrecord)line.ExtensionDictionary.GetAt("OC_PTRS")).Data[3].Value.Trim());
             AssertReopens(document);
         }
 
@@ -183,19 +183,19 @@ namespace OpenCAD2D.UnitTest
         {
             CadDocument document = Blank();
             DxfDBDictionary root = document.Database.NamedObjectsDictionary;
-            root.SetAt("GH_OUT1", new DxfXrecord { Data = new[] { V(1, "one") } });
+            root.SetAt("OC_OUT1", new DxfXrecord { Data = new[] { V(1, "one") } });
             var line = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(10, 0, 0));
             document.Database.ModelSpace.AppendEntity(line);
             line.CreateExtensionDictionary();
-            string one = root.GetAt("GH_OUT1").Handle;
+            string one = root.GetAt("OC_OUT1").Handle;
             line.ExtensionDictionary.SetAt(
-                "GH_SOFT",
+                "OC_SOFT",
                 new DxfXrecord { Data = new[] { V(330, one), V(340, one), V(1, "soft") } }
             );
 
             DxfLine copy = Copied(document, line);
 
-            IReadOnlyList<DxfTypedValue> data = ((DxfXrecord)copy.ExtensionDictionary.GetAt("GH_SOFT")).Data;
+            IReadOnlyList<DxfTypedValue> data = ((DxfXrecord)copy.ExtensionDictionary.GetAt("OC_SOFT")).Data;
             Assert.Equal(one, data[0].Value.Trim());
             Assert.Equal(one, data[1].Value.Trim());
         }

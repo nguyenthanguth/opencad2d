@@ -849,6 +849,7 @@ namespace OpenCAD2D.UnitTest
             CadDocument document = Boxes();
             Opened(document);
             string text = document.Database.ToText();
+            Assert.Contains("OPENCAD2D_REFEDIT", text);
 
             CadDocument reopened = CadDocument.From(DxfDatabase.Parse(text), "again.dxf");
 

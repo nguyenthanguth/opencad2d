@@ -155,7 +155,7 @@ namespace OpenCAD2D.UnitTest
         {
             CadDocument document = BlankWithMLeaderStyle();
             DxfDatabase db = document.Database;
-            var block = new DxfBlockTableRecord { Name = "GH_BOX" };
+            var block = new DxfBlockTableRecord { Name = "OC_BOX" };
             db.BlockTable.Add(block);
             block.AppendEntity(new DxfLine(new GeoPoint3(-10, -5, 0), new GeoPoint3(20, -5, 0)));
             block.AppendEntity(new DxfLine(new GeoPoint3(20, -5, 0), new GeoPoint3(20, 15, 0)));

@@ -450,13 +450,13 @@ Hello, World!
 Its `HelloWorldCommands.cs` is a class with one method marked `[CadCommand("HELLOWORLD")]` that calls
 `c.Write("Hello, World!")` and returns no prompt.
 
-**DrawingInfo.** The command `GHDWGINFO` reads the drawing and writes what it holds on the command line, and changes nothing.
+**DrawingInfo.** The command `CSINFO` reads the drawing and writes what it holds on the command line, and changes nothing.
 It is the smallest plugin that does something useful, one class with one command that takes no prompt, in the one file
 `DrawingInfoCommands.cs`. The app loads it at every start with no question, and its command is typed at the command line,
 as every command is. A drawing of three circles and a line in model space, with one layer and no block, gives
 
 ```
-Command: GHDWGINFO
+Command: CSINFO
 Drawing: circles.dxf
 Model space: 4 objects
   Circle   3

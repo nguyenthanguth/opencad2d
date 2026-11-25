@@ -289,7 +289,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         /// <summary>
-        /// GH_PANEL, a dynamic rectangle 100 by 50 whose Width stretches its right edge and the definition TAG locked at (95, 20),
+        /// OC_PANEL, a dynamic rectangle 100 by 50 whose Width stretches its right edge and the definition TAG locked at (95, 20),
         /// with NOTE at (50, 30) and FIX locked at (10, 10), as AutoCAD 2021 opened it from the library's file; its INSERT at
         /// (1 000, 500) given a Width of 150, which places an anonymous *U block with TAG at (145, 20), and its INSERT at (2 000,
         /// 500) left as it is. The block is then defined anew, as AutoCAD 2021's API left it: TAG 5 high, FIX moved to (10, 40)
@@ -298,7 +298,7 @@ namespace OpenCAD2D.UnitTest
         private static CadDocument Panel(out string stretched, out string plain)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_PANEL", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_PANEL", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             DxfLine[] lines =
             {
@@ -362,7 +362,7 @@ namespace OpenCAD2D.UnitTest
                 1E-9
             );
 
-            DxfBlockTableRecord dynamic = made.Database.BlockTable["GH_PANEL"];
+            DxfBlockTableRecord dynamic = made.Database.BlockTable["OC_PANEL"];
             List<DxfAttributeDefinition> definitions = dynamic.OfType<DxfAttributeDefinition>().ToList();
             definitions[0].Height = 5.0;
             definitions[2].Position = new GeoPoint3(10, 40, 0);
@@ -392,7 +392,7 @@ namespace OpenCAD2D.UnitTest
             string start = document.Database.ToText();
             string anonymous = Entity<DxfBlockReference>(document, stretched).Name;
 
-            Start(document, "ATTSYNC", "N", "GH_PANEL");
+            Start(document, "ATTSYNC", "N", "OC_PANEL");
 
             var insert = Entity<DxfBlockReference>(document, stretched);
             Assert.Equal(anonymous, insert.Name);

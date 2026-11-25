@@ -14,7 +14,7 @@ namespace OpenCAD2D
     /// <para>
     /// A line of the front view of a model drawing drawing the beam B-12 is tagged
     /// <c>new CadOwnerTag("ModelDrawing", "B-12", "V-1").WriteTo(line)</c>, and its extended data reads
-    /// <c>1001 GH_OWNER</c>, <c>1000 ModelDrawing</c>, <c>1000 B-12</c>, <c>1000 V-1</c>; with no second id the last
+    /// <c>1001 OPENCAD2D_OWNER</c>, <c>1000 ModelDrawing</c>, <c>1000 B-12</c>, <c>1000 V-1</c>; with no second id the last
     /// group is left out. The application is registered in the drawing's table of applications when the tag is written.
     /// AutoCAD keeps the data and ignores it, so a tagged drawing opens there as any other.
     /// </para>
@@ -28,8 +28,8 @@ namespace OpenCAD2D
     /// </remarks>
     public sealed class CadOwnerTag
     {
-        /// <summary>The name of the application whose extended data holds the tag: GH_OWNER.</summary>
-        public const string ApplicationName = "GH_OWNER";
+        /// <summary>The name of the application whose extended data holds the tag: OPENCAD2D_OWNER.</summary>
+        public const string ApplicationName = "OPENCAD2D_OWNER";
 
         /// <summary>The most characters one text of the tag is written with, as extended data holds a string (group 1000).</summary>
         private const int LongestText = 255;

@@ -15,14 +15,14 @@ namespace OpenCAD2D.UnitTest
     public class DynamicBlockFollowUp5Tests
     {
         /// <summary>
-        /// A drawing with the block GH_MIXED at (1 000, 500): a pointer of a polar parameter from (0, 0) to (100, 0), a dot a
+        /// A drawing with the block OC_MIXED at (1 000, 500): a pointer of a polar parameter from (0, 0) to (100, 0), a dot a
         /// point parameter Anchor at (0, 200) moves, a bar a rotation parameter Angle about (0, 300), 60 long, turns, and a plate
         /// of an XY parameter Wide and High from (0, 400) to (100, 450) whose right and top edges the end point stretches.
         /// </summary>
         private static CadDocument Mixed(out string handle)
         {
             var db = new DxfDatabase("AC1032");
-            var block = new DxfBlockTableRecord { Name = "GH_MIXED", Origin = new GeoPoint3(0, 0, 0) };
+            var block = new DxfBlockTableRecord { Name = "OC_MIXED", Origin = new GeoPoint3(0, 0, 0) };
             db.BlockTable.Add(block);
             var line = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(100, 0, 0));
             var tip = new DxfLine(new GeoPoint3(100, 0, 0), new GeoPoint3(90, 5, 0));

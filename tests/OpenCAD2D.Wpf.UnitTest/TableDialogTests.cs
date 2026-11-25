@@ -152,12 +152,12 @@ namespace OpenCAD2D.Wpf.UnitTest
             manager.AskNewStyle = (offered, names) =>
             {
                 Assert.Equal("Copy of Standard", offered);
-                return Tuple.Create("GH_SCHEDULE", "Standard");
+                return Tuple.Create("OC_SCHEDULE", "Standard");
             };
             manager.ShowModify = dialog =>
             {
                 modified = dialog;
-                Assert.Equal("New Table Style: GH_SCHEDULE", dialog.Title);
+                Assert.Equal("New Table Style: OC_SCHEDULE", dialog.Title);
                 dialog.CellStyle = "Header";
                 dialog.Fill = dialog.Fills.Single(f => f.Name == "Color 8");
                 dialog.Tab = "Text";
@@ -172,25 +172,25 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             manager.NewCommand.Execute(null);
             Assert.NotNull(modified);
-            var style = (DxfTableStyle)document.Database.TableStyleDictionary["GH_SCHEDULE"];
+            var style = (DxfTableStyle)document.Database.TableStyleDictionary["OC_SCHEDULE"];
             Assert.Equal(3.5, style.TextHeight(DxfRowType.HeaderRow));
             Assert.Equal(8, style.BackgroundColor(DxfRowType.HeaderRow).ColorIndex);
             Assert.Equal(1, style.GridColor(DxfGridLineType.HorizontalTop, DxfRowType.HeaderRow).ColorIndex);
             Assert.Equal(DxfFlowDirection.BottomToTop, style.FlowDirection);
-            Assert.Equal("GH_SCHEDULE", manager.SelectedStyle.Name);
+            Assert.Equal("OC_SCHEDULE", manager.SelectedStyle.Name);
             Assert.True(manager.CanDelete);
 
             // A drawing made new is given the class DICTIONARYVAR as AutoCAD 2021 lists it: Set Current makes the style
             // current, and a current style is not deleted.
             manager.SetCurrent();
-            Assert.Equal("GH_SCHEDULE", manager.CurrentStyle);
-            Assert.Equal("GH_SCHEDULE", DxfDatabase.Parse(document.Database.ToText()).Tablestyle);
+            Assert.Equal("OC_SCHEDULE", manager.CurrentStyle);
+            Assert.Equal("OC_SCHEDULE", DxfDatabase.Parse(document.Database.ToText()).Tablestyle);
             Assert.False(manager.CanDelete);
 
             manager.SelectedStyle = manager.Styles.Single(s => s.Name == "Standard");
             manager.SetCurrent();
             Assert.Equal("Standard", manager.CurrentStyle);
-            manager.SelectedStyle = manager.Styles.Single(s => s.Name == "GH_SCHEDULE");
+            manager.SelectedStyle = manager.Styles.Single(s => s.Name == "OC_SCHEDULE");
             manager.Delete();
             Assert.Equal(new[] { "Standard" }, manager.Styles.Select(s => s.Name).ToArray());
         }

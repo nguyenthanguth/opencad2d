@@ -17,7 +17,7 @@ namespace OpenCAD2D
     /// <remarks>
     /// <para>
     /// How it works. The block keeps its objects while the session lasts; the copies in the drawing are new objects, each tied to
-    /// the object of the block it came from in an XRECORD of the named object dictionary (<c>GH_REFEDIT</c>), which also holds the
+    /// the object of the block it came from in an XRECORD of the named object dictionary (<c>OPENCAD2D_REFEDIT</c>), which also holds the
     /// reference chosen, the settings and the first handle the session gave. Everything the session needs to go on is in the
     /// drawing, so that an undo, a redo, a save and an opening of the file find it as it stood: a drawing saved in the middle of
     /// an edit opens with the edit still open. The references of the block draw it without the objects the copies stand for; REFCLOSE
@@ -42,7 +42,7 @@ namespace OpenCAD2D
     /// </remarks>
     public sealed partial class CadDocument
     {
-        private const string RefEditKey = "GH_REFEDIT";
+        private const string RefEditKey = "OPENCAD2D_REFEDIT";
 
         private CadRefEdit _refEdit;
 
@@ -1569,7 +1569,7 @@ namespace OpenCAD2D
         {
             string temporary = System.IO.Path.Combine(
                 System.IO.Path.GetDirectoryName(path),
-                "gh-refedit-" + Guid.NewGuid().ToString("N") + System.IO.Path.GetExtension(path)
+                "opencad2d-refedit-" + Guid.NewGuid().ToString("N") + System.IO.Path.GetExtension(path)
             );
 
             try
