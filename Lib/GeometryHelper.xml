@@ -55496,6 +55496,29 @@
         <member name="P:GeometryHelper.Dxf.DxfBlockTableRecord.IsFromOverlayReference">
             <summary>Gets whether the block is an external reference overlaid (flag 8), as AutoCAD's <c>IsFromOverlayReference</c>.</summary>
         </member>
+        <member name="M:GeometryHelper.Dxf.DxfBlockTableRecord.SetDependent(System.Boolean,System.Boolean)">
+            <summary>
+            Marks the block as one an external reference brings, as AutoCAD lists the blocks of a drawing attached in the block
+            table of the drawing that attaches it while the reference is loaded: flag 16 of its BLOCK's group 70 where it comes
+            from one, and 32 as well where that reference is resolved. AutoCAD 2021 gives 48 to the block <c>grid|TAG</c> of a
+            drawing attached and loaded (<c>tblnext</c> says <c>70 48</c>, -BLOCK ? says <c>Xdep: "grid"</c>), and none once the
+            reference is unloaded or detached.
+            </summary>
+            <remarks>
+            A block made in code is marked before it is added, so that its table takes its name: <c>new DxfBlockTableRecord {
+            Name = "grid|TAG" }</c> marked dependent and resolved is written <c>2 grid|TAG, 70 48</c>, with its BLOCK_RECORD. Its
+            name and the marks agree: a block named with a | is dependent, and one without is not. AutoCAD 2021 keeps these
+            blocks in memory and writes none of them (its DXFOUT writes the layers and linetypes of a reference, not its
+            blocks), and its DXF reader refuses one (<c>Invalid symbol table record name: "grid|TAG"</c>, the drawing
+            discarded), so a drawing that holds one is for the program that made it, not for a file AutoCAD opens. Internal:
+            the presenter makes them to carry what AutoCAD lists.
+            </remarks>
+            <param name="dependent">Whether the block comes from an external reference (flag 16).</param>
+            <param name="resolved">Whether that reference is resolved (flag 32); only where it is dependent.</param>
+            <exception cref="T:System.ArgumentException">Thrown when the block is resolved and not dependent, or its name has a | in it and
+            it is not dependent, or none and it is.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when the block is erased.</exception>
+        </member>
         <member name="P:GeometryHelper.Dxf.DxfBlockTableRecord.HasAttributeDefinitions">
             <summary>
             Gets whether the block has attribute definitions (flag 2), as AutoCAD's <c>HasAttributeDefinitions</c>: set when one is

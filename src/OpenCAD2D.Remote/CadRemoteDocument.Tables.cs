@@ -124,8 +124,10 @@ namespace OpenCAD2D.Remote
         /// <summary>
         /// Gets the blocks of the drawing with their objects, sorted by name without regard to case, then by ordinal order, as
         /// the Block manager lists them: the blocks of the layouts (<c>*Model_Space</c>, <c>*Paper_Space</c>) and those AutoCAD
-        /// names itself (<c>*D1</c>, <c>*U1</c>) are left out. They are copies, asked of the app each time: changing one
-        /// changes nothing in the app.
+        /// names itself (<c>*D1</c>, <c>*U1</c>) are left out. An external reference attached and loaded brings the blocks of
+        /// its drawing as AutoCAD lists them, <c>grid|TAG</c> for the block TAG of <c>grid</c>, each with
+        /// <see cref="DxfSymbolTableRecord.IsDependent"/> true and its objects the drawing's own. They are copies, asked of the
+        /// app each time: changing one changes nothing in the app.
         /// </summary>
         /// <exception cref="CadRemoteException">Thrown when the drawing is closed.</exception>
         public IReadOnlyList<DxfBlockTableRecord> Blocks

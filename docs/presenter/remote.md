@@ -113,6 +113,13 @@ and sets the tab shown, as clicking it does: the switch is an undo step of its o
 a command running in it refuses it. `GetObjects(new CadObjectFilter { Layout = "Layout1" })` reads a layout's objects, and
 `Insert(entity, "Layout1")` puts one there.
 
+`drawing.Blocks` reads copies of the blocks with their objects, sorted by name without regard to case; the blocks of the layouts
+and those AutoCAD names itself (`*D1`) are left out. An external reference attached and loaded brings the blocks of its drawing,
+as AutoCAD lists them in its block table: `grid|TAG` for the block TAG of the drawing `grid`, its `IsDependent` and `IsResolved`
+true and its objects the drawing's own (a line of TAG on WALL is on WALL there, not on `grid|WALL`). They are held while the
+reference is loaded: none for one unloaded or whose file is gone, and none in the app's own drawing or the file it saves, as
+AutoCAD writes none. Python's `drawing.blocks` gives the same, from outside and from inside the app.
+
 `drawing.Extents` reads the extents the header of the drawing holds (`EXTMIN` and `EXTMAX`) as a `CadRemoteExtents` with `Min`,
 `Max` and `IsEmpty`: a drawing with nothing drawn has the empty box a header starts with, whose least corner is above its
 greatest. It is the request `extents` of the channel, and what the `DrawingInfo` tool of the Pythons folder writes on its

@@ -249,7 +249,7 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
-        public void ARecordAnExternalReferenceBrought_IsReadWithTheStyles_AndLeftOutOfTheBlocks()
+        public void ARecordAnExternalReferenceBrought_IsReadWithTheStylesAndTheBlocks_AsTheDrawingHoldsIt()
         {
             var db = new DxfDatabase("AC1027");
             db.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "GRIDTEXT", FileName = "arial.ttf" });
@@ -264,7 +264,10 @@ namespace OpenCAD2D.Remote.UnitTest
             var (harness, _, _, remote) = Start(CadDocument.From(DxfDatabase.Parse(text), "A-101.dxf"));
             using (harness)
             {
-                Assert.Equal(new[] { "Bolt" }, remote.Blocks.Select(b => b.Name).ToArray());
+                Assert.Equal(new[] { "Bolt", "grid|TAG" }, remote.Blocks.Select(b => b.Name).ToArray());
+                DxfBlockTableRecord dependent = remote.Blocks.Single(b => b.Name == "grid|TAG");
+                Assert.True(dependent.IsDependent);
+                Assert.Single(dependent);
                 Assert.Equal(new[] { "grid|TEXT", "Standard" }, remote.TextStyles.Select(s => s.Name).ToArray());
                 Assert.Contains(remote.DimensionStyles, s => s.Name == "grid|DIM");
             }

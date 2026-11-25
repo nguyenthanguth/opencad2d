@@ -1272,7 +1272,9 @@ class Drawing:
     @property
     def blocks(self) -> list[Any]:
         """Copies of the drawing's ``DxfBlockTableRecord`` with their objects, sorted as ``text_styles`` are; the blocks of
-        the layouts (``*Model_Space``) and the anonymous ones (``*D1``) are left out.
+        the layouts (``*Model_Space``) and the anonymous ones (``*D1``) are left out. An external reference attached and
+        loaded brings the blocks of its drawing, as AutoCAD lists them: ``grid|TAG`` for the block ``TAG`` of ``grid``, its
+        ``IsDependent`` true, its objects the drawing's own copies. They are not inserted or changed.
 
         Example:
             [b.Name for b in drawing.blocks]              # [] in a new drawing: no block of its own yet

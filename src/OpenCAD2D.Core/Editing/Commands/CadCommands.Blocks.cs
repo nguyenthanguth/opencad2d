@@ -181,7 +181,7 @@ namespace OpenCAD2D
                 if (c.Input.Is("?"))
                 {
                     // The list ends the command, as AutoCAD 2021's -BLOCK ends with it.
-                    foreach (CadPrompt prompt in AskBlockList(c))
+                    foreach (CadPrompt prompt in AskBlockList(c, true))
                     {
                         yield return prompt;
                     }
@@ -287,10 +287,14 @@ namespace OpenCAD2D
 
         /// <summary>
         /// The "?" of -BLOCK and -INSERT as AutoCAD 2021 lists it: "Enter block(s) to list &lt;*&gt;:" (names or patterns, parted by
-        /// commas), "Defined blocks.", each block of the user's quoted and indented two spaces, then the table of counts of the user's
-        /// blocks, external references, dependent blocks and unnamed blocks.
+        /// commas), "Defined blocks.", then a line for each block that matches, in the order of the names (letters of either case
+        /// the same), and a table of counts of what matched. -BLOCK lists the user's blocks, quoted and indented two spaces, the
+        /// external references (<c>"grid"   Xref: resolved</c>, unloaded or not found), and the blocks the loaded ones bring
+        /// (<c>"grid|TAG"   Xdep: "grid"</c>), the names padded to the same column, with the table of user blocks, external
+        /// references, dependent blocks and unnamed blocks. -INSERT lists the user's blocks alone, as the blocks it can insert,
+        /// with the table of user blocks and unnamed blocks.
         /// </summary>
-        private static IEnumerable<CadPrompt> AskBlockList(CadCommandContext c)
+        private static IEnumerable<CadPrompt> AskBlockList(CadCommandContext c, bool whole)
         {
             yield return CadPrompt.ForString("Enter block(s) to list", "*");
             string[] patterns = (c.Input.Kind == CadInputKind.Text ? c.Input.Text : "*").Split(
@@ -303,50 +307,106 @@ namespace OpenCAD2D
                 patterns = new[] { "*" };
             }
 
-            List<string> names = NamedBlocks(c.Database)
-                .Select(b => b.Name)
-                .Where(n =>
-                    patterns.Any(p =>
-                        Lisp.LispInterpreter.WildcardMatch(n.ToUpperInvariant(), p.Trim().ToUpperInvariant())
-                    )
-                )
-                .ToList();
-            c.Write("Defined blocks.");
+            bool Wanted(string name) =>
+                patterns.Any(p =>
+                    Lisp.LispInterpreter.WildcardMatch(name.ToUpperInvariant(), p.Trim().ToUpperInvariant())
+                );
 
-            foreach (string name in names)
-            {
-                c.Write("  \"" + name + "\"");
-            }
-
-            int external = 0;
-            int dependent = 0;
+            // A line of the list and what it ends with: nothing for a user's block, the status of a reference, the reference of
+            // a block it brought.
+            var lines = new List<KeyValuePair<string, string>>();
+            var dependents = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int user = 0;
             int unnamed = 0;
 
             foreach (DxfBlockTableRecord block in c.Database.BlockTable)
             {
-                if (block.IsLayout)
+                if (block.IsLayout || block.IsFromExternalReference || !Wanted(block.Name))
                 {
                     continue;
                 }
 
-                if (block.IsFromExternalReference)
+                int bar = block.Name.IndexOf('|');
+
+                if (block.IsAnonymous || block.Name.StartsWith("*", StringComparison.Ordinal))
                 {
-                    external++;
+                    unnamed += block.IsAnonymous ? 1 : 0;
                 }
-                else if (block.Name.IndexOf('|') >= 0)
+                else if (bar > 0)
                 {
-                    dependent++;
+                    // A record of the drawing that an external reference brought, as a file of another program may hold.
+                    if (whole && dependents.Add(block.Name))
+                    {
+                        lines.Add(
+                            new KeyValuePair<string, string>(
+                                block.Name,
+                                "Xdep: \"" + block.Name.Substring(0, bar) + "\""
+                            )
+                        );
+                    }
                 }
-                else if (block.IsAnonymous)
+                else
                 {
-                    unnamed++;
+                    user++;
+                    lines.Add(new KeyValuePair<string, string>(block.Name, null));
                 }
             }
 
+            int external = 0;
+
+            if (whole)
+            {
+                CadXrefBlocks xrefs = CadXrefBlocks.Of(c.Document);
+
+                foreach (KeyValuePair<string, string> reference in xrefs.References.Where(r => Wanted(r.Key)))
+                {
+                    external++;
+                    lines.Add(new KeyValuePair<string, string>(reference.Key, "Xref: " + reference.Value));
+                }
+
+                foreach (CadDependentBlock dependent in xrefs.Dependents.Where(d => Wanted(d.Name)))
+                {
+                    if (dependents.Add(dependent.Name))
+                    {
+                        lines.Add(
+                            new KeyValuePair<string, string>(dependent.Name, "Xdep: \"" + dependent.Reference + "\"")
+                        );
+                    }
+                }
+            }
+
+            lines.Sort(
+                (a, b) =>
+                    string.CompareOrdinal(a.Key.ToUpperInvariant(), b.Key.ToUpperInvariant()) != 0
+                        ? string.CompareOrdinal(a.Key.ToUpperInvariant(), b.Key.ToUpperInvariant())
+                        : string.CompareOrdinal(a.Key, b.Key)
+            );
+            c.Write("Defined blocks.");
+
+            foreach (KeyValuePair<string, string> line in lines)
+            {
+                string quoted = "\"" + line.Key + "\"";
+                c.Write(
+                    line.Value == null
+                        ? "  " + quoted
+                        : "  " + quoted + new string(' ', Math.Max(3, 34 - quoted.Length)) + line.Value
+                );
+            }
+
             string Count(int value, int width) => value.ToString(CultureInfo.InvariantCulture).PadLeft(width);
-            c.Write("User     External     Dependent   Unnamed");
-            c.Write("Blocks   References   Blocks      Blocks");
-            c.Write(Count(names.Count, 5) + Count(external, 10) + Count(dependent, 12) + Count(unnamed, 12));
+
+            if (whole)
+            {
+                c.Write("User     External     Dependent   Unnamed");
+                c.Write("Blocks   References   Blocks      Blocks");
+                c.Write(Count(user, 5) + Count(external, 10) + Count(dependents.Count, 12) + Count(unnamed, 12));
+            }
+            else
+            {
+                c.Write("User     Unnamed");
+                c.Write("Blocks   Blocks");
+                c.Write(Count(user, 5) + Count(unnamed, 9));
+            }
         }
 
         /// <summary>The blocks a user names, in ordinal order of their names: no layout, no anonymous block, no external reference.</summary>
@@ -820,7 +880,7 @@ namespace OpenCAD2D
 
                 if (c.Input.Is("?"))
                 {
-                    foreach (CadPrompt prompt in AskBlockList(c))
+                    foreach (CadPrompt prompt in AskBlockList(c, false))
                     {
                         yield return prompt;
                     }
@@ -880,6 +940,13 @@ namespace OpenCAD2D
                 yield break;
             }
 
+            // A block an external reference brings (grid|TAG) is listed by -BLOCK ? and is not inserted, as AutoCAD 2021 says.
+            if (name.IndexOf('|') > 0 && IsDependentBlock(c, name))
+            {
+                c.Write("Cannot insert dependent block.");
+                yield break;
+            }
+
             if (!c.Database.BlockTable.Has(name))
             {
                 c.Write("Block \"" + name + "\" not found.");
@@ -906,6 +973,13 @@ namespace OpenCAD2D
                 placing.Again = true;
             } while (placing.Repeat && placing.Placed);
         }
+
+        /// <summary>Whether a name is that of a block an external reference brought: a record of the drawing flagged so, or one of the loaded references' drawings.</summary>
+        private static bool IsDependentBlock(CadCommandContext c, string name) =>
+            (c.Database.BlockTable.Has(name) && c.Database.BlockTable[name].IsDependent)
+            || CadXrefBlocks
+                .Of(c.Document)
+                .Dependents.Any(d => string.Equals(d.Name, name, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>Where and how an INSERT is placed, asked or given, and whether it was.</summary>
         private sealed class Placing
