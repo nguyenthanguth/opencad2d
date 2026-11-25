@@ -58,7 +58,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "associate"; Description: "Associate .dxf and .dwg files with {#AppName}"; GroupDescription: "File types:"
 
 [Files]
-; Everything dotnet publish wrote: the exe, the .NET runtime, the libraries, the support folders, Plugins\DrawingInfo, Plugins\HelloWorld and Plugins\Stairs.
+; Everything dotnet publish wrote: the exe, the .NET runtime, the libraries, the support folders, Plugins\DrawingInfo, Plugins\DrawRandom and Plugins\HelloWorld.
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; The notices of the libraries and wheels the app carries (NuGet client, Newtonsoft.Json, pythonnet, clr_loader, cffi, pycparser), as their licences ask.
 Source: "..\..\src\OpenCAD2D.Core\THIRD-PARTY-NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion

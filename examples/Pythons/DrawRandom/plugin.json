@@ -1,0 +1,7 @@
+{
+    "name": "DrawRandom",
+    "version": "1.0.0",
+    "commands": [
+        { "name": "PYRANDOM", "description": "Draw objects of random kinds on random layers in random colours" }
+    ]
+}

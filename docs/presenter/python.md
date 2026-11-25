@@ -66,7 +66,7 @@ commands of a tool belong to the whole process. A tool that fails to load writes
 folder lies under the program folder, which [the security gate](#trusted-folders) trusts with all its subfolders, so its
 tools load with no question; a tool elsewhere goes through the gate as PYLOAD does.
 
-Two samples ship in the Pythons folder, and in `examples\Pythons` of the repository:
+Three samples ship in the Pythons folder, and in `examples\Pythons` of the repository:
 
 - `DrawingInfo`: its command `PYINFO` writes the drawing's name and folder, the current layer, the objects of model space
   counted by type, the number of layers and blocks, and the extents, and changes nothing. For a drawing of two circles and a line:
@@ -83,6 +83,13 @@ Two samples ship in the Pythons folder, and in `examples\Pythons` of the reposit
 
   Its extents are read from the header of the drawing over the channel of the tools (`drawing.net.Extents`).
 - `HelloWorld`: its command `PYHELLOWORLD` writes `Hello, World!`, the smallest tool there is.
+- `DrawRandom`: its command `PYRANDOM` fills an area with objects of random kinds, layers and colours, as the plugin `CSRANDOM` does
+  ([the sample plugin](plugins.md#the-sample-plugin)). It asks `Number of objects <50>:` (1 to 10000), `Specify first corner <view>:`
+  (Enter takes the view shown, or the extents of the drawing where the app has no window) and `Specify opposite corner:`, makes
+  the layers `RANDOM-1` to `RANDOM-5` where they are missing, each of a random colour, draws the objects inside the area with
+  `add_line`, `add_circle`, `add_arc`, `add_polyline` and `add_text` on a random one of the layers, ByLayer half the time and else of a
+  random colour, and writes `Drew 50 objects on 5 layers.` The whole run is one undo step. The environment variable
+  `OPENCAD2D_RANDOM_SEED`, a whole number, makes the same drawing every time.
 
 Delete the folder of a sample if you do not want it; the app starts as one with an empty folder does.
 

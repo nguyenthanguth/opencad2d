@@ -968,7 +968,7 @@ JRSoftware.InnoSetup -e --scope user`), which publishes the app self-contained f
 | Python tool support | included: the `opencad2d` package and the wheels of pythonnet 3.2.1, clr_loader 0.3.1, cffi 2.1.1 and pycparser 3.12 (Python 3.11 to 3.15; `python` beside the exe, 8 wheels, 1 273 451 bytes), from which a Python's base is installed once with no network |
 | C# compiler | included, for plugins given as source: Roslyn 4.14.0 (`Microsoft.CodeAnalysis.dll` and `Microsoft.CodeAnalysis.CSharp.dll`, 9.3 MB installed) |
 | NuGet client | included, for the packages a plugin's `.csproj` names: `NuGet.Protocol` 7.9.0 (Apache-2.0), its five libraries and `Newtonsoft.Json`, 7 files and 2.9 MB installed; it downloads nothing without a yes ([a plugin as C# source](plugins.md#a-plugin-as-c-source)) |
-| Samples | `Plugins\HelloWorld`, `Plugins\DrawingInfo` and `Plugins\Stairs` (C# source) and `Pythons\HelloWorld` and `Pythons\DrawingInfo` (Python tools); delete a folder to remove its sample |
+| Samples | `Plugins\HelloWorld`, `Plugins\DrawingInfo` and `Plugins\DrawRandom` (C# source) and `Pythons\HelloWorld`, `Pythons\DrawingInfo` and `Pythons\DrawRandom` (Python tools); delete a folder to remove its sample |
 | Notices | `THIRD-PARTY-NOTICES.md` beside the exe: the fonts, the word list, NuGet, and the four Python wheels |
 
 A second setup of the same or a newer version installs over the first, after closing a running OpenCAD2D. Uninstalling

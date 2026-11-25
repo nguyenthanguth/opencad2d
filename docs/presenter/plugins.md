@@ -6,7 +6,7 @@ prompts as the presenter's own commands do, edits through the document, and is h
 steps. It is given as a .dll, or as a folder of source with a `.csproj` that the app compiles itself ([a plugin as C#
 source](#a-plugin-as-c-source), which may name NuGet packages). Put it in the app's `Plugins` folder and it is loaded at
 every start, as [below](#where-a-plugin-lives) says. Three samples are there already, `HelloWorld`, `DrawingInfo` and
-`Stairs` ([the sample plugins](#the-sample-plugin)).
+`DrawRandom` ([the sample plugins](#the-sample-plugin)).
 
 ## A command
 
@@ -242,8 +242,8 @@ The `.csproj` is the smallest a Visual Studio user writes, and Visual Studio bui
 ```
 
 Saved as `Plugins\Stairs\Stairs.csproj` and `Plugins\Stairs\StairsCommands.cs`, it loads at the next start with
-`Loaded Stairs 1.0.0: STAIRS.`, and `STAIRS` writes `Steps: 18`. The app ships it there, as the folder `examples/Stairs` of
-the repository (see [the sample plugin](#the-sample-plugin)). The version is the `.csproj`'s `Version` (1.0.0 where it has
+`Loaded Stairs 1.0.0: STAIRS.`, and `STAIRS` writes `Steps: 18`. (The app does not ship this one; the folders it does ship
+are [the sample plugins](#the-sample-plugin).) The version is the `.csproj`'s `Version` (1.0.0 where it has
 none), written into the assembly as the SDK writes it.
 
 **What the `.csproj` says.** It is read with no MSBuild, and these are honoured:
@@ -434,8 +434,8 @@ into `%AppData%\OpenCAD2D.Core\Plugins` is not loaded now: move its folder to `P
 
 Three sample plugins ship in the `Plugins` folder, each the C# source of a plugin, a folder with a `.csproj` and one `.cs` file
 (see [a plugin as C# source](#a-plugin-as-c-source)): `Plugins\HelloWorld`, the smallest plugin there can be;
-`Plugins\DrawingInfo`, which reads the drawing; and `Plugins\Stairs`, [the guide's example](#a-plugin-as-c-source). They are
-the folders `examples/HelloWorld`, `examples/DrawingInfo` and `examples/Stairs` of the repository, which the build of
+`Plugins\DrawingInfo`, which reads the drawing; and `Plugins\DrawRandom`, which draws. They are the folders
+`examples/HelloWorld`, `examples/DrawingInfo` and `examples/DrawRandom` of the repository, which the build of
 `OpenCAD2D.App` copies beside the exe, and each opens in Visual Studio as a project of its own: its `.csproj` asks for the
 `OpenCAD2D.Core` package, which builds it there, and the app builds it by itself. Each is one plugin, named after its folder,
 with one command, and each can be removed by deleting its folder; to start a plugin of your own, copy one under another
@@ -471,14 +471,21 @@ its name, DrawingInfo, and the `.csproj` its version, 1.0.0. It once shipped as 
 `OpenCAD2D.Plugins.DrawingInfo.dll`; the command is the same, and a .dll left in the folder is not read once a `.csproj` is
 there.
 
-**Stairs.** The folder `Plugins\Stairs` holds `Stairs.csproj` and `StairsCommands.cs`, the files of the guide's example, whose
-command `STAIRS` writes `Steps: 18`.
+**DrawRandom.** The command `CSRANDOM` fills an area with objects of random kinds, layers and colours. It asks
+`Number of objects <50>:` (a whole number from 1 to 10000), then `Specify first corner <view>:` and `Specify opposite corner:`;
+Enter at the first corner takes the view shown, or the extents of the drawing where the app has no window (a square of 1000
+for a drawing with nothing in it). It makes the layers `RANDOM-1` to `RANDOM-5` where they are missing, each of a random colour
+from 1 to 255 (a layer that is there is kept as it is), and draws the objects inside the area: a LINE, a CIRCLE, an ARC, an
+LWPOLYLINE of 3 to 6 vertices (closed or open), a TEXT of a short word, or a rectangle, each of 3 to 15 per cent of the shorter
+side of the area, on a random one of the five layers, ByLayer half the time and else of a random colour from 1 to 255. The layers
+and the objects are one undo step, `CSRANDOM`, and the last line is `Drew 50 objects on 5 layers.` Set the environment variable
+`OPENCAD2D_RANDOM_SEED` to a whole number and the same drawing comes every time. It is the plugin to read for a command that
+asks several prompts, makes a layer through `CadLayerEditor` and adds objects through `c.Apply`; its Python twin is `PYRANDOM`
+([Python commands and tools](python.md#where-tools-load-from)).
 
 **What the first start costs.** The app compiles the three samples at the first start after an install or an upgrade, and
 keeps the builds in [the cache](#a-plugin-as-c-source), so later starts compile nothing: the cache key holds the app's version,
-which an upgrade changes. Measured on the .NET 8 app, with the cache in a folder of its own, the three samples together take
-1.09 s to 1.34 s at the first start (1.09 s, 1.12 s, 1.13 s, 1.34 s in four runs, most of it the compiler's own start) and 61 ms to 82 ms at every start after it (61, 65, 66, 82 ms), where
-the three plugins are loaded from the cache.
+which an upgrade changes.
 
 ## What the window adds
 

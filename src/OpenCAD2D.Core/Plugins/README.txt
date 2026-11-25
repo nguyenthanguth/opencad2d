@@ -36,13 +36,13 @@ Three folders here are sample C# source plugins that come with the app, each a .
 
   HelloWorld    its command HELLOWORLD writes "Hello, World!": the smallest plugin there can be.
   DrawingInfo   its command CSINFO writes the name, objects, layers, blocks and extents of the drawing.
-  Stairs        the example of the plugin guide; its command STAIRS writes "Steps: 18".
+  DrawRandom    its command CSRANDOM asks how many objects and where, and draws that many lines, circles, arcs,
+                polylines, texts and rectangles on the layers RANDOM-1 to RANDOM-5, in random colours.
 
-The app compiles them at the first start after an install or an upgrade (1.1 to 1.3 s for the three)
-and keeps the builds, so later starts do not compile them again (61 to 82 ms for the three, from the
-cache). Delete the folder of one if you do not want it, or copy one under another name to start a
-plugin of your own. The sources are also in examples\ of https://github.com/nguyenthanguth/opencad2d,
-where each opens in Visual Studio as a project.
+The app compiles them at the first start after an install or an upgrade and keeps the builds, so later
+starts do not compile them again. Delete the folder of one if you do not want it, or copy one under another
+name to start a plugin of your own. The sources are also in examples\ of
+https://github.com/nguyenthanguth/opencad2d, where each opens in Visual Studio as a project.
 
 A plugin is loaded from a copy, so the file here is never locked: change it, then PLUGINRELOAD.
 Loading a plugin runs its code with your rights: put here only what you trust.

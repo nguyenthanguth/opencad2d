@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **NEW.** A sample that draws ships with the app, as a C# plugin and as a Python tool: `Plugins\DrawRandom` (`CSRANDOM`) and
+  `Pythons\DrawRandom` (`PYRANDOM`), from `examples/DrawRandom` and `examples/Pythons/DrawRandom`. Each asks `Number of objects
+  <50>:` (1 to 10000) and the two corners of an area (Enter at the first takes the view shown, or the extents of the drawing
+  where there is no window), makes the layers `RANDOM-1` to `RANDOM-5` where they are missing, each of a random colour, and
+  draws that many LINEs, CIRCLEs, ARCs, LWPOLYLINEs (3 to 6 vertices, closed or open), TEXTs and rectangles inside the area, on a
+  random one of the layers, ByLayer half the time and else of a random colour from 1 to 255. The layers and the objects are one
+  undo step, and it ends with `Drew 50 objects on 5 layers.` Setting the environment variable `OPENCAD2D_RANDOM_SEED` to a whole
+  number makes the same drawing every time.
+- **CHANGED.** The `Stairs` sample plugin is no longer shipped: the app's `Plugins` folder holds `HelloWorld`, `DrawingInfo`
+  and `DrawRandom`, and `examples/Stairs` is gone. The example of the plugin guide (a plugin named Stairs, command STAIRS) stays
+  in the guide, and a test still compiles and runs it from the guide's text; it is no longer a folder of the app. The README of
+  the `Plugins` folder no longer gives the compile and start times of the three samples, which were measured for the old three.
 - **FIXED.** A routine that writes its prompts with AutoCAD's Unicode escapes (`(getpoint "\nCh\U+1ECDn \U+0111i\U+1EC3m
   \U+0111\U+1EA7u HCN :")`) showed `Ch\U+1ECDn \U+0111i...` on the command line, in the history and in the box of dynamic
   input; AutoCAD 2021 shows `Chọn điểm đầu HCN :`. Measured with accoreconsole: a string keeps its seven characters
@@ -373,14 +385,13 @@
   `CadPluginManifest` gains `CommandEntries` and `Ribbon` (the commands as declared and the ribbon tabs, panels and buttons of
   `plugin.json`); its `commands` takes names or objects, and `Commands` stays the names.
 
-- **NEW.** Three sample plugins and two sample tools ship with the app, each a folder that opens as it is (Tools as folders).
-  The C# plugins are `Plugins\HelloWorld` (`HelloWorld.csproj` and `HelloWorldCommands.cs`: the command `HELLOWORLD` writes
-  `Hello, World!`, the smallest plugin there can be), `Plugins\DrawingInfo` (`GHDWGINFO`, the drawing's name, objects, layers,
-  blocks and extents) and `Plugins\Stairs` (`STAIRS`, the command of the plugin guide); Visual Studio opens each from
-  `examples/HelloWorld`, `examples/DrawingInfo` and `examples/Stairs`. The first start after an install or an upgrade
-  compiles the three once, 1.09 s to 1.34 s together on .NET 8 (four runs), and a start from the cache takes 61 ms to 82 ms.
-  The Python tools are `Pythons\HelloWorld` (`PYHELLOWORLD` writes `Hello, World!`) and `Pythons\DrawingInfo` (`GHPYINFO`,
-  the same lines as `GHDWGINFO`, its `Extents` line read over the channel), in `examples\Pythons`. Delete a folder to remove
+- **NEW.** Three sample plugins and three sample tools ship with the app, each a folder that opens as it is (Tools as
+  folders). The C# plugins are `Plugins\HelloWorld` (`HelloWorld.csproj` and `HelloWorldCommands.cs`: the command
+  `HELLOWORLD` writes `Hello, World!`, the smallest plugin there can be), `Plugins\DrawingInfo` (`CSINFO`, the drawing's
+  name, objects, layers, blocks and extents) and `Plugins\DrawRandom` (`CSRANDOM`); Visual Studio opens each from
+  `examples/HelloWorld`, `examples/DrawingInfo` and `examples/DrawRandom`. The Python tools are `Pythons\HelloWorld`
+  (`PYHELLOWORLD` writes `Hello, World!`), `Pythons\DrawingInfo` (`PYINFO`, the same lines as `CSINFO`, its `Extents`
+  line read over the channel) and `Pythons\DrawRandom` (`PYRANDOM`), in `examples\Pythons`. Delete a folder to remove
   its sample.
 
 - **CHANGED.** `Plugins\DrawingInfo` is the C# source of its plugin, and the built `OpenCAD2D.Plugins.DrawingInfo.dll` is no

@@ -187,10 +187,126 @@ def draw_it():
             }
         }
 
+        /// <summary>Waits until the command line asks a prompt that starts with the text, and types the answer (Enter for none).</summary>
+        private static void Answer(Scene scene, string asked, string answer)
+        {
+            scene.WaitUntil(
+                () =>
+                    scene.App.OnApp(() =>
+                        scene.Session.Prompt != null
+                        && scene.Session.Prompt.Text.StartsWith(asked, StringComparison.Ordinal)
+                    ),
+                60,
+                "The prompt " + asked + " was not asked."
+            );
+            scene.App.OnApp(() =>
+            {
+                if (answer.Length == 0)
+                {
+                    scene.Session.Enter();
+                }
+                else
+                {
+                    scene.Session.Feed(answer);
+                }
+            });
+        }
+
+        [Fact]
+        public void Pyrandom_FromPythonsDrawRandom_Draws60ObjectsInsideTheAreaOnTheFiveLayers_AsOneUndoStep()
+        {
+            using (var scene = new Scene(_python))
+            {
+                string folder = Sample("DrawRandom");
+                CadPluginManifest manifest = CadPluginManifest.Read(Path.Combine(folder, "plugin.json"));
+                CadFolderTool tool = scene.Host.Add(folder, _python.Python, manifest.Commands, null);
+                scene.App.OnApp(() => scene.Host.AddCommandsTo(scene.Session.Registry));
+                Assert.Equal(new[] { "PYRANDOM" }, tool.Commands.Select(c => c.Name));
+
+                int before = scene.History.Count;
+                Assert.True(scene.App.OnApp(() => scene.Session.Start("PYRANDOM")));
+                Answer(scene, "Number of objects <50>:", "60");
+                Answer(scene, "Specify first corner <view>:", "100,200");
+                Answer(scene, "Specify opposite corner:", "600,500");
+                scene.WaitUntil(() => !scene.App.OnApp(() => scene.Session.IsRunning), 60, "PYRANDOM did not end.");
+
+                List<string> lines = scene.History.Skip(before).Select(l => l.TrimEnd()).ToList();
+                Assert.Equal("Drew 60 objects on 5 layers.", lines.Last());
+                Assert.Equal(63, scene.Entities);
+
+                scene.App.OnApp(() =>
+                {
+                    var added = scene.Document.Database.ModelSpace.Skip(3).ToList();
+                    Assert.Equal(60, added.Count);
+
+                    foreach (DxfEntity entity in added)
+                    {
+                        GeoAabb3 box = entity.GeometricExtents;
+                        Assert.True(
+                            box.Min.X >= 100 - 1e-6
+                                && box.Max.X <= 600 + 1e-6
+                                && box.Min.Y >= 200 - 1e-6
+                                && box.Max.Y <= 500 + 1e-6,
+                            entity.GetType().Name + " lies outside the area: " + box
+                        );
+                        Assert.Matches("^RANDOM-[1-5]$", entity.Layer);
+                    }
+
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        Assert.True(scene.Document.Database.LayerTable.Has("RANDOM-" + i));
+                    }
+
+                    Assert.Equal("PYRANDOM", scene.Document.NextUndo.Name);
+                    scene.Document.Undo();
+                });
+                Assert.Equal(3, scene.Entities);
+                Assert.False(scene.App.OnApp(() => scene.Document.Database.LayerTable.Has("RANDOM-1")));
+                Assert.False(scene.App.OnApp(() => scene.Document.CanUndo));
+            }
+        }
+
+        [Fact]
+        public void Pyrandom_WithEnterTwice_Draws50ObjectsInTheExtentsOfTheDrawing_OnFiveLayers()
+        {
+            using (var scene = new Scene(_python))
+            {
+                string folder = Sample("DrawRandom");
+                CadPluginManifest manifest = CadPluginManifest.Read(Path.Combine(folder, "plugin.json"));
+                scene.Host.Add(folder, _python.Python, manifest.Commands, null);
+                scene.App.OnApp(() => scene.Host.AddCommandsTo(scene.Session.Registry));
+
+                int before = scene.History.Count;
+                Assert.True(scene.App.OnApp(() => scene.Session.Start("PYRANDOM")));
+                Answer(scene, "Number of objects <50>:", string.Empty);
+                Answer(scene, "Specify first corner <view>:", string.Empty);
+                scene.WaitUntil(() => !scene.App.OnApp(() => scene.Session.IsRunning), 60, "PYRANDOM did not end.");
+
+                Assert.Equal("Drew 50 objects on 5 layers.", scene.History.Skip(before).Last().TrimEnd());
+                Assert.Equal(53, scene.Entities);
+
+                // The extents of the drawing are (-10, -10) to (120, 80).
+                scene.App.OnApp(() =>
+                {
+                    foreach (DxfEntity entity in scene.Document.Database.ModelSpace.Skip(3))
+                    {
+                        GeoAabb3 box = entity.GeometricExtents;
+                        Assert.True(
+                            box.Min.X >= -10 - 1e-6
+                                && box.Max.X <= 120 + 1e-6
+                                && box.Min.Y >= -10 - 1e-6
+                                && box.Max.Y <= 80 + 1e-6,
+                            entity.GetType().Name + " lies outside the extents: " + box
+                        );
+                    }
+                });
+            }
+        }
+
         [Fact]
         public void TheSamples_ShipWithAnEmptyRequirementsFile_AnInitPy_AndAPluginJsonThatNamesTheirCommand()
         {
-            foreach (string name in new[] { "DrawingInfo", "HelloWorld" })
+            foreach (string name in new[] { "DrawingInfo", "DrawRandom", "HelloWorld" })
             {
                 string folder = Sample(name);
 

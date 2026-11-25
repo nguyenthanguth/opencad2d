@@ -42,7 +42,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- The samples the app ships as Plugins\DrawingInfo and Plugins\HelloWorld: tests load them as the app does, from source. -->
+        <!-- The samples the app ships as Plugins\DrawingInfo, Plugins\DrawRandom and Plugins\HelloWorld: tests load them as the app does, from source. -->
         <None
             Include="..\..\examples\DrawingInfo\DrawingInfoCommands.cs"
             Link="DrawingInfo\DrawingInfoCommands.cs.txt"
@@ -56,6 +56,18 @@
             Visible="false"
         />
         <None
+            Include="..\..\examples\DrawRandom\DrawRandomCommands.cs"
+            Link="DrawRandom\DrawRandomCommands.cs.txt"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
+            Include="..\..\examples\DrawRandom\DrawRandom.csproj"
+            Link="DrawRandom\DrawRandom.csproj.txt"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false"
+        />
+        <None
             Include="..\..\examples\HelloWorld\HelloWorldCommands.cs"
             Link="HelloWorld\HelloWorldCommands.cs.txt"
             CopyToOutputDirectory="PreserveNewest"
@@ -64,19 +76,6 @@
         <None
             Include="..\..\examples\HelloWorld\HelloWorld.csproj"
             Link="HelloWorld\HelloWorld.csproj.txt"
-            CopyToOutputDirectory="PreserveNewest"
-            Visible="false"
-        />
-        <!-- The sample the app ships as Plugins\Stairs: a test holds the guide's example to it and loads it. -->
-        <None
-            Include="..\..\examples\Stairs\StairsCommands.cs"
-            Link="Stairs\StairsCommands.cs.txt"
-            CopyToOutputDirectory="PreserveNewest"
-            Visible="false"
-        />
-        <None
-            Include="..\..\examples\Stairs\Stairs.csproj"
-            Link="Stairs\Stairs.csproj.txt"
             CopyToOutputDirectory="PreserveNewest"
             Visible="false"
         />
