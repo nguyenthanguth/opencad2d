@@ -30,6 +30,59 @@ namespace OpenCAD2D
     /// </remarks>
     public sealed partial class CadEditor
     {
+        /// <summary>How many <see cref="Check"/> calls are running: while any is, an edit does everything but write.</summary>
+        private int _checking;
+
+        /// <summary>
+        /// Checks an edit without making it: runs the call the delegate makes, with every check the call makes (its arguments,
+        /// its objects, the plan of the edit and the owner's gate) and none of its writing, and says what refused it. A Move of
+        /// a line on the locked layer Steel checks to <c>The object 2F is on the locked layer Steel.</c>; an Offset of a circle
+        /// of radius 10 inward by 15 to <c>Cannot offset that object.</c>; a Copy of a line to null, and no copy is made.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <c>editor.Check(e =&gt; e.Offset(curve, 5.0, side))</c> is checked as <c>editor.Offset(curve, 5.0, side)</c> is refused,
+        /// so that a script that has other changes to make first can find out whether the edit will be refused before it makes
+        /// them. Inside the delegate each edit of the editor (<see cref="Move{T}"/>, <see cref="Copy{T}"/>, <see cref="Rotate{T}"/>,
+        /// <see cref="Scale{T}"/>, <see cref="Mirror{T}"/>, <see cref="Offset"/>, <see cref="Erase"/>) checks and gives back what the
+        /// call would not (a Copy none, for it makes none); it opens no undo step and no group, writes nothing on the command
+        /// line and leaves the pickfirst selection alone. The first edit that is refused ends the check; the edits after it in the delegate are not looked at.
+        /// What the delegate does besides calling the edits (a zoom, a variable set) is done.
+        /// </para>
+        /// <para>
+        /// The check is of the drawing as it stands: an edit that follows others the script made first is not looked at as it will
+        /// be after them. One thing is left to the writing: an owner that takes an edit itself can still refuse it then (<c>The
+        /// model owner did not take this edit.</c>), and nothing is changed by that either.
+        /// </para>
+        /// <para>A plugin that uses it states <c>[assembly: CadPluginApi("1.5")]</c>.</para>
+        /// </remarks>
+        /// <param name="edit">Makes the calls to check, on the editor it is given (this one).</param>
+        /// <returns>Null where the edit would be made; else why it would be refused, as the message of the exception the call throws for a number that is no edit (<see cref="ArgumentException"/>) or for what the drawing refuses (<see cref="InvalidOperationException"/>); an <see cref="ArgumentException"/>'s message may carry a second line naming the parameter.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the delegate is null.</exception>
+        public string Check(Action<CadEditor> edit)
+        {
+            if (edit == null)
+            {
+                throw new ArgumentNullException(nameof(edit));
+            }
+
+            _checking++;
+
+            try
+            {
+                edit(this);
+                return null;
+            }
+            catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException)
+            {
+                return exception.Message;
+            }
+            finally
+            {
+                _checking--;
+            }
+        }
+
         /// <summary>
         /// Moves objects by a displacement, as MOVE does: a line from (0, 0) to (100, 0) moved by (10, 5) runs from (10, 5) to
         /// (110, 5). One undo step named MOVE.
@@ -268,9 +321,22 @@ namespace OpenCAD2D
             return handles;
         }
 
-        /// <summary>Writes a plan as a step named <paramref name="name"/> or in the step of the command running, and says what refused it.</summary>
+        /// <summary>Writes a plan as a step named <paramref name="name"/> or in the step of the command running, and says what refused it; in a <see cref="Check"/> only asks whether it would be.</summary>
         private CadEditPlan Make(string name, CadEditPlan plan)
         {
+            if (_checking > 0)
+            {
+                // A check: the gate is asked of what the plan changes, and nothing is written, no step or group opened.
+                string refused = Document.CheckEdit(plan.Planned);
+
+                if (refused != null)
+                {
+                    throw new InvalidOperationException(refused);
+                }
+
+                return plan;
+            }
+
             CadEditResult result = InStep(name, () => Document.ApplyEdit(name, plan.Planned, plan.Write));
 
             if (!result.Succeeded)

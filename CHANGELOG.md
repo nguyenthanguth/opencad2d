@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **NEW.** `CadEditor.Check(Action<CadEditor>)` (plugin API 1.5): the dry run of an edit. It runs the calls it is given
+  with every check they make (the numbers, the objects, the plan of an offset, the owner's gate), writes nothing, and
+  gives null or the words the call would throw: `Check(e => e.Offset(circle, 15, side))` of a circle of radius 10 inward
+  gives `Cannot offset that object.`
+- **FIXED.** Python on a file: an edit refused only while it is planned (an offset that makes no curve, a side point on
+  the curve, a distance under the tolerance) applied what was queued with it first, inside the script's own
+  `undo_group`. The edit is now checked by `CadEditor.Check` before anything queued is applied.
+- **CHANGED.** Remote `CadRemoteDocument.HandleOfTicket(ticket)` gives the handle of an `Insert` after a commit or an
+  edit call with no request; Python's remote edit calls no longer read each insert back (a thousand `add_line` and a
+  `copy`: about 0.07 s, where 0.7 s on .NET 8 and 1.3 s on .NET Framework before).
 - **NEW.** Python `Drawing.move`, `copy`, `rotate`, `scale`, `mirror` and `offset` (A8): the commands as calls on `Entity`
   objects, typed (`copy([circle], (0, 50))` is a `list[Entity[DxfCircle]]`, `offset` gives `list[Entity[DxfCurve]]`).
   What is queued goes with the edit in one undo step (`REMOTE` from outside the app, `PYTHON` for a file, the run's own in

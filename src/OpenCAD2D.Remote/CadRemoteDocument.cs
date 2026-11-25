@@ -153,6 +153,18 @@ namespace OpenCAD2D.Remote
                 : null;
         }
 
+        /// <summary>
+        /// Gets the handle in the app's drawing of the object a ticket stands for, from what the commit that made it answered:
+        /// no request is sent, where <see cref="GetObject"/> of the ticket and <see cref="HandleOf"/> ask the app once. After an
+        /// edit call (<see cref="Move{T}"/>, <see cref="Copy{T}"/>, <see cref="Offset"/>...) it has the handles of the objects
+        /// inserted in the same commit.
+        /// </summary>
+        /// <param name="ticket">The ticket <see cref="Insert"/> returned, once the commit that sent it is done; a handle stands for itself.</param>
+        /// <returns>The handle; null where the app made no object of the insert (an MTEXT put in a drawing of R12 is written as TEXTs).</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the ticket is null.</exception>
+        /// <exception cref="CadRemoteException">Thrown when the ticket is of an object not committed yet, or one this drawing did not give.</exception>
+        public string HandleOfTicket(string ticket) => Resolve(ticket);
+
         private DxfDatabase Batch => _batch ?? (_batch = new DxfDatabase(RemoteFragment.Version));
 
         /// <summary>

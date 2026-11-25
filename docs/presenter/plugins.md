@@ -138,11 +138,12 @@ A command is a name or an object, `{ "name": "NUMCIRCLES", "alias": "NC", "descr
 what a [Python tool](python.md#pluginjson) declares for the window; a C# plugin adds to the window in code, as
 [below](#what-a-plugin-adds-to-the-window).
 [`CadPluginManifest.Parse(json)`](xref:OpenCAD2D.Plugins.CadPluginManifest) reads it, and `Refusal()` says
-why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.4
-(`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.4: it needs a
+why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.5
+(`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.5: it needs a
 newer presenter.` A plugin that adds to the window, as [below](#what-a-plugin-adds-to-the-window), states 1.1; one that
 uses slide-outs, dialog launchers, macro buttons or `CadSnapRequest.BlockReferences` states 1.2; one that uses the
-[editor](#the-editor-the-view-selection-and-variables) states 1.3; one that uses the [open drawings](#the-open-drawings-open-add-show-and-close) states 1.4.
+[editor](#the-editor-the-view-selection-and-variables) states 1.3; one that uses the [open drawings](#the-open-drawings-open-add-show-and-close) states 1.4; one that uses the
+[dry run of an edit](#the-editor-edits) (`CadEditor.Check`) states 1.5.
 
 A plugin targets netstandard2.0 and references `OpenCAD2D` only, without copying it: the presenter gives a
 plugin its own, so that the `CadCommandContext` it is handed is of the type it was built against.
@@ -735,6 +736,25 @@ about (200, 0) is one of radius 20 about (400, 0) after `Scale` about (0, 0) by 
   copies go on the curve's layer and the curve is kept (its Erase, Layer and Through options are not taken). A point on the
   curve names no side and throws `ArgumentException`; an offset that makes no curve (a circle of radius 10 offset inward by 15)
   throws `InvalidOperationException`, `Cannot offset that object.`
+- **Check before you make.** `Check` runs the edits a delegate calls with every check they make, those of the numbers, of the
+  objects, of the plan and of the owner's gate, and writes nothing: no step, no group, no object, nothing on the command line.
+  It gives null where the edit would be made, else the words the call would throw. A plugin that has other changes to make
+  first asks it before it makes them (a plugin that states `[assembly: CadPluginApi("1.5")]`):
+
+  ```csharp
+  string refused = c.Editor.Check(e => e.Offset(circle, 15.0, new GeoPoint2(5, 0)));   // "Cannot offset that object."
+  if (refused == null)
+  {
+      c.Editor.Copy(lines, new GeoVector2(0, 50));
+      c.Editor.Offset(circle, 15.0, new GeoPoint2(30, 0));
+  }
+  ```
+
+  A circle of radius 10 offset inward by 15 checks to `Cannot offset that object.`, which only the plan of the offset knows; a
+  side point on the curve, a distance under `EqualPoint` and an owner that allows only moving (`Rotate`) are found the same way.
+  The check looks at the drawing as it stands, so an edit that depends on the changes you make first is checked before them. An
+  owner that takes an edit itself can still refuse it in the writing (`The model owner did not take this edit.`); nothing is
+  changed then either. Only the edits are held back inside the delegate: a zoom or a variable set there is made.
 - **Undo.** Inside a running command the edit joins the command's step; at rest each call is a step of its own named `MOVE`,
   `COPY`, `ROTATE`, `SCALE`, `MIRROR`, `OFFSET` or `ERASE`. The call writes nothing on the command line and leaves the
   pickfirst selection as it was.

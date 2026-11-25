@@ -126,7 +126,7 @@ class _RemoteBackend:
         self, ops: list[Op], how: str, items: list[Entity], args: tuple[Any, ...]
     ) -> tuple[list[str | None], list[tuple[str, Any, Any]]]:
         """What is queued and an edit call of the document as one commit: one undo step for the app (REMOTE, or the run's own).
-        The handles of the inserts are asked of their tickets once the commit is made."""
+        The handles of the inserts are read from their tickets, which the commit's answer filled: no request is made for them."""
         document = self._document
         tickets = self._enqueue(ops)
         given: Any = _net.Array[_dxf.DxfEntity]([item.net for item in items])
@@ -146,11 +146,8 @@ class _RemoteBackend:
 
     def _made(self, ticket: str) -> str | None:
         """The handle an insert of the commit has in the drawing, from its ticket; None where the app made no object of it."""
-        try:
-            entity = self._document.GetObject(ticket)
-        except _remote.CadRemoteException:
-            return None
-        return None if entity is None else str(self._document.HandleOf(entity))
+        handle = self._document.HandleOfTicket(ticket)
+        return None if handle is None else str(handle)
 
     def layers(self) -> list[Look]:
         looks: list[Look] = []

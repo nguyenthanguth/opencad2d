@@ -194,49 +194,17 @@ namespace OpenCAD2D
 
             if (_groupFailed)
             {
-                return CadEditResult.Refuse("The command was taken back after an edit of it failed.");
+                return CadEditResult.Refuse(GroupFailedWords);
             }
 
             planned = planned ?? Array.Empty<CadEditRecord>();
             EnsureStart();
 
-            // While a reference is edited in place the objects outside its working set are locked, as AutoCAD's REFEDIT locks them.
-            Func<string, bool> locked = RefEditLockTest();
+            string refused = CheckPlanned(planned);
 
-            foreach (CadEditRecord record in planned)
+            if (refused != null)
             {
-                if (record == null)
-                {
-                    throw new ArgumentException("A planned change is null.", nameof(planned));
-                }
-
-                if (record.Handle == null || record.Kind == CadEditRecordKind.Added)
-                {
-                    continue;
-                }
-
-                DxfEntity entity = FindEntity(record.Handle);
-
-                if (entity == null)
-                {
-                    return CadEditResult.Refuse("The drawing has no entity " + record.Handle + ".");
-                }
-
-                record.Space = FindSpace(record.Handle)?.Name;
-
-                if (locked != null && locked(record.Handle))
-                {
-                    return CadEditResult.Refuse(
-                        "The " + KindName(entity) + " " + record.Handle + " is not in the working set."
-                    );
-                }
-
-                if (!EditGate.Allows(this, entity, record, out string reason))
-                {
-                    return CadEditResult.Refuse(
-                        reason ?? "The " + KindName(entity) + " " + record.Handle + " may not be changed."
-                    );
-                }
+                return CadEditResult.Refuse(refused);
             }
 
             _shownState = null;
@@ -264,6 +232,59 @@ namespace OpenCAD2D
                     EndGroup();
                 }
             }
+        }
+
+        private const string GroupFailedWords = "The command was taken back after an edit of it failed.";
+
+        /// <summary>
+        /// Asks what <see cref="ApplyEdit"/> asks before it writes, and writes nothing: why an edit that plans these changes would
+        /// be refused, as the command line shows it, or null where it would be let through. The command's group having been taken
+        /// back, the working set of a reference edited in place and the edit gate are all asked.
+        /// </summary>
+        /// <param name="planned">The changes planned to existing entities; may be null.</param>
+        /// <returns>The words, or null.</returns>
+        internal string CheckEdit(IReadOnlyList<CadEditRecord> planned) =>
+            _groupFailed ? GroupFailedWords : CheckPlanned(planned ?? Array.Empty<CadEditRecord>());
+
+        /// <summary>Why a planned change of an existing entity is refused, by the working set of a reference edited in place or by the edit gate; null where none is.</summary>
+        private string CheckPlanned(IReadOnlyList<CadEditRecord> planned)
+        {
+            // While a reference is edited in place the objects outside its working set are locked, as AutoCAD's REFEDIT locks them.
+            Func<string, bool> locked = RefEditLockTest();
+
+            foreach (CadEditRecord record in planned)
+            {
+                if (record == null)
+                {
+                    throw new ArgumentException("A planned change is null.", nameof(planned));
+                }
+
+                if (record.Handle == null || record.Kind == CadEditRecordKind.Added)
+                {
+                    continue;
+                }
+
+                DxfEntity entity = FindEntity(record.Handle);
+
+                if (entity == null)
+                {
+                    return "The drawing has no entity " + record.Handle + ".";
+                }
+
+                record.Space = FindSpace(record.Handle)?.Name;
+
+                if (locked != null && locked(record.Handle))
+                {
+                    return "The " + KindName(entity) + " " + record.Handle + " is not in the working set.";
+                }
+
+                if (!EditGate.Allows(this, entity, record, out string reason))
+                {
+                    return reason ?? "The " + KindName(entity) + " " + record.Handle + " may not be changed.";
+                }
+            }
+
+            return null;
         }
 
         /// <summary>Marks the start of an owner applying an edit through <see cref="CadOwnerRegistry.TryApply"/>: the edits it makes are its own.</summary>

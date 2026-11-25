@@ -56,7 +56,7 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
         [Fact]
-        public void APluginThatStatesApiOnePointThreeIsAccepted_AndOnePointFiveIsRefused()
+        public void APluginThatStatesApiOnePointThreeIsAccepted_AndOnePointSixIsRefused()
         {
             string log = Path.Combine(_files.Root, "log.txt");
             Assembly editor = EmittedPlugin.InMemory(
@@ -67,7 +67,7 @@ namespace OpenCAD2D.Plugins.UnitTest
             );
             Assembly newer = EmittedPlugin.InMemory(
                 EmittedPlugin.UniqueName("Newer"),
-                "1.5",
+                "1.6",
                 log,
                 new EmittedClass("Newer")
             );
@@ -78,9 +78,9 @@ namespace OpenCAD2D.Plugins.UnitTest
             );
 
             Assert.Equal(new Version(1, 3), accepted.RequiredApiVersion);
-            Assert.Equal(new Version(1, 4), CadPlugin.ApiVersion);
+            Assert.Equal(new Version(1, 5), CadPlugin.ApiVersion);
             Assert.Equal(
-                "The plugin Uses a later one needs version 1.5 of the plugin API, and this presenter has 1.4: it needs a newer presenter.",
+                "The plugin Uses a later one needs version 1.6 of the plugin API, and this presenter has 1.5: it needs a newer presenter.",
                 refused.Message
             );
         }
