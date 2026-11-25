@@ -226,7 +226,7 @@ namespace OpenCAD2D.Wpf
 
             try
             {
-                file = CadSheetSetFile.Open(full);
+                file = CadSheetSetFile.OpenForEditing(full);
             }
             catch (Exception ex) when (IsFileProblem(ex))
             {
@@ -240,7 +240,7 @@ namespace OpenCAD2D.Wpf
             return true;
         }
 
-        /// <summary>Closes the current sheet set, as Close Sheet Set does; the set opened before it, if there is one, becomes current. The file is not touched.</summary>
+        /// <summary>Closes the current sheet set, as Close Sheet Set does; the set opened before it, if there is one, becomes current. The lock file the set was opened with is deleted; the .dst is not touched.</summary>
         public void CloseSet()
         {
             if (_current == null)
@@ -248,6 +248,7 @@ namespace OpenCAD2D.Wpf
                 return;
             }
 
+            _current.ReleaseLock();
             _sets.Remove(_current);
             MakeCurrent(_sets.LastOrDefault());
         }
@@ -269,7 +270,7 @@ namespace OpenCAD2D.Wpf
                     _main.Say("Cannot read the sheet set " + _current.Path + " again: " + ex.Message);
                 }
 
-                _lockReason = LockReasonOf(_current.Path);
+                _lockReason = LockReasonOf(_current);
                 Raise(nameof(IsLocked));
                 Raise(nameof(LockText));
                 Raise(nameof(LockToolTip));
@@ -281,7 +282,7 @@ namespace OpenCAD2D.Wpf
         private void MakeCurrent(CadSheetSetFile file)
         {
             _current = file;
-            _lockReason = file == null ? null : LockReasonOf(file.Path);
+            _lockReason = file == null ? null : LockReasonOf(file);
             Raise(nameof(Current));
             Raise(nameof(HasSet));
             Raise(nameof(ShowTree));
@@ -777,42 +778,14 @@ namespace OpenCAD2D.Wpf
         // ---- Locks and paths
 
         /// <summary>
-        /// Why a sheet set data file cannot be changed, or null where it can: the file is read-only, or the .DBL file AutoCAD
-        /// keeps beside the set while it is open for editing (Example Tower.DBL) is held by another program.
+        /// Why a sheet set cannot be changed, as "Read-only: The sheet set data file is read-only." or "Read-only: Locked for Edit by
+        /// InuYasha on INUYASHA-MEV.", or null where it can: the file is read-only, or another user holds the .DBL lock file
+        /// AutoCAD and this program keep beside a set that is open for editing (<see cref="CadSheetSetFile.ReadOnlyReason"/>).
         /// </summary>
-        internal static string LockReasonOf(string dst)
+        internal static string LockReasonOf(CadSheetSetFile file)
         {
-            try
-            {
-                if ((File.GetAttributes(dst) & FileAttributes.ReadOnly) != 0)
-                {
-                    return "Read-only: the file is read-only.";
-                }
-
-                string lockFile = Path.ChangeExtension(dst, ".DBL");
-
-                if (File.Exists(lockFile))
-                {
-                    try
-                    {
-                        using (new FileStream(lockFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
-                    }
-                    catch (IOException)
-                    {
-                        return "Read-only: locked by another user (" + Path.GetFileName(lockFile) + " is in use).";
-                    }
-                }
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return "Read-only: the file cannot be written.";
-            }
-            catch (IOException)
-            {
-                return null;
-            }
-
-            return null;
+            string reason = file.ReadOnlyReason;
+            return reason == null ? null : "Read-only: " + reason;
         }
 
         private static bool SamePath(string a, string b)

@@ -113,6 +113,7 @@ namespace OpenCAD2D
             AddLayerMergeTo(registry);
             AddLayerWalkTo(registry);
             AddLayerTranslateTo(registry);
+            AddSheetSetFilesTo(registry);
             AddDesignCenterTo(registry);
             AddSheetSetsTo(registry);
             AddToolPalettesTo(registry);

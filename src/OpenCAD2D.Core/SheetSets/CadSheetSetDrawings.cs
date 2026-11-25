@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using IoPath = System.IO.Path;
 
@@ -307,6 +308,49 @@ namespace OpenCAD2D.SheetSets
                 }
             }
         }
+
+        /// <summary>
+        /// Binds the unbound <c>\AcSm</c> fields of the layouts that have become sheets once the set that holds them is saved (the
+        /// fields come to the sheets' own words only then): the drawing is read as the app reads one, each layout's fields are
+        /// bound (<see cref="CadSheetSetFields.Bind"/>) and, where any was, the drawing is saved again. A drawing that cannot be
+        /// read or saved again is left as it is, said in the log: its fields stay unbound and still show the sheet's words.
+        /// </summary>
+        internal static void BindAfterSave(
+            CadSheetSetFile file,
+            string drawingPath,
+            IReadOnlyList<KeyValuePair<string, CadSheetSetSheet>> sheets,
+            bool refuseLoss
+        ) =>
+            file.AfterSave(() =>
+            {
+                try
+                {
+                    CadDocument document = CadDocument.Open(drawingPath);
+                    int bound = 0;
+
+                    foreach (KeyValuePair<string, CadSheetSetSheet> sheet in sheets)
+                    {
+                        bound += CadSheetSetFields.Bind(document, sheet.Key, file, sheet.Value);
+                    }
+
+                    if (bound > 0)
+                    {
+                        Save(document.Database, drawingPath, refuseLoss);
+                    }
+                }
+                catch (Exception e)
+                    when (e is IOException
+                        || e is UnauthorizedAccessException
+                        || e is NotSupportedException
+                        || e is InvalidOperationException
+                        || e is FormatException
+                    )
+                {
+                    GeometryHelperLog.Warn(
+                        "Sheet set: the fields of " + drawingPath + " were not bound to its sheets: " + e.Message
+                    );
+                }
+            });
 
         private static string Replace(string text, char[] bad)
         {

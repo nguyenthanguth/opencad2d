@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+- **NEW.** OPENSHEETSET and NEWSHEETSET (A12): OPENSHEETSET shows the palette's Open dialog or, with FILEDIA 0 or no window, asks
+  "Enter name of sheet set to open:" as AutoCAD 2021's -OPENSHEETSET does (also a command of its own), answering "File can not be
+  opened." and "Sheet Set file is not valid." in AutoCAD's words; NEWSHEETSET asks the wizard's pages on the command line (an example
+  set or existing drawings, the name, the description, the folder of the `.dst`, a folder hierarchy of the subsets), AutoCAD having no
+  typed form of it. The set made or opened is opened in the Sheet Set Manager.
+- **NEW.** The variables SSLOCATE and SSMAUTOOPEN (0 or 1, 1), SSMPOLLTIME (20 to 600, 60), SSMSHEETSTATUS (0 to 2, 2), SSMSTATE (1 while the
+  palette is shown) and SSFOUND (the set found for the drawing), with the defaults, ranges and messages AutoCAD 2021 gave in its
+  console, shared by the drawings and kept in the settings file. A drawing that is a sheet opens its set when it opens (SSLOCATE), found
+  again where the set was moved with its sheets, and shows the palette (SSMAUTOOPEN).
+- **NEW.** The lock file of a sheet set (A12): a set opened for editing writes `Name.DBL` beside it as AutoCAD does (58 bytes of text with
+  `\r\r\n` line ends: the user and the machine) and deletes it when closed; a set whose file is read-only, or whose lock is another
+  user's, opens read-only with the lock and the user's name in its tooltip, and refuses every change. A lock of this user on this
+  machine is taken over.
+- **NEW.** The sheet list table (A12, engine): `CadSheetListTable.Insert` puts a table of the set's sheets in set order in a layout, with the
+  subsets as merged header rows where asked, the number and title cells as sheet set fields bound to their sheets with AutoCAD's
+  hyperlink switch, and its settings kept in the table; `Update` lists the set again after a sheet was added or removed, in one undo step.
+- **NEW.** Example sheet sets (A12): New Sheet Set and OpenCAD2D Metric Sheet Set (the subsets General, Plans and Details, the properties
+  Client, Project Address, Drawn By and Checked By) with the template OpenCAD2D-sheets-mm.dwt (an A1 layout with a frame and a title
+  block of sheet set fields), in a SheetSetExamples folder beside the program; our own, not AutoCAD's.
+- **CHANGED.** New Sheet and Import Layouts as Sheets bind the `\AcSm` fields of the new sheet's layout to the sheet once the set is saved
+  (the fields of a title block show the sheet's own words, and AutoCAD shows them too); the fields and the operations read a drawing's
+  sheet set mark with one reader, `CadSheetSetHint`.
 - **NEW.** The Sheet Set Manager (A12, the palette): SHEETSET shows it as a floating window beside the drawing and
   SHEETSETHIDE closes it. The sheet set control lists the sets open (the current one ticked), Recent (the last ten `.dst`
   files, newest first) and New Sheet Set… / Open…; the Sheet List tab shows the set, its subsets and its sheets in set order

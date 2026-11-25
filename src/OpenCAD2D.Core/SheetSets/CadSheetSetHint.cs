@@ -75,7 +75,18 @@ namespace OpenCAD2D.SheetSets
                 throw new ArgumentNullException(nameof(database));
             }
 
-            DxfDBDictionary mark = Find(database);
+            DxfDBDictionary mark;
+
+            try
+            {
+                mark = Find(database);
+            }
+            catch (InvalidOperationException)
+            {
+                // A drawing whose objects cannot be read holds no mark that names a set.
+                return null;
+            }
+
             if (mark == null)
             {
                 return null;

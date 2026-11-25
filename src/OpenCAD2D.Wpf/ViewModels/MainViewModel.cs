@@ -819,6 +819,7 @@ namespace OpenCAD2D.Wpf
                     + " layers."
             );
             NoteRecentFile(full);
+            LocateSheetSetOf(known);
             OfferMissingFonts(document);
             return true;
         }
@@ -1909,6 +1910,7 @@ namespace OpenCAD2D.Wpf
             file.Session.Clipboard = _clipboard;
             file.Session.SpellDictionaryPath = _spellDictionaryPath;
             file.Session.PlotStamp = _plotStamp;
+            file.Session.SheetSetOptions = SheetSetOptions;
             file.Session.Progress = Progress;
             ApplyTextDefaults(file.Session);
             document.Fonts = _settings.ToFonts(SkiaCanvasRenderer.HasFamily);
@@ -2362,6 +2364,12 @@ namespace OpenCAD2D.Wpf
                 case "SHEETSET":
                 case "SHEETSETHIDE":
                     OnSheetSetRequested(e);
+                    break;
+                case "OPENSHEETSET":
+                case "NEWSHEETSET":
+                case "SSMSTATE":
+                case "SSLOCATE":
+                    OnSheetSetFileRequested(e);
                     break;
             }
         }

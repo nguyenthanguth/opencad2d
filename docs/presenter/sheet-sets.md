@@ -8,7 +8,8 @@ operations on it); this page is the Sheet Set Manager, the palette that shows a 
 ## The Sheet Set Manager
 
 SHEETSET shows the palette, a floating window beside the drawing that stays open until SHEETSETHIDE (or its cross) closes it.
-It is not docked, as DesignCenter and the tool palettes are not. SSMSTATE, AutoCAD's variable for it, is not built yet.
+It is not docked, as DesignCenter and the tool palettes are not. SSMSTATE, AutoCAD's variable for it, is 1 while the palette is
+shown and 0 otherwise (it is read only).
 From top to bottom the palette holds:
 
 - **The sheet set control.** It reads **Open…** while no set is open, and the name of the current set afterwards. Its list
@@ -98,7 +99,7 @@ lock shows before the name in the control, its tooltip says why, and the Status 
 changes the set is grey (New Sheet, New Subset, Import Layout as Sheet, Resave All Sheets, Insert Sheet List Table, and on a
 sheet New Sheet, Rename & Renumber, Remove Sheet and Include for Publish), the rows cannot be dragged, and a change asked of
 the model is refused with a line on the command line. Close Sheet Set, Publish, eTransmit, Manage Page Setups and Properties
-work as before. The palette does not write a `.DBL` of its own yet.
+work as before. The palette writes the `.DBL` of a set it opens for editing (see below), and deletes it when the set is closed.
 
 ## What the operations do to the drawings
 
@@ -122,6 +123,105 @@ work as before. The palette does not write a `.DBL` of its own yet.
 - **Import**, **Resave All Sheets** and **Rename & Renumber** do the same dance for a drawing they rewrite.
 - **Remove Sheet** takes the sheet out of the set; the drawing is kept.
 
+## Opening and making sets from the command line
+
+- **OPENSHEETSET** shows the palette's Open Sheet Set dialog. With FILEDIA 0, or where there is no window, it asks "Enter name of
+  sheet set to open:" (**-OPENSHEETSET** asks it whatever FILEDIA is, as AutoCAD 2021's own does): a `.dst` typed with its path, or with
+  none one in the folder of the drawing; the extension is added where there is none. A file that is not there is answered "File can not
+  be opened." and one that is not a sheet set data file "Sheet Set file is not valid." (AutoCAD's own words, read from its resources).
+  The set is opened in the Sheet Set Manager and made current, and the palette is shown.
+- **NEWSHEETSET** shows the Create Sheet Set wizard. AutoCAD 2021 has no typed form of it (its console does not know the command), so
+  with FILEDIA 0, or where there is no window, the questions are ours, in the words of the wizard's pages: "Create a sheet set using
+  [Example/Drawings] <Example>:". For an example it lists the example sets (see below) and asks "Select a sheet set to use as an
+  example" (a number of the list, a name in it or the path of a `.dst`); for drawings it asks the drawings, separated by commas, whose
+  layouts become the sheets (a layout that cannot be a sheet is said, with its reason, and left out). Then "Name of new sheet set:",
+  "Description (optional):", "Store sheet set data file (.dst) here <...>:" (a folder that is not there is made on a Yes) and, for an
+  example, "Create a folder hierarchy based on subsets [Yes/No] <No>:". A file of that name already there is answered "This file already
+  exists. Please enter a different filename." and the name asked again. The set is made as `CadSheetSetFile.CreateFromExample` or
+  `CreateFromDrawings` make it and opened in the Sheet Set Manager. Until the wizard is built the palette's New Sheet Set... runs these
+  questions.
+
+## The variables
+
+| Variable | Meaning | Default and range |
+|---|---|---|
+| SSLOCATE | open the sheet set of a drawing when the drawing opens | 1; 0 or 1 ("Requires 0 or 1 only.") |
+| SSMAUTOOPEN | show the palette when a sheet's drawing opens (needs SSLOCATE 1) | 1; 0 or 1 |
+| SSMPOLLTIME | seconds between looks at the sheets' status while the palette is shown and SSMSHEETSTATUS is 2 | 60; 20 to 600 ("Requires an integer between 20 and 600.") |
+| SSMSHEETSTATUS | when the sheets' status is looked at: 0 never, 1 when a set is loaded or refreshed, 2 as well on the timer | 2; 0 to 2 |
+| SSMSTATE | 1 while the palette is shown | 0; read only |
+| SSFOUND | the file of the sheet set found for the drawing | ""; read only |
+
+The defaults, the ranges and the messages are those AutoCAD 2021 gave in its console. SSLOCATE, SSMAUTOOPEN, SSMPOLLTIME and
+SSMSHEETSTATUS are the same in every drawing of the session and are kept in the settings file (`sheetSets` of `settings.json`); the
+folder the wizard offers for the `.dst` (`OpenCAD2D Sheet Sets` in Documents unless the settings name another) is kept there too.
+
+### A drawing that is a sheet
+
+When a drawing is opened with SSLOCATE 1, the sheet set mark it carries (see "What the operations do to the drawings") names its set. The
+file is looked for where the mark says and, if it is not there, as far from the drawing as the mark says it was, so that a set moved
+with its sheets is found. SSFOUND holds the file, the set is opened in the Sheet Set Manager and made current, and with SSMAUTOOPEN 1
+the palette is shown. A drawing with no mark, or whose set is gone or is no sheet set, finds nothing and SSFOUND stays empty.
+
+## Who has a set open: the lock file
+
+A set the palette opens for editing gets a lock file beside it, as AutoCAD writes one: `Example Tower.DBL` for `Example Tower.dst`, 58
+bytes of text for the user InuYasha on the machine INUYASHA-MEV, with the lines ended `\r\r\n`:
+
+```text
+[UserInfo]
+UserName=InuYasha
+Machine=INUYASHA-MEV
+(an empty line)
+```
+
+The file is deleted when the set is closed. A set whose lock names another user, or whose `.dst` is read-only, opens read-only: the lock
+before its name in the control says "Read-only: Locked for Edit by SOMEONE on OTHER-PC." and every change is refused. A lock of this user
+on this machine is taken as one's own, so that a lock left by a program that was killed does not shut its user out.
+
+## The example sheet sets
+
+The first route of the wizard lists the sets in the `SheetSetExamples` folder beside `OpenCAD2D.Core.dll`, which are our own, made by
+our writer, none of AutoCAD's: **New Sheet Set** (no subsets, no sheets, no template: a new sheet asks for one) and **OpenCAD2D
+Metric Sheet Set** (the subsets General, Plans and Details; the set properties Client and Project Address; the sheet properties
+Drawn By and Checked By; the layout "A1 sheet" of `OpenCAD2D-sheets-mm.dwt`, beside them, as the sheet creation template, with no
+question). The template is a drawing in millimetres with one layout, "A1 sheet" (841 by 594), a frame 10 in from the paper's edge and a
+title block 180 by 54 at its bottom right corner whose attributes hold sheet set fields: the sheet's number and title, the set's name,
+client and address, who drew and who checked. A set made from the metric example and a sheet made in it ("A-101", "Ground floor", in
+Plans) gives a drawing `A-101 Ground floor.dwg` whose layout is "A-101 Ground floor" and whose title block shows A-101, Ground floor
+and the set's name, with the fields bound to that sheet, so that a later renumbering reaches it.
+
+## The sheet list table
+
+`CadSheetListTable.Insert` puts a table in the current layout (never in model space): a title row ("Sheet List Table" unless it is
+given another), a row of headings, then a row for each sheet in set order. With **Include subsets as headers** a row, merged across
+the table, with the subset's name comes ahead of its sheets. The default columns are Sheet Number and Sheet Title; the data types are
+Sheet Number, Sheet Title, Sheet Description, Subset, Revision Number, Revision Date, Issue Purpose, Category, Drawing File and Layout,
+and a custom property of the sheets. A set of G-001 Cover, then Plans with A-101 Ground floor and A-102 First floor, then Details with
+D-001 Door lists as 6 rows of a table (the title, the headings, 4 sheets), or as 8 with the headers:
+
+```text
+Sheet List Table
+Sheet Number | Sheet Title
+G-001        | Cover
+Plans
+A-101        | Ground floor
+A-102        | First floor
+Details
+D-001        | Door
+```
+
+The cells are fields of the set bound to their sheet; the number and title ones carry AutoCAD's hyperlink switch
+(`\href ".\A-101.dwg#,A-101#A-101#1"`: the sheet's drawing relative to the drawing the table is in, the layout, the words), so that
+they follow a renumbering when the fields are updated (the table's Update Fields) and open the sheet. Which subsets and sheets are
+listed is a list of checked parts: a sheet checked is listed, and so is every sheet of a checked subset, the ones added later too.
+
+The settings are kept in the table itself, in its extension dictionary under the xrecord `OPENCAD2D_SHEETLISTTABLE`, our own: to AutoCAD
+the table is a plain one whose fields still update. `CadSheetListTable.Update` lists the set again from them, after a sheet was added or
+removed: it makes the table anew in the same corner, style and column widths and takes the old one's place, as one undo step (the new
+table has a new handle, and what was typed in the old table's cells by hand is gone). The Insert Sheet List Table dialog and the table's
+right-click items follow in a later package.
+
 ## From a program
 
 The palette is `SheetSetManagerViewModel` (the logic) and `SheetSetManagerWindow` (the window) in `OpenCAD2D.Wpf`; the model
@@ -129,3 +229,14 @@ keeps the sets open and the one current while the palette is closed (`MainViewMo
 `MainViewModel.IsSheetSetShown` says whether it is shown (AutoCAD's SSMSTATE). Its menus are lists of `CadMenuItemViewModel`
 (`MenuFor`, `ControlMenu`), and its operations are methods (`NewSubset`, `NewSheet`, `ImportLayouts`, `RenameAndRenumber`,
 `Remove`, `Move`, `ResaveAllSheets`, `OpenSheets`), each of which says on the command line what the core refused.
+
+The commands and the variables are in `CadCommands.SheetSetFiles.cs`; a command asks the window with the requests OPENSHEETSET (a
+`CadSheetSetRequest` whose `Path` is the `.dst` to open, or null for the Open Sheet Set dialog), NEWSHEETSET (null: the wizard) and
+SSLOCATE (the set found, and whether to show the palette), and SSMSTATE (answered "1" in `CadUiRequestEventArgs.Answer` while the palette
+is shown). `CadCommandSession.SheetSetOptions` holds the variables (the app gives every session one), `CadCommandSession.LocateSheetSet`
+is SSLOCATE and `CadCommandSession.SheetSetFound` SSFOUND. `CadSheetSetFile.OpenForEditing` opens a set the way the palette does, taking the
+lock (`CadSheetSetLock`) or opening read-only (`IsReadOnly`, `ReadOnlyReason`, `LockedBy`), and `ReleaseLock` lets it go; `Change` refuses a
+read-only set. `CadSheetSetExamples` lists the examples and `CadSheetListTable` makes and updates the table.
+
+The sections of the Sheet Views and Model Views tabs, the dialogs (New Sheet, Import, Rename & Renumber, the Properties and the Create
+Sheet Set wizard), publishing and eTransmit are added by the packages that build them.
