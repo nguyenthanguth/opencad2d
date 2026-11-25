@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **NEW.** `CadDocuments` for C# plugins, as AutoCAD's `DocumentManager` (A9): `CadPluginContext.Documents`,
+  `CadCommandContext.Documents` and `CadCommandSession.Documents` list the open drawings, make one active, open a DWG or
+  DXF, add a new one from the template, and close one with `Close`, `CloseAndDiscard` or `CloseAndSave`. A drawing with
+  changes not saved, or with a command running, is refused as Remote's close refuses it, and a session with no window
+  says so. Opening, adding and showing are refused while a command runs in the drawing shown. Plugin API 1.4.
 - **NEW.** Python `Drawing.zoom_extents`, `zoom_window`, `zoom_objects`, `zoom_center`, `zoom_scaled`, `zoom_previous`,
   `pan`, `regen`, `view` (a `Box`) and `has_window`, the named views (`named_views`, `save_view`, `restore_view`,
   `delete_view`), the selection by area (`select_all`, `select_window`, `select_crossing`) and `get_variable` /

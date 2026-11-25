@@ -432,9 +432,9 @@ namespace OpenCAD2D.Plugins.UnitTest
         // ---- the version of the plugin API ----
 
         [Fact]
-        public void ThePluginApiThisPresenterHasIsOnePointThree()
+        public void ThePluginApiThisPresenterHasIsOnePointFour()
         {
-            Assert.Equal(new Version(1, 3), CadPlugin.ApiVersion);
+            Assert.Equal(new Version(1, 4), CadPlugin.ApiVersion);
         }
 
         [Theory]
@@ -442,7 +442,8 @@ namespace OpenCAD2D.Plugins.UnitTest
         [InlineData("1.1")]
         [InlineData("1.2")]
         [InlineData("1.3")]
-        public void AnApplicationPluginThatStatesApiOnePointZeroToOnePointThreeIsAccepted(string api)
+        [InlineData("1.4")]
+        public void AnApplicationPluginThatStatesApiOnePointZeroToOnePointFourIsAccepted(string api)
         {
             Assembly assembly = EmittedPlugin.InMemory(
                 EmittedPlugin.UniqueName("Api"),
@@ -457,11 +458,11 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
         [Fact]
-        public void AnApplicationPluginThatStatesApiOnePointFourIsRefusedWithTheExistingWords()
+        public void AnApplicationPluginThatStatesApiOnePointFiveIsRefusedWithTheExistingWords()
         {
             Assembly assembly = EmittedPlugin.InMemory(
                 EmittedPlugin.UniqueName("Newer"),
-                "1.4",
+                "1.5",
                 Log,
                 new EmittedClass("Newer")
             );
@@ -471,7 +472,7 @@ namespace OpenCAD2D.Plugins.UnitTest
             );
 
             Assert.Equal(
-                "The plugin Needs one two needs version 1.4 of the plugin API, and this presenter has 1.3: it needs a newer presenter.",
+                "The plugin Needs one two needs version 1.5 of the plugin API, and this presenter has 1.4: it needs a newer presenter.",
                 refused.Message
             );
             Assert.Empty(EmittedPlugin.Lines(Log));

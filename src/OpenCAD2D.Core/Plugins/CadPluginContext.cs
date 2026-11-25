@@ -19,11 +19,13 @@ namespace OpenCAD2D.Plugins
             bool isCommandRunning,
             Action<string> write,
             Action<string> runCommand,
-            CadEditor editor = null
+            CadEditor editor = null,
+            CadDocuments documents = null
         )
         {
             Document = document;
             Editor = editor;
+            Documents = documents ?? new CadDocuments(null, document);
             Selected = selected ?? Array.Empty<string>();
             IsCommandRunning = isCommandRunning;
             _write = write;
@@ -39,6 +41,14 @@ namespace OpenCAD2D.Plugins
         /// <c>[assembly: CadPluginApi("1.3")]</c>.
         /// </summary>
         public CadEditor Editor { get; }
+
+        /// <summary>
+        /// Gets the drawings open in the app, as AutoCAD's <c>DocumentManager</c> holds them: the list, the active one, and the
+        /// calls that open a file, add a new drawing, show one and close one. A callback of a button, a menu item or a
+        /// DRAWINGS row, where no command runs, may call them all. A plugin that uses it states
+        /// <c>[assembly: CadPluginApi("1.4")]</c>.
+        /// </summary>
+        public CadDocuments Documents { get; }
 
         /// <summary>Gets the handles of the objects selected, in ordinal order; empty for none.</summary>
         public IReadOnlyList<string> Selected { get; }

@@ -36,6 +36,13 @@ namespace OpenCAD2D
         /// </summary>
         public CadEditor Editor => Session.Editor;
 
+        /// <summary>
+        /// Gets the drawings open in the app: the list, the one shown, and the calls that open, make, show or close one. A
+        /// command may read the list and close another drawing; opening, making and showing a drawing end the command
+        /// running, so they are refused here (see <see cref="CadDocuments"/>).
+        /// </summary>
+        public CadDocuments Documents => Session.Documents;
+
         /// <summary>Gets the document.</summary>
         public CadDocument Document => Session.Document;
 

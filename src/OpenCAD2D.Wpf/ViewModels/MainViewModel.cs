@@ -1889,6 +1889,7 @@ namespace OpenCAD2D.Wpf
             file.Session.PromptChanged += OnPromptChanged;
             file.Session.UiRequested += OnUiRequested;
             file.Session.ViewChanged += OnSessionViewChanged;
+            file.Session.Documents = PluginDocuments;
             file.Session.DclHost = _dclHost;
             file.Session.LoadSecurity = _loadSecurity;
             file.Session.LispEnvironment = _lispEnvironment;
