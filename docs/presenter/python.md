@@ -140,7 +140,8 @@ start with the same line until it is replaced by the folder. PYRUN still runs a 
 
 A command is a name or an object (`name`, `alias`, `description`, `usesSelection`). The ribbon is tabs of panels of buttons; a
 button is `text`, the `command` it starts, an `icon` (an image file of the tool's folder), a `size` (`standard` or `large`)
-and a `tooltip`, and starts a command and nothing else. Only `name` is needed. When the tool's process is ready the app
+and a `tooltip`, and starts a command and nothing else. `snaps` and `settings` are [Snaps](#snaps) and [Settings](#settings).
+Only `name` is needed. When the tool's process is ready the app
 compares what it bound with `@command` against the names of the file: a name with no `@command` fails its run with
 `GHOST is declared by the tool, but it has no @command of that name.`, and an `@command` the file does not name is a warning in
 the log. A `plugin.json` that cannot be read keeps the tool from loading, with the line `Stairs was not loaded: plugin.json: <why>`.
@@ -460,10 +461,152 @@ not 1, and no undo step. A run that only asks and writes makes no step and does 
 `undo_group` of the tool, from `opencad2d`, nests in the run's step. While the tool works the drawing is busy with the
 command: `STAIRSPY is working... (Esc to stop)`, and no other command runs in it.
 
+## Snaps
+
+A tool adds an object snap as a C# plugin does ([`CadCustomSnap`](plugins.md)): a name, a keyword typed as an override, a marker,
+the types of entity it applies to, and whether it is on by default. The snap is declared in `plugin.json`, and its code is
+bound by `@snap`, as a command is declared there and bound by `@command`:
+
+```json
+{
+    "name": "Circles",
+    "commands": ["MARKTOPS"],
+    "snaps": [
+        { "keyword": "CTOP", "name": "Circle top", "entityTypes": ["CIRCLE"], "glyph": "quadrant", "onByDefault": true }
+    ]
+}
+```
+
+```python
+from opencad2d.cad import SnapRequest, snap
+from GeometryHelper.Geometry import GeoPoint2
+
+@snap("CTOP")
+def circle_top(request: SnapRequest) -> list[GeoPoint2]:
+    c = request.entity                    # a DxfCircle: plugin.json says "entityTypes": ["CIRCLE"]
+    return [GeoPoint2(c.Center.X, c.Center.Y + c.Radius)]   # a circle r=25 at (100, 50) gives (100, 75)
+```
+
+The snap is listed in Drafting Settings under Plugin snaps, in the OSNAP menu and in Shift+right-click, under the tool's name,
+with no Python running: the tool's process starts only when the snap first needs an answer. It works through viewports, inside
+blocks and for a point typed after its keyword (`CTOP` at a "Specify point:" prompt), as a C# plugin's snap does.
+
+A **keyword** is one word, kept in capitals (`snap("ctop")` is `CTOP`); the host's rules for a plugin snap's keyword are the same
+(a keyword a loaded plugin or an earlier tool has, or one the host refuses, is left out with the line
+`Circles: the snap CTOP was left out: <reason>.`, and the rest of the tool loads). `entityTypes` are DXF names (`"CIRCLE"`,
+`"ARC"`, `"LWPOLYLINE"`); none means every entity. `glyph` is a marker name, one of the object snap kinds in any case
+(`"quadrant"`), or strokes in pixels about the point, Y down: `[ { "points": [[-4.5, 4.5], [4.5, 4.5], [0, -4.5]],
+"closed": true, "dotted": false, "filled": false } ]`; none gives the default square with a dot. An unknown name or a broken
+stroke keeps the tool from loading.
+
+### What the finder is given and gives
+
+A `SnapRequest` has `entity` (the `GeometryHelper.Dxf` entity: inside a block the copy placed where the references draw it, so
+a circle of radius 10 in a block inserted at scale 2 comes as radius 20), `handle` (its own, in its block for an entity in a
+block) and `block_references` (the handles of the references it is in, outermost first; empty for an entity of the space). It has
+no cursor, no aperture and no base point: **a Python snap depends on the entity alone**, because a point that does not move with
+the cursor is what lets the app keep the answer for the entity. The app drops the points outside the aperture, as it does for a
+C# snap. A snap that needs the cursor (a perpendicular from the base point) stays a C# plugin's.
+
+It returns a list of points, or None for none: `GeoPoint2`, `GeoPoint3` (Z dropped) or `(x, y)`, in world coordinates of the space
+shown (model coordinates through a viewport, as the C# finder gives them). More than 1 000 points for one entity, or a point that
+is not finite, is an error of that entity.
+
+### When it is asked, and what it costs
+
+The tool is not on the path of the mouse: the app never waits for it on the window thread. The first move over an entity finds no
+answer, asks the tool and shows nothing; the answer arrives, the app tracks again at the last cursor position and the point shows
+with no other move. The answer is kept, so each later move over that entity is a lookup. The kept answers of a drawing go on every
+change of it (an edit, an undo, a regen, a table change), and all of a tool's on its process ending, its unload and its reload;
+more than 10 000 kept answers of one tool clear them all. The misses of one snap pass, every keyword of the tool together, go
+in one question.
+
+A point typed after the snap's keyword is one deliberate act that needs its answer at once: it asks and waits **at most 1 second**
+on the window thread, then says `No Circle top found for specified point.` as for no point.
+
+What the answer costs was measured on the headless test server of the repository with a tool of Python 3.14, two runs of 2 000
+questions (500 where noted), the time from the app sending the question to reading its answer:
+
+| Question | Median | 99th percentile |
+|---|---|---|
+| 1 entity, the tool idle | 0.03 ms | 0.06 to 0.14 ms |
+| 20 entities in one question | 0.10 ms | 0.18 to 0.28 ms |
+| 1 entity, the tool's main thread waiting at a prompt (500) | 0.08 ms | 0.16 to 0.27 ms |
+| 1 entity, the tool's main thread in a loop of Python that computes (500) | 0.13 and 47 ms | 42 and 64 ms |
+| a circle packed in the app and read in the tool (500) | 0.7 ms | |
+| a polyline of 200 vertices, the same (500) | 1.1 to 1.2 ms | |
+
+Through the finished tool (the DXF text of the entities read there and the finder of the guide run, from the question sent to the
+answer read, on the same server): 1 entity 0.29 ms at the median and 0.50 ms at the 99th percentile (1 000 questions), 20 entities
+0.85 ms and 2.6 ms (500), and with the main thread in the loop 32 ms at the median, 80 ms at the 99th percentile and 94 ms at
+most (300).
+
+The row of the loop is the Python lock: a tool whose command is computing answers a finder in up to 65 ms. A tool whose process
+has not started costs 0.3 to 0.4 s once. The tests of the repository ask while a command waits at `get_point` and while it spins
+in a loop, and want the answer within a second.
+
+A snap **starts the tool's process only quietly**: a tool with no process whose environment is ready, or can be made with no
+question and no download (an empty `requirements.txt`), is started by the first snap that needs it. A tool whose packages are not
+yet approved or installed is not started by a snap, and its snaps give nothing until a command of it has made it ready. A mouse
+move never shows a dialog, runs pip or asks on the command line.
+
+### Where the finder runs, and what goes wrong
+
+The finder runs on a thread of the tool's own (`opencad2d.tool snaps`), never on the main thread, which runs commands, nor on the
+thread that listens for Esc. It may run while a command runs, and it must only read what it is given: `get_point`, `write`,
+`active_drawing` and the other functions that need a run raise `RuntimeError` in it, as they do outside any run, and what it
+prints goes to the tool's own output, not to the command line. A finder that never returns leaves its snap silent (and a typed
+point "not found" after 1 second) until the tool is loaded again.
+
+A finder that raises makes an error of that entity: the app keeps it and the snap is off for the session with the line a C#
+snap's failure gives, `The snap CTOP of Circles failed and is off: ValueError: no circle`; choosing the snap on again asks again. A
+snap declared in `plugin.json` with no `@snap` of its keyword fails the same way at its first ask, `CTOP has no @snap in the
+tool.`, and an `@snap` that the file does not declare is a warning in the log when the tool is ready, as an undeclared `@command` is.
+
+## Settings
+
+A tool declares settings in `plugin.json`, as a C# plugin does with `[CadSetting]`: a label, a kind, a default, a range, choices
+and a description. They are shown in one window and kept in the settings file; the tool reads and writes them.
+
+```json
+{
+    "name": "Circles",
+    "settings": [
+        { "name": "textHeight", "label": "Text height", "kind": "number", "default": 2.5, "minimum": 0.1, "maximum": 1000,
+          "description": "How high the marks are written." },
+        { "name": "side", "label": "Side", "kind": "choice", "choices": ["Left", "Right"], "default": "Left" }
+    ]
+}
+```
+
+The kinds are `number`, `integer`, `boolean`, `text` and `choice` (which has `choices`, and a default that is one of them).
+`name` is a Python identifier, once in the file; `label` is the name where none is given; `default` is required, of the kind and
+inside the range. A setting that breaks one of these rules keeps the tool from loading, with the rule in the line
+`Circles was not loaded: plugin.json: ...`.
+
+```python
+from opencad2d.cad import set_setting, setting
+
+height = setting("textHeight")            # 2.5 until changed in Load/Unload Applications > Settings...
+set_setting("textHeight", 4.0)            # kept in the settings file; setting("textHeight") now gives 4.0
+set_setting("textHeight", 0.05)           # ValueError: The setting Text height lies from 0.1 to 1000.
+```
+
+`setting(name)` gives the value kept, else the default, as a `float`, `int`, `bool` or `str` of the kind. `set_setting(name, value)`
+checks the value by the setting's own rules, the words a C# property of the plugin is refused in. Both work at import, in a command
+and in a snap finder, in a run or out of one, and answer on the channel of the tools with no help of the window thread, so a finder
+can read a setting while the window waits for it. A name the tool does not declare, and a value the setting refuses, raise
+`ValueError` with the app's words and change nothing; both raise `RuntimeError` in a process that is no tool.
+
+A value is kept in the settings file by the tool's name and the setting's, `Circles/textHeight=4` among the `pluginSettings`
+lines, in the invariant culture; a value equal to the default takes its line away. A tool never set keeps its defaults. Load/Unload
+Applications has a **Settings...** button for a loaded row that declares settings (a C# plugin's or a tool's), which opens a window
+of one row for each setting with its range and description; OK applies every value at once.
+
 ## Adding to the window
 
 A tool adds to the window through its `plugin.json` (see [`plugin.json`](#pluginjson)): ribbon tabs, panels and buttons that
-start its commands. The app shows them when the tool loads, with no Python running, and takes them away when the tool is
+start its commands, and [snaps](#snaps) and [settings](#settings). The app shows them when the tool loads, with no Python running, and takes them away when the tool is
 unloaded. What a command plugin written in C# can add and a tool cannot:
 
 | C# | A Python tool |
@@ -472,7 +615,8 @@ unloaded. What a command plugin written in C# can add and a tool cannot:
 | `ICadPluginApplication.Terminate()` | `@on_unload` |
 | `AddRibbonTab`, `AddRibbonPanel`, `CadRibbonButton` | the `"ribbon"` of `plugin.json`; a button starts a command and has no callback |
 | `AddDrawingsButton`, `AddDrawingsMenu`, `AddCanvasMenu`, `AddProperties` | **not there**: they ran code of the tool at the window's thread |
-| `AddObjectSnap`, `[CadSetting]` | **not there** |
+| `AddObjectSnap` | `@snap(keyword)` and a `"snaps"` entry of `plugin.json` ([Snaps](#snaps)): a finder of the entity alone, asked once for each entity |
+| `[CadSetting]` | a `"settings"` entry of `plugin.json`, read with `setting(name)` and written with `set_setting(name, value)` ([Settings](#settings)) |
 | the side panel (`CadWorkspaceExtension.SidePanelContent`) | **not there**: a tool shows no WPF content; one that needs its own window is an outside app (`connect()`) |
 
 A tool that needs one of those is a [command plugin](plugins.md) in C#.
@@ -594,7 +738,7 @@ Measured on Python 3.14 (net48 test host, local wheels): the base 1.7 s once and
 
 ## What is not there yet
 
-- Custom object snaps, plugin settings, a side panel, Properties rows and menus for a tool (the **not there** rows above).
+- A side panel, Properties rows and menus for a tool (the **not there** rows above), and a snap that depends on the cursor.
 - A script editor, completion (Ctrl+Space) and a debugger; a console for typing Python an entry at a time.
 - A Python of the app's own: the app does not bundle one.
 - Systems other than Windows: the app is Windows only.
@@ -602,7 +746,7 @@ Measured on Python 3.14 (net48 test host, local wheels): the base 1.7 s once and
 ## See also
 
 - [Python](../python.md): the library and the presenter from outside the app, the stubs, numpy in blocks and undo groups.
-- [Python examples](../python-examples.md): three tools for the app, with what each prints, and ten more scripts for outside it.
+- [Python examples](../python-examples.md): four tools for the app, with what each prints, and ten more scripts for outside it.
 - [AutoLISP](lisp.md): the other language of the command line; its prompts and Esc as Python does them.
 - [Command plugins](plugins.md): a command written in a .NET assembly.
 - [Driving the app from another program](remote.md): the same `Drawing` from outside the app.

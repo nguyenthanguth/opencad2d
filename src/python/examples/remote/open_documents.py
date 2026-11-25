@@ -7,12 +7,10 @@ space, and the count of each class of object.
 
 from collections import Counter
 
-from opencad2d.cad import App
-from OpenCAD2D.Remote import CadApplication
+from opencad2d.cad import App, connect
 
 
-def main(app: CadApplication) -> None:
-    cad = App(app)  # the Drawing API over the connection, as connect() gives it
+def main(cad: App) -> None:
     for drawing in cad.documents:
         objects = drawing.entities(layout="Model")
         classes = Counter(type(entity.net).__name__ for entity in objects)
@@ -22,5 +20,5 @@ def main(app: CadApplication) -> None:
 
 
 if __name__ == "__main__":
-    with CadApplication() as app:
-        main(app)
+    with connect() as cad:
+        main(cad)

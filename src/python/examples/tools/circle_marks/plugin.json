@@ -1,0 +1,39 @@
+{
+    "name": "circle_marks",
+    "commands": [
+        { "name": "MARKTOPS", "description": "Write a mark at the top of each circle you select", "usesSelection": true }
+    ],
+    "ribbon": [
+        {
+            "id": "circles",
+            "title": "Circles",
+            "panels": [
+                {
+                    "title": "Marks",
+                    "buttons": [
+                        {
+                            "text": "Mark tops",
+                            "command": "MARKTOPS",
+                            "size": "large",
+                            "tooltip": "Writes a mark at the top of each circle you select"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "snaps": [
+        { "keyword": "CTOP", "name": "Circle top", "entityTypes": ["CIRCLE"], "glyph": "quadrant", "onByDefault": true }
+    ],
+    "settings": [
+        {
+            "name": "textHeight",
+            "label": "Text height",
+            "kind": "number",
+            "default": 2.5,
+            "minimum": 0.1,
+            "maximum": 1000,
+            "description": "How high the marks are written."
+        }
+    ]
+}
