@@ -14,7 +14,7 @@ namespace OpenCAD2D.UnitTest
     /// The built-in names of the program before it was called OpenCAD2D, still read: the plotters GeometryHelper PDF, PNG and
     /// JPG a drawing or page setup names plot to OpenCAD2D PDF, PNG and JPG and are saved by the new names; the linetype file
     /// GeometryHelper.lin and the pattern file GeometryHelper.pat are the built-in sets; the sample template
-    /// GeometryHelper-mm.dwt a settings file names for QNEW finds OpenCAD2D-mm.dwt. The built-in font is OpenCAD2D Simplex.
+    /// GeometryHelper-mm.dwt a settings file names for QNEW finds OpenCAD2D-mm.dwt. The built-in font is OpenCAD2D ISO.
     /// </summary>
     public sealed class OldBuiltInNamesTests : IDisposable
     {
@@ -188,9 +188,9 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
-        public void TheBuiltInFont_IsOpenCad2dSimplex_InItsTitle_AndInTheShippedShxFile()
+        public void TheBuiltInFont_IsOpenCad2dIso_InItsTitle_AndInTheShippedShxFile()
         {
-            Assert.Equal("OpenCAD2D Simplex", CadFonts.BuiltInTitle);
+            Assert.Equal("OpenCAD2D ISO", CadFonts.BuiltInTitle);
             string shipped = Encoding.ASCII.GetString(
                 File.ReadAllBytes(
                     Path.Combine(
@@ -200,7 +200,7 @@ namespace OpenCAD2D.UnitTest
                 )
             );
 
-            Assert.Contains("OpenCAD2D Simplex\0", shipped);
+            Assert.Contains("OpenCAD2D ISO\0", shipped);
             Assert.DoesNotContain("GeometryHelper", shipped);
         }
     }

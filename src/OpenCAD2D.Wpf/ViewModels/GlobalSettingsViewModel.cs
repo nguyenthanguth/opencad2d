@@ -1012,7 +1012,7 @@ namespace OpenCAD2D.Wpf
                 ),
                 new GlobalSettingCategory(
                     "Text and fonts",
-                    "The font of the app, what draws a font of a drawing not found (FONTALT, the font mapping file and the substitutions), and the answers of hidden messages (AutoCAD’s Hidden Message Settings): set one back to Ask, or Reset to defaults, to be asked again. A font not found is drawn in OpenCAD2D Simplex (ghsimplex), the presenter's own single-stroke font, by default."
+                    "The font of the app, what draws a font of a drawing not found (FONTALT, the font mapping file and the substitutions), and the answers of hidden messages (AutoCAD’s Hidden Message Settings): set one back to Ask, or Reset to defaults, to be asked again. A font not found is drawn in OpenCAD2D ISO (opencad2d), the presenter's own single-stroke font, by default."
                 ),
                 new GlobalSettingCategory(
                     "Folder preference",

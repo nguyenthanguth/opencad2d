@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **BREAKING.** The built-in font is now OpenCAD2D ISO (`opencad2d.shx`; `CadFonts.BuiltInName` is `"opencad2d"`,
+  `CadFonts.BuiltInTitle` is `"OpenCAD2D ISO"`), our own single-stroke upright lettering in the proportions of ISO 3098
+  type B (TCVN 7284), with the Vietnamese letters, replacing OpenCAD2D Simplex (`ghsimplex`, the Hershey Roman Simplex).
+  `ghsimplex` and `ghsimplex.shx` are removed, with no alias: `CadFonts.IsBuiltIn("ghsimplex")` is false, and a text style
+  naming `ghsimplex.shx` is a missing font, drawn in the FONTALT replacement. A settings file that saved the FONTALT
+  replacement as exactly `ghsimplex` or `ghsimplex.shx` is read as `opencad2d` when the settings load (any other saved
+  value, a list with a big font among them, is read as it was). The sample template `OpenCAD2D-mm.dwt` has its styles in
+  `opencad2d.shx`. A plugin compiled against `CadFonts.BuiltInName` has the old name inlined and must be rebuilt.
 - **CHANGED.** Python `Entity` is generic and `Entity.net` is typed: `drawing.entities(DxfCircle)` and the `add_*` calls
   give an `Entity[DxfCircle]` (a class asks for its subclasses too, and a class that is no `DxfEntity` raises `TypeError`),
   while an entity read by name, handle, selection or pick has a `DxfEntity` for `net`. A type checker now asks for

@@ -47,7 +47,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             }
         }
 
-        /// <summary>A plan of ROOM 1 in the SHX font the presenter has of its own, ghsimplex, 250 high, drawn as its strokes.</summary>
+        /// <summary>A plan of ROOM 1 in the SHX font the presenter has of its own, opencad2d, 250 high, drawn as its strokes.</summary>
         private static CadDocument ShxPlan()
         {
             var database = new DxfDatabase("AC1027");

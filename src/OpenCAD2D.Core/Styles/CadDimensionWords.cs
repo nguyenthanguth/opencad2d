@@ -18,7 +18,7 @@ namespace OpenCAD2D
     /// <remarks>
     /// The style's font is found as the canvas finds it to draw the words: an SHX font, and its big font, where the fonts of
     /// the document showing the style's drawing (<see cref="CadDocument.Fonts"/>) find it, the folder of that document's
-    /// drawing first, the canvas's own ghsimplex wherever fonts are on; a TrueType font from the Fonts folders of Windows. A
+    /// drawing first, the canvas's own opencad2d wherever fonts are on; a TrueType font from the Fonts folders of Windows. A
     /// style of a drawing no document shows is measured with the fonts off. The style's width factor and
     /// oblique angle are measured too. Words of a face whose letters are not read (an SHX font with the fonts off or not
     /// found, a TrueType font with no file), or that the layout gives no ink at all, as words of spaces alone, are not
