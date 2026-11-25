@@ -40,7 +40,7 @@ namespace OpenCAD2D.Plugins
         /// <summary>The kind of a command plugin, the only kind this presenter loads: "command".</summary>
         public const string CommandKind = "command";
 
-        private CadPluginManifest(Data data, JsonObject root)
+        private CadPluginManifest(Data data, JsonObject root, bool declaresSnapsAndSettings)
         {
             Name = data.Name.Trim();
             Id = string.IsNullOrWhiteSpace(data.Id) ? Name : data.Id.Trim();
@@ -67,8 +67,10 @@ namespace OpenCAD2D.Plugins
             Commands = commands;
             CommandEntries = entries;
             Ribbon = RibbonOf(root.GetArray("ribbon"));
-            Snaps = SnapsOf(root.GetArray("snaps"));
-            Settings = SettingsOf(root.GetArray("settings"));
+            Snaps = declaresSnapsAndSettings ? SnapsOf(root.GetArray("snaps")) : Array.Empty<CadPluginSnapEntry>();
+            Settings = declaresSnapsAndSettings
+                ? SettingsOf(root.GetArray("settings"))
+                : Array.Empty<CadPluginSettingEntry>();
             Icon = string.IsNullOrWhiteSpace(data.Icon) ? null : data.Icon.Trim();
         }
 
@@ -143,7 +145,14 @@ namespace OpenCAD2D.Plugins
         /// <returns>The manifest.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the text is null.</exception>
         /// <exception cref="FormatException">Thrown when the text is not JSON, has no name, has a minimum API version that is not a version, or has a snap's glyph or a setting that breaks a rule (the message says which).</exception>
-        public static CadPluginManifest Parse(string json)
+        public static CadPluginManifest Parse(string json) => Parse(json, true);
+
+        /// <summary>
+        /// Reads a manifest as <see cref="Parse(string)"/> does; with <paramref name="forTool"/> false the manifest is a C#
+        /// plugin's, which declares its snaps and settings in code, so what the text says of <c>snaps</c> and <c>settings</c>
+        /// is not read, and a mistake in it does not keep the plugin from loading.
+        /// </summary>
+        private static CadPluginManifest Parse(string json, bool forTool)
         {
             if (json == null)
             {
@@ -185,7 +194,7 @@ namespace OpenCAD2D.Plugins
                 );
             }
 
-            return new CadPluginManifest(data, Root(json));
+            return new CadPluginManifest(data, Root(json), forTool);
         }
 
         /// <summary>The same text read as plain JSON, where the commands may be names or objects.</summary>
@@ -323,7 +332,7 @@ namespace OpenCAD2D.Plugins
         /// <returns>The manifest.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the path is null.</exception>
         /// <exception cref="FileNotFoundException">Thrown when there is no such file.</exception>
-        /// <exception cref="FormatException">Thrown when the manifest cannot be read (see <see cref="Parse"/>).</exception>
+        /// <exception cref="FormatException">Thrown when the manifest cannot be read (see <see cref="Parse(string)"/>).</exception>
         public static CadPluginManifest Read(string path)
         {
             if (path == null)
@@ -332,6 +341,17 @@ namespace OpenCAD2D.Plugins
             }
 
             return Parse(File.ReadAllText(path, Encoding.UTF8));
+        }
+
+        /// <summary>Reads the plugin.json of a C# plugin, whose snaps and settings are declared in its code: what the file says of them is ignored.</summary>
+        internal static CadPluginManifest ReadForPlugin(string path)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            return Parse(File.ReadAllText(path, Encoding.UTF8), false);
         }
 
         /// <inheritdoc/>

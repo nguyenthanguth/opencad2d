@@ -9,8 +9,8 @@ using static OpenCAD2D.Wpf.UnitTest.PythonWindowKit;
 namespace OpenCAD2D.Wpf.UnitTest
 {
     /// <summary>
-    /// The Python tools of <c>src/python/examples/tools</c> (number_points, drawing_tools, selection_lengths), run as they are in
-    /// the repository: each is loaded from its folder like PYLOAD of its <c>requirements.txt</c> does and its commands typed in a
+    /// The Python tools of <c>src/python/examples/tools</c> (number_points, drawing_tools and selection_lengths here, circle_marks,
+    /// the fourth, in <see cref="PythonToolCircleMarksTests"/>), run as they are in the repository: each is loaded from its folder like PYLOAD of its <c>requirements.txt</c> does and its commands typed in a
     /// window's model, a real process of the tool answering at the prompts the test types answers to. The text the guide page shows
     /// is the text run here. Each case checks what the command wrote, what it drew, and that one undo takes the whole run back.
     /// </summary>

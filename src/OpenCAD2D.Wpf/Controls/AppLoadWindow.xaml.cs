@@ -27,6 +27,7 @@ namespace OpenCAD2D.Wpf
             model.PropertyChanged += OnModelChanged;
             model.AskFiles = folder => AskFiles(this, folder);
             model.AskFolder = folder => AskFolder(this, folder);
+            model.ShowSettings = dialog => PluginSettingsWindow.Show(this, dialog);
             Closed += (s, e) =>
             {
                 Model.PropertyChanged -= OnModelChanged;

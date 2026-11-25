@@ -74,6 +74,7 @@ namespace OpenCAD2D.Wpf
             plugins.PluginsChanged += (s, e) =>
             {
                 RememberApplications();
+                GivePluginSettingValues();
                 RebuildPluginUi();
             };
 
@@ -91,6 +92,7 @@ namespace OpenCAD2D.Wpf
                 SayResult(result);
             }
 
+            GivePluginSettingValues();
             RebuildPluginUi();
             Raise(nameof(Plugins));
             return results;

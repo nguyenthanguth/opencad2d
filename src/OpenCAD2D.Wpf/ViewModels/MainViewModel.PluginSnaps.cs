@@ -17,7 +17,8 @@ namespace OpenCAD2D.Wpf
         private IReadOnlyList<PluginSnapInfo> _pluginSnapList = Array.Empty<PluginSnapInfo>();
 
         /// <summary>
-        /// Reads the snaps of every plugin loaded, in the order they were loaded, and gives <see cref="Snap"/> those that are on:
+        /// Reads the snaps of every plugin loaded, in the order they were loaded, then those of the Python tools loaded, in the order
+        /// they were loaded (named by the tool; a keyword an earlier snap has is passed over), and gives <see cref="Snap"/> those that are on:
         /// a keyword chosen in <see cref="GlobalSettings.PluginSnaps"/> as it was, else the snap's
         /// <see cref="CadCustomSnap.IsOnByDefault"/>. A snap whose plugin is gone is dropped, and an override of it cleared.
         /// </summary>
@@ -36,6 +37,17 @@ namespace OpenCAD2D.Wpf
                 }
             }
 
+            foreach (CadPluginHost host in PythonFiles?.PluginHosts ?? Array.Empty<CadPluginHost>())
+            {
+                foreach (CadCustomSnap snap in host.ObjectSnaps)
+                {
+                    if (snap != null && !snaps.Exists(i => i.Snap.Keyword == snap.Keyword))
+                    {
+                        snaps.Add(new PluginSnapInfo(snap, host.PluginName));
+                    }
+                }
+            }
+
             _pluginSnapList = snaps;
             Snap.CustomFailed = OnPluginSnapFailed;
             Snap.KeepFailuresOf(snaps.Select(i => i.Snap).ToList());
@@ -47,6 +59,20 @@ namespace OpenCAD2D.Wpf
 
             GivePluginSnapsToSnap();
             Raise(nameof(HasPluginSnaps));
+        }
+
+        /// <summary>
+        /// Occurs, on the window's thread, when a Python tool's snap has been answered for the drawing shown: the canvas follows
+        /// the cursor again where it is, so that the point of the answer shows with no other move of the mouse.
+        /// </summary>
+        internal event EventHandler PluginSnapAnswered;
+
+        private void OnPluginSnapsAnswered(IReadOnlyList<CadDocument> documents)
+        {
+            if (_current != null && documents.Contains(_current.Document))
+            {
+                PluginSnapAnswered?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         /// <summary>Gets whether a plugin loaded adds an object snap: Drafting Settings then shows its "Plugin snaps" group.</summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using GeometryHelper;
 using OpenCAD2D.Plugins;
 
@@ -25,6 +26,8 @@ namespace OpenCAD2D.Wpf
         private readonly Func<string> _pythonPath;
         private readonly Func<string, string> _loadCheck;
         private readonly Action<Action> _post;
+        private readonly CadPluginSettingStore _settings;
+        private readonly Func<IEnumerable<string>> _snapKeywordsTaken;
         private readonly List<CadCommandRegistry> _registries = new List<CadCommandRegistry>();
         private readonly List<LoadedTool> _loaded = new List<LoadedTool>();
         private readonly object _prepareGate = new object();
@@ -39,14 +42,18 @@ namespace OpenCAD2D.Wpf
         /// <param name="environments">The venvs of the tools. Its <see cref="PythonEnvironments.Confirm"/> is set to the question of pip (the dialog of <see cref="AskQuestion"/>, else the command line) unless it has one already; either is wrapped to know whether it was answered No.</param>
         /// <param name="pythonPath">The Python of Global settings, read each time an environment is made; empty for the Python found on the machine.</param>
         /// <param name="loadCheck">What a file read at the user's request is checked with: the path in, null out to allow it, else the text that refuses it.</param>
-        /// <param name="post">Runs an action on the window's thread after the work in hand, which PYRUN's run begins by once its own command has ended.</param>
+        /// <param name="post">Runs an action on the window's thread after the work in hand, which PYRUN's run begins by once its own command has ended, and which a tool's snap questions and answers are handed on by.</param>
+        /// <param name="settings">Keeps the values of the settings the tools declare, in the settings file.</param>
+        /// <param name="snapKeywordsTaken">Gives the keywords of the object snaps the plugins loaded have, which a tool's snap may not use.</param>
         /// <exception cref="ArgumentNullException">Thrown when an argument is null.</exception>
         public PythonToolFiles(
             Func<CadToolHost> makeHost,
             PythonEnvironments environments,
             Func<string> pythonPath,
             Func<string, string> loadCheck,
-            Action<Action> post
+            Action<Action> post,
+            CadPluginSettingStore settings,
+            Func<IEnumerable<string>> snapKeywordsTaken
         )
         {
             _makeHost = makeHost ?? throw new ArgumentNullException(nameof(makeHost));
@@ -54,6 +61,8 @@ namespace OpenCAD2D.Wpf
             _pythonPath = pythonPath ?? throw new ArgumentNullException(nameof(pythonPath));
             _loadCheck = loadCheck ?? throw new ArgumentNullException(nameof(loadCheck));
             _post = post ?? throw new ArgumentNullException(nameof(post));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _snapKeywordsTaken = snapKeywordsTaken ?? throw new ArgumentNullException(nameof(snapKeywordsTaken));
 
             Func<string, IReadOnlyList<PythonPackage>, bool> ask = environments.Confirm ?? Ask;
             environments.Confirm = (tool, packages) =>
@@ -74,6 +83,9 @@ namespace OpenCAD2D.Wpf
         /// <summary>Occurs, on the window's thread, when a tool's state changed: its packages are being installed, the question was answered No, an install failed, or the tool is ready.</summary>
         internal event EventHandler<PythonToolStateEventArgs> StateChanged;
 
+        /// <summary>Occurs, on the window's thread, when a tool has answered the question of its snaps for some drawings: the canvas follows the cursor again, so that the point shows with no other move.</summary>
+        internal event Action<IReadOnlyList<CadDocument>> SnapsAnswered;
+
         /// <summary>A tool that is loaded: what it declared, the tool of the host that runs it, and what it added to the window.</summary>
         private sealed class LoadedTool
         {
@@ -81,6 +93,7 @@ namespace OpenCAD2D.Wpf
             internal string Name;
             internal CadFolderTool Tool;
             internal PythonToolState State = PythonToolState.Ready;
+            internal IReadOnlyList<CadPluginSetting> Settings = Array.Empty<CadPluginSetting>();
             internal readonly List<KeyValuePair<string, string>> Aliases = new List<KeyValuePair<string, string>>();
             internal CadPluginHost Host;
         }
@@ -100,7 +113,20 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the tools loaded, in the order they first loaded.</summary>
         internal IReadOnlyList<CadFolderTool> Tools => _loaded.Select(t => t.Tool).ToArray();
 
-        private CadToolHost Host => _host ?? (_host = _makeHost());
+        private CadToolHost Host
+        {
+            get
+            {
+                if (_host == null)
+                {
+                    _host = _makeHost();
+                    _host.Post = _post;
+                    _host.SnapsAnswered = documents => SnapsAnswered?.Invoke(documents);
+                }
+
+                return _host;
+            }
+        }
 
         // ---- Commands -------------------------------------------------------------------------------------------------
 
@@ -292,7 +318,10 @@ namespace OpenCAD2D.Wpf
             }
 
             loaded.Tool = tool;
-            loaded.Host = HostOf(name, folder, manifest);
+            loaded.Host = HostOf(name, folder, manifest, tool, session);
+            loaded.Settings = _settings.Declare(name, manifest?.Settings ?? Array.Empty<CadPluginSettingEntry>());
+            _settings.Apply(name, loaded.Settings);
+            tool.DeclareSettings(loaded.Settings);
 
             foreach (CadPluginCommandEntry entry in declared.Where(e => e.Alias != null))
             {
@@ -421,8 +450,18 @@ namespace OpenCAD2D.Wpf
 
         private static bool Same(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
-        /// <summary>What the manifest declares for the ribbon, as the host of a plugin holds it.</summary>
-        private static CadPluginHost HostOf(string name, string folder, CadPluginManifest manifest)
+        /// <summary>
+        /// What the manifest declares for the ribbon and the object snaps, as the host of a plugin holds it. A snap whose keyword
+        /// the host refuses, or another snap has (a loaded plugin's, an earlier tool's or an earlier snap of this one), is left
+        /// out with a line, and the rest of the tool loads.
+        /// </summary>
+        private CadPluginHost HostOf(
+            string name,
+            string folder,
+            CadPluginManifest manifest,
+            CadFolderTool tool,
+            CadCommandSession session
+        )
         {
             var host = new CadPluginHost(name, folder);
 
@@ -452,9 +491,50 @@ namespace OpenCAD2D.Wpf
                 host.AddRibbonTab(tab);
             }
 
+            foreach (CadPluginSnapEntry entry in manifest?.Snaps ?? new CadPluginSnapEntry[0])
+            {
+                string reason = SnapRefusal(host, entry.Keyword);
+
+                if (reason == null)
+                {
+                    try
+                    {
+                        host.AddObjectSnap(
+                            new CadCustomSnap(entry.Name, entry.Keyword, tool.Snaps.FinderOf(entry))
+                            {
+                                Glyph = entry.Glyph,
+                                IsOnByDefault = entry.IsOnByDefault,
+                            }
+                        );
+                    }
+                    catch (ArgumentException exception)
+                    {
+                        // The host says it as "The snap keyword CT is 2 to 16 letters and digits long."
+                        string words = CadPluginSetting.WordsOf(exception);
+                        string lead = "The snap keyword " + entry.Keyword + " ";
+                        reason =
+                            "the keyword "
+                            + (words.StartsWith(lead, StringComparison.Ordinal) ? words.Substring(lead.Length) : words);
+                    }
+                }
+
+                if (reason != null)
+                {
+                    session.Write(name + ": the snap " + entry.Keyword + " was left out: " + reason);
+                }
+            }
+
             host.Close();
             return host;
         }
+
+        /// <summary>Why a snap's keyword is not left to a tool: a plugin loaded, an earlier tool or an earlier snap of this tool has it; null where it is free.</summary>
+        private string SnapRefusal(CadPluginHost host, string keyword) =>
+            host.ObjectSnaps.Any(s => s.Keyword == keyword)
+            || _loaded.Any(t => t.Host.ObjectSnaps.Any(s => s.Keyword == keyword))
+            || _snapKeywordsTaken().Contains(keyword)
+                ? "another plugin or tool has that keyword."
+                : null;
 
         private static CadPluginIcon IconOf(string folder, string icon)
         {
@@ -495,6 +575,21 @@ namespace OpenCAD2D.Wpf
             string folder = PythonToolFolder.Resolve(path) ?? path;
             LoadedTool tool = _loaded.FirstOrDefault(t => Same(t.Folder, folder));
             return tool == null ? new string[0] : tool.Tool.Commands.Select(c => c.Name).ToArray();
+        }
+
+        /// <summary>Gets the settings a loaded tool declares, which Load/Unload Applications shows in Plugin Settings, in the order its <c>plugin.json</c> gives them; empty for a tool not loaded, or one that declares none.</summary>
+        /// <param name="path">The folder, or its <c>requirements.txt</c>.</param>
+        /// <returns>The settings, made over the settings store.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the path is null.</exception>
+        internal IReadOnlyList<CadPluginSetting> SettingsOf(string path)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            string folder = PythonToolFolder.Resolve(path) ?? path;
+            return _loaded.FirstOrDefault(t => Same(t.Folder, folder))?.Settings ?? Array.Empty<CadPluginSetting>();
         }
 
         /// <summary>Gets what a loaded tool's environment is doing or left undone, which the tool's row shows; <see cref="PythonToolState.Ready"/> for a tool not loaded.</summary>
@@ -563,6 +658,34 @@ namespace OpenCAD2D.Wpf
         /// </summary>
         private PythonEnvironment Prepare(LoadedTool tool, CadRemoteToolRun run, Action beforeSwap)
         {
+            // A snap's start asks nobody: no run waits to be asked, and nothing is changed that a mouse move has no business
+            // changing. A tool whose packages are not approved, or are being installed, is not started; nor is one whose gate is in use.
+            if (run == null)
+            {
+                if (tool.State.Badge != AppLoadBadge.None || !Monitor.TryEnter(_prepareGate))
+                {
+                    return PythonEnvironment.Failed(
+                        tool.Folder,
+                        tool.Name + " was not started: its packages need a command to make them ready."
+                    );
+                }
+
+                try
+                {
+                    return _environments.Prepare(
+                        tool.Folder,
+                        PythonInstallation.Find(_pythonPath()),
+                        beforeSwap,
+                        null,
+                        false
+                    );
+                }
+                finally
+                {
+                    Monitor.Exit(_prepareGate);
+                }
+            }
+
             lock (_prepareGate)
             {
                 _asking = run;

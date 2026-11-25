@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **NEW.** Plugin Settings: Settings..., after Remove in Load/Unload Applications, opens a dialog for a loaded C#
+  plugin's `[CadSetting]` properties or a Python tool's `"settings"`: a row per setting by kind, its description and
+  range in grey, a refused value in red under it with OK greyed; OK applies every value at once and writes
+  `pluginSettings` once; a slider mark follows the name of such a row. A C# plugin that loads now gets its kept
+  values (they were not kept before). `--dialog plugin-settings` shows it to the screenshot tool.
+- **NEW.** The window answers a Python tool's object snaps: listed under the tool's name, asked once per entity after
+  the hover pass and kept until the drawing changes; a point typed after the keyword waits at most 1 s; a snap starts
+  the tool's process only where its venv needs no question and no pip (2000 circles under the aperture: first pass
+  8.7 ms, the question 23 ms, later passes 8.8 ms).
+- **CHANGED.** The tools channel answers `hello`, and reads a tool's `ready`, with no wait for the window thread.
+  `"snaps"` and `"settings"` in a C# plugin's `plugin.json` are ignored.
 - **NEW.** Python tools get custom object snaps: `@snap("CTOP")` with a `"snaps"` entry in `plugin.json`, and
   `SnapRequest`; the finder runs in the tool, is asked once per entity and its points are kept until the drawing changes
   (one question 0.29 ms; 20 entities 0.85 ms). The snaps show in the window once its side is in (PW3 C2).

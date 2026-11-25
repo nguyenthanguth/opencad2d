@@ -3839,6 +3839,29 @@ namespace OpenCAD2D.Wpf
             return new Point(px / scale, py / scale);
         }
 
+        // Where the cursor last was in the control, for Retrack.
+        private Point? _trackedAt;
+
+        /// <summary>
+        /// Follows the cursor again where it last was, as a move of the mouse to the same place does: the snap is worked out anew,
+        /// so that a point a Python tool's snap has just answered shows with no other move. Nothing where the cursor has not been
+        /// over the drawing yet, or no point is asked for (a prompt that follows every move, or reads them, is not fed one twice).
+        /// </summary>
+        internal void Retrack()
+        {
+            CadCommandSession session = Session;
+
+            if (
+                _trackedAt.HasValue
+                && CadPicking.WantsPoint(session)
+                && !session.Prompt.Tracks
+                && !session.Prompt.ReadsMoves
+            )
+            {
+                Track(_trackedAt.Value);
+            }
+        }
+
         /// <summary>Follows the cursor: its drawing point, the session's cursor and aperture, the snap, the grip under it, the hover.</summary>
         private void Track(Point p)
         {
@@ -3854,6 +3877,7 @@ namespace OpenCAD2D.Wpf
             view.ScreenToDrawing(p.X * scale, p.Y * scale, out double x, out double y);
             var cursor = new GeoPoint2(x, y);
             _cursor = cursor;
+            _trackedAt = p;
             double pick = PickboxPixels * scale / view.PixelsPerUnit;
             double aperture = AperturePixels * scale / view.PixelsPerUnit;
             CadCommandSession session = Session;

@@ -167,7 +167,8 @@ code instead (`CadCustomSnap` through the host, `[CadSetting]` on a property): `
   starting with a digit, once in the file), a `kind` of `number`, `integer`, `boolean`, `text` or `choice` (with its `choices`),
   and a `default` of that kind, in the range for a number, one of the choices for a choice. The `label` is the name where not
   given; `minimum`, `maximum` and `description` are optional. A setting that breaks a rule makes the manifest unreadable, with the
-  rule in the message: `The setting textHeight: the default 0.05 lies outside 0.1 to 1000.` A C# plugin's `"settings"` is not used.
+  rule in the message: `The setting textHeight: the default 0.05 lies outside 0.1 to 1000.` A C# plugin's `"settings"` and `"snaps"` are not read
+  at all, so that a mistake in them does not keep it from loading (`CadPluginManifest.Snaps` and `Settings` are empty for it).
 - **The values** a user gives settings are kept in the settings file, `pluginSettings`, one entry per setting as
   `Circles/textHeight=2.5`: the plugin's name as Load/Unload Applications shows it, a slash, the setting's name and the value in the
   invariant culture (`True` or `False` for yes or no, the name of a choice). A setting at its default has no entry; the entries of
@@ -523,8 +524,28 @@ line, or started by name. A plugin is loaded from the Applications panel of the 
 Open dialog for a `.dll` or a `.csproj`, and Load Manager opens [Load/Unload Applications](lisp.md#appload) (APPLOAD: a table of the
 plugins and the AutoLISP files, with On, Commands, File and At start, Load…, Reload, Unload and Remove), with a dialog before a load
 outside the trusted folders. The plugin's load
-lines go to the command history, and a plugin that fails to load is also told by the red [load-result line](lisp.md#the-load-result-line) of that window. A plugin's `CadSetting` attributes remain in the plugin API, but the window has no page
-that shows them now.
+lines go to the command history, and a plugin that fails to load is also told by the red [load-result line](lisp.md#the-load-result-line) of that window.
+
+**Settings.** A plugin's `[CadSetting]` properties, and the `"settings"` of a [Python tool](python.md#pluginjson), are shown by
+**Settings…**, the button after Remove in Load/Unload Applications. It is live for one row chosen that is loaded and
+declares settings, and greyed for no row, several rows, a row not loaded, an AutoLISP file, and a plugin or tool that declares none;
+its tooltip says which (`Layer tools.lsp has no settings`, `Circle marks is not loaded: load it to change its settings`). A small
+slider mark after the name of a loaded row says it declares settings. The button opens **Plugin Settings – Circle marks**, a
+dialog 540 wide with a line under its title that names what the row is and where (`Python tool · D:\Tools\circle_marks · kept in the
+settings file`) and one row for each setting, in the order the plugin declares them: the label, a box by kind (a box for a number
+or a whole number, a check box, a text box, a drop-down of the choices) and, in grey under it, the description and the range,
+`How high the numbers are written. From 0.1 to 1000.` A value the setting refuses is said in red under its row in the
+setting's own words, `The setting Text height lies from 0.1 to 1000.`, the frame of its box turns red, and OK is greyed until every
+row is right. **OK** applies every value at once and writes the settings file once (nothing is written where no value differs);
+**Cancel**, the close box and Esc change nothing. A box the user has not touched reads the value again when the tool sets it
+meanwhile over its channel. It is not a page of Global settings, whose categories are the app's own, and it is no command: AutoCAD
+has no settings of plugins to take a name from.
+
+The values are kept in the settings file by name (`pluginSettings`, see [The manifest](#the-manifest)), so that a plugin not
+loaded keeps its values. A C# plugin is given its kept values as it loads (at start, by NETLOAD, by Reload), written to its
+properties through `CadPluginSetting.Value`: one never set keeps the defaults of its code, and a value its setting now refuses
+is dropped with a line in the log. A Python tool reads its own with `setting("textHeight")` at its next call, in or out of a
+run; see [Python commands and tools](python.md#settings).
 
 A command that works long shows it on the status bar's progress meter through `c.Progress`:
 `using (var meter = c.Progress.Start("Checking blocks")) { meter.SetLimit(n); ... meter.MeterProgress(); }`, as
@@ -636,7 +657,9 @@ keyword (`GlobalSettings.PluginSnaps`), and a snap never chosen starts as its `I
 typed at a point prompt, `CTOP` or `_ctop`, takes it for the next point alone: "Specify next point: _ctop of". A keyword is
 2 to 16 letters and digits, and one that is or starts with one of AutoCAD's snap keywords (END, MID, CEN and the rest), or
 is FROM, TT, M2P or MTP, is refused. A point of a plugin's snap competes with the built-in snaps by distance, the built-in
-one taken at a tie: "Circle top" is the circle's 90 degree quadrant, so it shows with Quadrant off, or typed. A finder that
+one taken at a tie: "Circle top" is the circle's 90 degree quadrant, so it shows with Quadrant off, or typed. The snaps of a
+[Python tool](python.md#snaps) are listed the same way, under the tool's name, and a keyword a plugin loaded has is left out
+of the tool with one line. A finder that
 throws switches its snap off with one line, `The snap CTOP of Circle tools failed and is off: ...`, until it is chosen on
 again. A snap is asked about model space seen through a viewport of a layout (in model coordinates, layers frozen in the
 viewport left out), about the entities inside blocks under the aperture (each as a copy placed where the references draw

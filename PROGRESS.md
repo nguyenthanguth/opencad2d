@@ -356,6 +356,37 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       GeometryHelper-stubs). BREAKING in the CHANGELOG. Agreed by the maintainer 2026-11-25 (group c renamed, group b
       readers removed; names decided by the lead). Done 2026-11-25: OPENCAD2D_* keys, styles OpenCAD2D, samples
       LSPINFO/PYINFO/CSINFO, old-name readers removed; test fixtures GH_ -> OC_
+- [ ] A12. Sheet Set Manager as AutoCAD 2021's (maintainer 2026-11-25; design first): the SHEETSET palette (Sheet List,
+      Sheet Views, Model Views tabs), NEWSHEETSET (the wizard: from an example sheet set or from existing drawings),
+      OPENSHEETSET, sheets as layouts of drawings in the set (new sheet from a template, import layout as sheet, rename and
+      renumber, subsets), sheet set and sheet properties (custom properties), fields that read them (SheetSet, CurrentSheet*
+      fields in title blocks), sheet list table, publish the set to PDF (one file or one per sheet) and eTransmit-like
+      zip of the set; the -SHEETSET? and the archive left out unless asked.
+      1. Research -> verify: what AutoCAD 2021 does, from its help pages and console probes (accoreconsole can open and
+         read a .dst through the SheetSet COM API? check), the .dst format (AutoCAD's is a proprietary encoded file:
+         decide whether OpenCAD2D reads/writes .dst or keeps its own open format, e.g. JSON, with an import of .dst if it
+         can be read), what open-source CAD tools do (none known; search GitHub), and a spec with numbered decisions.
+      2. Design -> verify: boards on the Design canvas (the palette's three tabs, the wizard, the properties dialogs, the
+         sheet list table) approved.
+      3. Engine (Core): the sheet set model, its file, sheets <-> layouts, numbering, custom properties, fields -> verify:
+         tests of open/save round trips, renumbering, a field in a title block updating with the sheet.
+      4. Window (Wpf): the palette and dialogs from the boards -> verify: view-model tests, screenshots against the boards.
+      5. Publish and transmit -> verify: a set of three drawings published to one PDF with the pages in set order.
+- [ ] A13. Colour ribbon icons (maintainer 2026-11-25; design first): redraw the ribbon's icons of OpenCAD2D in colour,
+      in the visual language of AutoCAD 2021's ribbon (the maintainer's screenshot: Home tab, dark theme: blue/teal
+      accents, yellow highlights, red where AutoCAD uses red), so commands are recognised at a glance. Our own drawings:
+      AutoCAD's icons are Autodesk's and are never copied, traced or extracted (look and colour roles only; see
+      acad-reference-sources). One set at 32 px (large buttons) and 16 px (small), crisp at 100/125/150 % scaling, for
+      the dark theme (and readable on the light one if the app has it).
+      1. Inventory -> verify: the list of every ribbon command icon in OpenCAD2D (tabs Home, Insert, Annotate,
+         Parametric, View, Manage, Output, Settings, the contextual tabs), each with the AutoCAD look it should evoke and
+         the colour roles (a palette of 6-8 colours: line/stroke grey-white, accent blue, teal, yellow, red, green).
+      2. Design -> verify: a board per tab on the Design canvas, the new icons beside today's, approved by the
+         maintainer (Home first). Maintainer 2026-11-25: the lead chooses the colours and does every tab without asking;
+         report afterwards. A12 and A13 start after the S12 Sandbox reboot.
+      3. Build -> verify: the icons as vector geometry (as today's icons are drawn) in the theme resources, every button
+         bound, a test that every ribbon command has an icon and none is missing, screenshots of each tab at 100 % and
+         150 % against the boards.
 
 #### Parked follow-ups
 
@@ -552,9 +583,10 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       Python is drawn by `CadDimensionPicture.Redraw`; the palette's 4 source files, 3 test files and 89 test methods are gone
       (the host's console entry stays, since the engine-error tests use it); DIMLAY in LISP and in Python give equal
       drawings, picture included (red without the redraw)
-- [ ] PW3 parked: closed 2026-11-25: `Entity.dxf_type` is the core's `DxfEntity.DxfName` (GeometryHelper ecd511ae);
-      `save()` and `save_as()` inside a run or an `undo_group` are one undo step (`CadDocument.SavingInGroup`). Left: custom
-      snaps and plugin settings (D1660); `CadPythonHost.Enter`, `ResetConsole` and `CadPythonEntry` (gone with TF7); the remote examples take the raw `CadApplication` and wrap it in `App(...)`
+- [x] PW3 parked: closed 2026-11-25: `Entity.dxf_type` is the core's `DxfEntity.DxfName` (GeometryHelper ecd511ae);
+      `save()` and `save_as()` inside a run or an `undo_group` are one undo step (`CadDocument.SavingInGroup`). Custom snaps and
+      plugin settings closed by PW3 C1, P and C2 (2026-11-25: Settings... and the Plugin Settings dialog, tool snaps
+      answered in the window). Kept as decided: `CadPythonHost.Enter`, `ResetConsole` and `CadPythonEntry` (gone with TF7); the remote examples take the raw `CadApplication` and wrap it in `App(...)`
       because `test_e0` pins that signature and `with CadApplication()`; `batch_folder.py` and `convert.py` stay on
       `DxfDatabase` (they need the version and the writer's warnings); no ribbon-button example file (`test_e0` lists
       the examples); the empty row 1 of the canvas grid stays
