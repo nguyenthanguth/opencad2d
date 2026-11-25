@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **NEW.** `CadEditor.Move`, `Copy`, `Rotate`, `Scale`, `Mirror`, `Offset` and `Erase` (A8): the edits as calls for
+  plugins, each doing what the command of its name does, through the code the command runs; refused whole with the
+  object's words; one undo step named as the command, or joining the running command's step.
+- **NEW.** Remote `Move`, `Copy`, `Rotate`, `Scale`, `Mirror` and `Offset` on `CadRemoteDocument`: queued changes and
+  the edit in one commit (one step REMOTE), the new copies in its answer; `commit` takes the operations `transform` and
+  `offset` (protocol version 1).
+- **FIXED.** MIRROR with a second point 1E-8 to 2E-5 from the first no longer ends with "Cannot normalize a zero-length
+  vector." after the Erase prompt: it says "Invalid point: the mirror line is too short." and asks again.
 - **CHANGED.** Python `Entity` is generic and `Entity.net` is typed: `drawing.entities(DxfCircle)` and the `add_*` calls
   give an `Entity[DxfCircle]` (a class asks for its subclasses too, and a class that is no `DxfEntity` raises `TypeError`),
   while an entity read by name, handle, selection or pick has a `DxfEntity` for `net`. A type checker now asks for

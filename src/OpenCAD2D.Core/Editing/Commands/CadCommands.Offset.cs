@@ -147,7 +147,7 @@ namespace OpenCAD2D
 
                     // The offset the point at the cursor would make, as AutoCAD 2021 drags it to the side the cursor is on.
                     CadPreview shown = CadPreview.Making(c, input =>
-                        OffsetCurves(c, from, input.Point, distance, true) is IReadOnlyList<DxfCurve> curves
+                        OffsetCurves(c.Session, from, input.Point, distance, true) is IReadOnlyList<DxfCurve> curves
                             ? OffsetCopies(curves, current ? c.Database.Clayer : null)
                             : null
                     );
@@ -231,18 +231,7 @@ namespace OpenCAD2D
         {
             DxfEntity entity = c.Document.FindEntity(handle);
 
-            if (
-                !(
-                    entity is DxfLine
-                    || entity is DxfArc
-                    || entity is DxfCircle
-                    || entity is DxfEllipse
-                    || entity is DxfPolyline
-                    || entity is DxfSpline
-                    || entity is DxfXline
-                    || entity is DxfRay
-                )
-            )
+            if (!CadEdits.CanOffset(entity))
             {
                 c.Write("Cannot offset that object.");
                 return false;
@@ -271,38 +260,27 @@ namespace OpenCAD2D
             bool currentLayer
         )
         {
-            IReadOnlyList<DxfCurve> made = OffsetCurves(c, handle, side, distance);
+            CadEditPlan plan = CadEdits.Offset(
+                c.Session,
+                handle,
+                side,
+                distance,
+                erase,
+                currentLayer ? c.Database.Clayer : null
+            );
 
-            if (made == null || made.Count == 0)
+            if (plan == null)
             {
                 c.Write("Cannot offset that object.");
                 return null;
             }
 
-            IReadOnlyList<CadEditRecord> planned = erase
-                ? new[] { new CadEditRecord(CadEditRecordKind.Erased, handle) }
-                : null;
-            string layer = c.Database.Clayer;
-            CadEditResult result = c.Apply(planned, s =>
-            {
-                CadSpace space = s.Document.FindSpace(handle);
-
-                foreach (DxfCurve copy in OffsetCopies(made, currentLayer ? layer : null))
-                {
-                    s.Append(space, copy);
-                }
-
-                if (erase && !s.IsHandled(handle))
-                {
-                    s.Document.FindEntity(handle).Erase();
-                }
-            });
-
+            CadEditResult result = c.Apply(plan.Planned, plan.Write);
             return result.Succeeded ? AddedHandle(result) : null;
         }
 
         /// <summary>The curves OFFSET adds of those an offset made, as they are added and previewed: copies, on a layer given or their own.</summary>
-        private static List<DxfCurve> OffsetCopies(IReadOnlyList<DxfCurve> made, string layer)
+        internal static List<DxfCurve> OffsetCopies(IReadOnlyList<DxfCurve> made, string layer)
         {
             var copies = new List<DxfCurve>();
 
@@ -326,15 +304,15 @@ namespace OpenCAD2D
         /// The curves the offset of one curve to the side of a point, or through it, makes, as <see cref="OffsetOne"/> adds them
         /// and the prompt of the side previews them; null where it makes none.
         /// </summary>
-        private static IReadOnlyList<DxfCurve> OffsetCurves(
-            CadCommandContext c,
+        internal static IReadOnlyList<DxfCurve> OffsetCurves(
+            CadCommandSession session,
             string handle,
             GeoPoint2 side,
             double distance,
             bool quiet = false
         )
         {
-            if (!(c.Document.FindEntity(handle) is DxfCurve curve))
+            if (!(session.Document.FindEntity(handle) is DxfCurve curve))
             {
                 return null;
             }
@@ -349,7 +327,7 @@ namespace OpenCAD2D
                 var away = new GeoVector2(side.X - near.X, side.Y - near.Y);
                 double length = distance < 0.0 ? away.Length : distance;
 
-                if (!(length > c.Session.Tolerance.EqualPoint))
+                if (!(length > session.Tolerance.EqualPoint))
                 {
                     return null;
                 }

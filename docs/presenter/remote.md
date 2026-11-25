@@ -166,6 +166,42 @@ Remote test server and the tests of the app), `ZoomExtents()` makes `CurrentView
   (`how`: `all`, `window`, `crossing`). They are new words of protocol version 1: an older app answers `OpenCAD2D does not
   know the request zoom: it is of an older version.`
 
+## Edits in one call
+
+A program can move, copy, turn, scale, mirror and offset objects as the app's own commands do, with the calls of
+[`CadEditor`](plugins.md#the-editor-edits) run in the app:
+
+```csharp
+DxfLine line = (DxfLine)drawing.GetObject("2F");
+IReadOnlyList<DxfLine> moved = drawing.Move(new[] { line }, new GeoVector2(10, 5));        // MOVE: (10, 5) to (110, 5)
+IReadOnlyList<DxfLine> copies = drawing.Copy(new[] { line }, new GeoVector2(0, 50));       // COPY: new objects, new handles
+drawing.Rotate(copies, new GeoPoint2(0, 0), Math.PI / 2.0);                                // ROTATE, radians
+drawing.Scale(copies, new GeoPoint2(0, 0), 2.0);                                           // SCALE
+IReadOnlyList<DxfLine> mirrored = drawing.Mirror(copies, new GeoPoint2(0, 0), new GeoPoint2(0, 10)); // MIRROR, sources kept
+IReadOnlyList<DxfCurve> offsets = drawing.Offset(line, 5.0, new GeoPoint2(50, 10));        // OFFSET, one pick, distance typed
+```
+
+- **One commit.** What is queued (`Insert`, `Modify`, `Delete`, the layers) and the edit are one `commit` request, so one undo
+  step of the app, `REMOTE`, and the new copies come back in its answer: a copy has no handle until it is applied, so an edit
+  cannot be a queued entry. Inside a [run](#the-channel-of-the-tools-and-runs) the edits join the run's step, which U takes
+  back whole. A refusal anywhere applies nothing, the queued changes included, and empties the queue, as `CommitChanges` does.
+- **What it takes and gives.** The objects are copies this drawing gave (`HandleOf` finds their handles; one made in code, one
+  of another drawing or one still queued by `Insert` is an `ArgumentException`), and the return is fresh copies as the app has
+  them after the edit: the same handles for `Move`, `Rotate`, `Scale` and `Mirror(..., eraseSource: true)`, new handles for
+  `Copy`, `Mirror` with the sources kept and `Offset`, each of its own type (`DxfLine`, not `DxfEntity`). An empty list is no
+  request.
+- **The same meaning as in the app.** The numbers and the refusals are those of [`CadEditor`](plugins.md#the-editor-edits): an
+  object erased since it was read, inside a block, on a locked layer (`The object 2F is on the locked layer Steel.`) or
+  whose owner allows only moving (`This line belongs to the model and can only be moved.`) is refused with these words in
+  a `CadRemoteException`; a scale factor or an offset distance that is not above nought, or a number that is not finite, is
+  an `ArgumentOutOfRangeException` before anything is sent; a mirror line shorter than the app's tolerance is refused by the
+  app. The angle is in radians, counter-clockwise, and a point is of the world.
+- **The request.** Edits are two new operations of `commit`, still protocol version 1: `{op: "transform", how: "move" | "copy" |
+  "rotate" | "scale" | "mirror", handles, dx, dy, x, y, angle, factor, x2, y2, eraseSource}` and `{op: "offset", handle,
+  distance, x, y}`. The answer adds `edited`, one list of handles per edit operation in order (the objects it gives back), and
+  `objects`, what `get` answers for all of them. A ticket of an object not committed is refused as a handle the drawing has
+  not, as `Delete` refuses it in the client.
+
 ## Commands
 
 `drawing.SendCommand("ZOOM E ")` types on the drawing's command line as the user does, words parted by spaces going in one by

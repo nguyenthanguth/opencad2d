@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GeometryHelper.Dxf;
+using GeometryHelper.Geometry;
 using OpenCAD2D.Remote;
 
 namespace OpenCAD2D
@@ -81,6 +82,7 @@ namespace OpenCAD2D
             // Every step is checked before any is applied, so that one that cannot be made changes nothing.
             var steps = new List<Step>();
             var planned = new List<CadEditRecord>();
+            var edits = new List<EditStep>();
             var layersAdded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (object item in request.GetArray("operations"))
@@ -128,8 +130,31 @@ namespace OpenCAD2D
                         steps.Add(new Step { Kind = StepKind.Delete, Handle = handle });
                         planned.Add(new CadEditRecord(CadEditRecordKind.Erased, handle, "Remote"));
                         break;
+                    case "transform":
+                    case "offset":
+                        EditStep edit = PlanEdit(document, session, operation);
+                        edits.Add(edit);
+                        planned.AddRange(edit.Plan.Planned);
+                        break;
                     default:
                         throw new Refusal("OpenCAD2D does not know the change " + kind + ".");
+                }
+            }
+
+            // An object an edit works on cannot be one the same commit erases: the edit would find nothing to write to.
+            foreach (EditStep edit in edits)
+            {
+                foreach (string handle in edit.Handles)
+                {
+                    if (
+                        steps.Exists(s =>
+                            s.Kind == StepKind.Delete
+                            && string.Equals(s.Handle, handle, StringComparison.OrdinalIgnoreCase)
+                        )
+                    )
+                    {
+                        throw new Refusal("The object " + handle + " is erased by the same commit.");
+                    }
                 }
             }
 
@@ -137,7 +162,7 @@ namespace OpenCAD2D
             steps.RemoveAll(s => s.Kind == StepKind.AddLayer || s.Kind == StepKind.ModifyLayer);
             var inserted = new JsonArray();
             CadEditResult result = document.ApplyEdit(StepName, planned, scope =>
-                Apply(document, scope, layers, steps, fragment, inserted)
+                Apply(document, scope, layers, steps, fragment, inserted, edits)
             );
 
             if (!result.Succeeded)
@@ -145,7 +170,125 @@ namespace OpenCAD2D
                 throw new Refusal(result.Message);
             }
 
-            return Shown(document).Set("handles", inserted);
+            JsonObject answer = Shown(document).Set("handles", inserted);
+            return edits.Count == 0 ? answer : Edited(document, answer, edits);
+        }
+
+        /// <summary>One edit operation of a commit: the plan, and the handles it works on.</summary>
+        private sealed class EditStep
+        {
+            public CadEditPlan Plan;
+            public IReadOnlyList<string> Handles;
+        }
+
+        /// <summary>
+        /// Plans the edit operation <c>transform</c> or <c>offset</c> of a commit, checking it as <see cref="CadEditor"/> checks
+        /// its call, so that a refusal changes nothing: the objects are the drawing's, not erased, in a space and not on a locked
+        /// layer, and the numbers are those the call takes. Its writing runs with the commit's, after the queued changes.
+        /// </summary>
+        private static EditStep PlanEdit(CadDocument document, CadCommandSession session, JsonObject operation)
+        {
+            string kind = operation.GetString("op");
+            var handles = new List<string>();
+
+            List<object> named =
+                kind == "offset" ? new List<object> { operation.GetString("handle") } : operation.GetArray("handles");
+
+            foreach (object item in named)
+            {
+                DxfEntity entity = item is string handle ? document.FindEntity(handle) : null;
+
+                if (entity == null)
+                {
+                    throw new Refusal("The drawing " + document.Title + " has no object " + (item as string) + ".");
+                }
+
+                string refused = CadEdits.Unfit(document, entity);
+
+                if (refused != null)
+                {
+                    throw new Refusal(refused);
+                }
+
+                if (!handles.Contains(entity.Handle, StringComparer.OrdinalIgnoreCase))
+                {
+                    handles.Add(entity.Handle);
+                }
+            }
+
+            GeoPoint2 at = new GeoPoint2(operation.GetDouble("x"), operation.GetDouble("y"));
+            CadEditPlan plan = Edit(() =>
+            {
+                switch (kind == "offset" ? "offset" : operation.GetString("how"))
+                {
+                    case "move":
+                        return CadEdits.Move(
+                            handles,
+                            new GeoVector2(operation.GetDouble("dx"), operation.GetDouble("dy"))
+                        );
+                    case "copy":
+                        return CadEdits.Copy(
+                            handles,
+                            new GeoVector2(operation.GetDouble("dx"), operation.GetDouble("dy"))
+                        );
+                    case "rotate":
+                        return CadEdits.Rotate(handles, at, operation.GetDouble("angle"));
+                    case "scale":
+                        return CadEdits.Scale(handles, at, operation.GetDouble("factor"));
+                    case "mirror":
+                        return CadEdits.Mirror(
+                            session,
+                            handles,
+                            at,
+                            new GeoPoint2(operation.GetDouble("x2"), operation.GetDouble("y2")),
+                            operation.GetBool("eraseSource")
+                        );
+                    case "offset":
+                        return CadEdits.OffsetBy(
+                            session,
+                            document.FindEntity(handles[0]) as DxfCurve ?? throw new Refusal(CadEdits.CannotOffset),
+                            operation.GetDouble("distance"),
+                            at
+                        );
+                    default:
+                        throw new Refusal(
+                            "OpenCAD2D does not know the transform "
+                                + operation.GetString("how")
+                                + ": it is of an older version."
+                        );
+                }
+            });
+            return new EditStep { Plan = plan, Handles = handles };
+        }
+
+        /// <summary>
+        /// Adds to the answer of a commit what its edit operations gave: for each, in order, the handles of what it gives back
+        /// (<c>edited</c>), and the objects of all of them as <c>get</c> answers (<c>objects</c>).
+        /// </summary>
+        private static JsonObject Edited(CadDocument document, JsonObject answer, List<EditStep> edits)
+        {
+            var lists = new JsonArray();
+            var entities = new List<DxfEntity>();
+
+            foreach (EditStep edit in edits)
+            {
+                var list = new JsonArray();
+
+                foreach (string handle in edit.Plan.Result)
+                {
+                    list.Add(handle);
+                    DxfEntity entity = document.FindEntity(handle);
+
+                    if (entity != null)
+                    {
+                        entities.Add(entity);
+                    }
+                }
+
+                lists.Add(list);
+            }
+
+            return answer.Set("edited", lists).Set("objects", Pack(document, entities));
         }
 
         private static DxfEntity Sent(Dictionary<string, DxfEntity> byReference, JsonObject operation)
@@ -248,7 +391,8 @@ namespace OpenCAD2D
             List<Step> layers,
             List<Step> steps,
             DxfDatabase fragment,
-            JsonArray inserted
+            JsonArray inserted,
+            List<EditStep> edits
         )
         {
             // The layers are made first, so that the objects of the commit can be on them.
@@ -299,6 +443,12 @@ namespace OpenCAD2D
                 }
 
                 i++;
+            }
+
+            // The edits of the commit are written last, on the objects as the queued changes left them.
+            foreach (EditStep edit in edits)
+            {
+                edit.Plan.Write(scope);
             }
         }
 
