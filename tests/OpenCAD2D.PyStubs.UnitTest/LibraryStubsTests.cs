@@ -11,17 +11,17 @@ namespace OpenCAD2D.PyStubs.UnitTest
         private static readonly Lazy<StubRun> Run = new Lazy<StubRun>(() => StubRun.OfTheLibrary());
 
         [Fact]
-        public void TheThreeAssemblies_GiveOneModuleForEachOfTheirEighteenNamespaces()
+        public void TheThreeAssemblies_GiveOneModuleForEachOfTheirNineteenNamespaces()
         {
             StubReport report = Run.Value.Report;
 
-            Assert.Equal(18, report.Modules.Count);
+            Assert.Equal(19, report.Modules.Count);
             Assert.Equal(
                 new[] { "GeometryHelper", "OpenCAD2D.Core", "OpenCAD2D.Remote" },
                 report.Assemblies.Select(a => a.Name)
             );
             Assert.All(report.Assemblies, a => Assert.True(a.Types > 0 && a.Members > a.Types, a.Name));
-            Assert.Equal(18, Run.Value.Files().Length);
+            Assert.Equal(19, Run.Value.Files().Length);
         }
 
         [Fact]

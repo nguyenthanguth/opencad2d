@@ -95,7 +95,7 @@ def test_the_stub_packages_are_there_with_one_module_per_namespace() -> None:
         for f in files
         if f.startswith(("GeometryHelper-stubs/", "OpenCAD2D-stubs/")) and f.endswith("/__init__.pyi")
     )
-    # 18 namespaces in the three assemblies: 14 of GeometryHelper (its root among them), 4 of OpenCAD2D (its root too).
-    assert len(modules) == 18
+    # 19 namespaces in the three assemblies: 14 of GeometryHelper (its root among them), 5 of OpenCAD2D (its root too).
+    assert len(modules) == 19
     assert [f for f in files if f.startswith(("GeometryHelper-stubs/", "OpenCAD2D-stubs/")) and f.endswith(".py")] == []
     assert [f for f in files if f.startswith("System-stubs/") and f.endswith(".py")] == []

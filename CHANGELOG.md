@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **NEW.** Sheet set data files: `CadSheetSetFile` opens, changes and saves AutoCAD 2021's own `.dst` (UTF-8 XML under a
+  one-byte cipher), with a typed model over it: the set, its subsets and sheets in set order, a sheet's drawing and
+  layout in four forms of the path (found again after the folder is moved), custom properties by owner, resource
+  locations, the sheet creation template, the page setup overrides file, view categories and sheet views. What the model
+  does not know is saved as it was read. Every change is saved at once through `name.dst.tmp`, the file revision goes up
+  by one, and a file that moved on disk is reloaded first. The ten `.dst` files AutoCAD 2021 installs read and write
+  back to the same bytes, and AutoCAD's own sheet set API reads a set made here (names, subsets, sheets, custom
+  properties, views) as this model does (the engine of A12; no command or window yet).
 - **NEW.** Plugin Settings: Settings..., after Remove in Load/Unload Applications, opens a dialog for a loaded C#
   plugin's `[CadSetting]` properties or a Python tool's `"settings"`: a row per setting by kind, its description and
   range in grey, a refused value in red under it with OK greyed; OK applies every value at once and writes
