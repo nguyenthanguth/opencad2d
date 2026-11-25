@@ -117,7 +117,9 @@ namespace OpenCAD2D
         /// upright lettering in the proportions of ISO 3098 type B (TCVN 7284), ASCII 32 to 126 with the degree, plus-minus,
         /// square, diameter and dash signs and the Vietnamese letters, 242 letters. Its capitals reach <see cref="ShxFont.Above"/>
         /// 100 units above the baseline and its descenders 30 below: "ABC123" 10 high is 10 high and its advances add to 42.5
-        /// (A 8, B 7, C 6.5, each digit 7); the compiled file is 8 685 bytes.
+        /// (A 8, B 7, C 6.5, each digit 7); the compiled file is 8 685 bytes. AutoCAD 2021's textbox of TEXT "ABC123" in it,
+        /// from the point the text starts at, is (1.0000, -0.6299) to (42.2488, 10.7063) at 10 high and (10.0000, -6.2992) to
+        /// (422.4882, 107.0630) at 100 high: the arcs of the C, 2 and 3 reach past the baseline and the capitals' top.
         /// </summary>
         public static ShxFont BuiltIn => Own.Value;
 

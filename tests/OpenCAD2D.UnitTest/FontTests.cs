@@ -206,6 +206,39 @@ namespace OpenCAD2D.UnitTest
         private static DisplayText2 Shown(CadDocument document) =>
             document.GetDisplay(document.ModelSpace).Items.OfType<DisplayText2>().Single();
 
+        /// <summary>
+        /// The box of the ink of "ABC123" in the built-in font at the given height, from where the pen starts, as AutoCAD 2021
+        /// measures a textbox: left, bottom, right, top. It is the box of the letters' strokes and of the points their arcs
+        /// reach (CadTextInk), not of the polylines the display draws for the arcs.
+        /// </summary>
+        private static double[] InkOfAbc123(double height)
+        {
+            CadTextInk ink = CadTextInk.Of(
+                new CadFontFace(CadFonts.BuiltInName, CadFonts.BuiltIn, null, null),
+                false,
+                false
+            );
+            const string Words = "ABC123";
+            double pen = 0.0;
+            double left = double.MaxValue;
+            double bottom = double.MaxValue;
+            double right = double.MinValue;
+            double top = double.MinValue;
+
+            for (int i = 0; i < Words.Length; )
+            {
+                CadTextInk.Letter letter = ink.Next(Words, ref i);
+                Assert.True(letter.HasInk);
+                left = Math.Min(left, pen + letter.Left);
+                right = Math.Max(right, pen + letter.Right);
+                bottom = Math.Min(bottom, letter.Bottom);
+                top = Math.Max(top, letter.Top);
+                pen += letter.Advance;
+            }
+
+            return new[] { left * height, bottom * height, right * height, top * height };
+        }
+
         private CadFonts Fonts(
             string replacement = null,
             IEnumerable<KeyValuePair<string, string>> substitutions = null,
@@ -645,9 +678,9 @@ namespace OpenCAD2D.UnitTest
                 }
             }
 
-            // OpenCAD2D ISO: capitals 100 above the baseline, descenders 30 below; the arcs of C, 2 and 3 are drawn by bulges, so
-            // the ink runs up to 0.6 of a unit past the baseline and the capitals' top; ABC123 is 80 + 70 + 65 + 70 + 70 + 70 = 425
-            // units wide, 4.25 heights, inked from the baseline to the capitals' top.
+            // OpenCAD2D ISO: capitals 100 above the baseline, descenders 30 below; ABC123 is 80 + 70 + 65 + 70 + 70 + 70 = 425 units
+            // wide, 4.25 heights. The arcs of C, 2 and 3 are drawn by bulges and AutoCAD measures one by its chord's rectangle or
+            // its circle's square, so its textbox of the ink runs 6.3 below the baseline (C) and 7.06 above the capitals' top (2).
             _output.WriteLine(
                 "ABC123: "
                     + advance
@@ -663,8 +696,13 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal(100.0, font.Above);
             Assert.Equal(30.0, font.Below);
             Assert.Equal(425.0, advance, 9);
-            Assert.InRange(top, 100.0, 100.6);
-            Assert.InRange(bottom, -0.6, 0.0);
+
+            // AutoCAD 2021's textbox of TEXT "ABC123" at 100 high: (10.0000, -6.2992)-(422.4882, 107.0630).
+            double[] ink = InkOfAbc123(100.0);
+            Assert.Equal(10.0000, ink[0], 4);
+            Assert.Equal(-6.2992, ink[1], 4);
+            Assert.Equal(422.4882, ink[2], 4);
+            Assert.Equal(107.0630, ink[3], 4);
             Assert.True(font.Has(0xB0));
             Assert.True(font.Has(0xB1));
             Assert.True(font.Has(0x2205));
@@ -674,27 +712,24 @@ namespace OpenCAD2D.UnitTest
         [Fact]
         public void ATextInTheBuiltInFontHasItsCapitalsAsHighAsTheText()
         {
-            CadDocument document = Drawing(
-                CadFonts.BuiltInName,
-                null,
-                Text("ABC123", 2.5, t => t.Position = new GeoPoint3(10, 20, 0))
-            );
+            DxfDBText text = Text("ABC123", 10.0, t => t.Position = new GeoPoint3(10, 20, 0));
+            CadDocument document = Drawing(CadFonts.BuiltInName, null, text);
             var said = new List<string>();
             document.FontMissing += (s, e) => said.Add(e.Message);
             document.Fonts = new CadFonts(new[] { _folder.FullPath }, null, null);
 
             DisplayText2 shown = Shown(document);
-            double[] ys = shown.Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 1)).ToArray();
-            double[] xs = shown.Strokes.SelectMany(s => s.Where((v, k) => k % 2 == 0)).ToArray();
 
-            // 2.5 high in a font 100 above: the ink from the baseline at 20 to 22.5; 425 units across at 2.5 / 100 is 10.625, the
-            // ink a little within it, from the foot of the A 10 units in (its left bearing) to the right of the 3 at 415, the arcs
-            // of the bulges a few hundredths of a millimetre past the baseline and the top.
+            // 10 high in a font 100 above, placed at (10, 20): AutoCAD 2021's textbox of TEXT "ABC123" is (1.0000, -0.6299) to
+            // (42.2488, 10.7063) from the point, the ink from the foot of the A 1 in to the right of the 3, the arcs of the
+            // bulges 0.63 below the baseline and 0.71 above the capitals' top, as AutoCAD measures an arc by its chord's
+            // rectangle or its circle's square; 4.25 heights of advance, 42.5.
             Assert.Equal(CadFonts.BuiltInName, shown.FontName);
-            Assert.Equal(20.0, ys.Min(), 2);
-            Assert.Equal(22.5, ys.Max(), 2);
-            Assert.Equal(10.0 + (10.0 * 2.5 / 100.0), xs.Min(), 9);
-            Assert.InRange(xs.Max(), 10.0 + (410.0 * 2.5 / 100.0), 10.0 + (415.0 * 2.5 / 100.0) + 1E-9);
+            double[] ink = InkOfAbc123(10.0);
+            Assert.Equal(1.0000, ink[0], 4);
+            Assert.Equal(-0.6299, ink[1], 4);
+            Assert.Equal(42.2488, ink[2], 4);
+            Assert.Equal(10.7063, ink[3], 4);
             Assert.Empty(said);
         }
 

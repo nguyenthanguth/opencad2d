@@ -989,8 +989,10 @@ namespace OpenCAD2D.UnitTest
             Near(At30(8.75, Lift), P2(Words(dimension).Location), 1E-9);
             Near(At30(17.5), Back(ArrowAt(dimension, At30(20))), 1E-3);
 
-            // "R8", 3.5 wide, on the line (DIMTAD 0) takes the arrowhead and two gaps more: 3.5 + 4 gaps + 2.5 = 8.5, more
-            // than the radius, so the words go out next to the rim, as AutoCAD 2021 moves "R8" out of 8.
+            // "R8", 3.5 wide here (0.7 of the height a letter), on the line (DIMTAD 0) takes the arrowhead and two gaps more: 3.5 + 4
+            // gaps + 2.5 = 8.5, more than the radius, so the words go out next to the rim. AutoCAD 2021 moves "R8" of opencad2d.shx,
+            // 3.0 wide, out of a circle of radius 8 as well: the fit needs a radius over 3.0 + 4 gaps + 2.5 = 8.0, and equality is
+            // out; the middle of its words stands 8 + 7.125 from the centre, and they stay in from 8.0001 (see the test below).
             session = Metric(s =>
             {
                 s.Dimatfit = 0;
@@ -999,6 +1001,45 @@ namespace OpenCAD2D.UnitTest
             Run(session, "DRA", new[] { Circle(session, 8) }, At30(45));
             dimension = Made(session);
             Near(At30(8 + 2 * Arrow + Gap + Letter), P2(Words(dimension).Location), 1E-9);
+        }
+
+        [Theory]
+        [InlineData(7.999, true)]
+        [InlineData(8.0, true)]
+        [InlineData(8.0001, false)]
+        [InlineData(8.001, false)]
+        public void ARadiusInTheBuiltInFont_MovesR8OutOfARadiusOfEight_AndKeepsItInFromJustPast(
+            double radius,
+            bool wordsOut
+        )
+        {
+            // "R8" of opencad2d is 3.0 wide, and on the line (DIMTAD 0) it needs the arrowhead and two gaps more to stay in: 3.0
+            // + 4 gaps (2.5) + 2.5 = 8.0, and equality is out: AutoCAD 2021 moves "R8" out of a circle of radius 8 exactly, the
+            // middle of the words 8 + 7.125 from the centre (2 arrowheads, a gap and half their width out of the rim), and
+            // keeps them in from a radius of 8.0001.
+            CadCommandSession session = Metric(s =>
+            {
+                s.Dimatfit = 0;
+                s.Dimtad = 0;
+            });
+            CadDocument document = session.Document;
+            document.Database.TextStyleTable.Add(
+                new DxfTextStyleTableRecord { Name = "GHSFONT", FileName = CadFonts.BuiltInName }
+            );
+            document.Database.DimStyleTable["Standard"].Dimtxsty = document.Database.TextStyleTable["GHSFONT"];
+            StandardCurrent(document.Database);
+            document.Fonts = new CadFonts(null, CadFonts.BuiltInName, null);
+            Run(session, "DRA", new[] { Circle(session, radius) }, At30(45));
+            DxfDimension dimension = Made(session);
+            double away = (P2(Words(dimension).Location) - P(0, 0)).Length;
+            if (wordsOut)
+            {
+                Assert.Equal(radius + 7.125, away, 9);
+            }
+            else
+            {
+                Assert.True(away < radius, "The words are " + away + " from the centre.");
+            }
         }
 
         [Fact]
