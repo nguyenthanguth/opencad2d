@@ -537,7 +537,11 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>Gets or sets the current layer, as the layer box of the ribbon sets it; a frozen layer is refused, said on the command line.</summary>
+        /// <summary>
+        /// Gets or sets the layer the layer box of the ribbon shows. With nothing selected it is the current layer, and setting
+        /// one makes it current (a frozen layer is refused, said on the command line); with objects selected it is theirs, null
+        /// where they differ, and setting one moves them to it as one undo step, the current layer staying.
+        /// </summary>
         public CadLayerInfo CurrentLayer
         {
             get
@@ -547,7 +551,7 @@ namespace OpenCAD2D.Wpf
                     return null;
                 }
 
-                string name = _current.Document.Database.Clayer;
+                string name = SelectedGeneral()?.Layer ?? _current.Document.Database.Clayer;
                 return _layers.FirstOrDefault(l => string.Equals(l.Name, name, StringComparison.OrdinalIgnoreCase));
             }
             set
@@ -557,7 +561,9 @@ namespace OpenCAD2D.Wpf
                     return;
                 }
 
-                CadEditResult result = CadLayerEditor.SetCurrent(_current.Document, value.Name);
+                CadEditResult result = SelectedHandles() is List<string> selected
+                    ? CadPropertyEditor.Set(_current.Document, selected, "Layer", value.Name)
+                    : CadLayerEditor.SetCurrent(_current.Document, value.Name);
 
                 if (!result.Succeeded)
                 {
@@ -2391,6 +2397,7 @@ namespace OpenCAD2D.Wpf
                 return;
             }
 
+            ForgetSelectedGeneral();
             SyncBlockEditor();
             SyncSpaceTabs();
             SyncActiveSpaceTab();
@@ -2411,6 +2418,7 @@ namespace OpenCAD2D.Wpf
 
             RaiseCurrentColor();
             RaiseCurrentLinetype();
+            Raise(nameof(CurrentLineweight));
             RaiseStyles();
             UpdateProperties();
             RaiseModified();
@@ -2593,6 +2601,7 @@ namespace OpenCAD2D.Wpf
             }
 
             _current = file;
+            ForgetSelectedGeneral();
             LoadDrafting();
             SpaceTabs.Clear();
 
@@ -2610,6 +2619,7 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(CurrentLayer));
             RaiseCurrentColor();
             RaiseCurrentLinetype();
+            Raise(nameof(CurrentLineweight));
             RaiseStyles();
             Raise(nameof(Prompt));
             Raise(nameof(IsCommandRunning));
@@ -2654,7 +2664,11 @@ namespace OpenCAD2D.Wpf
             Revision++;
         }
 
-        private void OnSelectionChanged(object sender, EventArgs e) => UpdateProperties();
+        private void OnSelectionChanged(object sender, EventArgs e)
+        {
+            RaiseSelectedGeneral();
+            UpdateProperties();
+        }
 
         /// <summary>
         /// Whether an object may be edited as what it is, by a contextual tab: it has no owner, or its owner takes the edits of it

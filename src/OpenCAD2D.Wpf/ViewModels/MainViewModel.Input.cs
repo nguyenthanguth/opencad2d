@@ -327,13 +327,17 @@ namespace OpenCAD2D.Wpf
         public bool IsDynamicInputSecondActive => (IsDynamicInputFields && SecondTyped()) || Alone(CadPromptKind.Angle);
 
         /// <summary>
-        /// Gets or sets the colour of new objects, the drawing's $CECOLOR, as the colour box of the ribbon's Properties panel
-        /// shows it: ByLayer, ByBlock, Red to White or an index, "30". Setting a colour sets it as one undo step, and
-        /// <see cref="MoreColorsOption"/> shows the Select Color dialog for it; empty with no drawing open.
+        /// Gets or sets the colour the colour box of the ribbon's Properties panel shows: ByLayer, ByBlock, Red to White or an
+        /// index, "30". With nothing selected it is the colour of new objects, the drawing's $CECOLOR; with objects selected it
+        /// is theirs, blank (null) where they differ. Setting a colour sets $CECOLOR, or sets the selected objects', as one undo step,
+        /// and <see cref="MoreColorsOption"/> shows the Select Color dialog for it; empty with no drawing open.
         /// </summary>
         public string CurrentColor
         {
-            get => _current == null ? string.Empty : SelectColorViewModel.Text(_current.Document.Database.Cecolor);
+            get =>
+                _current == null ? string.Empty
+                : SelectedGeneral() is CadSharedGeneral shared ? Shown(shared.Color)
+                : SelectColorViewModel.Text(_current.Document.Database.Cecolor);
             set
             {
                 if (_current == null || value == null || value == CurrentColor)
@@ -370,7 +374,7 @@ namespace OpenCAD2D.Wpf
                 }
                 else
                 {
-                    CadEditResult result = CadPropertyEditor.Set(_current.Document, null, "Color", value);
+                    CadEditResult result = CadPropertyEditor.Set(_current.Document, SelectedHandles(), "Color", value);
 
                     if (!result.Succeeded)
                     {
@@ -390,7 +394,7 @@ namespace OpenCAD2D.Wpf
                 var options = new List<string>(CurrentColorNames);
                 string current = CurrentColor;
 
-                if (current.Length > 0 && !options.Contains(current))
+                if (!string.IsNullOrEmpty(current) && !options.Contains(current))
                 {
                     options.Add(current);
                 }
@@ -400,7 +404,28 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>Gets the swatch of the colour of new objects as 0xRRGGBB: for ByLayer the current layer's, for ByBlock white.</summary>
+        /// <summary>
+        /// Gets the colour a colour of ByLayer is drawn in in the colour box, as 0xRRGGBB: that of the layer of the selected
+        /// objects, of the current layer with none selected, white where the objects are on more than one layer.
+        /// </summary>
+        public int ByLayerRgb
+        {
+            get
+            {
+                if (_current == null)
+                {
+                    return 0xFFFFFF;
+                }
+
+                string name = SelectedGeneral()?.Layer ?? _current.Document.Database.Clayer;
+                return name == CadPropertyRow.VariesText
+                    ? 0xFFFFFF
+                    : _layers.FirstOrDefault(l => string.Equals(l.Name, name, StringComparison.OrdinalIgnoreCase))?.Rgb
+                        ?? 0xFFFFFF;
+            }
+        }
+
+        /// <summary>Gets the swatch of the colour the colour box shows as 0xRRGGBB: for ByLayer <see cref="ByLayerRgb"/>, for ByBlock white; white where the selected objects differ in colour.</summary>
         public int CurrentColorRgb
         {
             get
@@ -408,6 +433,11 @@ namespace OpenCAD2D.Wpf
                 if (_current == null)
                 {
                     return 0xFFFFFF;
+                }
+
+                if (SelectedGeneral() is CadSharedGeneral shared)
+                {
+                    return ColorTextSwatch.Rgb(shared.Color, ByLayerRgb) ?? 0xFFFFFF;
                 }
 
                 DxfColor color = _current.Document.Database.Cecolor;
@@ -670,6 +700,7 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(CurrentColor));
             Raise(nameof(CurrentColorOptions));
             Raise(nameof(CurrentColorRgb));
+            Raise(nameof(ByLayerRgb));
         }
 
         /// <summary>
@@ -797,8 +828,10 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>
-        /// "More colors..." of the colour box: the Select Color dialog on the colour of new objects, ByLayer and ByBlock offered,
-        /// the colour chosen set as one undo step. A true colour is refused, said on the command line: the header holds an index.
+        /// "More colors..." of the colour box: the Select Color dialog on the colour the box shows (that of the selected objects,
+        /// where they differ the colour of new objects), ByLayer and ByBlock offered, the colour chosen set as one undo step: on
+        /// the selected objects, or with none selected on the colour of new objects, where a true colour is refused, said on the
+        /// command line: the header holds an index.
         /// </summary>
         private void PickCurrentColor()
         {
@@ -807,16 +840,30 @@ namespace OpenCAD2D.Wpf
                 return;
             }
 
+            List<string> selected = SelectedHandles();
             DxfColor old = _current.Document.Database.Cecolor;
+            bool differ = false;
+
+            if (selected != null)
+            {
+                string shared = SelectedGeneral().Color;
+                differ = shared == CadPropertyRow.VariesText;
+
+                if (!differ && SelectColorViewModel.TryParse(shared, out DxfColor own))
+                {
+                    old = own;
+                }
+            }
+
             var dialog = new SelectColorViewModel(old, true);
 
             if (PickColor == null)
             {
                 Say("The Select Color dialog is shown by the window.");
             }
-            else if (PickColor(dialog) && !dialog.Color.Equals(old))
+            else if (PickColor(dialog) && (differ || !dialog.Color.Equals(old)))
             {
-                if (dialog.Color.IsByColor)
+                if (selected == null && dialog.Color.IsByColor)
                 {
                     Say("The drawing keeps the colour of new objects as an index: ByLayer, ByBlock or 1 to 255.");
                     return;
@@ -824,7 +871,7 @@ namespace OpenCAD2D.Wpf
 
                 CadEditResult result = CadPropertyEditor.Set(
                     _current.Document,
-                    null,
+                    selected,
                     "Color",
                     SelectColorViewModel.Text(dialog.Color)
                 );

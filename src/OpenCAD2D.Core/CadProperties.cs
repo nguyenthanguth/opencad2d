@@ -502,6 +502,33 @@ namespace OpenCAD2D
         public override string ToString() => Label;
     }
 
+    /// <summary>
+    /// What the entities selected share of Layer, Color, Linetype and Lineweight, each as the Properties palette writes it, or
+    /// <see cref="CadPropertyRow.VariesText"/> where they differ: what the ribbon's combos of Home show for a selection.
+    /// </summary>
+    internal sealed class CadSharedGeneral
+    {
+        internal CadSharedGeneral(string layer, string color, string linetype, string lineweight)
+        {
+            Layer = layer;
+            Color = color;
+            Linetype = linetype;
+            Lineweight = lineweight;
+        }
+
+        /// <summary>Gets the layer's name, or *Varies*.</summary>
+        internal string Layer { get; }
+
+        /// <summary>Gets the colour as ByLayer, ByBlock, Red to White, an index or 255,128,0, or *Varies*.</summary>
+        internal string Color { get; }
+
+        /// <summary>Gets the linetype's name, or *Varies*.</summary>
+        internal string Linetype { get; }
+
+        /// <summary>Gets the lineweight as ByLayer, ByBlock, Default or 0.25 mm, or *Varies*.</summary>
+        internal string Lineweight { get; }
+    }
+
     /// <summary>Describes a selection for the Properties panel, as AutoCAD's Properties palette does.</summary>
     public static partial class CadProperties
     {
@@ -884,6 +911,76 @@ namespace OpenCAD2D
                 new CadPropertyRow("Lineweight", Read(() => LineWeightText(entity.LineWeight), "ByLayer"), false),
             };
             return new CadPropertyGroup("General", rows);
+        }
+
+        /// <summary>
+        /// The layer, colour, linetype and lineweight the entities share, as the General group of the palette writes them: for
+        /// a column on COLUMNS in red and a wall on WALLS in red, the layer is <see cref="CadPropertyRow.VariesText"/> and the colour is Red.
+        /// Layers are compared without regard to case, as the layer table is.
+        /// </summary>
+        /// <param name="document">The document.</param>
+        /// <param name="handles">The handles of the entities; a handle the document has no entity of is passed over.</param>
+        /// <returns>The shared values; null where there is no entity, which is what the drawing's current settings stand for.</returns>
+        internal static CadSharedGeneral SharedGeneral(CadDocument document, IReadOnlyCollection<string> handles)
+        {
+            List<DxfEntity> entities = Selected(document, handles);
+
+            if (entities.Count == 0)
+            {
+                return null;
+            }
+
+            DxfEntity first = entities[0];
+            string layer = first.Layer ?? "0";
+            string color = Read(() => ColorText(first.Color), "ByLayer");
+            string linetype = Read(() => LinetypeText(first.Linetype), "ByLayer");
+            string lineweight = Read(() => LineWeightText(first.LineWeight), "ByLayer");
+
+            for (int i = 1; i < entities.Count; i++)
+            {
+                DxfEntity entity = entities[i];
+
+                if (
+                    layer != CadPropertyRow.VariesText
+                    && !string.Equals(layer, entity.Layer ?? "0", StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    layer = CadPropertyRow.VariesText;
+                }
+
+                if (color != CadPropertyRow.VariesText && color != Read(() => ColorText(entity.Color), "ByLayer"))
+                {
+                    color = CadPropertyRow.VariesText;
+                }
+
+                if (
+                    linetype != CadPropertyRow.VariesText
+                    && linetype != Read(() => LinetypeText(entity.Linetype), "ByLayer")
+                )
+                {
+                    linetype = CadPropertyRow.VariesText;
+                }
+
+                if (
+                    lineweight != CadPropertyRow.VariesText
+                    && lineweight != Read(() => LineWeightText(entity.LineWeight), "ByLayer")
+                )
+                {
+                    lineweight = CadPropertyRow.VariesText;
+                }
+
+                if (
+                    layer == CadPropertyRow.VariesText
+                    && color == CadPropertyRow.VariesText
+                    && linetype == CadPropertyRow.VariesText
+                    && lineweight == CadPropertyRow.VariesText
+                )
+                {
+                    break;
+                }
+            }
+
+            return new CadSharedGeneral(layer, color, linetype, lineweight);
         }
 
         /// <summary>The groups of one entity's kind, as AutoCAD's palette heads them.</summary>
