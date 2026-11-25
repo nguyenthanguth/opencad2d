@@ -440,8 +440,8 @@ namespace OpenCAD2D
             }
         }
 
-        /// <summary>A copy of a drawing with one layout kept and nothing in model space, as the template of that layout: the drawing as it is, read again, the other layouts and their blocks taken out and every entity of model space erased.</summary>
-        private static DxfDatabase TemplateOf(DxfDatabase database, string layoutName)
+        /// <summary>A copy of a drawing with one layout kept and nothing in model space, as the template of that layout: the drawing as it is, read again, the other layouts and their blocks taken out and every entity of model space erased, unless <paramref name="keepModelSpace"/> keeps them (a new sheet of a sheet set is made so, as AutoCAD makes it).</summary>
+        internal static DxfDatabase TemplateOf(DxfDatabase database, string layoutName, bool keepModelSpace = false)
         {
             DxfDatabase copy = DxfDatabase.Parse(database.ToText());
 
@@ -467,9 +467,12 @@ namespace OpenCAD2D
                 RemoveLayout(copy, other);
             }
 
-            foreach (DxfEntity entity in copy.ModelSpace)
+            if (!keepModelSpace)
             {
-                entity.Erase();
+                foreach (DxfEntity entity in copy.ModelSpace)
+                {
+                    entity.Erase();
+                }
             }
 
             return copy;

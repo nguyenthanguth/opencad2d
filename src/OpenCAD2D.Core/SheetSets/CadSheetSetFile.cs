@@ -28,7 +28,7 @@ namespace OpenCAD2D.SheetSets
     /// The order of the set is the order of the XML, and nothing here follows the order of a dictionary.
     /// </para>
     /// </remarks>
-    public sealed class CadSheetSetFile
+    public sealed partial class CadSheetSetFile
     {
         private readonly Func<Guid> _newGuid;
         private XDocument _document;

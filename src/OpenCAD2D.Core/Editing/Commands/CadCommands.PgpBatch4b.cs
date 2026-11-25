@@ -27,7 +27,7 @@ namespace OpenCAD2D
         };
 
         // What a layout's name may not hold, as AutoCAD 2021 says it.
-        private const string LayoutBadCharacters = "<>/\\\":;?*|,=`";
+        internal const string LayoutBadCharacters = "<>/\\\":;?*|,=`";
 
         // The kinds of symbol XBIND binds: how it is typed, the table of the drawing, and the word the prompt and the count use.
         private static readonly string[][] XbindKinds =
