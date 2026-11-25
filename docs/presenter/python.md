@@ -299,9 +299,9 @@ handles = drawing.commit()          # the handles of the circle and the line, in
 | Member | What it does |
 |---|---|
 | `name`, `path`, `is_active`, `is_modified` | what the tab shows; `path` is `None` for a drawing never saved |
-| `entities(type, layer, layout)`, `entity(handle)`, `selection()`, `select(items)` | read objects as `Entity` copies; `type` is the DXF name, `"LINE"`, ignoring case |
-| `add(dxf_entity, layout)` | queue a copy of any `GeometryHelper.Dxf` entity |
-| `add_line`, `add_circle`, `add_arc`, `add_polyline`, `add_text`, `add_mtext` | queue the common objects; angles are **radians**; `**props` takes `layer`, `color`, `linetype` |
+| `entities(type, layer, layout)`, `entity(handle)`, `selection()`, `select(items)` | read objects as `Entity` copies; `type` is the DXF name, `"LINE"`, ignoring case, or a class: `entities(DxfCircle)` gives the circles and the classes under it, as `Entity[DxfCircle]` |
+| `add(dxf_entity, layout)` | queue a copy of any `GeometryHelper.Dxf` entity; gives an `Entity` of its class |
+| `add_line`, `add_circle`, `add_arc`, `add_polyline`, `add_text`, `add_mtext` | queue the common objects; angles are **radians**; `**props` takes `layer`, `color`, `linetype`; each gives an `Entity` of its class (`Entity[DxfLine]`...) |
 | `modify(entity)`, `erase(entity_or_handle)` | queue a change made to `entity.net`, or an erase |
 | `commit()` | apply everything queued as one undo step; the handles of the objects added |
 | `layers`, `current_layer`, `text_styles`, `dimension_styles`, `blocks`, `layouts`, `current_layout` | the tables; styles and blocks are read-only copies |
@@ -312,6 +312,9 @@ handles = drawing.commit()          # the handles of the circle and the line, in
 A point is a `GeoPoint2`, a `GeoPoint3` or a tuple of two or three numbers. An `Entity` has `handle`, `dxf_type` and a `net`, a
 **copy** of the `DxfEntity` that is never the live object, so nothing bypasses undo; `layer`, `color` (256 ByLayer, 0 ByBlock)
 and `linetype` are set on the `Entity` and committed with the drawing; after changing `net`, call `drawing.modify(entity)`. A
+type checker knows the class of `net` of an `Entity` that `entities(DxfCircle)` or an `add_*` gave (`Entity[DxfCircle]`); one
+from `entity(handle)`, `selection()` or a pick has a `DxfEntity` for `net`, narrowed the way C# narrows it: `if isinstance(e.net, DxfLine):`
+or `match e.net:` with `case DxfCircle() as c:` ([typed entities](../python.md#typed-entities)). A
 `Layer` has `name` (read only) and settable `color`, `linetype`, `description`, `is_on`, `is_frozen`, `is_locked` and
 `is_plottable`. A dimension added or modified from Python is drawn by the app, so its picture holds the lines, arrows and words
 of its measurement ([`CadDimensionPicture.Redraw`](xref:OpenCAD2D.CadDimensionPicture)): a rotated dimension from

@@ -31,7 +31,7 @@ def main(argv: list[str]) -> int:
         print("usage: python coordinates_numpy.py DRAWING   (a .dxf or .dwg file)", file=sys.stderr)
         return 2
     drawing = open_file(argv[0])
-    polylines = [entity for entity in drawing.entities(layout="Model") if isinstance(entity.net, DxfPolyline)]
+    polylines = drawing.entities(DxfPolyline, layout="Model")  # Entity[DxfPolyline]: its net needs no isinstance
     polylines.sort(key=lambda entity: int(entity.handle, 16))
     arrays: list[NDArray[np.float64]] = []
     for entity in polylines:

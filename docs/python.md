@@ -426,6 +426,37 @@ wheel on .NET 8 (`new_file`, the three adds, `commit`, `save_as`, `open_file`). 
 to ask, so on a drawing of a file they raise `RuntimeError`. `make_drawing.py` and `list_layers.py` of
 [Python examples](python-examples.md) are written this way.
 
+### Typed entities
+
+An `Entity` knows the class of its `net` for a type checker (`Entity[DxfCircle]`; a bare `Entity` is an `Entity[DxfEntity]`),
+as C# knows it from `is` and `as`. `entities(DxfCircle)` gives the circles, typed, and a class asks for its subclasses too:
+`DxfCurve` is the lines, arcs, circles, polylines and the rest of the curves. The `add_*` calls give the exact type
+(`add_circle` an `Entity[DxfCircle]`, `add_polyline` an `Entity[DxfPolyline]`). An `Entity` read by name, by handle, from the
+selection or from a pick has a `net` of the base class, which has no `Radius` until it is narrowed, the way C# asks for a cast:
+
+```python
+from GeometryHelper.Dxf import DxfCircle, DxfCurve, DxfLine
+
+drawing.entities(DxfCircle)[0].net.Radius       # 25.0, typed float: no isinstance needed
+[e.dxf_type for e in drawing.entities(DxfCurve)]  # ['LINE', 'CIRCLE', 'LWPOLYLINE']: the curves of the drawing above
+
+for entity in drawing.entities():
+    if isinstance(entity.net, DxfLine):         # as C#: if (entity is DxfLine line)
+        print(entity.net.Length)                # 100.0
+    match entity.net:                           # as C#: switch (entity) { case DxfCircle c: ... }
+        case DxfCircle() as circle:
+            print(circle.Radius, circle.Area)   # 25.0 1963.495...
+        case _:
+            pass
+```
+
+A class that is no `DxfEntity` (`entities(int)`) raises `TypeError`, and a type checker marks it too. At run time `net` has
+always been a copy of its own class: only what a type checker knows has changed. A script that reads
+`drawing.entities("CIRCLE")[0].net.Radius` still runs, and pyright now asks for `entities(DxfCircle)` or an `isinstance`
+there. The numbers come from a run of the built wheel on .NET 8 (a line, a
+circle of radius 25 and a closed polyline), and the two forms are the `ok_typed_entities.py` and `bad_typed_entities.py` of
+the typecheck tests.
+
 ## Inside OpenCAD2D
 
 The same library runs in the app's tools. OpenCAD2D loads a Python tool, a folder with a `requirements.txt`, an `__init__.py`

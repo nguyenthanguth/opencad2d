@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from opencad2d.cad import App
+from GeometryHelper.Dxf import DxfLine
 from OpenCAD2D.Remote import CadApplication
 
 LAYER = "Grid"
@@ -23,7 +24,7 @@ def main(app: CadApplication, out: str | None) -> None:
         drawing.add_line((0, step), (1000, step), layer=LAYER)  # a horizontal one
     drawing.commit()  # the layer first, then the lines: one undo step
 
-    lines = drawing.entities("LINE", layer=LAYER)
+    lines = drawing.entities(DxfLine, layer=LAYER)
     print(f"{len(lines)} lines on {LAYER}, total length {sum(line.net.Length for line in lines):.3f}")
     if out is not None:
         drawing.save_as(out)

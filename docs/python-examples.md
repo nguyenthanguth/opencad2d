@@ -257,7 +257,7 @@ the .NET calls look in Python. The numbers below come from the test server of th
 ### Draw a grid and read it back
 
 `draw_and_read.py [OUT]` starts a new drawing, adds a layer `Grid` and 11 vertical and 11 horizontal lines over a
-square of 1 000 at a spacing of 100, commits them as one undo step, reads them back with `drawing.entities("LINE", layer="Grid")`
+square of 1 000 at a spacing of 100, commits them as one undo step, reads them back with `drawing.entities(DxfLine, layer="Grid")`
 and, when `OUT` is given, saves the drawing.
 
 ```text

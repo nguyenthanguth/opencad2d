@@ -12,11 +12,24 @@ copies: ``Entity.net`` and the styles and blocks are never the live objects of t
 
 from __future__ import annotations
 
+import builtins
 import importlib
 import os
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, overload
+
+if TYPE_CHECKING:
+    import typing_extensions
+    from GeometryHelper.Dxf import DxfArc, DxfCircle, DxfDBText, DxfEntity, DxfLine, DxfMText, DxfPolyline
+
+    # The class of an Entity's net; a bare Entity is an Entity[DxfEntity]. The default needs typing_extensions, which only
+    # the type checker reads: at run time E is a plain TypeVar and nothing is imported.
+    E = typing_extensions.TypeVar("E", bound=DxfEntity, default=DxfEntity, covariant=True)
+else:
+    E = TypeVar("E", covariant=True)
+
+K = TypeVar("K", bound="DxfEntity")
 
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
 _geo: Any = importlib.import_module("GeometryHelper.Geometry")
@@ -80,7 +93,9 @@ class Backend(Protocol):
     @property
     def blocks(self) -> list[Any]: ...
 
-    def read(self, dxf_type: str | None, layer: str | None, layout: str | None) -> list[tuple[str, Any, Any]]: ...
+    def read(
+        self, dxf_type: str | None, layer: str | None, layout: str | None, kind: Any = None
+    ) -> list[tuple[str, Any, Any]]: ...
     def read_one(self, handle: str) -> tuple[Any, Any] | None: ...
     def selected(self) -> list[tuple[str, Any, Any]]: ...
     def select(self, handles: list[str]) -> None: ...
@@ -120,8 +135,13 @@ def point3(value: Any) -> Any:
     raise ValueError(f"A point is a GeoPoint2, a GeoPoint3 or a tuple of 2 or 3 numbers, not {value!r}.")
 
 
-class Entity:
+class Entity(Generic[E]):
     """One object of a drawing, as a copy: ``handle``, ``dxf_type`` and ``net``, the ``DxfEntity`` copy.
+
+    An ``Entity`` knows the class of its ``net`` for a type checker: ``entities(DxfCircle)`` and ``add_circle`` give an
+    ``Entity[DxfCircle]``, whose ``net.Radius`` is a ``float``; one read without a class is a plain ``Entity``, whose ``net``
+    is a ``DxfEntity`` until ``isinstance(entity.net, DxfCircle)`` or ``match entity.net:`` narrows it. Nothing changes at
+    run time: ``net`` is always the copy of its own class.
 
     ``layer``, ``color`` (the colour index: 256 ByLayer, 0 ByBlock) and ``linetype`` are set here and committed by
     ``Drawing.commit()`` without ``modify``. ``net`` is one copy for the life of the ``Entity``: a change made to it reaches
@@ -138,10 +158,10 @@ class Entity:
         drawing.commit()
     """
 
-    def __init__(self, drawing: Drawing, handle: str, net: Any, source: Any = None) -> None:
+    def __init__(self, drawing: Drawing, handle: str, net: E, source: Any = None) -> None:
         self._drawing = drawing
         self._handle = handle
-        self._net = net
+        self._net: E = net
         self._source = source  # the small drawing the copy lives in: the local backend writes a change from it
         self._type = dxf_type_of(net)
 
@@ -164,12 +184,15 @@ class Entity:
         return self._type
 
     @property
-    def net(self) -> Any:
-        """The ``DxfEntity`` copy; after changing it call ``drawing.modify(entity)``.
+    def net(self) -> E:
+        """The ``DxfEntity`` copy, of its own class; after changing it call ``drawing.modify(entity)``.
 
         Example:
-            polyline = drawing.entities("LWPOLYLINE")[0]
+            polyline = drawing.entities(DxfPolyline)[0]
             polyline.net.Area                             # 2500.0 for the triangle (0, 0), (100, 0), (100, 50)
+            entity = drawing.entities()[0]
+            if isinstance(entity.net, DxfLine):           # narrowed: entity.net.Length is a float
+                entity.net.Length                         # 100.0 for the line from (0, 0) to (100, 0)
         """
         return self._net
 
@@ -536,19 +559,38 @@ class Drawing:
 
     # ---- reading --------------------------------------------------------------------------------------------------
 
-    def entities(self, type: str | None = None, layer: str | None = None, layout: str | None = None) -> list[Entity]:
+    @overload
+    def entities(
+        self, type: builtins.type[K], layer: str | None = None, layout: str | None = None
+    ) -> list[Entity[K]]: ...
+    @overload
+    def entities(
+        self, type: str | None = None, layer: str | None = None, layout: str | None = None
+    ) -> list[Entity]: ...
+    def entities(
+        self, type: builtins.type[Any] | str | None = None, layer: str | None = None, layout: str | None = None
+    ) -> list[Entity[Any]]:
         """The objects of the drawing, as copies in the order the drawing lists them, of one DXF ``type`` (``"line"``, ignoring
-        case), one ``layer`` and one ``layout`` where given: ``drawing.entities(type="CIRCLE", layer="Steel")``.
+        case, or a class of ``GeometryHelper.Dxf``), one ``layer`` and one ``layout`` where given. A class asks for its
+        subclasses too (``DxfCurve`` is lines, arcs, circles, polylines...) and gives ``Entity[DxfCircle]`` for a type checker,
+        whose ``net`` needs no narrowing; a class that is no ``DxfEntity`` raises ``TypeError``.
 
         Example:
             drawing.entities()                            # six objects: LINE, CIRCLE, ARC, LWPOLYLINE, TEXT, MTEXT
             drawing.entities(type="line", layer="steel")  # the one LINE on layer Steel: layer names ignore case
+            drawing.entities(DxfCircle)[0].net.Radius     # 25.0: the circle, typed, with no isinstance
+            len(drawing.entities(DxfCurve))               # 4: the line, the circle, the arc and the polyline
         """
-        found = self._backend.read(None if type is None else type.upper(), layer, layout)
-        entities = [Entity(self, handle, net, source) for handle, net, source in found]
-        if type is None:
-            return entities
-        return [entity for entity in entities if entity.dxf_type.upper() == type.upper()]
+        if type is None or isinstance(type, str):
+            found = self._backend.read(None if type is None else type.upper(), layer, layout)
+            entities = [Entity(self, handle, net, source) for handle, net, source in found]
+            if type is None:
+                return entities
+            return [entity for entity in entities if entity.dxf_type.upper() == type.upper()]
+        if not isinstance(type, builtins.type) or not issubclass(type, _dxf.DxfEntity):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(f"entities takes the name of a DXF type or a class of DxfEntity, not {type!r}.")
+        found = self._backend.read(None, layer, layout, type)
+        return [Entity(self, handle, net, source) for handle, net, source in found]
 
     def entity(self, handle: str) -> Entity:
         """The object of a handle; ``KeyError`` when the drawing has none: ``drawing.entity("2F")``.
@@ -588,7 +630,7 @@ class Drawing:
 
     # ---- adding ---------------------------------------------------------------------------------------------------
 
-    def _made(self, entity: Any, props: dict[str, Any]) -> Any:
+    def _made(self, entity: K, props: dict[str, Any]) -> K:
         for key, value in props.items():
             if key == "layer":
                 entity.Layer = str(value)
@@ -600,7 +642,7 @@ class Drawing:
                 raise TypeError(f"{key!r} is not a property an object is made with: give layer, color or linetype.")
         return entity
 
-    def add(self, dxf_entity: Any, layout: str | None = None) -> Entity:
+    def add(self, dxf_entity: K, layout: str | None = None) -> Entity[K]:
         """Queue a copy of any ``GeometryHelper.Dxf`` entity, in model space or in ``layout``; the ``Entity`` returned has
         the handle ``~1``, ``~2``... until ``commit()``. The entity given is not kept: a later change to it adds nothing.
 
@@ -610,11 +652,12 @@ class Drawing:
             added.handle                                  # '~1' until drawing.commit() returns ['101']
         """
         self._tickets += 1
-        entity = Entity(self, f"~{self._tickets}", dxf_entity.Clone())
+        clone: Any = dxf_entity.Clone()
+        entity: Entity[K] = Entity(self, f"~{self._tickets}", clone)
         self._queue(Op("insert", entity=entity, copy=dxf_entity.Clone(), layout=layout))
         return entity
 
-    def add_line(self, start: Any, end: Any, **props: Any) -> Entity:
+    def add_line(self, start: Any, end: Any, **props: Any) -> Entity[DxfLine]:
         """Queue a line: ``drawing.add_line((0, 0), (100.5, 0), layer="Steel")``. ``props``: ``layer``, ``color``, ``linetype``.
 
         Example:
@@ -622,7 +665,7 @@ class Drawing:
         """
         return self.add(self._made(_dxf.DxfLine(point3(start), point3(end)), props))
 
-    def add_circle(self, center: Any, radius: float, **props: Any) -> Entity:
+    def add_circle(self, center: Any, radius: float, **props: Any) -> Entity[DxfCircle]:
         """Queue a circle: ``drawing.add_circle((50, 50), 25)`` is a circle of radius 25 about (50, 50).
 
         Example:
@@ -633,7 +676,7 @@ class Drawing:
         circle.Radius = float(radius)
         return self.add(self._made(circle, props))
 
-    def add_arc(self, center: Any, radius: float, start_angle: float, end_angle: float, **props: Any) -> Entity:
+    def add_arc(self, center: Any, radius: float, start_angle: float, end_angle: float, **props: Any) -> Entity[DxfArc]:
         """Queue an arc, counter-clockwise from ``start_angle`` to ``end_angle`` in **radians**:
         ``drawing.add_arc((0, 0), 10, 0.0, math.pi / 2)`` is the quarter of a circle of radius 10 in the first quadrant.
 
@@ -643,7 +686,7 @@ class Drawing:
         arc = _dxf.DxfArc(point3(center), float(radius), float(start_angle), float(end_angle))
         return self.add(self._made(arc, props))
 
-    def add_polyline(self, points: Sequence[Any], closed: bool = False, **props: Any) -> Entity:
+    def add_polyline(self, points: Sequence[Any], closed: bool = False, **props: Any) -> Entity[DxfPolyline]:
         """Queue a polyline through the points (x and y; the z of the first is its elevation), closed where asked:
         ``drawing.add_polyline([(0, 0), (100, 0), (100, 50)], closed=True)`` is a triangle of 2500 square units.
 
@@ -660,7 +703,7 @@ class Drawing:
         polyline.Closed = bool(closed)
         return self.add(self._made(polyline, props))
 
-    def add_text(self, text: str, insert: Any, height: float, rotation: float = 0.0, **props: Any) -> Entity:
+    def add_text(self, text: str, insert: Any, height: float, rotation: float = 0.0, **props: Any) -> Entity[DxfDBText]:
         """Queue a single-line text at ``insert``, ``height`` high, turned ``rotation`` radians:
         ``drawing.add_text("Plate", (0, 100), 5.0)``.
 
@@ -674,7 +717,7 @@ class Drawing:
         made.Rotation = float(rotation)
         return self.add(self._made(made, props))
 
-    def add_mtext(self, text: str, insert: Any, height: float, width: float = 0.0, **props: Any) -> Entity:
+    def add_mtext(self, text: str, insert: Any, height: float, width: float = 0.0, **props: Any) -> Entity[DxfMText]:
         """Queue a multi-line text at ``insert``, ``height`` high, wrapped at ``width`` (0 for no wrapping):
         ``drawing.add_mtext("Plate PL10", (10, 20), 5.0)``.
 
