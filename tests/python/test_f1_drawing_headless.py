@@ -11,6 +11,7 @@ from typing import Any
 import pytest
 
 import drawing_scenarios
+import opencad2d
 from drawing_scenarios import BLANK, SCENARIOS, Scenario
 from opencad2d.cad import new_file, open_file
 
@@ -71,6 +72,32 @@ def test_a_drawing_saved_as_and_opened_again_reads_back_the_same_objects(tmp_pat
     line = next(entity for entity in again.entities() if entity.dxf_type == "LINE")
     assert (line.net.EndPoint.X, line.net.EndPoint.Y) == (pytest.approx(100.5), pytest.approx(0.0))
     assert [str(layer.name) for layer in again.layers if str(layer.name) == "Steel"] == ["Steel"]
+
+
+def test_a_save_inside_an_undo_group_is_one_undo_step_with_the_edits_around_it(tmp_path: Path) -> None:
+    drawing = new_file()
+    document = drawing.net
+    path = tmp_path / "grouped.dxf"
+
+    with opencad2d.undo_group(document, "plan"):
+        drawing.add_line((0, 0), (10, 0))
+        drawing.commit()
+        drawing.save_as(str(path))
+        assert document.IsInGroup
+        assert not document.IsModified
+        drawing.add_circle((0, 0), 5)
+        drawing.commit()
+        drawing.save()
+        drawing.add_line((0, 5), (10, 5))
+        drawing.commit()
+
+    # The file holds what was done before the last save, and the drawing says the line after it is not saved.
+    assert [e.dxf_type for e in open_file(str(path)).entities()] == ["LINE", "CIRCLE"]
+    assert document.IsModified
+    assert str(document.NextUndo.Name) == "plan"
+    assert document.Undo()
+    assert not document.CanUndo
+    assert document.EntityCount == 0
 
 
 def _needs_the_app() -> list[tuple[str, Callable[[], object]]]:

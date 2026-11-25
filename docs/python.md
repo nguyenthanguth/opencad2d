@@ -398,6 +398,12 @@ receives the document itself (`with undo_group(document, "name") as target:`).
 Groups nest, and the whole stack is one undo step. A cancel takes back every open group, so after an inner block that
 raised, the outer block finds none left and neither ends nor cancels one: the first exception is the one that arrives.
 
+`drawing.save()` and `drawing.save_as(path)` inside a group are the exception to the `SaveAs` that throws: the Drawing API
+saves through `CadDocument.SavingInGroup(save)`, which closes the group for the save and opens it again, so that a block of
+two circles, a `save()` and a third circle is still one undo step, and one `Undo()` takes back all three. The file holds the
+two circles; the drawing is modified, for the third is not in it. A block that raises after a `save()` takes back only what
+followed it, since the file cannot be taken back.
+
 ## The Drawing API
 
 A drawing of a file is read and changed through a `Drawing`, the same one a command of a Python tool uses in the app and
@@ -420,7 +426,7 @@ len(again.entities())                                  # 3
 again.entities("LWPOLYLINE")[0].net.Area               # 2500.0, the triangle
 ```
 
-An `Entity` is a copy with a `handle`, a `dxf_type` (`"LINE"`, `"CIRCLE"`, `"LWPOLYLINE"`) and the `DxfEntity` as `net`; after
+An `Entity` is a copy with a `handle`, a `dxf_type` (`"LINE"`, `"CIRCLE"`, `"LWPOLYLINE"`, the `DxfName` of its `net`) and the `DxfEntity` as `net`; after
 changing `net`, `drawing.modify(entity)` and `drawing.commit()` write it back. The numbers above came from a run of the built
 wheel on .NET 8 (`new_file`, the three adds, `commit`, `save_as`, `open_file`). `pick_point` and the other picks need somebody
 to ask, so on a drawing of a file they raise `RuntimeError`. `make_drawing.py` and `list_layers.py` of
@@ -481,7 +487,7 @@ not installed there, as the app brings its own copy of the package. [Python comm
 The wheel carries the stubs of the library, so an editor completes the .NET names and checks a script that uses them. They
 are a PEP 561 stub package per top-level namespace, `GeometryHelper-stubs` and `OpenCAD2D-stubs` (an `__init__.pyi` for each
 of the 18 namespaces of the two libraries), and `System-stubs`, the few BCL classes the library's signatures name, as pythonnet spells them: `System.Array[T]`,
-`System.Collections.Generic.List[T]`, `System.Action[...]`. They hold 820 types and 18 663 members (a member is one stub
+`System.Collections.Generic.List[T]`, `System.Action[...]`. They hold 827 types and 18 792 members (a member is one stub
 entry, each overload once), and the summary of each type and member as its docstring, so hovering `GeoPoint3(` in Pylance
 shows its overloads and what each does. A class written in several files shows all its summaries joined in the hover.
 The same text is on the docs site as the [Python API](../docfx/python-api/index.md), a page for each type with

@@ -551,8 +551,8 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       Python is drawn by `CadDimensionPicture.Redraw`; the palette's 4 source files, 3 test files and 89 test methods are gone
       (the host's console entry stays, since the engine-error tests use it); DIMLAY in LISP and in Python give equal
       drawings, picture included (red without the redraw)
-- [ ] PW3 parked: `save()` inside a run makes two undo steps (the run's group ends and opens again); `Entity.dxf_type`
-      is read from `str(net)` (a public DXF name on `DxfEntity` would touch the core and its 10-minute suite); custom
+- [ ] PW3 parked: closed 2026-11-25: `Entity.dxf_type` is the core's `DxfEntity.DxfName` (GeometryHelper ecd511ae);
+      `save()` and `save_as()` inside a run or an `undo_group` are one undo step (`CadDocument.SavingInGroup`). Left: custom
       snaps and plugin settings (D1660); `CadPythonHost.Enter`, `ResetConsole` and `CadPythonEntry` (gone with TF7); the remote examples take the raw `CadApplication` and wrap it in `App(...)`
       because `test_e0` pins that signature and `with CadApplication()`; `batch_folder.py` and `convert.py` stay on
       `DxfDatabase` (they need the version and the writer's warnings); no ribbon-button example file (`test_e0` lists

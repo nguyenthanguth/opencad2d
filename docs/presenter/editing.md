@@ -33,7 +33,10 @@ of what was done. A record has a kind (`Added`, `Erased`, `Transformed`, `Proper
 
 A command that makes several edits is one step: `BeginGroup(name)` opens a group, `EndGroup()` closes it and the outermost
 one makes its edits a single step, and `CancelGroup()` takes them all back. While a group is open `CanUndo` is false and
-`SaveAs` throws "A command is running: end it before saving."
+`SaveAs` throws "A command is running: end it before saving." `SavingInGroup(save)` is the way to save from inside a group:
+it closes the group for `save` and opens it again, and what the group does after the save is one undo step with what it did
+before, so that a command of two circles, a save and a third is one `Undo()`; a group cancelled after the save takes back
+only the third circle.
 
 ## Undo and redo
 

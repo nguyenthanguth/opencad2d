@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using GeometryHelper.Dxf;
@@ -426,6 +427,107 @@ namespace OpenCAD2D.Remote.UnitTest
 
                 Assert.Equal(2, scene.Lines());
                 Assert.False(scene.OnApp(() => scene.Document.CanUndo));
+            }
+        }
+
+        [Fact]
+        public void ASaveInARun_SavesTheEditsSoFar_AndTheRunGoesOnInTheSameUndoStep()
+        {
+            using (var scene = new Scene())
+            {
+                string file = Path.Combine(scene.Harness.Folder, "stairs.dxf");
+                scene.Begin();
+                scene.Drawing.Insert(Line(0, 100, 100, 100));
+                scene.Drawing.CommitChanges();
+
+                scene.Drawing.SaveAs(file);
+
+                // The file holds the two lines of the drawing and the one committed; the run is still working in its group.
+                Assert.Equal(3, DxfDatabase.Open(file).ModelSpace.Count());
+                Assert.True(scene.OnApp(() => scene.Session.IsRunning));
+                Assert.True(scene.OnApp(() => scene.Document.IsInGroup));
+                Assert.False(scene.Run.IsEnded);
+                Assert.False(scene.OnApp(() => scene.Document.IsModified));
+
+                scene.Drawing.Insert(Line(0, 150, 100, 150));
+                scene.Drawing.CommitChanges();
+                scene.Drawing.Save();
+
+                Assert.Equal(4, DxfDatabase.Open(file).ModelSpace.Count());
+                Assert.True(scene.OnApp(() => scene.Document.IsInGroup));
+
+                scene.Drawing.Insert(Line(0, 200, 100, 200));
+                scene.Drawing.CommitChanges();
+                scene.Joined.End();
+
+                // What the run did after its last save is not in the file, and the drawing says so.
+                Assert.Equal(5, scene.Lines());
+                Assert.Equal(4, DxfDatabase.Open(file).ModelSpace.Count());
+                Assert.True(scene.OnApp(() => scene.Document.IsModified));
+                Assert.Equal(CadRemoteToolRunOutcome.Completed, scene.Run.Outcome);
+                Assert.Equal("STAIRSPY", scene.OnApp(() => scene.Document.NextUndo.Name));
+
+                // One undo takes back everything the run made, as it does where the run saves nothing.
+                scene.OnApp(() => scene.Document.Undo());
+
+                Assert.Equal(2, scene.Lines());
+                Assert.False(scene.OnApp(() => scene.Document.CanUndo));
+            }
+        }
+
+        [Fact]
+        public void ASaveInARunBeforeAnyCommit_LeavesTheStepBeforeTheRunAlone()
+        {
+            using (var scene = new Scene())
+            {
+                string file = Path.Combine(scene.Harness.Folder, "early.dxf");
+
+                // A circle drawn by the command line first: one step of its own, below the run's.
+                foreach (string typed in new[] { "CIRCLE", "0,0", "5" })
+                {
+                    scene.OnApp(() => scene.Session.Feed(typed));
+                }
+
+                Assert.Equal(3, scene.Lines());
+                scene.Begin();
+
+                scene.Drawing.SaveAs(file);
+                scene.Drawing.Insert(Line(0, 100, 100, 100));
+                scene.Drawing.CommitChanges();
+                scene.Joined.End();
+
+                Assert.Equal(4, scene.Lines());
+                Assert.Equal("STAIRSPY", scene.OnApp(() => scene.Document.NextUndo.Name));
+
+                scene.OnApp(() => scene.Document.Undo());
+
+                // Only the run's line is gone: the circle before it is a step of its own, and the file holds the circle.
+                Assert.Equal(3, scene.Lines());
+                Assert.Equal("CIRCLE", scene.OnApp(() => scene.Document.NextUndo.Name));
+                Assert.Equal(3, DxfDatabase.Open(file).ModelSpace.Count());
+            }
+        }
+
+        [Fact]
+        public void ARunThatSavesAndThenFails_KeepsWhatWasSaved_AndTakesBackTheRest()
+        {
+            using (var scene = new Scene())
+            {
+                string file = Path.Combine(scene.Harness.Folder, "failing.dxf");
+                scene.Begin();
+                scene.Drawing.Insert(Line(0, 100, 100, 100));
+                scene.Drawing.CommitChanges();
+                scene.Drawing.SaveAs(file);
+                scene.Drawing.Insert(Line(0, 150, 100, 150));
+                scene.Drawing.CommitChanges();
+
+                scene.Joined.Fail("STAIRSPY: failed after saving");
+
+                // The file is written and cannot be taken back, so what was saved stays, as the drawing the file holds.
+                Assert.Equal(3, scene.Lines());
+                Assert.False(scene.OnApp(() => scene.Document.IsInGroup));
+                Assert.False(scene.OnApp(() => scene.Document.IsModified));
+                Assert.Equal(CadRemoteToolRunOutcome.Failed, scene.Run.Outcome);
             }
         }
 

@@ -159,3 +159,36 @@ def refused():
     assert after != before
     assert server.send("type U") == "DONE"
     assert edit_scenarios.differences(before, edit_scenarios.snapshot(plan)) == []
+
+
+def test_a_save_in_a_tool_saves_the_edits_so_far_and_the_run_stays_one_undo_step(
+    start_tool: Started, tool_folder: Make, run_command: Run, plan: Any, server: Any, tmp_path: Path
+) -> None:
+    saved = tmp_path / "saved.dxf"
+    source = f'''
+from opencad2d.cad import active_drawing, command
+
+@command("SAVES")
+def saves():
+    drawing = active_drawing()
+    drawing.add_line((0, 100), (50, 100))
+    drawing.save_as({str(saved)!r})
+    drawing.add_line((0, 150), (50, 150))
+    drawing.save()
+    drawing.add_line((0, 200), (50, 200))
+'''
+    before = edit_scenarios.snapshot(plan)
+    tool, _, token = start_tool(tool_folder("Saves", source))
+    tool.receive("ready")
+
+    run_command(tool, "SAVES", token)
+
+    tool.receive("ended")
+    from GeometryHelper.Dxf import DxfDatabase
+
+    # The file has the plan and the two lines added before the last save; the third line, added after it, is the drawing's only.
+    assert sum(1 for _ in DxfDatabase.Open(str(saved)).ModelSpace) == len(before) + 2
+    assert len(edit_scenarios.snapshot(plan)) == len(before) + 3
+    # One U takes the whole run back, the saved part too: a save does not split the run's step.
+    assert server.send("type U") == "DONE"
+    assert edit_scenarios.differences(before, edit_scenarios.snapshot(plan)) == []

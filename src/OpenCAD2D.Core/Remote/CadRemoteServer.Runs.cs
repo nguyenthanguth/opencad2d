@@ -429,10 +429,44 @@ namespace OpenCAD2D
                         );
                     case RemoteOps.Commit:
                         return Commit(Find(request), request, run);
+                    case RemoteOps.Save:
+                    case RemoteOps.SaveAs:
+                        return SavedInRun(run, op, request);
                     default:
                         return Execute(op, request);
                 }
             });
+        }
+
+        /// <summary>
+        /// A save by the tool of a run: the drawing is saved with what the run has made so far, which is one undo step with what
+        /// it makes after the save (see <see cref="CadDocument.SavingInGroup"/>), and the run goes on. The save of the window ends
+        /// the command running in the drawing, as Esc does, which a save by the tool must not.
+        /// </summary>
+        private JsonObject SavedInRun(CadRemoteToolRun run, string op, JsonObject request)
+        {
+            CadDocument document = Find(request);
+            CadCommandSession session = ReferenceEquals(document, run.Document) ? run.Session : null;
+            JsonObject answer = null;
+
+            if (session != null)
+            {
+                session.SavingForRun = true;
+            }
+
+            try
+            {
+                document.SavingInGroup(() => answer = Execute(op, request));
+            }
+            finally
+            {
+                if (session != null)
+                {
+                    session.SavingForRun = false;
+                }
+            }
+
+            return answer;
         }
 
         /// <summary>The tool ends the run: its command is resumed to leave its body, which keeps or takes back the undo step.</summary>

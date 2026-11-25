@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **FIXED.** `save()` and `save_as()` inside a tool's run, and inside an `undo_group` of a script on a file, are one
+  undo step with the edits around them. In a script on a file the group was ended for the save and opened again, which made
+  two steps (a line, a `save()`, a circle: two `Undo()`s); the document now saves through the new
+  `CadDocument.SavingInGroup(save)`, and one `Undo()` takes back the line and the circle. In a tool's run a save was
+  refused with "A command is running: end it before saving." in the headless server, and in the window the save began with
+  the Esc of Ctrl+S, which ends the run; the run now saves what it has made, the tool goes on, and the whole run is still
+  one step named after its command (a run of three lines with a `save_as` after the first and a `save` after the
+  second: the file has two of them, the drawing three, one `U` takes all three back). A run that fails after a save keeps what
+  the file holds.
+- **CHANGED.** `Entity.dxf_type` in Python is the `DxfName` of the entity, a new member of the core library's `DxfEntity`
+  (GeometryHelper core commit pending), where it was the first word of `str(entity.net)`.
 - **FIXED.** SCRIPT fed a whole line as one word, so `LINE 0,0 10,0 ` and `LINE END 60,1` were refused and only a line
   that was itself a snap word was a snap. A line is read as AutoCAD 2021 reads a .scr (measured in accoreconsole): a space,
   a tab and the end of a line are each Enter, so `LINE 0,0 10,0 ` draws a line from (0, 0) to (10, 0) and ends it, and two

@@ -126,3 +126,18 @@ def test_the_string_form_is_as_it_was() -> None:
 def test_entity_can_be_subscripted_at_run_time() -> None:
     # a script may write Entity[DxfCircle] outside an annotation, in a cast or an alias
     assert Entity[DxfCircle] is not None
+
+
+def test_the_dxf_type_is_the_dxf_name_the_core_gives_not_a_word_of_the_string_form() -> None:
+    from opencad2d.cad._drawing import dxf_type_of
+
+    class Named:
+        """An object whose string form says another word first, as ``ToString`` of an entity could be changed to say."""
+
+        DxfName = "LWPOLYLINE"
+
+        def __str__(self) -> str:
+            return "POLYLINE 2F on steel"
+
+    assert dxf_type_of(Named()) == "LWPOLYLINE"
+    assert dxf_type_of(new_file().add_line((0, 0), (10, 0)).net) == "LINE"

@@ -1300,6 +1300,12 @@ namespace OpenCAD2D
         internal bool Quiet { get; set; }
 
         /// <summary>
+        /// Gets or sets whether the save being made is the one a tool asks for inside its run, which the window's save does not
+        /// end the command for, as it ends the command a user's Ctrl+S finds running.
+        /// </summary>
+        internal bool SavingForRun { get; set; }
+
+        /// <summary>
         /// Ctrl+Shift+A: switches the picking of groups whole (<see cref="CadDocument.PickStyle"/>) off where it is on and on
         /// where it is off, writing "&lt;Group off&gt;" or "&lt;Group on&gt;" as AutoCAD does; a command running goes on.
         /// </summary>
