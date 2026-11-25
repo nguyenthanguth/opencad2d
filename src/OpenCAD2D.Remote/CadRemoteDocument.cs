@@ -369,6 +369,20 @@ namespace OpenCAD2D.Remote
                 return Array.Empty<string>();
             }
 
+            var handles = new List<string>();
+            Send(null, handles);
+            return handles;
+        }
+
+        /// <summary>
+        /// Sends what is queued, and an edit operation after it where one is given, as one commit, and notes the tickets of the
+        /// objects inserted. The queue is empty after it, whatever the app answers.
+        /// </summary>
+        /// <param name="edit">The edit operation to send after the queued ones, or null.</param>
+        /// <param name="handles">Gets the handles of the objects inserted.</param>
+        /// <returns>What the app answered.</returns>
+        private JsonObject Send(JsonObject edit, List<string> handles)
+        {
             var operations = new JsonArray();
 
             foreach (Pending item in _queue)
@@ -398,6 +412,11 @@ namespace OpenCAD2D.Remote
                 operations.Add(operation);
             }
 
+            if (edit != null)
+            {
+                operations.Add(edit);
+            }
+
             string fragment = _batch == null ? string.Empty : _batch.ToText();
             List<Pending> sent = new List<Pending>(_queue);
             _queue.Clear();
@@ -405,7 +424,6 @@ namespace OpenCAD2D.Remote
             JsonObject answer = Ask(RemoteOps.Commit, request =>
                 request.Set("fragment", fragment).Set("operations", operations)
             );
-            var handles = new List<string>();
             JsonArray made = answer.GetArray("handles");
             int next = 0;
 
@@ -423,7 +441,7 @@ namespace OpenCAD2D.Remote
                 }
             }
 
-            return handles;
+            return answer;
         }
 
         /// <summary>Reads an object by its handle.</summary>

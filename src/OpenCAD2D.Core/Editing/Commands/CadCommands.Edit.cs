@@ -280,11 +280,7 @@ namespace OpenCAD2D
             // The objects turned about the base point by an angle, as they are turned once it is given: the angle taken from nought
             // up to a whole turn first, as AutoCAD 2021 takes it (a turn of 360 degrees is none, -90 is 270), which it writes into
             // a hatch's pattern lines as it does.
-            GeoTransform3 Turned(double by)
-            {
-                double turn = by % (2.0 * Math.PI);
-                return GeoTransform3.RotationAxis(P3(center), Up, turn < 0.0 ? turn + 2.0 * Math.PI : turn);
-            }
+            GeoTransform3 Turned(double by) => CadEdits.Rotation(center, by);
 
             while (true)
             {
@@ -519,13 +515,7 @@ namespace OpenCAD2D
 
             GeoPoint2 first = c.Input.Point;
             GeoPoint2 second;
-
-            // The objects mirrored across the line from the first point, as they are once the second is given.
-            GeoTransform3 Mirrored(GeoPoint2 end)
-            {
-                GeoVector2 way = end - first;
-                return GeoTransform3.Mirror(new GeoPlane3(P3(first), new GeoVector3(-way.Y, way.X, 0.0).Normalize()));
-            }
+            GeoTransform3 mirror;
 
             while (true)
             {
@@ -536,8 +526,8 @@ namespace OpenCAD2D
                             c,
                             c.Selected,
                             input =>
-                                (input.Point - first).Length > c.Session.Tolerance.EqualPoint
-                                    ? CadPreview.Flat(Mirrored(input.Point))
+                                CadEdits.MirrorAcross(first, input.Point, c.Session.Tolerance) is GeoTransform3 across
+                                    ? CadPreview.Flat(across)
                                     : (Affine2?)null,
                             true
                         )
@@ -549,36 +539,26 @@ namespace OpenCAD2D
                 }
 
                 second = c.Input.Point;
+                mirror = CadEdits.MirrorAcross(first, second, c.Session.Tolerance);
 
-                if ((second - first).Length > c.Session.Tolerance.EqualPoint)
+                if (mirror != null)
                 {
                     break;
                 }
 
-                c.Write("Invalid point: the mirror line needs two points apart.");
+                c.Write(
+                    (second - first).Length > c.Session.Tolerance.EqualPoint
+                        ? "Invalid point: the mirror line is too short."
+                        : "Invalid point: the mirror line needs two points apart."
+                );
             }
 
             yield return CadPrompt.ForKeyword("Erase source objects?", new[] { "Yes", "No" }, "No");
-            GeoTransform3 mirror = Mirrored(second);
 
             // MIRRTEXT 0, AutoCAD's default, keeps texts readable; 1 mirrors them with the rest, in their plane. A dimension
             // stays readable under either, as AutoCAD keeps it; a multileader keeps its plane under either; an INSERT is written
-            // with its x factor turned the other way, as AutoCAD writes it.
-            CadDocument document = c.Document;
-            Tolerance tolerance = c.Session.Tolerance;
-            bool mirrtext = c.Database.Mirrtext;
-
-            // MIRRHATCH 0, AutoCAD's default, keeps the pattern of a hatch as it was; 1 mirrors it with the rest.
-            bool mirrhatch = c.Remembered("mirrhatch", 0.0) >= 0.5;
-            Func<DxfEntity, ReadableMirror> readable = entity =>
-                entity is DxfHatch ? ReadableHatch(mirror, mirrhatch)
-                : entity is DxfDimension dimension ? ReadableDimension(dimension, mirror, tolerance)
-                : entity is DxfMLeader mleader ? MLeaderMirror(document, mleader, mirror, mirrtext, tolerance)
-                : entity is DxfBlockReference insert ? InsertMirror(document, insert, mirror, mirrtext, tolerance)
-                : entity is DxfTolerance ? (mirrtext ? null : ReadableTolerance(mirror))
-                : mirrtext ? (InPlane(entity, mirror, tolerance) ?? InOwnPlane(entity, mirror))
-                : Readable(document, entity, mirror, tolerance);
-
+            // with its x factor turned the other way, as AutoCAD writes it. MIRRHATCH 0, AutoCAD's default, keeps the pattern of
+            // a hatch as it was; 1 mirrors it with the rest.
             Transform(
                 c,
                 c.Selected,
@@ -586,7 +566,7 @@ namespace OpenCAD2D
                 !c.Input.Is("Yes"),
                 "Mirror",
                 Values(first.X, first.Y, second.X, second.Y),
-                readable
+                MirrorReadable(c.Session, mirror)
             );
         }
 
@@ -1641,7 +1621,7 @@ namespace OpenCAD2D
         }
 
         /// <summary>
-        /// Moves, turns, scales or mirrors entities, or copies of them; gives the handles of the copies. A mirror that keeps
+        /// Moves, turns, scales or mirrors entities, or copies of them; gives the handles of what it added. A mirror that keeps
         /// texts readable gives each its own move (<paramref name="readable"/>), worked out before it moves.
         /// </summary>
         private static List<string> Transform(
@@ -1654,150 +1634,15 @@ namespace OpenCAD2D
             Func<DxfEntity, ReadableMirror> readable = null
         )
         {
-            var planned = new List<CadEditRecord>();
-
-            if (!copy)
-            {
-                foreach (string handle in handles)
-                {
-                    planned.Add(new CadEditRecord(CadEditRecordKind.Transformed, handle, how, null, value));
-                }
-            }
-
-            CadEditResult result = c.Apply(planned, s =>
-            {
-                var copies = copy ? new Dictionary<string, DxfEntity>(StringComparer.OrdinalIgnoreCase) : null;
-                var together = new HashSet<string>(handles, StringComparer.OrdinalIgnoreCase);
-                var clippedViewports = new List<DxfViewport>();
-
-                foreach (string handle in handles)
-                {
-                    if (!copy && s.IsHandled(handle))
-                    {
-                        continue;
-                    }
-
-                    DxfEntity entity = s.Document.FindEntity(handle);
-                    ReadableMirror kept = readable?.Invoke(entity);
-
-                    if (
-                        entity is DxfViewport plain
-                        && plain.NonRectClipEntity == null
-                        && (how == "Rotate" || how == "Mirror" || how == "Scale")
-                    )
-                    {
-                        // A viewport that is not clipped cannot be turned or mirrored itself: a mirror moves its centre, a quarter
-                        // turn turns it, any other turn makes it clipped; a scale scales its frame and keeps its view's scale, the
-                        // model standing still on the sheet (CadViewportClips.TurnPlain).
-                        DxfViewport turned = plain;
-
-                        if (copy)
-                        {
-                            turned = (DxfViewport)AppendCopy(s, handle, GeoTransform3.Identity);
-                            copies[handle] = turned;
-                        }
-
-                        CadViewportClips.TurnPlain(s, turned, transform, how);
-                        continue;
-                    }
-
-                    if (copy)
-                    {
-                        // A clipped viewport copied with its boundary is not moved itself: it is tied to the copy of the boundary and
-                        // fitted to it afterwards, as a turn or a mirror cannot move a viewport.
-                        bool paired = entity is DxfViewport shown && CadViewportClips.IsPaired(shown, together);
-                        DxfEntity copied;
-
-                        using (Mirroring(kept))
-                        {
-                            copied = AppendCopy(
-                                s,
-                                handle,
-                                paired ? GeoTransform3.Identity : kept?.Transform ?? transform
-                            );
-                        }
-
-                        kept?.Finish(copied);
-                        copies[handle] = copied;
-                    }
-                    else if (entity is DxfViewport clipped && clipped.NonRectClipEntity != null)
-                    {
-                        // A clipped viewport takes its frame from its boundary, which moves with it: the edit refits it.
-                        if (CadViewportClips.IsPaired(clipped, together))
-                        {
-                            clippedViewports.Add(clipped);
-                        }
-
-                        continue;
-                    }
-                    else
-                    {
-                        if (entity is DxfOle2Frame ole)
-                        {
-                            CadOleFrames.Transform(ole, kept?.Transform ?? transform);
-                        }
-                        else
-                        {
-                            using (Mirroring(kept))
-                            {
-                                entity.TransformBy(kept?.Transform ?? transform);
-                            }
-
-                            CarryManualBreaks(s.Document, entity, kept?.Transform ?? transform);
-                        }
-
-                        kept?.Finish(entity);
-                    }
-                }
-
-                foreach (DxfViewport clipped in clippedViewports)
-                {
-                    CadViewportClips.Refit(clipped, transform, how);
-                }
-
-                if (copy)
-                {
-                    CadDimAssociation.TieCopies(s, copies);
-                    CadViewportClips.TieCopies(s, copies, transform, how);
-                }
-            });
-
-            var made = new List<string>();
-
-            foreach (CadEditRecord record in result.Records)
-            {
-                if (record.Kind == CadEditRecordKind.Added)
-                {
-                    made.Add(record.Handle);
-                }
-            }
-
-            return made;
+            CadEditPlan plan = CadEdits.Transform(handles, transform, copy, how, value, readable);
+            CadEditResult result = c.Apply(plan.Planned, plan.Write);
+            return result.Succeeded ? plan.Made : new List<string>();
         }
-
-        /// <summary>The scope in which a hatch mirrored reflects the lines of its pattern, for an object MIRROR moves under MIRRHATCH 1; none otherwise.</summary>
-        private static IDisposable Mirroring(ReadableMirror kept) =>
-            kept != null && kept.MirrorsPattern ? new DxfHatch.PatternMirroring() : null;
 
         private static void EraseAll(CadCommandContext c, IReadOnlyList<string> handles)
         {
-            var planned = new List<CadEditRecord>();
-
-            foreach (string handle in handles)
-            {
-                planned.Add(new CadEditRecord(CadEditRecordKind.Erased, handle));
-            }
-
-            c.Apply(planned, s =>
-            {
-                foreach (string handle in handles)
-                {
-                    if (!s.IsHandled(handle))
-                    {
-                        s.Document.FindEntity(handle).Erase();
-                    }
-                }
-            });
+            CadEditPlan plan = CadEdits.Erase(handles);
+            c.Apply(plan.Planned, plan.Write);
         }
 
         /// <summary>A value an iterator gives back to the body that ran it.</summary>

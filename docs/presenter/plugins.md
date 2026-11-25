@@ -675,6 +675,73 @@ public IEnumerable<CadPrompt> ZoomToPlan(CadCommandContext c)
 - **The window** shows a view the editor moved at once, and a new canvas size no longer refits it, as it does not one moved by
   a typed ZOOM.
 
+## The editor: edits
+
+`CadEditor` also moves, copies, turns, scales, mirrors, offsets and erases objects, each as the command of its name does it
+to the same objects, through the code the command runs: the drawing a call makes is the drawing the typed command makes,
+which the tests compare group by group in the ENTITIES section.
+
+| AutoCAD | `CadEditor` | The command it is |
+|---|---|---|
+| `Entity.TransformBy(Matrix3d.Displacement)` | `Move<T>(IEnumerable<T>, GeoVector2)` | MOVE, a displacement |
+| `Entity.GetTransformedCopy` | `Copy<T>(IEnumerable<T>, GeoVector2)` | COPY, a displacement typed |
+| `Entity.TransformBy(Matrix3d.Rotation)` | `Rotate<T>(IEnumerable<T>, GeoPoint2 basePoint, double angle)` | ROTATE |
+| `Entity.TransformBy(Matrix3d.Scaling)` | `Scale<T>(IEnumerable<T>, GeoPoint2 basePoint, double factor)` | SCALE |
+| `Entity.TransformBy(Matrix3d.Mirroring)` | `Mirror<T>(IEnumerable<T>, GeoPoint2, GeoPoint2, bool eraseSource = false)` | MIRROR |
+| `Curve.GetOffsetCurves(distance)` | `Offset(DxfCurve, double distance, GeoPoint2 side)` | OFFSET, one pick |
+| `Entity.Erase()` | `Erase(IEnumerable<DxfEntity>)` | ERASE |
+
+The objects are the drawing's own (`c.Document.FindEntity(handle)`; from handles, `c.Selected.Select(c.Document.FindEntity)`),
+and a call gives back what the type of its argument says: `Copy(lines, ...)` of an `IEnumerable<DxfLine>` is an
+`IReadOnlyList<DxfLine>` of the copies, in the order given, and `Move`, `Rotate`, `Scale` and `Mirror(..., eraseSource: true)`
+give the same objects, changed where they stand. A mirror keeps its sources (`eraseSource` false) as MIRROR's "Erase source
+objects? <No>" does.
+
+```csharp
+[CadCommand("STACK", Description = "Copy the selection up 50 and turn the copies a quarter")]
+public IEnumerable<CadPrompt> Stack(CadCommandContext c)
+{
+    foreach (CadPrompt prompt in c.SelectObjects())
+    {
+        yield return prompt;
+    }
+
+    IReadOnlyList<DxfEntity> picked = c.Selected.Select(c.Document.FindEntity).ToList();
+    IReadOnlyList<DxfEntity> copies = c.Editor.Copy(picked, new GeoVector2(0, 50));
+    c.Editor.Rotate(copies, new GeoPoint2(0, 0), Math.PI / 2.0);
+}
+```
+
+On a line from (0, 0) to (100, 0), `Move` by (10, 5) leaves it from (10, 5) to (110, 5); `Rotate` about (0, 0) by pi / 2 ends it at
+(0, 100); `Offset(line, 5, new GeoPoint2(50, 10))` adds a line from (0, 5) to (100, 5) on the line's layer; and a circle of radius 10
+about (200, 0) is one of radius 20 about (400, 0) after `Scale` about (0, 0) by 2.
+
+- **Refused whole.** An edit changes nothing and throws `InvalidOperationException` with the first object it will not take:
+  one of another drawing, or one that an undo or a redo read back since you held it (`The object A1 is not in the drawing
+  Plan.dxf.`: look it up again by its handle), an erased one, one inside a block, one on a locked layer (`The object A8 is on
+  the locked layer Locked.`), or one whose owner does not allow the change (`This line belongs to the model and can only be
+  moved.`; an owner that allows only moving still lets the object be copied and mirrored without erasing it, as the commands
+  do). An empty list is allowed: it gives an empty list and records nothing; an object given twice is taken once.
+- **Numbers.** A factor that is not above nought or not finite, a distance that is not above the session's `EqualPoint`, an
+  angle or a displacement that is not finite throw `ArgumentOutOfRangeException` or `ArgumentException`; a mirror line whose two
+  points are not more than `EqualPoint` apart, or so near that the library cannot give the line a direction (about 2E-5 mm),
+  throws `ArgumentException`. The typed MIRROR says the same of the second point: `Invalid point: the mirror line is too short.`
+  `EqualPoint` is read from the session at the call, never from `Tolerance.Global`.
+- **Angles and points.** Radians, counter-clockwise about the world Z, whatever ANGDIR and ANGBASE say; the angle is taken from
+  nought up to a whole turn as ROTATE takes it (-30 degrees is 330, 2 pi is none), which a hatch's pattern lines show.
+  Points and displacements are of the world, not of the UCS.
+- **Offset** takes one curve (a line, arc, circle, ellipse, polyline, spline, xline or ray: `ArgumentException`, `Cannot offset
+  that object.` for any other), a distance and the point that names the side, as one pick of OFFSET with a typed distance: the
+  copies go on the curve's layer and the curve is kept (its Erase, Layer and Through options are not taken). A point on the
+  curve names no side and throws `ArgumentException`; an offset that makes no curve (a circle of radius 10 offset inward by 15)
+  throws `InvalidOperationException`, `Cannot offset that object.`
+- **Undo.** Inside a running command the edit joins the command's step; at rest each call is a step of its own named `MOVE`,
+  `COPY`, `ROTATE`, `SCALE`, `MIRROR`, `OFFSET` or `ERASE`. The call writes nothing on the command line and leaves the
+  pickfirst selection as it was.
+- **Mirror and text.** A text, an attribute and an INSERT's attributes stay readable under MIRRTEXT 0 (the drawing's variable),
+  a dimension and a multileader keep their plane, and a hatch keeps its pattern under MIRRHATCH 0 (the session's), as MIRROR
+  does them.
+
 ## The open drawings: open, add, show and close
 
 A plugin reaches the drawings open in the app the way an AutoCAD plugin reaches `Application.DocumentManager`:

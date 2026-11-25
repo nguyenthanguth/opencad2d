@@ -329,6 +329,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 - [ ] A8. A few edit calls with types for plugins and Python: erase, move, copy, rotate, scale, mirror, offset on
       entities, returning the new ones (no command text), one undo step with the rest of the run.
       -> verify: in-process, Remote and Python tests; the same drawing as the command gives.
+      C# and Remote done 2026-11-25 (API T3: CadEdits shared by the commands, CadEditor.Edits, Remote transform/offset;
+      MIRROR's too-short band fixed); Python waits on T5
 - [x] A9. Documents for C# plugins as AutoCAD's DocumentManager: the open drawings listed, one opened, closed, made
       active (Remote and Python have them). Plan in .claude/scratch/api/spec.md (API-D22).
       Done 2026-11-25: CadDocuments (List, Active, Open, Add, Close/CloseAndDiscard/CloseAndSave), plugin API 1.4.

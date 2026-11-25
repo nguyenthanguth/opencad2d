@@ -10,6 +10,29 @@ namespace OpenCAD2D
     internal static partial class CadCommands
     {
         /// <summary>
+        /// How MIRROR moves each kind of object across a line, under the drawing's MIRRTEXT and the session's MIRRHATCH: the
+        /// function <see cref="CadEdits.Transform"/> asks of each object it moves, null for an object that is mirrored as it is.
+        /// A hatch is mirrored whole only under MIRRHATCH 1, a dimension and a multileader keep their plane, an INSERT and a
+        /// TOLERANCE keep their words readable, and any other object is kept readable under MIRRTEXT 0 or mirrored in its plane
+        /// under 1.
+        /// </summary>
+        internal static Func<DxfEntity, ReadableMirror> MirrorReadable(CadCommandSession session, GeoTransform3 mirror)
+        {
+            CadDocument document = session.Document;
+            Tolerance tolerance = session.Tolerance;
+            bool mirrtext = document.Database.Mirrtext;
+            bool mirrhatch = session.Remembered.TryGetValue("mirrhatch", out double kept) && kept >= 0.5;
+            return entity =>
+                entity is DxfHatch ? ReadableHatch(mirror, mirrhatch)
+                : entity is DxfDimension dimension ? ReadableDimension(dimension, mirror, tolerance)
+                : entity is DxfMLeader mleader ? MLeaderMirror(document, mleader, mirror, mirrtext, tolerance)
+                : entity is DxfBlockReference insert ? InsertMirror(document, insert, mirror, mirrtext, tolerance)
+                : entity is DxfTolerance ? (mirrtext ? null : ReadableTolerance(mirror))
+                : mirrtext ? (InPlane(entity, mirror, tolerance) ?? InOwnPlane(entity, mirror))
+                : Readable(document, entity, mirror, tolerance);
+        }
+
+        /// <summary>
         /// How MIRROR with MIRRTEXT 0 moves an object so that its words stay readable, as AutoCAD 2021 moves them (probed in its
         /// console): a TEXT or attribute definition, an MTEXT, and the attributes of an INSERT; null for any other object, which
         /// is mirrored. The words keep reading within the half of the circle they read in before, the half from just past
@@ -400,7 +423,7 @@ namespace OpenCAD2D
             && normal.Z > 0.0;
 
         /// <summary>What MIRROR does to one object it keeps readable or mirrors in its plane: the transformation, the attachment of an MTEXT, the transformation of each attribute of an INSERT after it, and what is put right after.</summary>
-        private sealed class ReadableMirror
+        internal sealed class ReadableMirror
         {
             private readonly DxfAttachmentPoint? _attachment;
             private readonly List<GeoTransform3> _attributes;

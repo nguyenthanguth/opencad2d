@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **NEW.** `CadEditor.Move`, `Copy`, `Rotate`, `Scale`, `Mirror`, `Offset` and `Erase` (A8): the edits as calls for
+  plugins, each doing what the command of its name does, through the code the command runs; refused whole with the
+  object's words; one undo step named as the command, or joining the running command's step.
+- **NEW.** Remote `Move`, `Copy`, `Rotate`, `Scale`, `Mirror` and `Offset` on `CadRemoteDocument`: queued changes and
+  the edit in one commit (one step REMOTE), the new copies in its answer; `commit` takes the operations `transform` and
+  `offset` (protocol version 1).
+- **FIXED.** MIRROR with a second point 1E-8 to 2E-5 from the first no longer ends with "Cannot normalize a zero-length
+  vector." after the Erase prompt: it says "Invalid point: the mirror line is too short." and asks again.
 - **BREAKING.** The built-in font is now OpenCAD2D ISO (`opencad2d.shx`; `CadFonts.BuiltInName` is `"opencad2d"`,
   `CadFonts.BuiltInTitle` is `"OpenCAD2D ISO"`), our own single-stroke upright lettering in the proportions of ISO 3098
   type B (TCVN 7284), 242 glyphs including the 134 Vietnamese letters, in a compiled file of 8 685 bytes, replacing OpenCAD2D
