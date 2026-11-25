@@ -71,7 +71,8 @@ namespace OpenCAD2D.SheetSets
         /// <remarks>
         /// The template is the one given, else this group's, else that of the group it is in, up to the sheet set. The folder is
         /// this group's <see cref="NewSheetLocation"/>, else that of the group it is in, up to the sheet set, else the folder of
-        /// the .dst; it is made where it is not there. Fields in the layout are not rewritten here.
+        /// the .dst; it is made where it is not there. The <c>\AcSm</c> fields of the new layout are bound to the sheet once the set
+        /// is saved (<see cref="CadSheetSetFields.Bind"/>), and the drawing saved again.
         /// </remarks>
         /// <param name="number">The sheet number, free text; empty for none.</param>
         /// <param name="title">The sheet title, which must not be empty.</param>
@@ -161,6 +162,12 @@ namespace OpenCAD2D.SheetSets
                 index
             );
             GiveSheetProperties(sheet);
+            CadSheetSetDrawings.BindAfterSave(
+                File,
+                path,
+                new[] { new KeyValuePair<string, CadSheetSetSheet>(layout.LayoutName, sheet) },
+                false
+            );
             return sheet;
         }
 
@@ -168,7 +175,8 @@ namespace OpenCAD2D.SheetSets
         /// Makes layouts of a drawing sheets of the set, as Import Layouts as Sheets does: a sheet for each, at the end of this
         /// group, with no number and the layout's name as its title (the drawing's file name, a hyphen and the layout's name
         /// with <paramref name="prefixTitleWithFileName"/>), every sheet custom property at its default. The drawing is
-        /// rewritten as a DWG of AutoCAD 2018 with the sheet set mark; the layout is not touched. A layout that
+        /// rewritten as a DWG of AutoCAD 2018 with the sheet set mark; the <c>\AcSm</c> fields of each layout are bound to its sheet
+        /// once the set is saved (<see cref="CadSheetSetFields.Bind"/>) and the rest of the layout is not touched. A layout that
         /// <see cref="CadSheetSet.CheckLayouts(string)"/> refuses is refused here, and then nothing is changed.
         /// </summary>
         /// <param name="drawingFile">The path of the drawing, a DWG.</param>
@@ -254,6 +262,12 @@ namespace OpenCAD2D.SheetSets
                 sheets.Add(sheet);
             }
 
+            CadSheetSetDrawings.BindAfterSave(
+                File,
+                path,
+                layouts.Select((l, i) => new KeyValuePair<string, CadSheetSetSheet>(l.LayoutName, sheets[i])).ToList(),
+                true
+            );
             return sheets;
         }
 

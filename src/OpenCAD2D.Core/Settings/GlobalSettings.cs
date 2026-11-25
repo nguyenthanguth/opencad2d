@@ -1446,6 +1446,7 @@ namespace OpenCAD2D
             w.Open("remote");
             w.Value("allowRemoteConnections", AllowRemoteConnections);
             w.Close();
+            WriteSheetSets(w);
             w.Open("templates");
             w.Value("folder", _templateFolder);
             w.Value("qnew", _qnewTemplate);
@@ -1650,6 +1651,11 @@ namespace OpenCAD2D
                 Text("saveAndExport", "exportLayout", v => _s.ExportLayout = v);
                 Flag("saveAndExport", "openAfterExport", v => _s.OpenAfterExport = v);
                 Flag("remote", "allowRemoteConnections", v => _s.AllowRemoteConnections = v);
+                Flag("sheetSets", "locate", v => _s.SheetSetLocate = v);
+                Flag("sheetSets", "autoOpen", v => _s.SheetSetAutoOpen = v);
+                Number("sheetSets", "pollSeconds", v => _s.SheetSetPollSeconds = Whole(v));
+                Number("sheetSets", "sheetStatus", v => _s.SheetSetStatus = Whole(v));
+                Text("sheetSets", "storeFolder", v => _s.SheetSetStoreFolder = v);
                 Text("templates", "folder", v => _s.TemplateFolder = v);
                 Text("templates", "qnew", v => _s.QnewTemplate = v);
                 Number("security", "secureLoad", v => _s.SecureLoad = Whole(v));

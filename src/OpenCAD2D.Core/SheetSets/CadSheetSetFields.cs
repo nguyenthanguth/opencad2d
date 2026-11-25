@@ -432,7 +432,7 @@ namespace OpenCAD2D.SheetSets
             file = null;
             CadDocument document = context.Document;
             DxfLayout layout = LayoutOf(context);
-            CadSheetSetFieldLink link = CadSheetSetFieldLink.Read(document.Database);
+            CadSheetSetHint link = CadSheetSetHint.Read(document.Database);
 
             if (layout == null || link == null)
             {
@@ -512,10 +512,10 @@ namespace OpenCAD2D.SheetSets
         }
 
         /// <summary>The path of the drawing: the file it was opened from, else the one its link says.</summary>
-        private static string DrawingPath(CadDocument document, CadSheetSetFieldLink link) =>
+        private static string DrawingPath(CadDocument document, CadSheetSetHint link) =>
             !string.IsNullOrEmpty(document.FileName) && Path.IsPathRooted(document.FileName)
                 ? document.FileName
-                : link?.DrawingFile;
+                : link?.SheetDrawingName;
 
         /// <summary>Where a set's file may be: the path the code gives, the path the drawing's link gives, and the link's path moved with the drawing.</summary>
         private static IEnumerable<string> CandidatesOf(string given, CadFieldContext context)
@@ -525,14 +525,14 @@ namespace OpenCAD2D.SheetSets
                 yield return given;
             }
 
-            CadSheetSetFieldLink link = CadSheetSetFieldLink.Read(context.Document.Database);
+            CadSheetSetHint link = CadSheetSetHint.Read(context.Document.Database);
 
             if (link == null)
             {
                 yield break;
             }
 
-            yield return link.SetFile;
+            yield return link.SheetSetFileName;
             string moved = Moved(link, DrawingPath(context.Document, link));
 
             if (moved != null)
@@ -542,14 +542,14 @@ namespace OpenCAD2D.SheetSets
         }
 
         /// <summary>The set's file where the drawing now is, as far from it as the link says it was.</summary>
-        private static string Moved(CadSheetSetFieldLink link, string here)
+        private static string Moved(CadSheetSetHint link, string here)
         {
             if (
                 string.IsNullOrEmpty(here)
                 || !Path.IsPathRooted(here)
-                || string.IsNullOrEmpty(link.DrawingFile)
-                || !Path.IsPathRooted(link.DrawingFile)
-                || !Path.IsPathRooted(link.SetFile)
+                || string.IsNullOrEmpty(link.SheetDrawingName)
+                || !Path.IsPathRooted(link.SheetDrawingName)
+                || !Path.IsPathRooted(link.SheetSetFileName)
             )
             {
                 return null;
@@ -557,8 +557,10 @@ namespace OpenCAD2D.SheetSets
 
             try
             {
-                var from = new Uri(Path.GetDirectoryName(link.DrawingFile).TrimEnd('\\') + "\\");
-                string relative = Uri.UnescapeDataString(from.MakeRelativeUri(new Uri(link.SetFile)).ToString())
+                var from = new Uri(Path.GetDirectoryName(link.SheetDrawingName).TrimEnd('\\') + "\\");
+                string relative = Uri.UnescapeDataString(
+                        from.MakeRelativeUri(new Uri(link.SheetSetFileName)).ToString()
+                    )
                     .Replace('/', '\\');
                 return relative.IndexOf(':') >= 0
                     ? null

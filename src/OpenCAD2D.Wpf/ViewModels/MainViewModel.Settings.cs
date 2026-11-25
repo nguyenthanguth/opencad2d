@@ -165,6 +165,7 @@ namespace OpenCAD2D.Wpf
         public void ApplySettings(GlobalSettings settings)
         {
             _settings = (settings ?? throw new ArgumentNullException(nameof(settings))).Clone();
+            ApplySheetSetOptions();
             UseLoadSecuritySettings();
             UseLispEnvironmentSettings();
             Snap.Modes = _settings.Snaps;

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using GeometryHelper;
 using IoPath = System.IO.Path;
@@ -35,6 +37,8 @@ namespace OpenCAD2D.SheetSets
         private DateTime _stamp;
         private long _length;
         private bool _editing;
+        private readonly List<Action> _afterSave = new List<Action>();
+        private string _unwritable;
 
         private CadSheetSetFile(string path, Func<Guid> newGuid)
         {
@@ -70,6 +74,45 @@ namespace OpenCAD2D.SheetSets
             }
         }
 
+        /// <summary>Gets the lock of another user that makes the set read-only; null where there is none, or the file was not opened with <see cref="OpenForEditing"/>.</summary>
+        public CadSheetSetLock LockedBy { get; private set; }
+
+        /// <summary>Gets whether this copy holds the lock file of the set (<see cref="OpenForEditing"/> wrote it and <see cref="ReleaseLock"/> has not deleted it).</summary>
+        public bool HoldsLock { get; private set; }
+
+        /// <summary>
+        /// Gets why the set cannot be changed, or null where it can: the file is read-only ("The sheet set data file is
+        /// read-only."), another user holds its lock ("Locked for Edit by InuYasha on INUYASHA-MEV.") or the lock file could not
+        /// be written. Asked again each time, so a file made read-only after it was opened shows.
+        /// </summary>
+        public string ReadOnlyReason
+        {
+            get
+            {
+                if (LockedBy != null)
+                {
+                    return LockedBy.Description + ".";
+                }
+
+                if (_unwritable != null)
+                {
+                    return _unwritable;
+                }
+
+                try
+                {
+                    return new FileInfo(Path).IsReadOnly ? "The sheet set data file is read-only." : null;
+                }
+                catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+                {
+                    return null;
+                }
+            }
+        }
+
+        /// <summary>Gets whether the set is read-only (<see cref="ReadOnlyReason"/> is not null): every <see cref="Change"/> is refused.</summary>
+        public bool IsReadOnly => ReadOnlyReason != null;
+
         internal XDocument Document => _document;
 
         /// <summary>Reads a sheet set data file.</summary>
@@ -94,6 +137,58 @@ namespace OpenCAD2D.SheetSets
         /// <exception cref="ArgumentException">Thrown when the name or description holds a character a sheet set data file cannot hold.</exception>
         public static CadSheetSetFile Create(string path, string name, string description = null) =>
             Create(path, name, description, null);
+
+        /// <summary>
+        /// Opens a sheet set data file as the Sheet Set Manager does to work in it (D21): the file is read, and the lock file
+        /// beside it is looked at. A set whose file is read-only, or whose lock is another user's, opens read-only
+        /// (<see cref="IsReadOnly"/>, <see cref="LockedBy"/>) and no lock file is written. Otherwise this user takes the lock:
+        /// the .DBL file is written (<see cref="CadSheetSetLock"/>) and stays until <see cref="ReleaseLock"/>. A folder the
+        /// lock file cannot be written in makes the set read-only too.
+        /// </summary>
+        /// <param name="path">The path of the .dst.</param>
+        /// <returns>The file.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the path is null.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when there is no such file.</exception>
+        /// <exception cref="FormatException">Thrown when the file is not a sheet set data file.</exception>
+        public static CadSheetSetFile OpenForEditing(string path)
+        {
+            CadSheetSetFile file = Open(path, null);
+
+            if (new FileInfo(file.Path).IsReadOnly)
+            {
+                return file;
+            }
+
+            CadSheetSetLock held = CadSheetSetLock.Read(file.Path);
+
+            if (held != null && !held.IsMine)
+            {
+                file.LockedBy = held;
+                return file;
+            }
+
+            try
+            {
+                CadSheetSetLock.Take(file.Path);
+                file.HoldsLock = true;
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                file._unwritable = "The lock file of the sheet set cannot be written: " + e.Message;
+            }
+
+            return file;
+        }
+
+        /// <summary>Lets go of the lock the set was opened with (<see cref="OpenForEditing"/>): the lock file is deleted. Does nothing where this copy holds none.</summary>
+        public void ReleaseLock()
+        {
+            if (HoldsLock)
+            {
+                CadSheetSetLock.Release(Path);
+                HoldsLock = false;
+            }
+        }
 
         /// <summary>Reads a sheet set data file, new objects getting their GUIDs from a source of the caller's (a test passes a counter).</summary>
         internal static CadSheetSetFile Open(string path, Func<Guid> newGuid)
@@ -160,7 +255,7 @@ namespace OpenCAD2D.SheetSets
         /// </summary>
         /// <param name="edit">The edit, given the sheet set to change.</param>
         /// <exception cref="ArgumentNullException">Thrown when the edit is null.</exception>
-        /// <exception cref="InvalidOperationException">Thrown when called from inside an edit.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when called from inside an edit, or where the set is read-only (<see cref="IsReadOnly"/>).</exception>
         /// <exception cref="ArgumentException">Thrown when the saved tree would hold a character a sheet set data file cannot hold (a control character other than tab, line feed and carriage return).</exception>
         public void Change(Action<CadSheetSet> edit)
         {
@@ -176,15 +271,25 @@ namespace OpenCAD2D.SheetSets
                 );
             }
 
+            string readOnly = ReadOnlyReason;
+
+            if (readOnly != null)
+            {
+                throw new InvalidOperationException("The sheet set is read-only: " + readOnly);
+            }
+
             ReloadIfChanged();
             var backup = new XDocument(_document);
             _editing = true;
+            _afterSave.Clear();
+            bool saved = false;
             try
             {
                 edit(SheetSet);
                 if (!XNode.DeepEquals(_document, backup))
                 {
                     Save();
+                    saved = true;
                 }
             }
             catch
@@ -196,7 +301,25 @@ namespace OpenCAD2D.SheetSets
             {
                 _editing = false;
             }
+
+            List<Action> later = _afterSave.ToList();
+            _afterSave.Clear();
+
+            if (saved)
+            {
+                foreach (Action action in later)
+                {
+                    action();
+                }
+            }
         }
+
+        /// <summary>
+        /// Asks for something to be done once the edit running has been saved: the fields of a new sheet are bound after the set
+        /// that holds the sheet is on disk, so that they come to the sheet's own words. Done in the order asked; forgotten where
+        /// the edit throws or changes nothing.
+        /// </summary>
+        internal void AfterSave(Action action) => _afterSave.Add(action);
 
         internal void RequireEditing(XElement element)
         {
