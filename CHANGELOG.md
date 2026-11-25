@@ -48,6 +48,16 @@
   to every sheet, `DeleteCustomProperty`). Each drawing a sheet is made, imported, renamed or resaved in carries AutoCAD's
   `AcSheetSetData` mark (`CadSheetSetHint`), which AutoCAD 2021 reads back with the same values; layout handles survive
   our DWG save.
+- **NEW.** The sheet set dialogs (A12, window; the palette opens them): Sheet Set Properties, Subset Properties
+  (New Subset, Rename Subset, Properties) and Sheet Properties as property grids in AutoCAD 2021's sections, with the
+  description of the row clicked under the grid and a read-only form for a locked set; Custom Properties and Add Custom
+  Property (an add or a delete waits for OK, which writes the set once, a property of every sheet being given to every
+  sheet); New Sheet with Select Layout as Sheet Template; Rename & Renumber Sheet with Previous and Next; and Import
+  Layouts as Sheets. A value the set cannot take is refused in red in the dialog's own words (a subset name a sibling has,
+  a file that is there already, a layout name with a `#`) with OK greyed; what the core refuses is said in the same line.
+  Subset Properties has a new row, Publish Sheets in Subset (`CadSheetSubset.PublishSheets`, kept as the opposite of
+  AutoCAD's `OverrideSheetPublish`). `--dialog sheetset`, `subset`, `sheet`, `customprops`, `addprop`, `newsheet`,
+  `sheettemplate`, `renumber` and `importlayouts` draw them for the screenshot tool, some with a state after a hyphen.
 - **CHANGED.** The Python guide says what a read sees after a write in one command: `drawing.add_line(...)` queues, so
   `drawing.entities()` right after it lists the drawing as the last commit left it (10 objects, where the line makes
   11), and `commit()` first makes the read see the line; a command that never commits has its line when it ends. It is so

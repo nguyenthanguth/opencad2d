@@ -65,7 +65,9 @@ namespace OpenCAD2D.Wpf
     /// <c>mleaderstyle</c>, <c>mleaderstyle-modify[:Tab]</c>, <c>matchprop</c> (of the first object selected, else the first
     /// of the space shown), the dialogs of rounds 5 to 9 (<c>mlstyle</c> to <c>filter</c>: Multiline Style,
     /// Plot Stamp, Image Adjust, Xbind, Check Spelling, Save As PDF, Rename, Viewports and the rest of rounds 5 to 9, each
-    /// over the drawing open), <c>pastespec</c>, <c>app-menu[:new|open|saveas|export|print|close]</c> (the application menu, on Recent Documents or the
+    /// over the drawing open), the sheet set dialogs of A12 (<c>sheetset</c>, <c>subset</c>, <c>sheet</c>, <c>customprops</c>, <c>addprop</c>,
+    /// <c>newsheet</c>, <c>sheettemplate</c>, <c>renumber</c> and <c>importlayouts</c>, some with a state after a hyphen: <c>-locked</c>, <c>-refused</c>,
+    /// <c>-missing</c>, <c>-exists</c>, <c>-open</c> or <c>-listed</c>), over a sample sheet set, <c>pastespec</c>, <c>app-menu[:new|open|saveas|export|print|close]</c> (the application menu, on Recent Documents or the
     /// list of an item), <c>cmdline-menu</c>, <c>input-settings-menu</c> and <c>recent-commands-menu</c> (the command line's
     /// right-click menu and its two submenus) and <c>autocomplete:LA</c> (the AutoComplete list for what is typed), the lines of
     /// <c>--run</c> typed first where the dialog needs them. <c>--recent "D:\a.dxf|*D:\b.dxf"</c> fills Recent Documents, the
@@ -123,7 +125,7 @@ namespace OpenCAD2D.Wpf
         protected virtual string Usage =>
             "Usage: "
             + (Assembly.GetEntryAssembly()?.GetName().Name ?? "app")
-            + " --screenshot out.png [file.dxf] [--size 1600 960] [--space \"Layout1\"] [--select H1,H2] [--run \"MOVE;0,0\"] [--cursor x,y] [--type REC|{Down}] [--toggle GRID,SNAP] [--layers] [--tab Home|Insert|Annotate|Parametric|View|Manage|Output|Plugins|Settings] [--dialog save-changes|mtext-unsaved|secureload|writable-folder|settings-security|options|settings:Category|plugins|plugin-untrusted|plugin-settings|color|truecolor|truecolor-rgb|dsettings[:Tab]|constraints[:0|1|2]|parameters|osnap-menu|snap-menu|canvas-menu|drawings-menu|scale-menu|missing-shx|missing-shx-replace|missing-fonts|missing-fonts-truetype|ptype|linetype|linetype-load|select-linetype|hatch|hatch-gradient|hatch-user|hatch-solid|hatch-file|block|insert|wblock|attdef|eattedit[:Tab]|battman|battman-edit[:Tab]|battman-settings|attdia|purge|purge-nonpurgeable|classicgroup|group-order|layerstate|scalelist|qleader|qleader-line|qleader-attach|selectarrow|tolerance|tolerance-filled|tolerance-full|gdtsymbol|gdtmaterial|inputsearch|view|newview|units|units-direction|xref|xref-tree|plot:png|plot:jpg|plot-custom|plot-view|style|style-new|dimstyle|dimstyle-new|dimstyle-modify[:Tab]|dimstyle-override[:Tab]|dimstyle-compare[:Other]|mleaderstyle|mleaderstyle-modify[:Tab]|matchprop|mlstyle|mlstyle-new|mlstyle-new-page|mlstyle-modify|mlstyle-load|mledit|plotstamp|plotstamp-advanced|plotstamp-fields|imageadjust|attext|xbind|insertobject|recovery|spell|spell-settings|objectscale|objectscale-add|insertlayout|templateoptions|saveaspdf|pdf-override|pdf-options|rename|lweight|boundary|viewports|viewports-named|filter|layerfilter|pastespec|app-menu[:Item]|cmdline-menu|input-settings-menu|recent-commands-menu|autocomplete:Text] [--recent \"a.dxf|*b.dxf\"] [--plugin path.dll]";
+            + " --screenshot out.png [file.dxf] [--size 1600 960] [--space \"Layout1\"] [--select H1,H2] [--run \"MOVE;0,0\"] [--cursor x,y] [--type REC|{Down}] [--toggle GRID,SNAP] [--layers] [--tab Home|Insert|Annotate|Parametric|View|Manage|Output|Plugins|Settings] [--dialog save-changes|mtext-unsaved|secureload|writable-folder|settings-security|options|settings:Category|plugins|plugin-untrusted|plugin-settings|color|truecolor|truecolor-rgb|dsettings[:Tab]|constraints[:0|1|2]|parameters|osnap-menu|snap-menu|canvas-menu|drawings-menu|scale-menu|missing-shx|missing-shx-replace|missing-fonts|missing-fonts-truetype|ptype|linetype|linetype-load|select-linetype|hatch|hatch-gradient|hatch-user|hatch-solid|hatch-file|block|insert|wblock|attdef|eattedit[:Tab]|battman|battman-edit[:Tab]|battman-settings|attdia|purge|purge-nonpurgeable|classicgroup|group-order|layerstate|scalelist|qleader|qleader-line|qleader-attach|selectarrow|tolerance|tolerance-filled|tolerance-full|gdtsymbol|gdtmaterial|inputsearch|view|newview|units|units-direction|xref|xref-tree|plot:png|plot:jpg|plot-custom|plot-view|style|style-new|dimstyle|dimstyle-new|dimstyle-modify[:Tab]|dimstyle-override[:Tab]|dimstyle-compare[:Other]|mleaderstyle|mleaderstyle-modify[:Tab]|matchprop|mlstyle|mlstyle-new|mlstyle-new-page|mlstyle-modify|mlstyle-load|mledit|plotstamp|plotstamp-advanced|plotstamp-fields|imageadjust|attext|xbind|insertobject|recovery|spell|spell-settings|objectscale|objectscale-add|insertlayout|templateoptions|saveaspdf|pdf-override|pdf-options|rename|lweight|boundary|viewports|viewports-named|filter|layerfilter|sheetset[-locked]|subset[-refused]|sheet[-missing]|customprops|addprop[-refused]|newsheet[-exists]|sheettemplate|renumber[-open]|importlayouts[-listed]|pastespec|app-menu[:Item]|cmdline-menu|input-settings-menu|recent-commands-menu|autocomplete:Text] [--recent \"a.dxf|*b.dxf\"] [--plugin path.dll]";
 
         /// <summary>
         /// Gets whether <see cref="Run"/> opens the window for these arguments: false where the first is <c>--screenshot</c>,
@@ -1289,6 +1291,22 @@ namespace OpenCAD2D.Wpf
                 // The Text Style dialog, the Dimension Style Manager and its dialogs, after the lines of --run.
                 width = (int)window.Width;
                 height = double.IsNaN(window.Height) ? MeasuredHeight(root, width) : (int)window.Height;
+            }
+            else if (CadAppSheetSetDialogs.Knows(dialogName))
+            {
+                // The sheet set dialogs of A12 4b, over a sample sheet set built in the temporary files.
+                if (!CadAppSheetSetDialogs.TryCreate(dialogName, out window, out root))
+                {
+                    return 2;
+                }
+
+                width = (int)window.Width;
+
+                // The rows of its grids and lists are made while the layout settles, not at the first measure.
+                root.Measure(new Size(width, double.PositiveInfinity));
+                root.Arrange(new Rect(0, 0, width, root.DesiredSize.Height));
+                root.UpdateLayout();
+                height = (int)Math.Ceiling(root.DesiredSize.Height);
             }
             else if (CadAppDialogs.Knows(dialogName))
             {

@@ -1,0 +1,89 @@
+<local:SheetSetDialogWindow
+    x:Class="OpenCAD2D.Wpf.SheetSetAddPropertyWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
+    Title="{Binding Title}"
+    Style="{DynamicResource SheetSetWindow}"
+    WindowStartupLocation="CenterOwner"
+    Width="400"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/SheetSetDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <local:SheetSetDialogFrame
+        x:Name="Frame"
+        Style="{StaticResource SheetSetFrame}"
+        Title="{Binding Title}"
+        OkEnabled="{Binding CanApply}"
+    >
+        <StackPanel Margin="16,14">
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource SheetSetLabel}" Text="Name:" />
+                <TextBox
+                    x:Name="NameBox"
+                    Grid.Column="1"
+                    Style="{StaticResource SheetSetBox}"
+                    Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                    Tag="{Binding HasError}"
+                    AutomationProperties.Name="Name"
+                />
+            </Grid>
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource SheetSetLabel}" Text="Default value:" />
+                <TextBox
+                    x:Name="ValueBox"
+                    Grid.Column="1"
+                    Style="{StaticResource SheetSetBox}"
+                    Text="{Binding DefaultValue, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="Default value"
+                />
+            </Grid>
+            <Border
+                Style="{StaticResource SheetSetErrorBox}"
+                Margin="0,0,0,8"
+                Visibility="{Binding HasError, Converter={StaticResource SheetSetShown}}"
+            >
+                <TextBlock x:Name="ErrorText" Text="{Binding Error}" TextWrapping="Wrap" />
+            </Border>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource SheetSetLabel}" Text="Owner:" />
+                <RadioButton
+                    x:Name="OwnerSet"
+                    Grid.Column="1"
+                    Style="{StaticResource BlockRadio}"
+                    Margin="0,0,24,0"
+                    Content="Sheet Set"
+                    GroupName="Owner"
+                    Checked="OnOwnerSet"
+                />
+                <RadioButton
+                    x:Name="OwnerSheet"
+                    Grid.Column="2"
+                    Style="{StaticResource BlockRadio}"
+                    Content="Sheet"
+                    GroupName="Owner"
+                    Checked="OnOwnerSheet"
+                />
+            </Grid>
+        </StackPanel>
+    </local:SheetSetDialogFrame>
+</local:SheetSetDialogWindow>

@@ -1,0 +1,74 @@
+<local:SheetSetDialogWindow
+    x:Class="OpenCAD2D.Wpf.SheetSetTemplateWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
+    Title="{Binding Title}"
+    Style="{DynamicResource SheetSetWindow}"
+    WindowStartupLocation="CenterOwner"
+    Width="480"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/SheetSetDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <local:SheetSetDialogFrame
+        x:Name="Frame"
+        Style="{StaticResource SheetSetFrame}"
+        Title="{Binding Title}"
+        OkEnabled="{Binding CanApply}"
+    >
+        <StackPanel Margin="16,14">
+            <TextBlock Text="{Binding FileCaption}" Margin="0,0,0,6" />
+            <DockPanel Margin="0,0,0,12">
+                <Button
+                    x:Name="BrowseButton"
+                    DockPanel.Dock="Right"
+                    Style="{StaticResource GhDialogButton}"
+                    Content="..."
+                    Width="34"
+                    Height="26"
+                    Margin="6,0,0,0"
+                    Click="OnBrowse"
+                    ToolTip="Browse..."
+                />
+                <TextBox
+                    x:Name="FileBox"
+                    Style="{StaticResource SheetSetBox}"
+                    Text="{Binding FileName, UpdateSourceTrigger=LostFocus}"
+                    Tag="{Binding HasError}"
+                    AutomationProperties.Name="File name"
+                />
+            </DockPanel>
+            <TextBlock Text="{Binding ListCaption}" Margin="0,0,0,6" />
+            <ListBox
+                x:Name="List"
+                Style="{StaticResource GhListBox}"
+                ItemContainerStyle="{StaticResource SheetSetListRow}"
+                ItemsSource="{Binding Items}"
+                SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                Height="130"
+                BorderBrush="{StaticResource GhBorder}"
+                BorderThickness="1"
+                Background="{StaticResource GhInput}"
+                AutomationProperties.Name="Names"
+            >
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" Margin="10,4" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Border
+                Style="{StaticResource SheetSetErrorBox}"
+                Visibility="{Binding HasError, Converter={StaticResource SheetSetShown}}"
+            >
+                <TextBlock x:Name="ErrorText" Text="{Binding Error}" TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+    </local:SheetSetDialogFrame>
+</local:SheetSetDialogWindow>

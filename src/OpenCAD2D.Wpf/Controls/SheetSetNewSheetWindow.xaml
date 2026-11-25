@@ -1,0 +1,115 @@
+<local:SheetSetDialogWindow
+    x:Class="OpenCAD2D.Wpf.SheetSetNewSheetWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
+    Title="{Binding Title}"
+    Style="{DynamicResource SheetSetWindow}"
+    WindowStartupLocation="CenterOwner"
+    Width="560"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/SheetSetDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <local:SheetSetDialogFrame
+        x:Name="Frame"
+        Style="{StaticResource SheetSetFrame}"
+        Title="{Binding Title}"
+        OkEnabled="{Binding CanApply}"
+        IsReadOnlyMode="{Binding IsReadOnly}"
+    >
+        <StackPanel Margin="16,14">
+            <Border
+                Style="{StaticResource SheetSetNoticeBox}"
+                Margin="0,0,0,10"
+                Visibility="{Binding IsReadOnly, Converter={StaticResource SheetSetShown}}"
+            >
+                <TextBlock Text="{Binding ReadOnlyNotice}" TextWrapping="Wrap" />
+            </Border>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="110" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Style="{StaticResource SheetSetLabel}" Text="Number:" Margin="0,0,10,10" />
+                <TextBox
+                    x:Name="NumberBox"
+                    Grid.Column="1"
+                    Width="90"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource SheetSetBox}"
+                    Margin="0,0,0,10"
+                    Text="{Binding Number, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="Number"
+                />
+                <TextBlock Grid.Row="1" Style="{StaticResource SheetSetLabel}" Text="Sheet title:" Margin="0,0,10,10" />
+                <TextBox
+                    x:Name="TitleBox"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Style="{StaticResource SheetSetBox}"
+                    Margin="0,0,0,10"
+                    Text="{Binding SheetTitle, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="Sheet title"
+                />
+                <TextBlock Grid.Row="2" Style="{StaticResource SheetSetLabel}" Text="File name:" Margin="0,0,10,10" />
+                <TextBox
+                    x:Name="FileBox"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Style="{StaticResource SheetSetBox}"
+                    Margin="0,0,0,10"
+                    Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}"
+                    Tag="{Binding HasError}"
+                    AutomationProperties.Name="File name"
+                />
+                <TextBlock Grid.Row="3" Style="{StaticResource SheetSetLabel}" Text="Folder path:" Margin="0,0,10,10" />
+                <TextBox
+                    x:Name="FolderBox"
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Style="{StaticResource SheetSetBox}"
+                    Margin="0,0,0,10"
+                    Text="{Binding FolderPath, Mode=OneWay}"
+                    IsReadOnly="True"
+                    AutomationProperties.Name="Folder path"
+                />
+                <TextBlock Grid.Row="4" Style="{StaticResource SheetSetLabel}" Text="Sheet template:" />
+                <TextBox
+                    x:Name="TemplateBox"
+                    Grid.Row="4"
+                    Grid.Column="1"
+                    Style="{StaticResource SheetSetBox}"
+                    Text="{Binding SheetTemplate, Mode=OneWay}"
+                    IsReadOnly="True"
+                    AutomationProperties.Name="Sheet template"
+                />
+            </Grid>
+            <Border
+                Style="{StaticResource SheetSetErrorBox}"
+                Visibility="{Binding HasError, Converter={StaticResource SheetSetShown}}"
+            >
+                <TextBlock x:Name="ErrorText" Text="{Binding Error}" TextWrapping="Wrap" />
+            </Border>
+            <CheckBox
+                x:Name="OpenBox"
+                Style="{StaticResource SheetSetCheck}"
+                Margin="0,12,0,0"
+                Content="Open in drawing editor"
+                IsChecked="{Binding OpenInEditor}"
+            />
+        </StackPanel>
+    </local:SheetSetDialogFrame>
+</local:SheetSetDialogWindow>
