@@ -336,13 +336,19 @@ namespace OpenCAD2D.Wpf.UnitTest
                         "from opencad2d.cad import command, setting, write\n"
                             + "@command('HEIGHT')\n"
                             + "def show():\n"
-                            + "    write('height ' + str(setting('textHeight')))\n",
+                            + "    write('height ' + str(setting('textHeight')))\n"
+                            + "    import time\n"
+                            + "    time.sleep(1)\n",
                         "\"commands\": [ \"HEIGHT\" ], \"settings\": [ { \"name\": \"textHeight\", \"label\": \"Text height\","
                             + " \"kind\": \"number\", \"default\": 2.5, \"minimum\": 0.1, \"maximum\": 1000 } ]"
                     );
                     model.LoadApplication(folder);
                     model.Execute("HEIGHT");
-                    Wait(model, () => model.History.Contains("height 2.5"), "The first height was not written.");
+                    Wait(
+                        model,
+                        () => model.History.Contains("height 2.5") && !model.Session.IsRunning,
+                        "The first HEIGHT did not write its height and end."
+                    );
 
                     PluginSettingsViewModel settings = SettingsOf(model, "Heights");
                     settings.Rows[0].Text = "7.25";
