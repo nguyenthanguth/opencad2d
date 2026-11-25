@@ -814,6 +814,7 @@ namespace OpenCAD2D.Wpf
                 _model.SaveAsRequested -= OnSaveAsRequested;
                 _model.LayerManagerRequested -= OnLayerManagerRequested;
                 _model.PluginLoadRequested -= OnPluginLoadRequested;
+                _model.PluginSnapAnswered -= OnPluginSnapAnswered;
                 _model.SettingsRequested -= OnSettingsRequested;
                 _model.SettingsApplied -= OnSettingsApplied;
                 _model.CloseRequested -= OnCloseRequested;
@@ -836,6 +837,7 @@ namespace OpenCAD2D.Wpf
                 _model.SaveAsRequested += OnSaveAsRequested;
                 _model.LayerManagerRequested += OnLayerManagerRequested;
                 _model.PluginLoadRequested += OnPluginLoadRequested;
+                _model.PluginSnapAnswered += OnPluginSnapAnswered;
                 _model.SettingsRequested += OnSettingsRequested;
                 _model.SettingsApplied += OnSettingsApplied;
                 _model.CloseRequested += OnCloseRequested;
@@ -1073,6 +1075,9 @@ namespace OpenCAD2D.Wpf
 
         private void OnPluginLoadRequested(object sender, EventArgs e) =>
             AppLoadWindow.PickPlugin(Window.GetWindow(this), path => _model.LoadPlugin(path));
+
+        /// <summary>A Python tool's snap was answered for the drawing shown: the canvas follows the cursor again where it is.</summary>
+        private void OnPluginSnapAnswered(object sender, EventArgs e) => CanvasView?.Retrack();
 
         private void OnSettingsRequested(object sender, string category) => ShowGlobalSettings(category);
 

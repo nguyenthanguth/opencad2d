@@ -659,7 +659,7 @@ namespace OpenCAD2D.Plugins
             {
                 try
                 {
-                    manifest = CadPluginManifest.Read(manifestPath);
+                    manifest = CadPluginManifest.ReadForPlugin(manifestPath);
                 }
                 catch (Exception exception)
                     when (exception is FormatException

@@ -177,8 +177,11 @@ namespace OpenCAD2D.Wpf
                 () => _settings.PythonPath,
                 // The same gate as AutoLISP's: a file outside the trusted folders is asked about, or refused (SECURELOAD).
                 path => _loadSecurity.MayLoad(path) ? null : "File load canceled: " + path,
-                work => dispatcher.BeginInvoke(DispatcherPriority.Background, work)
+                work => dispatcher.BeginInvoke(DispatcherPriority.Background, work),
+                PluginSettingStore,
+                () => LoadedPlugins().SelectMany(p => p.Plugin.Host.ObjectSnaps).Select(s => s.Keyword).ToList()
             );
+            _pythonTools.SnapsAnswered += OnPluginSnapsAnswered;
             _pythonTools.AskQuestion = _askPythonPackages;
             _pythonTools.StateChanged += (sender, e) => PythonToolStateChanged?.Invoke(this, e);
             PythonFiles = _pythonTools;

@@ -133,6 +133,9 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets whether the box of At start can be changed.</summary>
         public bool CanChangeAtStart => !IsAtStartFixed;
 
+        /// <summary>Gets whether the row is loaded and declares settings (a plugin by <c>[CadSetting]</c>, a Python tool by <c>"settings"</c> in its plugin.json): a small slider mark follows its name, and Settings… is live for it.</summary>
+        public bool HasSettings { get; internal set; }
+
         /// <summary>
         /// Gets the badge shown after the name: <see cref="AppLoadBadge.NeedsPackages"/> for a plugin whose packages were not
         /// downloaded because the question was answered No (ticking the row asks again), <see cref="AppLoadBadge.InstallFailed"/>
@@ -253,6 +256,7 @@ namespace OpenCAD2D.Wpf
             ReloadCommand = new DelegateCommand(_ => Reload(), _ => _chosen.Count > 0);
             UnloadCommand = new DelegateCommand(_ => Unload(), _ => _chosen.Count > 0);
             RemoveCommand = new DelegateCommand(_ => Remove(), _ => _chosen.Any(r => !r.IsAtStartFixed));
+            SettingsCommand = new DelegateCommand(_ => OpenSettings(), _ => SettingsRefusal() == null);
             FilterCommand = new DelegateCommand(p => Filter = p as string ?? "All");
 
             if (model.Plugins != null)
@@ -372,6 +376,86 @@ namespace OpenCAD2D.Wpf
                 ? "Files in the Lisps and Plugins folders load at every start, so they cannot be taken out of the list."
                 : "Unload the chosen files and take them out of the list";
 
+        /// <summary>Gets the command of Settings…, which needs one row chosen that is loaded and declares settings.</summary>
+        public ICommand SettingsCommand { get; }
+
+        /// <summary>
+        /// Gets or sets how Settings… shows Plugin Settings: it shows the dialog over the window and gives whether OK applied
+        /// the values. Not set, Settings… does nothing.
+        /// </summary>
+        public Func<PluginSettingsViewModel, bool> ShowSettings { get; set; }
+
+        /// <summary>
+        /// Gets the tooltip of Settings…: <c>The settings of Circle marks</c>, or, where it cannot be pressed, why: no row or
+        /// several are chosen, the row is not loaded, or it declares no settings.
+        /// </summary>
+        public string SettingsToolTip => SettingsRefusal() ?? "The settings of " + _chosen[0].Name;
+
+        /// <summary>Why Settings… cannot be pressed; null where it can.</summary>
+        private string SettingsRefusal()
+        {
+            if (_chosen.Count == 0)
+            {
+                return "Choose a loaded plugin or tool to change its settings";
+            }
+
+            if (_chosen.Count > 1)
+            {
+                return "Choose one row: Settings… shows the settings of one";
+            }
+
+            AppLoadRow row = _chosen[0];
+
+            if (!row.IsPlugin && !row.IsPython)
+            {
+                return row.Name + " has no settings";
+            }
+
+            if (!row.IsOn)
+            {
+                return row.Name + " is not loaded: load it to change its settings";
+            }
+
+            return row.HasSettings ? null : row.Name + " declares no settings";
+        }
+
+        /// <summary>
+        /// Settings…: Plugin Settings for the row chosen, one row to each setting it declares, with <see cref="ShowSettings"/>;
+        /// nothing where the button is greyed.
+        /// </summary>
+        public void OpenSettings()
+        {
+            if (SettingsRefusal() != null || ShowSettings == null)
+            {
+                return;
+            }
+
+            AppLoadRow row = _chosen[0];
+            IReadOnlyList<CadPluginSetting> settings = SettingsOf(row);
+
+            if (settings.Count == 0)
+            {
+                return;
+            }
+
+            // The window lets the dialog go when it closes.
+            ShowSettings(
+                new PluginSettingsViewModel(
+                    _model,
+                    row.IsPython ? row.Name : row.PluginName,
+                    (row.IsPython ? "Python tool" : "C# plugin") + " · " + row.File + " · kept in the settings file",
+                    settings
+                )
+            );
+        }
+
+        /// <summary>The settings a row declares while it is loaded: a plugin's <c>[CadSetting]</c> properties, a Python tool's from its plugin.json; none otherwise.</summary>
+        private IReadOnlyList<CadPluginSetting> SettingsOf(AppLoadRow row) =>
+            !row.IsOn ? Array.Empty<CadPluginSetting>()
+            : row.IsPython ? _model.PythonSettingsOf(row.File)
+            : row.IsPlugin ? ManagedPlugin(row)?.Plugin?.Settings ?? Array.Empty<CadPluginSetting>()
+            : Array.Empty<CadPluginSetting>();
+
         /// <summary>Gets the command of a filter chip, given All, Lisp, Python or Plugin.</summary>
         public ICommand FilterCommand { get; }
 
@@ -385,7 +469,9 @@ namespace OpenCAD2D.Wpf
             ((DelegateCommand)ReloadCommand).RaiseCanExecuteChanged();
             ((DelegateCommand)UnloadCommand).RaiseCanExecuteChanged();
             ((DelegateCommand)RemoveCommand).RaiseCanExecuteChanged();
+            ((DelegateCommand)SettingsCommand).RaiseCanExecuteChanged();
             Raise(nameof(RemoveToolTip));
+            Raise(nameof(SettingsToolTip));
         }
 
         /// <summary>Load…: asks for files with <see cref="AskFiles"/> and loads them as <see cref="Load(IEnumerable{string})"/> does.</summary>
@@ -1025,6 +1111,11 @@ namespace OpenCAD2D.Wpf
                         }
                     );
                 }
+            }
+
+            foreach (AppLoadRow row in rows)
+            {
+                row.HasSettings = SettingsOf(row).Count > 0;
             }
 
             rows.Sort(Compare);

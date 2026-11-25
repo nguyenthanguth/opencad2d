@@ -244,7 +244,10 @@ keeps its History list: every file loaded, by Load…, a drop, LISPLOAD, NETLOAD
 commands it last defined (`knownApplications` under `support`, a path to its commands), and a file not loaded shows those
 commands, so that a `pair.lsp` that defined `c:KEEP1` and `c:KEEP2` and was unloaded still lists `KEEP1, KEEP2`. A known file
 that has gone from the disk still shows, with its path, and ticking it gives the load-failure line of any file that cannot be
-loaded. A file of the `Lisps` folder (or the `Pythons` folder) is kept the same way, so that once unticked it stays in the table, off, in a new window and after a restart (it loads again at the next start). **Remove**, the
+loaded. A file of the `Lisps` folder (or the `Pythons` folder) is kept the same way, so that once unticked it stays in the table, off, in a new window and after a restart (it loads again at the next start). **Settings…**, the button after
+Remove, opens Plugin Settings for the one row chosen that is a loaded plugin or Python tool declaring settings, and is greyed
+otherwise, with a tooltip that says why; a small slider mark after the name of such a row shows it ([the settings](plugins.md#what-the-window-adds)).
+**Remove**, the
 button after Unload, with red text, unloads the rows chosen where they are loaded and takes them out of the table, out of the
 known list and, for an AutoLISP file, out of the Startup Suite; for a plugin the plugin manager forgets it, its At start entry
 too, so that it is gone until its file is loaded again. A file of the `Lisps` or `Plugins` folder cannot leave the table, as

@@ -144,13 +144,15 @@ namespace OpenCAD2D.Wpf
         /// <param name="python">The Python the venv is made from.</param>
         /// <param name="beforeSwap">Called when a venv that exists is about to be replaced, to stop the tool's process, which holds its files; null for none.</param>
         /// <param name="installing">Called, on this thread, when <see cref="Confirm"/> has said yes and pip is about to install the packages, so that the window can show the tool as installing; null for none.</param>
+        /// <param name="ask">False for a start nobody asked for, as a snap's first question to a tool whose process is not running: <see cref="Confirm"/> is never called and pip never runs, so a venv is made only where the tool names no package and the shared base is there already, and a tool that needs more is not ready (and never a venv left from before in its place).</param>
         /// <returns>The venv; or the lines to show where it could not be made, and then, where a venv was there, that venv left as it was and ready, with <see cref="PythonEnvironment.Failure"/> holding the lines.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the folder or the Python is null.</exception>
         public PythonEnvironment Prepare(
             string toolFolder,
             PythonInstallation python,
             Action beforeSwap = null,
-            Action installing = null
+            Action installing = null,
+            bool ask = true
         )
         {
             if (toolFolder == null)
@@ -189,7 +191,8 @@ namespace OpenCAD2D.Wpf
 
             if (refused != null)
             {
-                return KeepOld(PythonEnvironment.Failed(target, refused));
+                PythonEnvironment bad = PythonEnvironment.Failed(target, refused);
+                return ask ? KeepOld(bad) : bad;
             }
 
             string key = Key(written, python);
@@ -199,6 +202,15 @@ namespace OpenCAD2D.Wpf
                 if (IsCurrent(target, key))
                 {
                     return PythonEnvironment.Ready(target, new PythonPackage[0]);
+                }
+
+                // Nobody was asked: what needs pip, to make the shared base or to install the tool's packages, waits for a command.
+                if (!ask && (requirements.Count > 0 || !Directory.Exists(BaseFolder(python))))
+                {
+                    return PythonEnvironment.Failed(
+                        target,
+                        tool + " needs its packages installed first: its next command asks."
+                    );
                 }
 
                 try

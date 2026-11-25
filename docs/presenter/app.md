@@ -9,7 +9,10 @@ settings are in the core and run in a test; autosave, closing and the window bel
 
 [`GlobalSettings`](xref:OpenCAD2D.GlobalSettings) is what applies to the whole app and every drawing on the
 machine, kept as JSON in `%AppData%\OpenCAD2D.Core\settings.json` (`GlobalSettings.DefaultPath`). Every setting has
-its default in code, so deleting the file gives the defaults back.
+its default in code, so deleting the file gives the defaults back. The values a user gives the settings of plugins and Python
+tools (Settings… of [Load/Unload Applications](lisp.md#appload)) are kept in it as `pluginSettings` under `canvas`, beside
+`pluginSnaps`, one entry for each setting as `Circles/textHeight=2.5` ([the manifest](plugins.md#the-manifest) says how); a
+setting at its default has no entry, and the entries of a plugin not loaded stay.
 
 ```csharp
 GlobalSettings settings = GlobalSettings.Load(GlobalSettings.DefaultPath);   // never throws
@@ -1029,8 +1032,10 @@ and LISP registry are kept in a folder of the run under the temporary folder. Bo
 | `--dialog name` | draws a dialog or a menu instead of the window, the lines of `--run` typed first where it needs them |
 | `--recent "a.dxf\|*b.dxf"` | fills Recent Documents, the first the newest, a file written with `*` pinned |
 
-The dialogs are `save-changes`; `mtext-unsaved` (Multiline Text - Unsaved Changes); `options` or `settings:Canvas and cursor` (Global settings on a category); `plugins` (Load/Unload Applications)
-and `plugin-untrusted`; `secureload` (the load warning), `writable-folder` and `settings-security` (the
+The dialogs are `save-changes`; `mtext-unsaved` (Multiline Text - Unsaved Changes); `options` or `settings:Canvas and cursor` (Global settings on a category); `plugins` (Load/Unload Applications),
+`plugin-untrusted` and `plugin-settings` (Plugin Settings of the first plugin or Python tool `--plugin` loads that declares
+settings; exit 2 with `--dialog plugin-settings: needs --plugin of a plugin or a Python tool that declares settings.` where it
+has none); `secureload` (the load warning), `writable-folder` and `settings-security` (the
 Security page); `color`, `truecolor` and `truecolor-rgb` (Select Color on index 30);
 `dsettings[:Tab]`; the menus `osnap-menu`, `snap-menu` (after `--run "LINE"`), `canvas-menu` (the canvas's right-click menu, after `--run "SELECTALL"` the Edit menu, after `--run "LINE;0,0;100,0"` the Command menu), `drawings-menu` and `scale-menu` (the status bar's scale list); `missing-shx` and
 `missing-shx-replace`; `ptype`; `linetype`, `linetype-load`, `select-linetype`, `hatch`, `hatch-gradient`, `hatch-user`,

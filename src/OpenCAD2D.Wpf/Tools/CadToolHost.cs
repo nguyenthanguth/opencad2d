@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using GeometryHelper;
 using OpenCAD2D.Plugins;
 
@@ -35,6 +36,7 @@ namespace OpenCAD2D.Wpf
         private readonly CadRemoteServer _server;
         private readonly string _library;
         private readonly List<CadFolderTool> _tools = new List<CadFolderTool>();
+        private Action<Action> _post;
         private bool _disposed;
 
         /// <summary>Makes the host and opens the channel of the tools; call it on the thread of the drawings.</summary>
@@ -85,6 +87,20 @@ namespace OpenCAD2D.Wpf
         internal CadRemoteServer Server => _server;
 
         internal ICadRemoteDispatcher Dispatcher => _dispatcher;
+
+        /// <summary>
+        /// Gets or sets how work is run on the thread of the drawings after the work in hand, at Background priority, from any
+        /// thread, without waiting for it: what the window's own dispatcher does with <c>BeginInvoke</c>. Where none is set it is
+        /// run on a thread of the pool and waited for there, through <see cref="Dispatcher"/>.
+        /// </summary>
+        internal Action<Action> Post
+        {
+            get => _post ?? (action => Task.Run(() => _dispatcher.Invoke(action)));
+            set => _post = value;
+        }
+
+        /// <summary>Gets or sets what the window does with the drawings a tool's snap answers came for (<see cref="CadToolSnaps"/>), called on the thread of the drawings: the canvas follows the cursor again.</summary>
+        internal Action<IReadOnlyList<CadDocument>> SnapsAnswered { get; set; }
 
         internal string Library => _library;
 

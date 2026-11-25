@@ -55,7 +55,7 @@ namespace OpenCAD2D.Wpf
     /// plugin, every file trusted.
     /// <c>--layers</c> draws the Layer manager instead, and <c>--dialog</c> one of the presenter's dialogs or menus:
     /// <c>save-changes</c>, <c>mtext-unsaved</c>, <c>options</c> or <c>settings:Category</c> (Global settings), <c>plugins</c>,
-    /// <c>plugin-untrusted</c>, <c>color</c>, <c>truecolor</c>, <c>truecolor-rgb</c>,
+    /// <c>plugin-untrusted</c>, <c>plugin-settings</c> (Plugin Settings of the plugin or Python tool <c>--plugin</c> loads, which must declare settings), <c>color</c>, <c>truecolor</c>, <c>truecolor-rgb</c>,
     /// <c>dsettings[:Tab]</c>, <c>osnap-menu</c>, <c>snap-menu</c>, <c>canvas-menu</c>, <c>drawings-menu</c>, <c>scale-menu</c>,
     /// <c>missing-shx</c>, <c>missing-shx-replace</c>, <c>missing-fonts</c>, <c>missing-fonts-truetype</c>, <c>ptype</c>, <c>linetype</c>, <c>linetype-load</c>,
     /// <c>select-linetype</c>, <c>hatch</c>,
@@ -123,7 +123,7 @@ namespace OpenCAD2D.Wpf
         protected virtual string Usage =>
             "Usage: "
             + (Assembly.GetEntryAssembly()?.GetName().Name ?? "app")
-            + " --screenshot out.png [file.dxf] [--size 1600 960] [--space \"Layout1\"] [--select H1,H2] [--run \"MOVE;0,0\"] [--cursor x,y] [--type REC|{Down}] [--toggle GRID,SNAP] [--layers] [--tab Home|Insert|Annotate|Parametric|View|Manage|Output|Plugins|Settings] [--dialog save-changes|mtext-unsaved|secureload|writable-folder|settings-security|options|settings:Category|plugins|plugin-untrusted|color|truecolor|truecolor-rgb|dsettings[:Tab]|constraints[:0|1|2]|parameters|osnap-menu|snap-menu|canvas-menu|drawings-menu|scale-menu|missing-shx|missing-shx-replace|missing-fonts|missing-fonts-truetype|ptype|linetype|linetype-load|select-linetype|hatch|hatch-gradient|hatch-user|hatch-solid|hatch-file|block|insert|wblock|attdef|eattedit[:Tab]|battman|battman-edit[:Tab]|battman-settings|attdia|purge|purge-nonpurgeable|classicgroup|group-order|layerstate|scalelist|qleader|qleader-line|qleader-attach|selectarrow|tolerance|tolerance-filled|tolerance-full|gdtsymbol|gdtmaterial|inputsearch|view|newview|units|units-direction|xref|xref-tree|plot:png|plot:jpg|plot-custom|plot-view|style|style-new|dimstyle|dimstyle-new|dimstyle-modify[:Tab]|dimstyle-override[:Tab]|dimstyle-compare[:Other]|mleaderstyle|mleaderstyle-modify[:Tab]|matchprop|mlstyle|mlstyle-new|mlstyle-new-page|mlstyle-modify|mlstyle-load|mledit|plotstamp|plotstamp-advanced|plotstamp-fields|imageadjust|attext|xbind|insertobject|recovery|spell|spell-settings|objectscale|objectscale-add|insertlayout|templateoptions|saveaspdf|pdf-override|pdf-options|rename|lweight|boundary|viewports|viewports-named|filter|layerfilter|pastespec|app-menu[:Item]|cmdline-menu|input-settings-menu|recent-commands-menu|autocomplete:Text] [--recent \"a.dxf|*b.dxf\"] [--plugin path.dll]";
+            + " --screenshot out.png [file.dxf] [--size 1600 960] [--space \"Layout1\"] [--select H1,H2] [--run \"MOVE;0,0\"] [--cursor x,y] [--type REC|{Down}] [--toggle GRID,SNAP] [--layers] [--tab Home|Insert|Annotate|Parametric|View|Manage|Output|Plugins|Settings] [--dialog save-changes|mtext-unsaved|secureload|writable-folder|settings-security|options|settings:Category|plugins|plugin-untrusted|plugin-settings|color|truecolor|truecolor-rgb|dsettings[:Tab]|constraints[:0|1|2]|parameters|osnap-menu|snap-menu|canvas-menu|drawings-menu|scale-menu|missing-shx|missing-shx-replace|missing-fonts|missing-fonts-truetype|ptype|linetype|linetype-load|select-linetype|hatch|hatch-gradient|hatch-user|hatch-solid|hatch-file|block|insert|wblock|attdef|eattedit[:Tab]|battman|battman-edit[:Tab]|battman-settings|attdia|purge|purge-nonpurgeable|classicgroup|group-order|layerstate|scalelist|qleader|qleader-line|qleader-attach|selectarrow|tolerance|tolerance-filled|tolerance-full|gdtsymbol|gdtmaterial|inputsearch|view|newview|units|units-direction|xref|xref-tree|plot:png|plot:jpg|plot-custom|plot-view|style|style-new|dimstyle|dimstyle-new|dimstyle-modify[:Tab]|dimstyle-override[:Tab]|dimstyle-compare[:Other]|mleaderstyle|mleaderstyle-modify[:Tab]|matchprop|mlstyle|mlstyle-new|mlstyle-new-page|mlstyle-modify|mlstyle-load|mledit|plotstamp|plotstamp-advanced|plotstamp-fields|imageadjust|attext|xbind|insertobject|recovery|spell|spell-settings|objectscale|objectscale-add|insertlayout|templateoptions|saveaspdf|pdf-override|pdf-options|rename|lweight|boundary|viewports|viewports-named|filter|layerfilter|pastespec|app-menu[:Item]|cmdline-menu|input-settings-menu|recent-commands-menu|autocomplete:Text] [--recent \"a.dxf|*b.dxf\"] [--plugin path.dll]";
 
         /// <summary>
         /// Gets whether <see cref="Run"/> opens the window for these arguments: false where the first is <c>--screenshot</c>,
@@ -1356,6 +1356,45 @@ namespace OpenCAD2D.Wpf
                 window = dialog;
                 width = (int)dialog.Width;
                 height = (int)dialog.Height;
+            }
+            else if (string.Equals(dialogName, "plugin-settings", StringComparison.OrdinalIgnoreCase))
+            {
+                // Plugin Settings of the first plugin or Python tool loaded (--plugin) that declares settings, opened as Settings… opens it.
+                PluginSettingsViewModel settings = null;
+                var applications = new AppLoadViewModel(model);
+                AppLoadRow declaring = applications.Rows.FirstOrDefault(r => r.HasSettings);
+
+                if (declaring != null)
+                {
+                    applications.ChooseRows(new[] { declaring });
+                    applications.ShowSettings = shown =>
+                    {
+                        settings = shown;
+                        return false;
+                    };
+                    applications.OpenSettings();
+                }
+
+                applications.Dispose();
+
+                if (settings == null)
+                {
+                    Console.Error.WriteLine(
+                        "--dialog plugin-settings: needs --plugin of a plugin or a Python tool that declares settings."
+                    );
+                    return 2;
+                }
+
+                var dialog = new PluginSettingsWindow(settings);
+                root = dialog.Body;
+                window = dialog;
+                width = (int)dialog.Width;
+
+                // The rows of its items control are made while the layout settles, not at the first measure.
+                root.Measure(new Size(width, double.PositiveInfinity));
+                root.Arrange(new Rect(0, 0, width, root.DesiredSize.Height));
+                root.UpdateLayout();
+                height = (int)Math.Ceiling(root.DesiredSize.Height);
             }
             else if (dialogName != null && dialogName.StartsWith("plugin", StringComparison.OrdinalIgnoreCase))
             {

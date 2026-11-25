@@ -63,6 +63,12 @@ namespace OpenCAD2D
                     // the window's thread waits for it, or is busy.
                     answer = ToolSettingRequest(op, request, token);
                 }
+                else if (op == RemoteOps.Hello && _forTools)
+                {
+                    // A tool's first request: it is answered with no dispatch, so that a tool started while the window's thread waits
+                    // for its first answer (a point typed after the keyword of its snap) can start.
+                    answer = Hello();
+                }
                 else if (op == RemoteOps.Ask)
                 {
                     answer = RunAsk(request, token);
@@ -163,15 +169,18 @@ namespace OpenCAD2D
             return result;
         }
 
+        private JsonObject Hello() =>
+            new JsonObject()
+                .Set("protocol", (long)RemoteOps.Version)
+                .Set("processId", (long)System.Diagnostics.Process.GetCurrentProcess().Id)
+                .Set("title", _host.Title ?? string.Empty);
+
         private JsonObject Execute(string op, JsonObject request)
         {
             switch (op)
             {
                 case RemoteOps.Hello:
-                    return new JsonObject()
-                        .Set("protocol", (long)RemoteOps.Version)
-                        .Set("processId", (long)System.Diagnostics.Process.GetCurrentProcess().Id)
-                        .Set("title", _host.Title ?? string.Empty);
+                    return Hello();
                 case RemoteOps.Documents:
                     return new JsonObject().Set("documents", Documents());
                 case RemoteOps.Open:

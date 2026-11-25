@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -14,7 +15,8 @@ namespace OpenCAD2D.Wpf
     /// One Python tool: a folder, its commands, and the process that runs it. The commands are the ones to put in the registry of
     /// every drawing; typing one begins a run in that drawing (<see cref="CadRemoteServer.CreateRunCommand"/>), which starts the
     /// process if none is alive and tells it with a <c>run</c> message on its control pipe. What comes back on that pipe is
-    /// <c>ready</c> (the commands the tool bound, once it has imported) and <c>ended</c> (the tool is done with a run).
+    /// <c>ready</c> (the commands and snaps the tool bound, once it has imported), <c>ended</c> (the tool is done with a run) and
+    /// <c>snapped</c> (the answer to a question of <see cref="Snaps"/>).
     /// </summary>
     internal sealed class CadFolderTool
     {
@@ -28,10 +30,18 @@ namespace OpenCAD2D.Wpf
         private readonly string _token;
         private string _python;
 
-        // Touched on the thread of the drawings only.
-        private Live _live;
+        // The process, made on the thread of the drawings, or on a thread of its own where a snap starts it (see EnsureStartedQuietly):
+        // starting is under _startLock. Everything else of the tool is touched on the thread of the drawings only.
+        private volatile Live _live;
+        private readonly object _startLock = new object();
         private readonly Dictionary<int, Timer> _watches = new Dictionary<int, Timer>();
-        private bool _unloaded;
+        private volatile bool _unloaded;
+
+        // A snap's start of the process (EnsureStartedQuietly): whether one is under way, whether the environment was not ready for it
+        // (the next command makes it so), and the time before which none is made after the process ended.
+        private bool _quietBusy;
+        private bool _quietRefused;
+        private long _quietNotBefore;
 
         internal CadFolderTool(
             CadToolHost host,
@@ -54,6 +64,13 @@ namespace OpenCAD2D.Wpf
             Commands = commands
                 .Select(c => host.Server.CreateRunCommand(c.Name, c.UsesSelection, _token, Started))
                 .ToList();
+            Snaps = new CadToolSnaps(
+                Name,
+                SendToProcess,
+                action => host.Post(action),
+                EnsureStartedQuietly,
+                documents => host.SnapsAnswered?.Invoke(documents)
+            );
         }
 
         /// <summary>Gets the name of the tool: the name of its folder.</summary>
@@ -76,6 +93,12 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>Gets the commands the tool bound with <c>@command</c>, as it told the app when it was ready; none before.</summary>
         public IReadOnlyList<string> BoundCommands { get; private set; } = Array.Empty<string>();
+
+        /// <summary>Gets the snaps the tool bound with <c>@snap</c>, in capitals, as it told the app when it was ready; none before.</summary>
+        public IReadOnlyList<string> BoundSnaps { get; private set; } = Array.Empty<string>();
+
+        /// <summary>Gets the object snaps of the tool: the finders its plugin.json's snaps are given, and the points the process answered.</summary>
+        internal CadToolSnaps Snaps { get; }
 
         /// <summary>Gets how many times a process has been started for the tool.</summary>
         public int Starts { get; private set; }
@@ -187,6 +210,7 @@ namespace OpenCAD2D.Wpf
             }
 
             _python = environment.Python;
+            _quietRefused = false;
 
             // A change of the tool's packages that failed leaves it on the venv it had: the lines say so, on the command line and in the log.
             if (environment.Failure != null)
@@ -239,6 +263,14 @@ namespace OpenCAD2D.Wpf
 
         private Live Start()
         {
+            lock (_startLock)
+            {
+                return _live ?? Make();
+            }
+        }
+
+        private Live Make()
+        {
             var live = new Live();
             var environment = new Dictionary<string, string>
             {
@@ -280,8 +312,101 @@ namespace OpenCAD2D.Wpf
 
             _live = live;
             Starts++;
+            Snaps.ProcessStarted();
             return live;
         }
+
+        /// <summary>Sends a line to the process on its control pipe; false where the tool has none.</summary>
+        private bool SendToProcess(string line)
+        {
+            Live live = _live;
+
+            if (live == null)
+            {
+                return false;
+            }
+
+            live.Process.Send(line);
+            return true;
+        }
+
+        /// <summary>
+        /// A snap asked about an entity and the tool has no process: its environment is made ready on a thread of its own with no
+        /// question and no pip (<see cref="PythonEnvironments.Prepare"/> with <c>ask: false</c>), and the process started there.
+        /// Nothing is done where the tool is unloaded, a start is under way, the environment was not ready for the last try (a
+        /// command of the tool makes it so), or the last process ended less than 5 seconds ago.
+        /// </summary>
+        private void EnsureStartedQuietly()
+        {
+            lock (_startLock)
+            {
+                if (
+                    _unloaded
+                    || _live != null
+                    || _quietBusy
+                    || _quietRefused
+                    || Stopwatch.GetTimestamp() < _quietNotBefore
+                )
+                {
+                    return;
+                }
+
+                _quietBusy = true;
+            }
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    if (_prepare != null)
+                    {
+                        // No run is waiting to be asked anything, and no process runs that the venv could be swapped under.
+                        PythonEnvironment environment = _prepare(null, () => { });
+
+                        if (!environment.IsReady)
+                        {
+                            lock (_startLock)
+                            {
+                                _quietRefused = true;
+                            }
+
+                            return;
+                        }
+
+                        _python = environment.Python;
+                    }
+
+                    lock (_startLock)
+                    {
+                        if (!_unloaded && _live == null)
+                        {
+                            Make();
+                        }
+                    }
+                }
+                catch (Exception ex) when (!(ex is OutOfMemoryException))
+                {
+                    GeometryHelperLog.Warn("CadFolderTool: " + Name + " could not be started for a snap.", ex);
+
+                    lock (_startLock)
+                    {
+                        _quietRefused = true;
+                    }
+                }
+                finally
+                {
+                    lock (_startLock)
+                    {
+                        _quietBusy = false;
+                    }
+                }
+            });
+        }
+
+        /// <summary>Tells the server which settings the tool declares, so that the tool reads and sets them over its channel (<c>toolSetting</c>, <c>setToolSetting</c>).</summary>
+        /// <param name="settings">The settings, made over the settings store.</param>
+        internal void DeclareSettings(IReadOnlyList<CadPluginSetting> settings) =>
+            _host.Server.SetToolSettings(_token, Name, settings);
 
         // ---- The end of a run -----------------------------------------------------------------------------------------
 
@@ -359,12 +484,22 @@ namespace OpenCAD2D.Wpf
         /// <summary>The process ended, and its pipes were read to the end: its runs still open are cancelled, with what it said of why.</summary>
         private void Exited(Live live, int code)
         {
+            // What was asked of the process will not be answered, and a point typed that waits for it stops waiting.
+            Snaps.Clear();
+
+            lock (_startLock)
+            {
+                _quietNotBefore = Stopwatch.GetTimestamp() + 5 * Stopwatch.Frequency;
+            }
+
             _host.Dispatcher.Invoke(() =>
             {
                 if (_live == live)
                 {
                     _live = null;
                 }
+
+                Snaps.Clear();
 
                 foreach (CadRemoteToolRun run in live.Runs.Values.OrderBy(r => r.Id).ToList())
                 {
@@ -443,23 +578,31 @@ namespace OpenCAD2D.Wpf
             switch (message.GetString("op"))
             {
                 case "ready":
+                    // Not handed to the window's thread: a point typed after a snap's keyword waits there for the tool's first
+                    // answer, which comes after this line on this thread.
                     var commands = message.GetArray("commands").OfType<string>().ToList();
-                    _host.Dispatcher.Invoke(() =>
-                    {
-                        InterpreterId = (int)message.GetLong("pid");
-                        BoundCommands = commands;
+                    var snaps = message.GetArray("snaps").OfType<string>().ToList();
+                    InterpreterId = (int)message.GetLong("pid");
+                    BoundCommands = commands;
+                    BoundSnaps = snaps;
 
-                        foreach (
-                            string unknown in commands
-                                .Except(Commands.Select(c => c.Name))
-                                .OrderBy(c => c, StringComparer.Ordinal)
-                        )
-                        {
-                            _host.Say(
-                                Name + ": the command " + unknown + " is defined with @command but not declared."
-                            );
-                        }
-                    });
+                    foreach (
+                        string unknown in commands
+                            .Except(Commands.Select(c => c.Name))
+                            .OrderBy(c => c, StringComparer.Ordinal)
+                    )
+                    {
+                        _host.Say(Name + ": the command " + unknown + " is defined with @command but not declared.");
+                    }
+
+                    foreach (string unknown in snaps.Except(Snaps.Declared).OrderBy(c => c, StringComparer.Ordinal))
+                    {
+                        _host.Say(Name + ": the snap " + unknown + " is defined with @snap but not declared.");
+                    }
+
+                    break;
+                case "snapped":
+                    Snaps.Answered(message);
                     break;
                 case "ended":
                     int run = (int)message.GetLong("run");
@@ -489,6 +632,7 @@ namespace OpenCAD2D.Wpf
             }
 
             _unloaded = true;
+            Snaps.Close();
             _host.Server.RevokeToken(_token);
             Live live = _live;
 
@@ -503,6 +647,7 @@ namespace OpenCAD2D.Wpf
         internal void Stop()
         {
             _unloaded = true;
+            Snaps.Close();
             _host.Server.RevokeToken(_token);
 
             foreach (Timer timer in _watches.Values)
