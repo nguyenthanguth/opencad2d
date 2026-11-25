@@ -364,6 +364,7 @@ def on_unload(function: F) -> F:
 
 # The Drawing API (D1655 to D1658).
 from ._drawing import (  # noqa: E402
+    Box as Box,
     Documents as Documents,
     Drawing as Drawing,
     Entity as Entity,

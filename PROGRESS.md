@@ -313,12 +313,13 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       (board A5UcsDialog, AutoCAD probe .claude/scratch/a5): three tabs, rename/delete/Details, depth; OK one step named
       UCSMAN. Parked: orthographic depth and Reset not measured in AutoCAD (built from its documentation); UCSVP,
       UCSFOLLOW and UCSSELECTMODE kept on the drawing, not as variables; UCSNAME stays "" for an orthographic system
-- [ ] A6. More of the app as API (maintainer 2026-11-25): the window's view functions that exist inside (ZoomExtents,
+- [x] A6. More of the app as API (maintainer 2026-11-25): the window's view functions that exist inside (ZoomExtents,
       ZoomToObjects, CadView.ZoomTo/ZoomAt/ZoomToHeight, and the like: zoom window, center, previous, pan, regen, the
       current view read and set) made public for C# plugins (the command context), Remote (`CadRemoteDocument`) and
       Python (`Drawing.zoom_extents()` ...), one meaning in all three; a survey first of every such internal function
       worth exposing. -> verify: each call tested in-process, through Remote and from a Python tool; docs and stubs.
-      C# and Remote done 2026-11-25 (API T1, CadEditor, plugin API 1.3); Python waits on T4
+      C# and Remote done 2026-11-25 (API T1, CadEditor, plugin API 1.3); Python done the same day (T4: zoom_*, pan,
+      view, named views, select_*, get/set_variable; pytest 779 / 764)
 - [x] A7. Typed entities in Python, as C#'s `if (obj is Line line)`: `Entity.net` typed `DxfEntity` (not `Any`) so that
       `isinstance(e.net, DxfLine)` and `match e.net: case DxfCircle() as c:` narrow in Pylance (both already run under
       pythonnet, checked 2026-11-25); `Entity` generic, `entities(DxfCircle)` giving `list[Entity[DxfCircle]]`.
@@ -330,6 +331,13 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       -> verify: in-process, Remote and Python tests; the same drawing as the command gives.
 - [ ] A9. Documents for C# plugins as AutoCAD's DocumentManager: the open drawings listed, one opened, closed, made
       active (Remote and Python have them). Plan in .claude/scratch/api/spec.md (API-D22).
+- [ ] A10. The last GeometryHelper/GH names out of what OpenCAD2D writes and shows (maintainer 2026-11-25, no compatibility
+      kept, as for the font): XRECORD/XData GH_REFEDIT, GH_LAYTRANS_MAP, GH_OWNER (public CadOwnerTag.ApplicationName),
+      the template's dimension styles GH and GH-Annotative, the formats GeometryHelperDataExtraction,
+      GeometryHelper.ToolPalettes and "GeometryHelper clipboard 1", the samples GH-DrawingInfo.lsp/GHINFO and GHPYINFO;
+      the old-name readers removed (GeometryHelper PDF/PNG/JPG, GeometryHelper.pat/.lin, GeometryHelper-mm.dwt,
+      %AppData%\GeometryHelper copy, ProgId GeometryHelper.Drawing). Kept: the core library's own name (Lib, namespaces,
+      GeometryHelper-stubs). BREAKING in the CHANGELOG.
 
 #### Parked follow-ups
 

@@ -10,11 +10,12 @@ from __future__ import annotations
 
 import importlib
 import os
+import re
 from collections.abc import Callable
 from typing import Any
 
 from . import _tool
-from ._drawing import Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color
+from ._drawing import Box, Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color
 
 _net: Any = importlib.import_module("System")
 _cad: Any = importlib.import_module("OpenCAD2D")
@@ -24,6 +25,18 @@ _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
 def _inside_only(name: str) -> RuntimeError:
     """The error of a function that only a tool of the app can call, called in any other process."""
     return RuntimeError(f"{name} works inside OpenCAD2D only")
+
+
+def _no_view(name: str) -> RuntimeError:
+    """The error of a view call on a drawing of a file, which has no view (API-D26)."""
+    return RuntimeError(f"{name} works on a drawing of the app: a drawing file has no view.")
+
+
+def _refused(error: Any) -> ValueError:
+    """What the editor refuses with an ``ArgumentException`` is a ``ValueError`` with its first line, the name of the
+    parameter .NET adds left off."""
+    first = str(error.Message).splitlines()[0]
+    return ValueError(re.sub(r" \(Parameter '[^']*'\)$", "", first))
 
 
 def _name_key(record: Any) -> tuple[str, str]:
@@ -43,6 +56,7 @@ class _LocalBackend:
     def __init__(self, document: Any) -> None:
         self._document: Any = document
         self._closed: str | None = None
+        self._session: Any = None
 
     @property
     def document(self) -> Any:
@@ -411,6 +425,95 @@ class _LocalBackend:
 
     def close(self, discard: bool) -> None:
         self._closed = self.name
+
+    # ---- the view, the selection by area, the variables -------------------------------------------------------------
+
+    @property
+    def _editor(self) -> Any:
+        """The ``CadEditor`` of a command session the drawing makes once, as the app makes one for a drawing it shows."""
+        if self._session is None:
+            self._session = _cad.CadCommandSession(self.document)
+        return self._session.Editor
+
+    @property
+    def has_window(self) -> bool:
+        return False
+
+    def zoom_extents(self) -> None:
+        raise _no_view("zoom_extents")
+
+    def zoom_window(self, first: Any, second: Any) -> None:
+        raise _no_view("zoom_window")
+
+    def zoom_objects(self, handles: list[str]) -> None:
+        raise _no_view("zoom_objects")
+
+    def zoom_center(self, center: Any, height: float) -> None:
+        raise _no_view("zoom_center")
+
+    def zoom_scaled(self, factor: float) -> None:
+        raise _no_view("zoom_scaled")
+
+    def zoom_previous(self) -> bool:
+        raise _no_view("zoom_previous")
+
+    def pan(self, displacement: Any) -> None:
+        raise _no_view("pan")
+
+    def regen(self) -> None:
+        self._editor.Regen()
+
+    @property
+    def view(self) -> Box:
+        raise _no_view("view")
+
+    @view.setter
+    def view(self, box: Box) -> None:
+        raise _no_view("view")
+
+    @property
+    def named_views(self) -> list[str]:
+        raise _no_view("named_views")
+
+    def save_view(self, name: str) -> None:
+        raise _no_view("save_view")
+
+    def restore_view(self, name: str) -> None:
+        raise _no_view("restore_view")
+
+    def delete_view(self, name: str) -> None:
+        raise _no_view("delete_view")
+
+    def get_variable(self, name: str) -> Any:
+        try:
+            return self._editor.GetVariable(name)
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
+    def set_variable(self, name: str, value: Any) -> None:
+        try:
+            self._editor.SetVariable(name, value)
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
+    def _taken(self, handles: Any) -> list[tuple[str, Any, Any]]:
+        entities = [self.document.FindEntity(handle) for handle in handles]
+        return self._pack([entity for entity in entities if entity is not None and not entity.IsErased])
+
+    def select_all(self) -> list[tuple[str, Any, Any]]:
+        return self._taken(self._editor.SelectAll())
+
+    def select_window(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]:
+        try:
+            return self._taken(self._editor.SelectWindow(first, second))
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
+    def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]:
+        try:
+            return self._taken(self._editor.SelectCrossingWindow(first, second))
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
 
 
 def active_drawing() -> Drawing:

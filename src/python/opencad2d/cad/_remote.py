@@ -16,10 +16,11 @@ import importlib
 from types import TracebackType
 from typing import Any
 
-from ._drawing import Backend, Documents, Drawing, Look, Op, look_color
+from ._drawing import Backend, Box, Documents, Drawing, Look, Op, look_color
 
 _net: Any = importlib.import_module("System")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
+_geo: Any = importlib.import_module("GeometryHelper.Geometry")
 _remote: Any = importlib.import_module("OpenCAD2D.Remote")
 
 
@@ -187,6 +188,73 @@ class _RemoteBackend:
 
     def close(self, discard: bool) -> None:
         self._document.Close(discard)
+
+    # ---- the view, the selection by area, the variables -------------------------------------------------------------
+
+    @property
+    def has_window(self) -> bool:
+        return bool(self._document.HasWindow)
+
+    def zoom_extents(self) -> None:
+        self._document.ZoomExtents()
+
+    def zoom_window(self, first: Any, second: Any) -> None:
+        self._document.ZoomWindow(first, second)
+
+    def zoom_objects(self, handles: list[str]) -> None:
+        self._document.ZoomObjects(_net.Array[_net.String](handles))
+
+    def zoom_center(self, center: Any, height: float) -> None:
+        self._document.ZoomCenter(center, height)
+
+    def zoom_scaled(self, factor: float) -> None:
+        self._document.ZoomScaled(factor)
+
+    def zoom_previous(self) -> bool:
+        return bool(self._document.ZoomPrevious())
+
+    def pan(self, displacement: Any) -> None:
+        self._document.Pan(displacement)
+
+    def regen(self) -> None:
+        self._document.Regen()
+
+    @property
+    def view(self) -> Box:
+        shown = self._document.CurrentView
+        return Box(float(shown.Min.X), float(shown.Min.Y), float(shown.Max.X), float(shown.Max.Y))
+
+    @view.setter
+    def view(self, box: Box) -> None:
+        self._document.SetCurrentView(_geo.GeoPoint2(box.min_x, box.min_y), _geo.GeoPoint2(box.max_x, box.max_y))
+
+    @property
+    def named_views(self) -> list[str]:
+        return [str(name) for name in self._document.NamedViews]
+
+    def save_view(self, name: str) -> None:
+        self._document.SaveView(name)
+
+    def restore_view(self, name: str) -> None:
+        self._document.RestoreView(name)
+
+    def delete_view(self, name: str) -> None:
+        self._document.DeleteView(name)
+
+    def get_variable(self, name: str) -> Any:
+        return self._document.GetVariable(name)
+
+    def set_variable(self, name: str, value: Any) -> None:
+        self._document.SetVariable(name, value)
+
+    def select_all(self) -> list[tuple[str, Any, Any]]:
+        return self._pairs(self._document.SelectAll())
+
+    def select_window(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]:
+        return self._pairs(self._document.SelectWindow(first, second))
+
+    def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]:
+        return self._pairs(self._document.SelectCrossingWindow(first, second))
 
 
 class App:
