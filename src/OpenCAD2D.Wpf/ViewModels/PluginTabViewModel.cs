@@ -14,7 +14,8 @@ namespace OpenCAD2D.Wpf
     /// <summary>
     /// What a tooltip of a plugin's button says: a title, a body where the plugin gave one, and under a line the name of the
     /// plugin, so that a user knows whose button it is. The title is the button's tooltip, or its text where it has none, and for
-    /// a command button the command in brackets as the presenter's tooltips show it: "Number circles (NUMCIRCLES2)".
+    /// a command button the command in brackets as the presenter's tooltips show it: "Number circles (NUMCIRCLES2)"; a callback
+    /// or macro button, which may run several commands, has none.
     /// </summary>
     public sealed class PluginToolTipInfo
     {
@@ -211,8 +212,8 @@ namespace OpenCAD2D.Wpf
     }
 
     /// <summary>
-    /// A button of a plugin's ribbon: a command it starts as the presenter's ribbon buttons start theirs, or a callback it runs
-    /// at once, on while the plugin's <see cref="CadRibbonButton.CanRun"/> says so.
+    /// A button of a plugin's ribbon: a command it starts as the presenter's ribbon buttons start theirs, a macro it runs
+    /// as AutoCAD's CUI buttons do, or a callback it runs at once, on while the plugin's <see cref="CadRibbonButton.CanRun"/> says so.
     /// </summary>
     public sealed class PluginButtonViewModel : PluginItemViewModel
     {
@@ -220,6 +221,7 @@ namespace OpenCAD2D.Wpf
         private readonly string _plugin;
         private readonly CadRibbonButton _source;
         private readonly Action<PluginButtonViewModel> _used;
+        private readonly DelegateCommand _run;
         private bool _isEnabled;
         private bool _warned;
 
@@ -249,33 +251,51 @@ namespace OpenCAD2D.Wpf
             _plugin = plugin;
             _source = source;
             _used = used;
-            RunCommand = new DelegateCommand(_ => Run());
+            _run = new DelegateCommand(_ => Run(), _ => _isEnabled);
+            RunCommand = _run;
         }
 
         /// <summary>Gets whether the button is on: asked again where the window asks its own ribbon commands.</summary>
         public bool IsEnabled
         {
             get => _isEnabled;
-            private set => Set(ref _isEnabled, value);
+            private set
+            {
+                if (Set(ref _isEnabled, value))
+                {
+                    _run.RaiseCanExecuteChanged();
+                }
+            }
         }
 
         /// <summary>Gets the command it starts, as typed ("NUMCIRCLES2"); null for a callback button.</summary>
         public string Command => _source.Command;
 
-        /// <summary>Gets what pressing the button does: starts the command, or runs the callback.</summary>
+        /// <summary>Gets what pressing the button does: starts the command, runs the macro or runs the callback; it can run while the button is on.</summary>
         public ICommand RunCommand { get; }
 
         /// <summary>Gets a command's name as the tooltips show it: without a leading "." or "_", in capitals.</summary>
         internal static string CommandName(string command) => command.Trim().TrimStart('.', '_').ToUpperInvariant();
 
         internal override void Refresh(CadPluginContext context) =>
-            IsEnabled = PluginUi.CanRun(_source.CanRun, context, _source.Command != null, _plugin, Text, ref _warned);
+            IsEnabled = PluginUi.CanRun(
+                _source.CanRun,
+                context,
+                _source.Command != null || _source.Macro != null,
+                _plugin,
+                Text,
+                ref _warned
+            );
 
         private void Run()
         {
             if (_source.Command != null)
             {
                 _model.StartPluginCommand(_source.Command);
+            }
+            else if (_source.Macro != null)
+            {
+                _model.RunPluginMacro(_plugin, _source.Macro);
             }
             else
             {
@@ -359,6 +379,8 @@ namespace OpenCAD2D.Wpf
     /// <summary>
     /// A panel of a plugin's ribbon, on its own tab or on the Plugins tab: its items laid out as AutoCAD's row panels are, a
     /// large item alone in its column and consecutive standard ones in columns of three, top down, and its title under them.
+    /// The items of its <see cref="CadRibbonPanel.SlideOutItems"/> are laid out the same way for the drop-down its title opens,
+    /// and its <see cref="CadRibbonPanel.DialogLauncher"/> is the arrow at the right of the title.
     /// </summary>
     public sealed class PluginPanelViewModel
     {
@@ -367,6 +389,44 @@ namespace OpenCAD2D.Wpf
             Source = source;
             Title = source.Title;
             PluginName = plugin;
+            Columns = Lay(model, plugin, source.Items);
+            SlideOutColumns = Lay(model, plugin, source.SlideOutItems);
+
+            if (source.DialogLauncher != null)
+            {
+                Launcher = new PluginButtonViewModel(
+                    model,
+                    plugin,
+                    source.DialogLauncher,
+                    source.DialogLauncher,
+                    null,
+                    null
+                );
+            }
+
+            // The collapsed button shows the first item's icon, or the plugin's own where the panel has no item.
+            PluginItemViewModel first = Columns.Count > 0 ? Columns[0].Items[0] : null;
+
+            if (first != null)
+            {
+                IconGeometry = first.IconGeometry;
+                IconImage = first.IconImage;
+            }
+            else
+            {
+                PluginUi.Make(null, plugin, source.Title, out WpfGeometry geometry, out BitmapSource image);
+                IconGeometry = geometry;
+                IconImage = image;
+            }
+        }
+
+        /// <summary>Lays items out in columns: a large item alone, consecutive standard ones three to a column, top down; a null item is passed over.</summary>
+        private static IReadOnlyList<PluginColumnViewModel> Lay(
+            MainViewModel model,
+            string plugin,
+            IList<CadRibbonItem> items
+        )
+        {
             var columns = new List<PluginColumnViewModel>();
             var standard = new List<PluginItemViewModel>();
 
@@ -379,7 +439,7 @@ namespace OpenCAD2D.Wpf
                 }
             }
 
-            foreach (CadRibbonItem item in source.Items.ToList())
+            foreach (CadRibbonItem item in items.ToList())
             {
                 if (item == null)
                 {
@@ -406,7 +466,7 @@ namespace OpenCAD2D.Wpf
             }
 
             Close();
-            Columns = columns;
+            return columns;
         }
 
         /// <summary>Gets the title, under the panel.</summary>
@@ -421,12 +481,29 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the columns, left to right.</summary>
         public IReadOnlyList<PluginColumnViewModel> Columns { get; }
 
+        /// <summary>Gets the columns of the slide-out the title opens, laid out as <see cref="Columns"/> are; none for a panel with no slide-out.</summary>
+        public IReadOnlyList<PluginColumnViewModel> SlideOutColumns { get; }
+
+        /// <summary>Gets whether the panel has a slide-out: its title is then drawn "Title ▾" and opens it.</summary>
+        public bool HasSlideOut => SlideOutColumns.Count > 0;
+
+        /// <summary>Gets the button of the arrow at the right of the title, whose command opens the plugin's dialog; null for a panel with none.</summary>
+        public PluginButtonViewModel Launcher { get; }
+
+        /// <summary>Gets the path of the icon of the panel collapsed, that of its first item; null where that is a picture.</summary>
+        public WpfGeometry IconGeometry { get; }
+
+        /// <summary>Gets the picture of the icon of the panel collapsed, that of its first item; null where that is a path.</summary>
+        public BitmapSource IconImage { get; }
+
         internal void Refresh(CadPluginContext context)
         {
-            foreach (PluginItemViewModel item in Columns.SelectMany(c => c.Items))
+            foreach (PluginItemViewModel item in Columns.Concat(SlideOutColumns).SelectMany(c => c.Items))
             {
                 item.Refresh(context);
             }
+
+            Launcher?.Refresh(context);
         }
 
         /// <inheritdoc/>

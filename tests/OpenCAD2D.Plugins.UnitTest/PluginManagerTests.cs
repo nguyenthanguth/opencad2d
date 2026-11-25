@@ -419,7 +419,7 @@ namespace OpenCAD2D.Plugins.UnitTest
 
                 Assert.False(refused.Succeeded);
                 Assert.Equal(
-                    "The plugin Number circles needs version 2.0 of the plugin API, and this presenter has 1.1: it needs a newer presenter.",
+                    "The plugin Number circles needs version 2.0 of the plugin API, and this presenter has 1.2: it needs a newer presenter.",
                     refused.Message
                 );
                 Assert.False(Directory.Exists(manager.ShadowFolder));

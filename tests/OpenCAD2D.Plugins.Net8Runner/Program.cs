@@ -79,6 +79,14 @@ namespace OpenCAD2D.Plugins.Net8Runner
                     "the same, where the finder of its snap threw before the unload, is collected after unloading",
                     UiPluginIsCollected(root, failing, "failing", finderThrows: true)
                 );
+                string extras = BuildWithRibbonExtras(
+                    Path.Combine(AppContext.BaseDirectory, "SampleUiPlugin", "CircleUi.cs.txt"),
+                    Path.Combine(root, "extras")
+                );
+                Check(
+                    "the same, with a slide-out, a dialog launcher and a macro button on its panel, all shown, is collected after unloading",
+                    UiPluginIsCollected(root, extras, "extras", finderThrows: false, ribbonExtras: true)
+                );
             }
             catch (Exception exception)
             {
@@ -281,7 +289,13 @@ namespace OpenCAD2D.Plugins.Net8Runner
         /// a running presenter, unloads the plugin, and tells whether its load context is collected while the model lives on.
         /// Runs on an STA thread, as the window's own code does.
         /// </summary>
-        private static bool UiPluginIsCollected(string root, string built, string label, bool finderThrows)
+        private static bool UiPluginIsCollected(
+            string root,
+            string built,
+            string label,
+            bool finderThrows,
+            bool ribbonExtras = false
+        )
         {
             bool collected = false;
             Exception failure = null;
@@ -289,7 +303,7 @@ namespace OpenCAD2D.Plugins.Net8Runner
             {
                 try
                 {
-                    collected = ShowAndUnloadUiPlugin(root, built, label, finderThrows);
+                    collected = ShowAndUnloadUiPlugin(root, built, label, finderThrows, ribbonExtras);
                 }
                 catch (Exception exception)
                 {
@@ -308,7 +322,13 @@ namespace OpenCAD2D.Plugins.Net8Runner
             return collected;
         }
 
-        private static bool ShowAndUnloadUiPlugin(string root, string built, string label, bool finderThrows)
+        private static bool ShowAndUnloadUiPlugin(
+            string root,
+            string built,
+            string label,
+            bool finderThrows,
+            bool ribbonExtras
+        )
         {
             string dev = Path.Combine(root, "ui-" + label);
             Directory.CreateDirectory(dev);
@@ -333,7 +353,7 @@ namespace OpenCAD2D.Plugins.Net8Runner
                 model.UsePlugins(manager, loadAtStart: false);
                 Check(label + ": the drawing opens", model.Open(drawing));
 
-                WeakReference[] contexts = ShowUiPlugin(model, path, label, finderThrows);
+                WeakReference[] contexts = ShowUiPlugin(model, path, label, finderThrows, ribbonExtras);
                 CadPluginResult unloaded = model.UnloadPlugin(SampleUi);
                 Check(label + ": the plugin unloads: " + unloaded.Message, unloaded.Succeeded);
                 Check(label + ": nothing of it is left in the window", NothingOfTheUiPluginIsLeft(model));
@@ -350,7 +370,13 @@ namespace OpenCAD2D.Plugins.Net8Runner
         /// its snap on and asks it twice at the top of a circle; gives its load context.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static WeakReference[] ShowUiPlugin(MainViewModel model, string path, string label, bool finderThrows)
+        private static WeakReference[] ShowUiPlugin(
+            MainViewModel model,
+            string path,
+            string label,
+            bool finderThrows,
+            bool ribbonExtras
+        )
         {
             // Load contexts of earlier checks, held here so that only the one this load makes is told apart.
             var known = new List<object>();
@@ -369,6 +395,11 @@ namespace OpenCAD2D.Plugins.Net8Runner
                 label + ": its tab Circles is after Plugins",
                 model.PluginTabs.Count == 1 && model.PluginTabs[0].TabHeader == "Circles"
             );
+            if (ribbonExtras)
+            {
+                ShowRibbonExtras(model, label);
+            }
+
             model.SelectedTab = model.PluginTabs[0];
             model.Document.Selection.Set(new[] { "C1" });
             Check(label + ": its tab Circle is shown for a circle", model.IsPluginContextTabSelected);
@@ -411,6 +442,37 @@ namespace OpenCAD2D.Plugins.Net8Runner
             return contexts;
         }
 
+        /// <summary>
+        /// The panel of the plugin with the extras of API 1.2 added by <see cref="BuildWithRibbonExtras"/>: its slide-out, its dialog
+        /// launcher and its macro button are read, and a slide-out button is run, so that what holds the plugin's code is alive when
+        /// it is unloaded.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ShowRibbonExtras(MainViewModel model, string label)
+        {
+            var tab = (PluginTabViewModel)model.PluginTabs[0].TabContent;
+            PluginPanelViewModel panel = tab.Panels[0];
+            Check(
+                label + ": its panel has a slide-out of two buttons and a dialog launcher",
+                panel.HasSlideOut
+                    && panel.SlideOutColumns.SelectMany(c => c.Items).Count() == 2
+                    && panel.Launcher != null
+            );
+            var macro = panel
+                .Columns.SelectMany(c => c.Items)
+                .OfType<PluginButtonViewModel>()
+                .Single(b => b.Text == "Circle R10");
+            Check(
+                label + ": its macro button has no command",
+                macro.Command == null && macro.ToolTipInfo.Title == "Circle R10"
+            );
+            panel
+                .SlideOutColumns.SelectMany(c => c.Items)
+                .OfType<PluginButtonViewModel>()
+                .First()
+                .RunCommand.Execute(null);
+        }
+
         /// <summary>Whether the window shows nothing of the plugin: no tab, no Properties group, no button, no menu item, no snap.</summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool NothingOfTheUiPluginIsLeft(MainViewModel model)
@@ -443,10 +505,10 @@ namespace OpenCAD2D.Plugins.Net8Runner
         }
 
         /// <summary>
-        /// Builds the sample that adds to the window with the finder of its snap changed to throw, and its icon drawn from a path
-        /// where it was an embedded picture the build here does not carry; the path of the .dll.
+        /// The source of the sample that adds to the window with its icon drawn from a path where it was an embedded picture the
+        /// build here does not carry; the path of the edited source, in the folder.
         /// </summary>
-        private static string BuildFailingFinder(string source, string folder)
+        private static string WithPathIcon(string source, string folder)
         {
             const string picture = "CadPluginIcon.FromResource(typeof(CircleUi).Assembly, IconResource)";
             string text = File.ReadAllText(source);
@@ -459,8 +521,41 @@ namespace OpenCAD2D.Plugins.Net8Runner
             Directory.CreateDirectory(folder);
             string edited = Path.Combine(folder, "CircleUi.cs.txt");
             File.WriteAllText(edited, text.Replace(picture, "CadPluginIcon.FromPathData(\"M3 3 H13 V13 H3 Z\")"));
+            return edited;
+        }
+
+        /// <summary>
+        /// Builds the sample that adds to the window with a slide-out of two buttons, a dialog launcher and a macro button added to
+        /// its Number panel, and its icon drawn from a path; the path of the .dll.
+        /// </summary>
+        private static string BuildWithRibbonExtras(string source, string folder)
+        {
+            const string line = "var tab = new CadRibbonTab(\"Circles\", \"Circles\");";
+            string added =
+                "number.SlideOutItems.Add(new CadRibbonButton(\"Start value\", c => _mark = !_mark));\n"
+                + "            number.SlideOutItems.Add(new CadRibbonButton(\"Prefix\", c => _batch = !_batch));\n"
+                + "            number.DialogLauncher = new CadRibbonButton(\"Numbering settings\", c => _mark = false);\n"
+                + "            number.Items.Add(CadRibbonButton.FromMacro(\"Circle R10\", \"^C^C_CIRCLE;\\\\10;\"));\n"
+                + "            ";
             return BuildSecondVersion(
-                edited,
+                WithPathIcon(source, folder),
+                Path.Combine(folder, "build"),
+                SampleUi,
+                line,
+                added + line,
+                typeof(CadPlugin),
+                typeof(DxfDatabase)
+            );
+        }
+
+        /// <summary>
+        /// Builds the sample that adds to the window with the finder of its snap changed to throw, and its icon drawn from a path
+        /// where it was an embedded picture the build here does not carry; the path of the .dll.
+        /// </summary>
+        private static string BuildFailingFinder(string source, string folder)
+        {
+            return BuildSecondVersion(
+                WithPathIcon(source, folder),
                 Path.Combine(folder, "build"),
                 SampleUi,
                 "yield return new GeoPoint2(circle.Center.X, circle.Center.Y + circle.Radius);",

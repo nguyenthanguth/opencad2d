@@ -1672,7 +1672,12 @@ namespace OpenCAD2D
             }
 
             // The points a prompt that follows the cursor takes are not written, as AutoCAD writes none of the path.
-            if (echo != null && !(Prompt.Tracks && input.IsPoint) && !(Prompt.Unwritten && echo == Prompt.Text))
+            if (
+                echo != null
+                && !(Prompt.Tracks && input.IsPoint)
+                && !(Prompt.Unwritten && echo == Prompt.Text)
+                && !Prompt.WithoutHistoryLine
+            )
             {
                 Write(echo);
             }
@@ -1771,6 +1776,12 @@ namespace OpenCAD2D
             if (_lispPause && !_pauseUntilEnd && _pauseCommand != null && ReferenceEquals(Current, _pauseCommand))
             {
                 ResumePause(CadCommandOutcome.Completed);
+            }
+
+            // The command a macro's backslash waits at asked its next prompt: the macro goes on with its next token.
+            if (MacroWaitsAt(Current))
+            {
+                ResumeMacro();
             }
         }
 
@@ -1880,6 +1891,8 @@ namespace OpenCAD2D
             {
                 ResumePause(outcome);
             }
+
+            MacroCommandEnded(ended, outcome);
 
             // The wait of a routine that this command carried ended with it: the routine is told now that nothing is left of it.
             RunLispCancel();

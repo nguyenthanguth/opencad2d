@@ -399,6 +399,9 @@ command has ended, as CLOSE does, and both are the window's own commands, so a s
 
 The window is laid out as AutoCAD's own: a ribbon of tabs and panels with the layer box and a properties box, Properties on the
 right, the command line and the status bar at the bottom, and the Model and layout tabs at the bottom left of the canvas.
+A Color row of Properties and Quick Properties draws a 12 px swatch with a thin dark outline before its value, as AutoCAD 2021:
+the layer's colour for ByLayer, white for ByBlock, White (7) split black and white, its own colour for an index or a true
+colour such as 255,128,0, and none for *VARIES*; the list draws one before each colour and a colour wheel before Select Color....
 A tab clicked, LAYOUT Set, TILEMODE and CTAB are one undo step each, named as AutoCAD 2021's U says it (LAYOUT for a tab and LAYOUT Set, TILEMODE, CTAB): U goes back to the space shown before and REDO forward,
 with the view each space had kept and no copy of the drawing (see [Editing](editing.md#model-space-through-a-viewport)). The Undo and Redo
 buttons, the canvas menu and Ctrl+Z take a wheel turn made less than 80 milliseconds before as a step first.

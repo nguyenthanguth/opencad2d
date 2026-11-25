@@ -358,12 +358,19 @@
                     <Setter.Value>
                         <DataTemplate>
                             <StackPanel VerticalAlignment="Center">
-                                <local:IconView
-                                    Size="28"
-                                    StrokeThickness="1.5"
-                                    HorizontalAlignment="Center"
-                                    Data="{Binding Tag, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
-                                />
+                                <!-- A plugin panel's icon is a path (Tag) or a picture (IconImage of the panel), drawn in the same 28 by 28. -->
+                                <Grid Width="28" Height="28" HorizontalAlignment="Center">
+                                    <local:IconView
+                                        Size="28"
+                                        StrokeThickness="1.5"
+                                        HorizontalAlignment="Center"
+                                        Data="{Binding Tag, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                    />
+                                    <Image
+                                        Source="{Binding IconImage, RelativeSource={RelativeSource AncestorType=local:RibbonPanel}}"
+                                        Stretch="Uniform"
+                                    />
+                                </Grid>
                                 <!-- A title of two words wider than the button, as Block Definition, on two lines. The label is 10 and the button 60 wide, so that a word as long as Dimensions is never broken in two. -->
                                 <TextBlock
                                     Text="{Binding}"
@@ -876,16 +883,25 @@
                 </Grid>
             </DataTemplate>
 
+            <!-- The text of a standard item: shown unless the plugin left it out, and gone in a medium panel, where the icon stands alone. -->
+            <Style x:Key="PluginStandardText" TargetType="TextBlock">
+                <Setter Property="Margin" Value="4,0,0,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ShowText}" Value="False">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                    <Trigger Property="local:RibbonPanel.IsMedium" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <!-- A standard item's content: the icon, and the text beside it unless the plugin left it out. -->
             <DataTemplate x:Key="PluginStandardContent">
                 <StackPanel Orientation="Horizontal">
                     <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource PluginIcon}" />
-                    <TextBlock
-                        Text="{Binding Text}"
-                        Margin="4,0,0,0"
-                        VerticalAlignment="Center"
-                        Visibility="{Binding ShowText, Converter={StaticResource Shown}}"
-                    />
+                    <TextBlock Text="{Binding Text}" Style="{StaticResource PluginStandardText}" />
                 </StackPanel>
             </DataTemplate>
 
@@ -1106,31 +1122,19 @@
                 />
             </DataTemplate>
 
-            <!-- A panel of a plugin: its columns, its title under them. -->
-            <DataTemplate DataType="{x:Type local:PluginPanelViewModel}">
-                <Border Style="{StaticResource GroupBorder}">
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource GroupTitle}" Text="{Binding Title}" />
-                        <ItemsControl ItemsSource="{Binding Columns}" Focusable="False">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                    </DockPanel>
-                </Border>
-            </DataTemplate>
-
-            <!-- The panels of a ribbon tab a plugin added. -->
+            <!--
+            The panels of a ribbon tab a plugin added, each a RibbonPanel of the strip (the panel, its slide-out, its launcher and
+            the icon of its collapsed button are made by PluginPanelsControl): they shrink from the right, each medium, then each
+            collapsed.
+            -->
             <DataTemplate DataType="{x:Type local:PluginTabViewModel}">
-                <ItemsControl ItemsSource="{Binding Panels}" Focusable="False">
-                    <ItemsControl.ItemsPanel>
+                <local:PluginPanelsControl ItemsSource="{Binding Panels}">
+                    <local:PluginPanelsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
+                            <local:RibbonStrip ShrinksRightToLeft="True" />
                         </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                    </local:PluginPanelsControl.ItemsPanel>
+                </local:PluginPanelsControl>
             </DataTemplate>
 
             <!-- A button of the DRAWINGS header an extension added: 20 square, its icon at 16. -->
@@ -1179,13 +1183,13 @@
 
             <!-- The Plugins tab: the panels plugins add (CadPluginHost.AddRibbonPanel); the tab shows only while there is one. -->
             <DataTemplate DataType="{x:Type local:PluginRibbonViewModel}">
-                <ItemsControl ItemsSource="{Binding Panels}" Focusable="False">
-                    <ItemsControl.ItemsPanel>
+                <local:PluginPanelsControl ItemsSource="{Binding Panels}">
+                    <local:PluginPanelsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
+                            <local:RibbonStrip ShrinksRightToLeft="True" />
                         </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                    </local:PluginPanelsControl.ItemsPanel>
+                </local:PluginPanelsControl>
             </DataTemplate>
 
             <!-- The groups of the Settings tab: Global settings, opened on a category. -->
@@ -9289,8 +9293,39 @@ widths are those of the content: no panel has a floor of its own.
                                                                         Padding="6,3"
                                                                     >
                                                                         <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="Auto" />
+                                                                                <ColumnDefinition Width="*" />
+                                                                                <ColumnDefinition Width="Auto" />
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <!-- The swatch of a colour of a row that is read only; the editable ones draw it in their list. -->
+                                                                            <Border
+                                                                                Width="12"
+                                                                                Height="12"
+                                                                                Margin="0,0,6,0"
+                                                                                BorderBrush="#0E1013"
+                                                                                BorderThickness="1"
+                                                                                VerticalAlignment="Center"
+                                                                            >
+                                                                                <Border.Background>
+                                                                                    <MultiBinding Converter="{StaticResource ColorTextSwatch}">
+                                                                                        <Binding Path="Value" />
+                                                                                        <Binding />
+                                                                                    </MultiBinding>
+                                                                                </Border.Background>
+                                                                                <Border.Visibility>
+                                                                                    <MultiBinding
+                                                                                        Converter="{StaticResource ColorTextSwatch}"
+                                                                                        ConverterParameter="Visibility"
+                                                                                    >
+                                                                                        <Binding Path="Value" />
+                                                                                        <Binding />
+                                                                                    </MultiBinding>
+                                                                                </Border.Visibility>
+                                                                            </Border>
                                                                             <TextBlock
                                                                                 x:Name="Value"
+                                                                                Grid.Column="1"
                                                                                 Text="{Binding Value}"
                                                                                 Foreground="{StaticResource GhTextMuted}"
                                                                                 TextTrimming="CharacterEllipsis"
@@ -9298,12 +9333,34 @@ widths are those of the content: no panel has a floor of its own.
                                                                             />
                                                                             <TextBox
                                                                                 x:Name="Editor"
+                                                                                Grid.Column="1"
                                                                                 Style="{StaticResource GhTextBox}"
                                                                                 Visibility="Collapsed"
                                                                                 Padding="0"
                                                                                 Text="{Binding Value, UpdateSourceTrigger=LostFocus}"
                                                                                 KeyDown="OnValueKeyDown"
                                                                             />
+                                                                            <!-- The pick-point button of a coordinate of a point, shown while the row is edited, as AutoCAD 2021 shows it on the row being edited. -->
+                                                                            <Button
+                                                                                x:Name="Pick"
+                                                                                Grid.Column="2"
+                                                                                Width="16"
+                                                                                Height="16"
+                                                                                Margin="4,0,0,0"
+                                                                                Padding="0"
+                                                                                Focusable="False"
+                                                                                Visibility="Collapsed"
+                                                                                Style="{StaticResource GhFlatButton}"
+                                                                                Command="{Binding PickPointCommand}"
+                                                                                ToolTip="Pick a point in the drawing"
+                                                                                AutomationProperties.Name="Pick a point in the drawing"
+                                                                            >
+                                                                                <local:IconView
+                                                                                    Size="12"
+                                                                                    StrokeThickness="2"
+                                                                                    Data="M4 4l7 17 2-7 7-2zM18 18h.01"
+                                                                                />
+                                                                            </Button>
                                                                         </Grid>
                                                                     </Border>
                                                                     <ComboBox
@@ -9347,6 +9404,30 @@ widths are those of the content: no panel has a floor of its own.
                                                                         TargetName="Editor"
                                                                         Property="Visibility"
                                                                         Value="Visible"
+                                                                    />
+                                                                </DataTrigger>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition
+                                                                            Binding="{Binding CanPickPoint}"
+                                                                            Value="True"
+                                                                        />
+                                                                        <Condition
+                                                                            Binding="{Binding IsKeyboardFocusWithin, ElementName=Cell}"
+                                                                            Value="True"
+                                                                        />
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter
+                                                                        TargetName="Pick"
+                                                                        Property="Visibility"
+                                                                        Value="Visible"
+                                                                    />
+                                                                </MultiDataTrigger>
+                                                                <DataTrigger Binding="{Binding IsColor}" Value="True">
+                                                                    <Setter
+                                                                        TargetName="Choice"
+                                                                        Property="ItemTemplate"
+                                                                        Value="{StaticResource ColorItem}"
                                                                     />
                                                                 </DataTrigger>
                                                                 <DataTrigger

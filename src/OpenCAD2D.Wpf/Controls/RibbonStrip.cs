@@ -22,6 +22,14 @@ namespace OpenCAD2D.Wpf
             )
         );
 
+        /// <summary>Identifies the <see cref="ShrinksRightToLeft"/> property.</summary>
+        public static readonly DependencyProperty ShrinksRightToLeftProperty = DependencyProperty.Register(
+            nameof(ShrinksRightToLeft),
+            typeof(bool),
+            typeof(RibbonStrip),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsMeasure)
+        );
+
         // The widths of each panel at each size, measured at the strip's present width; looked up, never enumerated.
         private readonly Dictionary<RibbonPanel, double[]> _widths = new Dictionary<RibbonPanel, double[]>();
         private IReadOnlyList<KeyValuePair<string, RibbonPanelSize>> _steps = Array.Empty<
@@ -39,6 +47,17 @@ namespace OpenCAD2D.Wpf
         {
             get => (string)GetValue(StepsProperty);
             set => SetValue(StepsProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets whether the strip makes its own steps from the panels it holds, as AutoCAD shrinks the panels of an
+        /// add-in: each panel goes medium from the right, then each collapsed from the right, and they widen back in the reverse
+        /// order. Three panels take six steps at the most. <see cref="Steps"/> is not read while it is true. False, until set.
+        /// </summary>
+        public bool ShrinksRightToLeft
+        {
+            get => (bool)GetValue(ShrinksRightToLeftProperty);
+            set => SetValue(ShrinksRightToLeftProperty, value);
         }
 
         /// <summary>Gets how many of the steps the last measure took: 0 where every panel is full.</summary>
@@ -76,18 +95,25 @@ namespace OpenCAD2D.Wpf
             var sizes = new Dictionary<RibbonPanel, RibbonPanelSize>();
             int taken = 0;
 
-            for (int k = 0; k <= _steps.Count; k++)
+            bool own = ShrinksRightToLeft;
+            int count = own ? 2 * panels.Count : _steps.Count;
+
+            for (int k = 0; k <= count; k++)
             {
                 if (k > 0)
                 {
-                    RibbonPanel named = Find(panels, _steps[k - 1].Key);
+                    RibbonPanel named = own
+                        ? panels[panels.Count - 1 - ((k - 1) % panels.Count)]
+                        : Find(panels, _steps[k - 1].Key);
 
                     if (named == null)
                     {
                         continue;
                     }
 
-                    sizes[named] = _steps[k - 1].Value;
+                    sizes[named] = own
+                        ? (k <= panels.Count ? RibbonPanelSize.Medium : RibbonPanelSize.Collapsed)
+                        : _steps[k - 1].Value;
                 }
 
                 taken = k;

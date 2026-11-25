@@ -2753,6 +2753,7 @@ namespace OpenCAD2D.Wpf
 
             PropertiesBanner = banner;
             var groups = new List<PropertyGroupViewModel>();
+            int byLayer = LayerSwatch(info);
 
             foreach (CadPropertyGroup group in info.Groups)
             {
@@ -2763,7 +2764,7 @@ namespace OpenCAD2D.Wpf
                     // A row an extension or a plugin gave a setter is changed by it, as the presenter's own rows are by the editor.
                     if (row.Setter != null)
                     {
-                        rows.Add(SetterRow(row));
+                        rows.Add(SetterRow(row, byLayer));
                         continue;
                     }
 
@@ -2794,7 +2795,15 @@ namespace OpenCAD2D.Wpf
                         row.Label == "Contents" && info.Label == "MText (1)"
                             ? new[] { EditMTextOption }
                             : OptionsOf(row.Label) ?? row.Choices;
-                    rows.Add(new PropertyRowViewModel(row, options, (r, text) => CommitProperty(shown, r.Label, text)));
+                    rows.Add(
+                        new PropertyRowViewModel(
+                            row,
+                            options,
+                            (r, text) => CommitProperty(shown, r.Label, text),
+                            isColor: ReferenceEquals(options, ColorOptions) || row.Kind == CadPropertyKind.Color,
+                            byLayerRgb: byLayer
+                        )
+                    );
                 }
 
                 groups.Add(new PropertyGroupViewModel(group.Title, rows));
@@ -2806,6 +2815,21 @@ namespace OpenCAD2D.Wpf
             RaiseViewportScale();
             UpdateQuickProperties();
             RefreshPluginUi();
+        }
+
+        /// <summary>
+        /// The colour a colour of ByLayer is drawn in, as AutoCAD 2021 draws it: that of the layer the objects shown are on (the
+        /// layer the Layer row says, the current layer with nothing selected), white where they are on more than one.
+        /// </summary>
+        private int LayerSwatch(CadSelectionInfo info)
+        {
+            string name = info.Groups.SelectMany(g => g.Rows).FirstOrDefault(r => r.Label == "Layer")?.Value
+                ?? _current.Document.Database.Clayer;
+
+            return name == CadPropertyRow.VariesText
+                ? 0xFFFFFF
+                : _layers.FirstOrDefault(l => string.Equals(l.Name, name, StringComparison.OrdinalIgnoreCase))?.Rgb
+                    ?? 0xFFFFFF;
         }
 
         /// <summary>The values a row's drop-down offers: the layers, the colours by name, the linetypes, AutoCAD's lineweights, a viewport's standard scales and Yes or No for its display locked.</summary>
@@ -2844,14 +2868,17 @@ namespace OpenCAD2D.Wpf
         /// Gives the text typed or chosen in a row an extension made to its setter. A refusal, or an exception the setter threw, is
         /// written on the command line and the row goes back to its value; where the change was made the rows are read again.
         /// </summary>
-        private bool CommitExtensionProperty(CadPropertyRow row, string text)
+        private bool CommitExtensionProperty(CadPropertyRow row, string text) =>
+            CommitExtensionProperty(row, () => row.Setter(text));
+
+        private bool CommitExtensionProperty(CadPropertyRow row, Func<string> set)
         {
             string refusal;
             _extensionCommits++;
 
             try
             {
-                refusal = row.Setter(text);
+                refusal = set();
             }
             catch (Exception exception) when (!(exception is OutOfMemoryException))
             {

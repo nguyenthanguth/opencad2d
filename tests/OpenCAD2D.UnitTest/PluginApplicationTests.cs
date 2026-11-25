@@ -46,7 +46,7 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal("Hooked tools", plugin.Host.PluginName);
             Assert.True(plugin.Host.IsEmpty);
             Assert.True(plugin.Host.ShowsCommandButtons);
-            Assert.Equal(new Version(1, 1), CadPlugin.ApiVersion);
+            Assert.Equal(new Version(1, 2), CadPlugin.ApiVersion);
         }
 
         [Fact]

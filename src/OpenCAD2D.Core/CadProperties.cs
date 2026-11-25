@@ -71,6 +71,12 @@ namespace OpenCAD2D
         /// </summary>
         public Func<string, string> Setter { get; }
 
+        /// <summary>The point a row of <see cref="Point"/> belongs to, read by the window to start a pick from it; the zero point for any other row.</summary>
+        internal GeoPoint3 PointValue { get; private set; }
+
+        /// <summary>What changes the whole point a row of <see cref="Point"/> belongs to, given the point; null for any other row and for a point whose setter is null.</summary>
+        internal Func<GeoPoint3, string> PointSetter { get; private set; }
+
         /// <summary>Gets whether the value is a check box, which <see cref="Value"/> says is <see cref="YesText"/> or <see cref="NoText"/>.</summary>
         public bool IsCheck { get; private set; }
 
@@ -178,6 +184,9 @@ namespace OpenCAD2D
         /// <summary>
         /// Makes the three rows of a point, "&lt;label&gt; X", "&lt;label&gt; Y" and "&lt;label&gt; Z", each a
         /// <see cref="Length"/>; typing one gives the setter the point with that coordinate changed and the others as they were.
+        /// With a setter, the row being edited shows a pick-point button: it asks "Pick a point in the drawing:" on the command
+        /// line, with a rubber band from the point, and a point picked gives the setter the whole point, its X and Y the picked
+        /// ones and its Z as it was, as one change.
         /// </summary>
         /// <param name="label">The label: "Center" gives Center X, Center Y and Center Z.</param>
         /// <param name="value">The point.</param>
@@ -197,7 +206,7 @@ namespace OpenCAD2D
                 throw new ArgumentNullException(nameof(label));
             }
 
-            return new[]
+            var rows = new[]
             {
                 Length(
                     label + " X",
@@ -218,6 +227,17 @@ namespace OpenCAD2D
                     setter == null ? (Func<double, string>)null : z => setter(new GeoPoint3(value.X, value.Y, z))
                 ),
             };
+
+            if (setter != null)
+            {
+                foreach (CadPropertyRow row in rows)
+                {
+                    row.PointValue = value;
+                    row.PointSetter = setter;
+                }
+            }
+
+            return rows;
         }
 
         /// <summary>

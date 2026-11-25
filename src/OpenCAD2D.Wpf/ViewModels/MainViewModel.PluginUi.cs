@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using GeometryHelper;
 using GeometryHelper.Dxf;
+using GeometryHelper.Geometry;
 using OpenCAD2D.Plugins;
 using WpfGeometry = System.Windows.Media.Geometry;
 
@@ -202,8 +203,16 @@ namespace OpenCAD2D.Wpf
                     break;
                 case nameof(HasDocument):
                 case nameof(Document):
+                    RefreshPluginUi();
+                    break;
                 case nameof(IsCommandRunning):
                     RefreshPluginUi();
+
+                    foreach (PropertyRowViewModel row in PropertyGroups.SelectMany(g => g.Rows))
+                    {
+                        row.RefreshPick();
+                    }
+
                     break;
             }
         }
@@ -295,6 +304,29 @@ namespace OpenCAD2D.Wpf
         internal void StartPluginCommand(string command) =>
             StartCommand((command ?? string.Empty).Trim().TrimStart('.', '_'));
 
+        /// <summary>
+        /// Runs a plugin button's macro as AutoCAD's CUI buttons do: each word is typed as the command line takes it, so that an
+        /// object snap word (_END, or the keyword of a plugin's snap) is the override of the next point. Nothing runs where no
+        /// drawing is open.
+        /// </summary>
+        internal void RunPluginMacro(string plugin, string macro)
+        {
+            if (_current == null || RefusedWhileOpening(macro))
+            {
+                return;
+            }
+
+            CadCommandSession session = _current.Session;
+            AttachTiles(_current);
+
+            // A macro writes a snap as AutoCAD's menus do, with the underscore: _END and _CTOP.
+            session.RunMacro(macro, plugin, word =>
+                (word.Length > 0 && TakeSnapOverride(session, word.TrimStart('_'))) || session.Feed(word)
+            );
+            SyncHistory();
+            RunAfterCommand();
+        }
+
         /// <summary>Runs a plugin's callback at once with the context of the window now; one that throws is logged and its message written on the command line after the plugin's name.</summary>
         internal void RunPluginCallback(string plugin, Action<CadPluginContext> run)
         {
@@ -348,12 +380,50 @@ namespace OpenCAD2D.Wpf
         /// Makes the row of a property an extension or a plugin gave a setter: the setter's own list where it gave one, else for
         /// a colour, layer, linetype or lineweight the window's list; "Select Color..." on a colour opens the Select Color dialog.
         /// </summary>
-        private PropertyRowViewModel SetterRow(CadPropertyRow row) =>
-            new PropertyRowViewModel(row, row.Choices ?? OptionsOfKind(row.Kind), (r, text) =>
-                row.Kind == CadPropertyKind.Color && text == SelectColorOption
-                    ? PickRowColor(row)
-                    : CommitExtensionProperty(row, text)
+        private PropertyRowViewModel SetterRow(CadPropertyRow row, int byLayerRgb) =>
+            new PropertyRowViewModel(
+                row,
+                row.Choices ?? OptionsOfKind(row.Kind),
+                (r, text) =>
+                    row.Kind == CadPropertyKind.Color && text == SelectColorOption
+                        ? PickRowColor(row)
+                        : CommitExtensionProperty(row, text),
+                isColor: row.Kind == CadPropertyKind.Color,
+                byLayerRgb: byLayerRgb,
+                pick: PickRowPoint,
+                canPick: () => !IsCommandRunning
             );
+
+        /// <summary>
+        /// The pick-point button of a coordinate of a point a plugin or an extension gave a setter: asks "Pick a point in the
+        /// drawing:" on the command line, with a rubber band from the point, as AutoCAD 2021 does for Properties, writing no line of
+        /// history for the point picked. The point gives X and Y, Z as the row had it, to the setter once, as one change; the rows are
+        /// read again. Esc leaves the point. The command is the window's own: it is no command typed, and Enter after it runs the
+        /// command before it again.
+        /// </summary>
+        private void PickRowPoint(CadPropertyRow row)
+        {
+            if (_current == null || row.PointSetter == null || _current.Session.IsRunning)
+            {
+                return;
+            }
+
+            AttachTiles(_current);
+
+            if (_current.Session.Start(new CadCommand("PICKPOINT", c => PickPointBody(c, row))))
+            {
+                SyncHistory();
+                RunAfterCommand();
+            }
+        }
+
+        private IEnumerable<CadPrompt> PickPointBody(CadCommandContext c, CadPropertyRow row)
+        {
+            GeoPoint3 at = row.PointValue;
+            yield return CadPrompt.ForPoint("Pick a point in the drawing", new GeoPoint2(at.X, at.Y)).WithoutHistory();
+            GeoPoint2 picked = c.Input.Point;
+            CommitExtensionProperty(row, () => row.PointSetter(new GeoPoint3(picked.X, picked.Y, at.Z)));
+        }
 
         private IReadOnlyList<string> OptionsOfKind(CadPropertyKind kind)
         {

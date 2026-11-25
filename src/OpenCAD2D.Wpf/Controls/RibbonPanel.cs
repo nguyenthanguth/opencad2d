@@ -54,6 +54,14 @@ namespace OpenCAD2D.Wpf
             new PropertyMetadata(null)
         );
 
+        /// <summary>Identifies the <see cref="IconImage"/> property.</summary>
+        public static readonly DependencyProperty IconImageProperty = DependencyProperty.Register(
+            nameof(IconImage),
+            typeof(ImageSource),
+            typeof(RibbonPanel),
+            new PropertyMetadata(null)
+        );
+
         /// <summary>Identifies the <see cref="Header"/> property.</summary>
         public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(
             nameof(Header),
@@ -163,6 +171,8 @@ namespace OpenCAD2D.Wpf
         private Decorator _dropped;
         private Popup _popup;
         private Window _window;
+        private StackPanel _bodyAndSlideOut;
+        private Border _slideOutBelow;
 
         static RibbonPanel()
         {
@@ -181,6 +191,13 @@ namespace OpenCAD2D.Wpf
         {
             get => (System.Windows.Media.Geometry)GetValue(IconProperty);
             set => SetValue(IconProperty, value);
+        }
+
+        /// <summary>Gets or sets the picture of the collapsed button where the icon is a raster, as a plugin's is, drawn over <see cref="Icon"/>; null for none.</summary>
+        public ImageSource IconImage
+        {
+            get => (ImageSource)GetValue(IconImageProperty);
+            set => SetValue(IconImageProperty, value);
         }
 
         /// <summary>Gets or sets what is drawn in place of the title, as Modify's title button with its menu; null for the title.</summary>
@@ -334,7 +351,10 @@ namespace OpenCAD2D.Wpf
             return over > 0.0 ? -Math.Min(over, Math.Max(0.0, left)) : 0.0;
         }
 
-        /// <summary>The body in the panel or in the drop-down, the slide-out in the drop-down, as the size and the drop-down say.</summary>
+        /// <summary>
+        /// The body in the panel or in the drop-down, the slide-out in the drop-down, as the size and the drop-down say: the
+        /// drop-down of a collapsed panel that has a slide-out holds its body and, under a line, the slide-out.
+        /// </summary>
         private void Place(UIElement old)
         {
             if (_inline == null || _dropped == null)
@@ -343,8 +363,16 @@ namespace OpenCAD2D.Wpf
             }
 
             bool collapsed = Size == RibbonPanelSize.Collapsed;
+            bool both = collapsed && IsDropDownOpen && SlideOut != null;
+
+            if (_bodyAndSlideOut != null)
+            {
+                _bodyAndSlideOut.Children.Clear();
+                _slideOutBelow.Child = null;
+            }
+
             UIElement inline = collapsed && IsDropDownOpen ? null : Body;
-            UIElement dropped = collapsed ? (IsDropDownOpen ? Body : null) : SlideOut;
+            UIElement dropped = collapsed ? (IsDropDownOpen ? (both ? BodyAndSlideOut() : Body) : null) : SlideOut;
 
             if (old != null && _inline.Child == old)
             {
@@ -366,6 +394,13 @@ namespace OpenCAD2D.Wpf
                 _dropped.Child = null;
             }
 
+            if (both)
+            {
+                _bodyAndSlideOut.Children.Add(Body);
+                _slideOutBelow.Child = SlideOut;
+                _bodyAndSlideOut.Children.Add(_slideOutBelow);
+            }
+
             _inline.Child = inline;
             _dropped.Child = dropped;
             bool medium = Size == RibbonPanelSize.Medium;
@@ -377,6 +412,23 @@ namespace OpenCAD2D.Wpf
                 SetIsMedium(_inline, medium);
                 InvalidateBelow(this);
             }
+        }
+
+        private StackPanel BodyAndSlideOut()
+        {
+            if (_bodyAndSlideOut == null)
+            {
+                _bodyAndSlideOut = new StackPanel();
+                _slideOutBelow = new Border
+                {
+                    BorderThickness = new Thickness(0, 1, 0, 0),
+                    BorderBrush = TryFindResource("GhBorder") as Brush ?? Brushes.Gray,
+                    Margin = new Thickness(0, 4, 0, 0),
+                    Padding = new Thickness(0, 4, 0, 0),
+                };
+            }
+
+            return _bodyAndSlideOut;
         }
 
         private static void InvalidateBelow(DependencyObject element)
