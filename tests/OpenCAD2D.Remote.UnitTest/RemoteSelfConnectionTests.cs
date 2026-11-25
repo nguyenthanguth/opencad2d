@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using GeometryHelper.Dxf;
 using Xunit;
 
@@ -22,6 +21,36 @@ namespace OpenCAD2D.Remote.UnitTest
             public bool IsOwnerThread() => Thread.CurrentThread == _owner;
 
             public void Invoke(Action action) => _inline.Invoke(action);
+        }
+
+        /// <summary>
+        /// Runs a function on a thread of its own and gives its result. Task.Run would not do: a test runs on a pool thread that goes
+        /// back to the pool at its first await, and the pool can hand it the work, the thread the dispatcher owns.
+        /// </summary>
+        private static T OnAnotherThread<T>(Func<T> function)
+        {
+            T result = default;
+            Exception failure = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    result = function();
+                }
+                catch (Exception ex)
+                {
+                    failure = ex;
+                }
+            });
+            thread.Start();
+            thread.Join();
+
+            if (failure != null)
+            {
+                throw new InvalidOperationException("The other thread failed.", failure);
+            }
+
+            return result;
         }
 
         private static TestHost HostWithOneDrawing()
@@ -47,14 +76,14 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
-        public async Task ACallerOnAnotherThreadOfTheSameProcess_StillConnects()
+        public void ACallerOnAnotherThreadOfTheSameProcess_StillConnects()
         {
             using (var harness = new Harness())
             {
                 TestHost host = HostWithOneDrawing();
                 harness.Serve(host, new OwnedDispatcher(host.Gate));
 
-                int open = await Task.Run(() => harness.Connect().Documents.Count);
+                int open = OnAnotherThread(() => harness.Connect().Documents.Count);
 
                 Assert.Equal(1, open);
             }
