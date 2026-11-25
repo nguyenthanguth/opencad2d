@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **CHANGED.** The Python guide says what a read sees after a write in one command: `drawing.add_line(...)` queues, so
+  `drawing.entities()` right after it lists the drawing as the last commit left it (10 objects, where the line makes
+  11), and `commit()` first makes the read see the line; a command that never commits has its line when it ends. It is so
+  on every backend and both runtimes; a test pins it in a tool (`test_tool_read_after_add.py`).
 - **FIXED.** A Python tool did not run on a Windows with no .NET 8 installed (the app brings its own .NET, a tool's
   process did not): it now runs on the .NET Framework 4.8 of Windows, and importing `opencad2d` with no .NET at all
   chooses it under `auto` instead of raising "Can not determine dotnet root". Found by the setup's test in Windows
