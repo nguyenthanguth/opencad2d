@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using OpenCAD2D.Plugins;
 using Xunit;
+using static OpenCAD2D.Wpf.UnitTest.CanvasMouseTests;
+using static OpenCAD2D.Wpf.UnitTest.CanvasViewportDoubleClickTests;
 
 namespace OpenCAD2D.Wpf.UnitTest
 {
@@ -619,6 +622,52 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             Assert.DoesNotContain(model.Settings.PluginSnaps, e => e.StartsWith("CTOP", StringComparison.Ordinal));
             Assert.Empty(model.Snap.CustomSnaps);
+        }
+
+        #endregion
+
+        #region How far they reach
+
+        [Fact]
+        public void TheKeywordThenCoordinatesTyped_GiveTheSnapPoint()
+        {
+            MainViewModel model = _kit.Opened(out _, out _, out _);
+            _kit.LoadSample(model);
+            model.Session.SnapAperture = Aperture;
+            model.Execute("LINE");
+
+            model.Execute("CTOP");
+            model.Execute("2004,1597");
+
+            Assert.Equal(2000.0, model.Session.LastPoint.X, 6);
+            Assert.Equal(1600.0, model.Session.LastPoint.Y, 6);
+            Assert.Null(model.Snap.CustomOverride);
+            Assert.Null(model.Session.CustomSnapOverride);
+        }
+
+        [Fact]
+        public void OnALayout_TheSnapMarkerOfACustomSnapThroughAViewport_IsItsGlyph()
+        {
+            // The column of radius 100 about (2 000, 1 500) is shown 5 across about (150, 100): its top is (150, 105).
+            OnLayout(null, (model, canvas, viewport) =>
+            {
+                var snap = new CadCustomSnap("Circle top", "CTOP", r =>
+                    r.Entity is DxfCircle c ? new[] { new GeoPoint2(c.Center.X, c.Center.Y + c.Radius) } : null
+                );
+                snap.EntityTypes.Add(typeof(DxfCircle));
+                model.Snap.Modes = CadSnapModes.None;
+                model.Snap.CustomSnaps = new[] { snap };
+                model.Toggles.Single(t => t.Name == "OSNAP").IsOn = true;
+                model.StartCommand("LINE");
+
+                Point near = At(canvas, 150.0, 105.0);
+                Mouse(canvas, UIElement.MouseMoveEvent, new Point(near.X + 3.0, near.Y - 3.0));
+
+                Assert.Equal(CadSnapKind.Custom, canvas.CurrentSnap.Kind);
+                Assert.Same(snap, canvas.CurrentSnap.CustomSnap);
+                Assert.Equal(150.0, canvas.CurrentSnap.Point.X, 6);
+                Assert.Equal(105.0, canvas.CurrentSnap.Point.Y, 6);
+            });
         }
 
         #endregion

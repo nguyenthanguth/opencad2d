@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Geometry;
 
 namespace OpenCAD2D
@@ -41,7 +42,27 @@ namespace OpenCAD2D
         /// words (NEArest, TANgent, GCEnter, APPint, EXTension, PARallel) it says "No found for specified point." NONe leaves
         /// the point as typed. Null for none.
         /// </summary>
-        public CadSnapModes? SnapOverride { get; set; }
+        public CadSnapModes? SnapOverride
+        {
+            get => _snapOverride;
+            set
+            {
+                _snapOverride = value;
+                CustomSnapOverride = null;
+            }
+        }
+
+        private CadSnapModes? _snapOverride;
+
+        /// <summary>
+        /// Gets or sets the object snap of a plugin taken for the next point typed alone, as the window sets it with its own
+        /// override when the snap's keyword is typed or chosen: the objects within <see cref="SnapAperture"/> of the point, and
+        /// those inside the block references among them, are given to the snap, and the point it gives nearest the point typed
+        /// is the answer, however far; none gives "No Circle top found for specified point." and then the words of the prompt,
+        /// as the built-in snaps do. Setting <see cref="SnapOverride"/>, to anything, ends it, and so does the point typed.
+        /// Null for none.
+        /// </summary>
+        internal Plugins.CadCustomSnap CustomSnapOverride { get; set; }
 
         /// <summary>
         /// Gets or sets the aperture of the object snap in drawing units, 10 pixels over the zoom as the canvas sets it with the
@@ -59,6 +80,14 @@ namespace OpenCAD2D
         private TypedSnapResult SnapTyped(ref GeoPoint2 point, string echo, out string missing)
         {
             missing = null;
+
+            if (CustomSnapOverride != null)
+            {
+                Plugins.CadCustomSnap custom = CustomSnapOverride;
+                CustomSnapOverride = null;
+                return SnapTypedCustom(custom, ref point, out missing);
+            }
+
             CadSnapModes? modes = SnapOverride;
 
             if (!modes.HasValue)
@@ -141,6 +170,65 @@ namespace OpenCAD2D
             }
 
             return TypedSnapResult.Missing;
+        }
+
+        /// <summary>
+        /// Snaps a point typed after the keyword of a plugin's snap: the objects within the aperture of the point, and those
+        /// inside the blocks among them, are given to the snap as for the cursor, the typed point as the cursor, and the point
+        /// nearest the typed point is taken, however far. A finder that throws gives the words of nothing found, and a Warn;
+        /// it is not switched off, which is the window's, for the cursor's snaps.
+        /// </summary>
+        private TypedSnapResult SnapTypedCustom(Plugins.CadCustomSnap snap, ref GeoPoint2 point, out string missing)
+        {
+            missing = NotFound(snap.Name);
+            double aperture = Math.Max(SnapAperture, 1E-9);
+            var handles = new List<string>(
+                Document.GetPickIndex(Document.WorkingSpace).Pick(point.X, point.Y, aperture)
+            );
+            handles.Sort(StringComparer.Ordinal);
+            GeoPoint2? best = null;
+            double nearest = double.MaxValue;
+            GeoPoint2 typed = point;
+
+            try
+            {
+                ObjectSnap.AskFinder(
+                    snap,
+                    Document,
+                    ObjectSnap.OffersFor(Document.FindEntity, handles, typed, aperture, new[] { snap }),
+                    typed,
+                    aperture,
+                    Prompt?.BasePoint,
+                    (offer, found) =>
+                    {
+                        double away = (found - typed).Length;
+
+                        // The first of two as near stays, as the built-in snaps keep it.
+                        if (away < nearest)
+                        {
+                            best = found;
+                            nearest = away;
+                        }
+                    }
+                );
+            }
+            catch (Exception exception)
+            {
+                GeometryHelperLog.Warn(
+                    "CadCommandSession: the snap " + snap.Keyword + " threw on a point typed and found none.",
+                    exception
+                );
+                best = null;
+            }
+
+            if (!best.HasValue)
+            {
+                return TypedSnapResult.Missing;
+            }
+
+            point = best.Value;
+            missing = null;
+            return TypedSnapResult.Point;
         }
 
         /// <summary>Gets whether " and" is asked: INT or APP found one object and waits for a point on the second.</summary>

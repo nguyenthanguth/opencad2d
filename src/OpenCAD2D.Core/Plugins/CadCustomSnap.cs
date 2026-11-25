@@ -14,8 +14,13 @@ namespace OpenCAD2D.Plugins
     /// <remarks>
     /// A snap on gives its points while object snap (F3) is on, and competes with the built-in snaps by distance from the
     /// cursor: at equal distance the built-in one wins, then the snap loaded first, then the first point the finder gave.
-    /// A snap applies to model and paper space as they are shown, to the top-level entity under the aperture; it is not tried
-    /// in a model space seen through a viewport, on entities nested in blocks, or for points typed after an override.
+    /// A snap applies to model and paper space as they are shown, and to the model space a viewport of a layout shows (the
+    /// finder works in model coordinates and the point is taken to the sheet where the viewport shows it, the layers frozen in
+    /// the viewport left out). It applies to the entities inside the blocks under the aperture too, as a copy of each placed
+    /// where the references draw it (<see cref="CadSnapRequest.Entity"/>, <see cref="CadSnapRequest.BlockReferences"/>); a
+    /// block of an external reference, and the cells of an array of a block, are not gone into. A point typed after the snap's
+    /// keyword is snapped as the built-in snaps snap one: the finder is given the entities within the aperture of the typed
+    /// point, and the point it gives nearest the typed point is taken, however far.
     /// </remarks>
     public sealed class CadCustomSnap
     {
@@ -71,13 +76,16 @@ namespace OpenCAD2D.Plugins
     /// <summary>
     /// Works out the points of a custom snap for the entity under the cursor, in the world coordinates of the space shown;
     /// those farther from the cursor than the aperture are dropped. It is called once per entity per mouse move, so it
-    /// should be quick; one that throws is switched off for the session, with a Warn and a line on the command line.
+    /// should be quick; one that throws is switched off for the session, with a Warn and a line on the command line. It is
+    /// asked also for the model space seen through a viewport (in model coordinates), for the entities inside blocks (a placed
+    /// copy), and for a point typed after the snap's keyword (the typed point as the cursor, the point nearest it taken
+    /// however far; a finder that throws there says nothing was found, with a Warn, and is not switched off).
     /// </summary>
     /// <param name="request">The entity, the cursor and the rest.</param>
     /// <returns>The points, the first one preferred where two are as near; null for none.</returns>
     public delegate IEnumerable<GeoPoint2> CadSnapFinder(CadSnapRequest request);
 
-    /// <summary>What a <see cref="CadSnapFinder"/> is given: the top-level entity under the aperture and where the cursor is.</summary>
+    /// <summary>What a <see cref="CadSnapFinder"/> is given: the entity under the aperture and where the cursor is.</summary>
     public sealed class CadSnapRequest
     {
         internal CadSnapRequest(
@@ -86,7 +94,8 @@ namespace OpenCAD2D.Plugins
             string handle,
             GeoPoint2 cursor,
             double aperture,
-            GeoPoint2? basePoint
+            GeoPoint2? basePoint,
+            IReadOnlyList<string> blockReferences = null
         )
         {
             Document = document;
@@ -95,16 +104,28 @@ namespace OpenCAD2D.Plugins
             Cursor = cursor;
             Aperture = aperture;
             BasePoint = basePoint;
+            BlockReferences = blockReferences ?? Array.Empty<string>();
         }
 
         /// <summary>Gets the drawing; null where the snap was asked without one.</summary>
         public CadDocument Document { get; }
 
-        /// <summary>Gets the entity, which the finder reads and must not change.</summary>
+        /// <summary>
+        /// Gets the entity, which the finder reads and must not change. For an entity in a block it is a copy of it placed where
+        /// the references draw it, in the world coordinates of the space shown: a circle of radius 10 in a block put at (100, 50)
+        /// at scale 2 comes as a circle of radius 20 about (100, 50).
+        /// </summary>
         public DxfEntity Entity { get; }
 
-        /// <summary>Gets the handle of the entity.</summary>
+        /// <summary>Gets the handle of the entity; for an entity in a block, its own handle in the block.</summary>
         public string Handle { get; }
+
+        /// <summary>
+        /// Gets the handles of the block references the entity is in, the outermost first; empty for an entity of the space.
+        /// The circle above, in a block B put by the reference 2A, gives <c>["2A"]</c>; a block C put by 3F and holding the
+        /// reference 41 of B gives <c>["3F", "41"]</c>.
+        /// </summary>
+        public IReadOnlyList<string> BlockReferences { get; }
 
         /// <summary>Gets the cursor, in the world coordinates of the space shown.</summary>
         public GeoPoint2 Cursor { get; }

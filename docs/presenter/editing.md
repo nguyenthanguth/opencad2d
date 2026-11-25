@@ -2676,6 +2676,9 @@ and goes on with it, the one opened left as it was. BCLOSE (BC) asks `Save chang
 saved, so a new block never saved is not made. A door of one line given a second and saved shows both in every INSERT,
 and one undo after BCLOSE takes the session back. Commands that leave the block or work on another space (BEDIT, XREF,
 LAYOUT, PLOT, PREVIEW, PAGESETUP, MSPACE, PSPACE, MVIEW, QSAVE, SAVEAS) say `Not allowed in the Block Editor.`.
+BEDIT opens in the World UCS, and UCS and UCSMAN are refused inside it (`** UCS command not allowed in block editor. **`),
+as in AutoCAD 2021. BCLOSE, by Save, Discard or with nothing changed, gives model space its UCS back as it was before
+BEDIT, without its name; UCS Previous then gives the World UCS, and once more that UCS.
 The Geometric and Dimensional panels of the Block Editor tab start the constraint commands on the block's objects: Auto Constrain (AUTOCONSTRAIN), Linear (DCLINEAR), Delete (DELCONSTRAINT) and the Parameter Manager (PARAMETERS); the constraints are kept in the block and saved with it by BSAVE. Block Table (which needs the lookup table) and Construction are greyed, with the reason.
 The Visibility State box of the Block Editor tab is live for a block of visibility states
 ([`CadBlockEditor.VisibilityStates`](xref:OpenCAD2D.CadBlockEditor.VisibilityStates)): the first is shown

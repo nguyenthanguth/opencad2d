@@ -809,7 +809,8 @@ namespace OpenCAD2D
 
         /// <summary>
         /// The object snap alone the cursor gives, no grid, ortho, polar or tracking: the snap of model space seen through a
-        /// viewport of a layout, worked out in model units.
+        /// viewport of a layout, worked out in model units. The snaps of plugins are asked as they are for the paper: the
+        /// override of one alone, else those on while no built-in override is set.
         /// </summary>
         internal CadSnapResult SnapToObjects(
             PickIndex index,
@@ -819,9 +820,9 @@ namespace OpenCAD2D
             GeoPoint2? drawnFrom
         )
         {
-            _active = Override ?? (IsOn ? Modes : CadSnapModes.None);
+            _active = CustomOverride != null ? CadSnapModes.None : Override ?? (IsOn ? Modes : CadSnapModes.None);
 
-            if (_active == CadSnapModes.None || !(aperture > 0.0))
+            if ((_active == CadSnapModes.None && ActiveCustomSnaps().Count == 0) || !(aperture > 0.0))
             {
                 return null;
             }
@@ -889,11 +890,6 @@ namespace OpenCAD2D
         /// </summary>
         private IReadOnlyList<CadCustomSnap> ActiveCustomSnaps()
         {
-            if (_withoutTracking)
-            {
-                return Array.Empty<CadCustomSnap>();
-            }
-
             IReadOnlyList<CadCustomSnap> snaps =
                 CustomOverride != null ? new[] { CustomOverride }
                 : Override == null && IsOn ? _customSnaps
@@ -920,8 +916,9 @@ namespace OpenCAD2D
         /// <summary>
         /// The points the plugins' snaps give for the entities under the aperture, each within the aperture of the cursor: the
         /// finder is asked once per entity per snap that applies to its type, snaps in the order given, entities in ordinal
-        /// order of their handles, so that the order of the candidates, which breaks a tie, never follows a hash. A finder that
-        /// throws is switched off, and <see cref="CustomFailed"/> told.
+        /// order of their handles, so that the order of the candidates, which breaks a tie, never follows a hash; the entities
+        /// inside a block reference under the aperture come after it (<see cref="OffersFor"/>). A finder that throws is
+        /// switched off, and <see cref="CustomFailed"/> told.
         /// </summary>
         private List<Candidate> CustomCandidates(
             PickIndex index,
@@ -960,59 +957,292 @@ namespace OpenCAD2D
             }
 
             handles.Sort(StringComparer.Ordinal);
+            List<SnapOffer> offers = OffersFor(EntityOf, handles, cursor, aperture, snaps);
             int rank = 0;
 
             foreach (CadCustomSnap snap in snaps)
             {
-                foreach (string handle in handles)
+                try
                 {
-                    DxfEntity entity = EntityOf(handle);
-
-                    if (entity == null || !Applies(snap, entity))
-                    {
-                        continue;
-                    }
-
-                    List<GeoPoint2> points;
-
-                    try
-                    {
-                        points = new List<GeoPoint2>(
-                            snap.Finder(new CadSnapRequest(Document, entity, handle, cursor, aperture, basePoint))
-                                ?? Array.Empty<GeoPoint2>()
-                        );
-                    }
-                    catch (Exception exception)
-                    {
-                        _failed.Add(snap);
-
-                        try
-                        {
-                            CustomFailed?.Invoke(snap, exception);
-                        }
-                        catch (Exception)
-                        {
-                            // Telling the window is a courtesy; the snap is off either way.
-                        }
-
-                        break;
-                    }
-
-                    foreach (GeoPoint2 point in points)
+                    AskFinder(snap, Document, offers, cursor, aperture, basePoint, (offer, point) =>
                     {
                         double reach = (point - cursor).Length;
 
                         if (reach <= aperture)
                         {
                             found.Add(
-                                new Candidate(CadSnapKind.Custom, point, handle, reach, null, null, snap, rank++)
+                                new Candidate(CadSnapKind.Custom, point, offer.Top, reach, null, null, snap, rank++)
                             );
                         }
+                    });
+                }
+                catch (Exception exception)
+                {
+                    _failed.Add(snap);
+
+                    try
+                    {
+                        CustomFailed?.Invoke(snap, exception);
+                    }
+                    catch (Exception)
+                    {
+                        // Telling the window is a courtesy; the snap is off either way.
                     }
                 }
             }
 
             return found;
+        }
+
+        /// <summary>
+        /// An entity a plugin's snap may be asked about: the entity itself where it lies in the space, or, for one inside a
+        /// block, a copy placed where the references draw it.
+        /// </summary>
+        internal sealed class SnapOffer
+        {
+            internal SnapOffer(string top, DxfEntity entity, string handle, IReadOnlyList<string> references)
+            {
+                Top = top;
+                Entity = entity;
+                Handle = handle;
+                References = references;
+            }
+
+            /// <summary>Gets the handle of the entity of the space the snap point is reported against: the outermost block reference for an entity in a block.</summary>
+            internal string Top { get; }
+
+            /// <summary>Gets the entity, or its placed copy.</summary>
+            internal DxfEntity Entity { get; }
+
+            /// <summary>Gets the handle the finder is given: the entity's own.</summary>
+            internal string Handle { get; }
+
+            /// <summary>Gets the handles of the references the entity is in, the outermost first; empty for one of the space.</summary>
+            internal IReadOnlyList<string> References { get; }
+        }
+
+        /// <summary>
+        /// The entities the snaps are asked about for the handles of the space under the aperture, in the order of the handles
+        /// given: each entity some snap applies to, then, where it is a block reference, the entities inside its block whose
+        /// box, put where the references draw it, lies within the aperture of the point, depth first in the order of each
+        /// block, as <see cref="CadDocument.FindNestedPick"/> goes down: eight levels, no external reference, no array. The
+        /// boxes of the block are tested before any copy is made, so a block of 2 000 lines under the cursor is copied only
+        /// where the cursor is near a line.
+        /// </summary>
+        /// <param name="entityOf">Finds the entity of a handle of the space.</param>
+        /// <param name="handles">The handles, in ordinal order.</param>
+        /// <param name="at">The point, in the world coordinates of the space.</param>
+        /// <param name="aperture">The aperture, in drawing units.</param>
+        /// <param name="snaps">The snaps that will be asked.</param>
+        /// <returns>The offers, in order.</returns>
+        internal static List<SnapOffer> OffersFor(
+            Func<string, DxfEntity> entityOf,
+            IReadOnlyList<string> handles,
+            GeoPoint2 at,
+            double aperture,
+            IReadOnlyList<CadCustomSnap> snaps
+        )
+        {
+            var offers = new List<SnapOffer>();
+            var none = new string[0];
+
+            foreach (string handle in handles)
+            {
+                DxfEntity entity = entityOf(handle);
+
+                if (entity == null)
+                {
+                    continue;
+                }
+
+                if (AppliesToAny(snaps, entity))
+                {
+                    offers.Add(new SnapOffer(handle, entity, handle, none));
+                }
+
+                if (entity is DxfBlockReference reference)
+                {
+                    var references = new List<string> { handle };
+                    GoInto(reference, reference.BlockTransform, 1, references, handle, at, aperture, snaps, offers);
+                }
+            }
+
+            return offers;
+        }
+
+        /// <summary>Adds the offers of the entities inside the block of a reference, going down into the references it holds.</summary>
+        private static void GoInto(
+            DxfBlockReference reference,
+            GeoTransform3 placing,
+            int depth,
+            List<string> references,
+            string top,
+            GeoPoint2 at,
+            double aperture,
+            IReadOnlyList<CadCustomSnap> snaps,
+            List<SnapOffer> offers
+        )
+        {
+            DxfBlockTableRecord block = reference.BlockTableRecord;
+
+            if (depth > 8 || block == null || block.IsFromExternalReference || reference is DxfMInsertBlock)
+            {
+                return;
+            }
+
+            foreach (DxfEntity inside in block)
+            {
+                if (inside.IsErased || inside.Handle == null || inside is DxfAttributeDefinition)
+                {
+                    continue;
+                }
+
+                var inner = inside as DxfBlockReference;
+                bool offered = AppliesToAny(snaps, inside);
+
+                if ((!offered && inner == null) || !Reaches(inside, inner, placing, at, aperture))
+                {
+                    continue;
+                }
+
+                if (offered)
+                {
+                    DxfEntity copy;
+
+                    try
+                    {
+                        copy = inside.GetTransformedCopy(placing);
+                    }
+                    catch (Exception exception)
+                        when (exception is ArgumentException
+                            || exception is InvalidOperationException
+                            || exception is NotSupportedException
+                        )
+                    {
+                        // An entity that cannot be placed is passed over, as the nested pick passes it over.
+                        copy = null;
+                    }
+
+                    if (copy != null)
+                    {
+                        offers.Add(new SnapOffer(top, copy, inside.Handle, references.ToArray()));
+                    }
+                }
+
+                if (inner != null)
+                {
+                    references.Add(inner.Handle);
+                    GoInto(
+                        inner,
+                        placing.Multiply(inner.BlockTransform),
+                        depth + 1,
+                        references,
+                        top,
+                        at,
+                        aperture,
+                        snaps,
+                        offers
+                    );
+                    references.RemoveAt(references.Count - 1);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether an entity of a block, put where the references draw it, may lie within the aperture of a point: its extents
+        /// in the block put through the placing and boxed again, which holds the entity wherever the placing turns it, and
+        /// costs no copy.
+        /// </summary>
+        private static bool Reaches(
+            DxfEntity entity,
+            DxfBlockReference reference,
+            GeoTransform3 placing,
+            GeoPoint2 at,
+            double aperture
+        )
+        {
+            GeoAabb3 box;
+
+            try
+            {
+                box =
+                    reference != null
+                        ? reference.GeometryExtentsBestFit(placing)
+                        : placing.Transform(entity.GeometricExtents);
+            }
+            catch (Exception exception)
+                when (exception is ArgumentException
+                    || exception is InvalidOperationException
+                    || exception is NotSupportedException
+                )
+            {
+                return false;
+            }
+
+            return !box.IsEmpty
+                && at.X >= box.Min.X - aperture
+                && at.X <= box.Max.X + aperture
+                && at.Y >= box.Min.Y - aperture
+                && at.Y <= box.Max.Y + aperture;
+        }
+
+        private static bool AppliesToAny(IReadOnlyList<CadCustomSnap> snaps, DxfEntity entity)
+        {
+            foreach (CadCustomSnap snap in snaps)
+            {
+                if (Applies(snap, entity))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Asks a snap's finder about each offer it applies to, in the order of the offers, and gives each point to
+        /// <paramref name="take"/> with the offer that gave it. A finder that throws lets the exception out: the caller decides
+        /// what it means (the cursor switches the snap off, a typed point says nothing was found).
+        /// </summary>
+        internal static void AskFinder(
+            CadCustomSnap snap,
+            CadDocument document,
+            List<SnapOffer> offers,
+            GeoPoint2 cursor,
+            double aperture,
+            GeoPoint2? basePoint,
+            Action<SnapOffer, GeoPoint2> take
+        )
+        {
+            foreach (SnapOffer offer in offers)
+            {
+                if (!Applies(snap, offer.Entity))
+                {
+                    continue;
+                }
+
+                IEnumerable<GeoPoint2> points = snap.Finder(
+                    new CadSnapRequest(
+                        document,
+                        offer.Entity,
+                        offer.Handle,
+                        cursor,
+                        aperture,
+                        basePoint,
+                        offer.References
+                    )
+                );
+
+                if (points == null)
+                {
+                    continue;
+                }
+
+                foreach (GeoPoint2 point in new List<GeoPoint2>(points))
+                {
+                    take(offer, point);
+                }
+            }
         }
 
         /// <summary>Whether a snap applies to an entity: its type is one of the snap's entity types, or a subclass of one; any entity where the snap names none.</summary>

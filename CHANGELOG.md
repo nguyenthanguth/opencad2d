@@ -21,6 +21,13 @@
   `active_drawing`, `documents`, `Cancelled`, `@on_unload`, `connect()`, `open_file` and `new_file` keep their names. A tool
   that needs a ribbon callback, a menu, a Properties row, an object snap or a side panel is a C# plugin.
 
+- **NEW.** A plugin's object snap works through a layout viewport (its point taken to the sheet, the snap's glyph and tip
+  shown), on entities inside blocks (the finder gets a copy placed where the references draw it, up to eight levels;
+  `CadSnapRequest.BlockReferences` lists the references, outermost first) and for a point typed after the snap's keyword
+  (the point nearest the typed one is taken; `No Circle top found for specified point.` where there is none).
+- **CHANGED.** The Block Editor works in the World UCS, as AutoCAD 2021's does: UCS and UCSMAN there say
+  `** UCS command not allowed in block editor. **`. BCLOSE (Save, Discard, or with no change) puts the model's UCS back,
+  unnamed; UCS Previous then gives the World UCS, then that UCS.
 - **NEW.** A C# plugin is a folder with a `.csproj`, compiled by the app (Tools as folders; C# source plugins). A folder with
   a `.csproj` loads as a `.dll` does (the `Plugins` folder, PLUGINLOAD/NETLOAD of the folder or its `.csproj`, the startup
   list, PLUGINRELOAD), compiled by Roslyn when it loads, on .NET 8 only, and Visual Studio builds the same folder. The app

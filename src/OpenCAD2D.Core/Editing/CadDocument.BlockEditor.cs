@@ -59,7 +59,8 @@ namespace OpenCAD2D
         /// <summary>
         /// Opens the Block Editor on a block, as BEDIT: the block shown alone in a space of its own, made the current space;
         /// a name the drawing has no block of makes a new, empty block, its origin at (0, 0); &lt;Current Drawing&gt; opens
-        /// model space itself. The selection is let go.
+        /// model space itself. The selection is let go. The editor works in the World UCS, as AutoCAD's does, and UCS refuses
+        /// to change it; closing the editor, whichever way, puts the UCS of model space back (<see cref="CadUcsManager"/>).
         /// </summary>
         /// <param name="name">The name of the block, or <see cref="CadBlockEditor.CurrentDrawing"/>.</param>
         /// <returns>What came of it: refused where the editor is open already ("Not allowed in the Block Editor."), a command's
@@ -152,6 +153,7 @@ namespace OpenCAD2D
                     CurrentSpace
                 )
             );
+            Ucs.EnterBlockEditor();
             GeometryHelperLog.Info("CadDocument: the Block Editor opened " + _blockEditor.Name + ".");
             return CadEditResult.Done(Array.Empty<CadEditRecord>());
         }
@@ -456,6 +458,7 @@ namespace OpenCAD2D
             _byHandle = null;
             Selection.Clear();
             CurrentSpace = _spaces.Contains(editor.Previous) ? editor.Previous : ModelSpace;
+            Ucs.LeaveBlockEditor();
 
             // Undo reaches past where the editor opened again: the drawing it goes to is read ahead, as after a step.
             ReadAround();
