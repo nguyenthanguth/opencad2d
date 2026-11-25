@@ -64,7 +64,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 Assert.NotNull(row.PickPointCommand);
             }
 
-            // The presenter's own rows have none.
+            // The General rows of the presenter have none (the coordinates of its own are in PropertiesOwnPointPickTests).
             Assert.All(model.PropertyGroups.First().Rows, r => Assert.False(r.CanPickPoint));
         }
 

@@ -158,6 +158,83 @@ namespace OpenCAD2D
             });
         }
 
+        /// <summary>
+        /// The point a coordinate row of the palette belongs to, as AutoCAD 2021's Properties offers a pick-point button on it: the
+        /// label without its axis, "Center" for Center X, Center Y and Center Z of a circle, an arc, an ellipse or a viewport,
+        /// "Start" and "End" of a line, "Position" of a text, an MTEXT, a block reference or an OLE object, "Vertex" of a polyline.
+        /// Null for any other row: Radius, Scale X, Origin X of a hatch, Text position X of a dimension.
+        /// </summary>
+        internal static string PointName(string label)
+        {
+            if (label == null || label.Length < 3 || label[label.Length - 2] != ' ')
+            {
+                return null;
+            }
+
+            char axis = label[label.Length - 1];
+
+            if (axis != 'X' && axis != 'Y' && axis != 'Z')
+            {
+                return null;
+            }
+
+            string name = label.Substring(0, label.Length - 2);
+            return name == "Start" || name == "End" || name == "Center" || name == "Position" || name == "Vertex"
+                ? name
+                : null;
+        }
+
+        /// <summary>
+        /// Sets the whole point a coordinate row belongs to, as the pick-point button of AutoCAD 2021's Properties does: X and Y of
+        /// <paramref name="point"/> written to every entity as the rows of X and Y are when typed, each keeping its own Z, the two
+        /// as one undo step. A refusal, as an entity on a locked layer or one without the point, writes nothing. A circle at
+        /// (50, 50) picked to (120.5, 80.25) has its centre there after one call, and one undo puts it back.
+        /// </summary>
+        /// <param name="document">The document.</param>
+        /// <param name="handles">The handles of the entities.</param>
+        /// <param name="label">The label of any of the point's rows: "Center X", "Center Z".</param>
+        /// <param name="point">The point picked, in world coordinates.</param>
+        /// <returns>What came of it; refused for a label that is no coordinate of a point (<see cref="PointName"/>).</returns>
+        internal static CadEditResult SetPoint(
+            CadDocument document,
+            IReadOnlyCollection<string> handles,
+            string label,
+            GeoPoint2 point
+        )
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            string name = PointName(label);
+
+            if (name == null || handles == null || handles.Count == 0)
+            {
+                return CadEditResult.Refuse((label ?? string.Empty) + " is no coordinate of a point.");
+            }
+
+            // The text carries every figure, so that the point picked is not rounded to the row's precision.
+            document.BeginGroup("Properties");
+
+            try
+            {
+                CadEditResult result = Set(
+                    document,
+                    handles,
+                    name + " X",
+                    point.X.ToString("R", CultureInfo.InvariantCulture)
+                );
+                return result.Succeeded
+                    ? Set(document, handles, name + " Y", point.Y.ToString("R", CultureInfo.InvariantCulture))
+                    : result;
+            }
+            finally
+            {
+                document.EndGroup();
+            }
+        }
+
         /// <summary>The value a row shows for one entity, as the record's old value.</summary>
         private static string Read(CadDocument document, DxfEntity entity, string label)
         {

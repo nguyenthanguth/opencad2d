@@ -2822,7 +2822,11 @@ namespace OpenCAD2D.Wpf
                             options,
                             (r, text) => CommitProperty(shown, r.Label, text),
                             isColor: ReferenceEquals(options, ColorOptions) || row.Kind == CadPropertyKind.Color,
-                            byLayerRgb: byLayer
+                            byLayerRgb: byLayer,
+                            pick: shown.Count > 0 && CadPropertyEditor.PointName(row.Label) != null
+                                ? r => PickPropertyPoint(shown, group, r)
+                                : (Action<CadPropertyRow>)null,
+                            canPick: () => !IsCommandRunning
                         )
                     );
                 }
@@ -2983,6 +2987,46 @@ namespace OpenCAD2D.Wpf
             }
 
             return result.Succeeded;
+        }
+
+        /// <summary>
+        /// The pick-point button of a coordinate of the presenter's own Properties (Center X of a circle, Start Y of a line,
+        /// Position Z of a text, Vertex X of a polyline): asks "Pick a point in the drawing:" (<see cref="StartPointPick"/>) with a
+        /// rubber band from the point the rows of the group show, where the selection has one, and sets X and Y of the point of
+        /// every object selected to the one picked, as one undo step, Z as each had it (<see cref="CadPropertyEditor.SetPoint"/>).
+        /// A refusal is written on the command line.
+        /// </summary>
+        private void PickPropertyPoint(IReadOnlyCollection<string> handles, CadPropertyGroup group, CadPropertyRow row)
+        {
+            string name = CadPropertyEditor.PointName(row.Label);
+            GeoPoint2? from = null;
+
+            // The point is read from the rows shown, to the precision they have; the centres of two circles that differ give none.
+            if (
+                TryReadCoordinate(group, name + " X", out double x)
+                && TryReadCoordinate(group, name + " Y", out double y)
+            )
+            {
+                from = new GeoPoint2(x, y);
+            }
+
+            StartPointPick(from, picked =>
+            {
+                CadEditResult result = CadPropertyEditor.SetPoint(_current.Document, handles, row.Label, picked);
+
+                if (!result.Succeeded)
+                {
+                    Say(result.Message);
+                }
+            });
+        }
+
+        private static bool TryReadCoordinate(CadPropertyGroup group, string label, out double value)
+        {
+            CadPropertyRow row = group.Rows.FirstOrDefault(r => r.Label == label);
+            value = 0.0;
+            return row != null
+                && double.TryParse(row.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
         }
 
         /// <summary>

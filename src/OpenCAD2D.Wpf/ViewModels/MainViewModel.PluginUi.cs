@@ -398,39 +398,54 @@ namespace OpenCAD2D.Wpf
                         : CommitExtensionProperty(row, text),
                 isColor: row.Kind == CadPropertyKind.Color,
                 byLayerRgb: byLayerRgb,
-                pick: PickRowPoint,
+                pick: row.PointSetter == null ? (Action<CadPropertyRow>)null : PickRowPoint,
                 canPick: () => !IsCommandRunning
             );
 
         /// <summary>
         /// The pick-point button of a coordinate of a point a plugin or an extension gave a setter: asks "Pick a point in the
-        /// drawing:" on the command line, with a rubber band from the point, as AutoCAD 2021 does for Properties, writing no line of
-        /// history for the point picked. The point gives X and Y, Z as the row had it, to the setter once, as one change; the rows are
-        /// read again. Esc leaves the point. The command is the window's own: it is no command typed, and Enter after it runs the
-        /// command before it again.
+        /// drawing:" on the command line (<see cref="StartPointPick"/>) with a rubber band from the point, and gives the setter the
+        /// point picked, X and Y the picked ones and Z as the row had it, once, as one change; the rows are read again.
         /// </summary>
         private void PickRowPoint(CadPropertyRow row)
         {
-            if (_current == null || row.PointSetter == null || _current.Session.IsRunning)
+            if (row.PointSetter == null)
+            {
+                return;
+            }
+
+            GeoPoint3 at = row.PointValue;
+            StartPointPick(new GeoPoint2(at.X, at.Y), picked =>
+                CommitExtensionProperty(row, () => row.PointSetter(new GeoPoint3(picked.X, picked.Y, at.Z)))
+            );
+        }
+
+        /// <summary>
+        /// Asks "Pick a point in the drawing:" on the command line, as AutoCAD 2021 does for the pick-point button of Properties,
+        /// with a rubber band from <paramref name="from"/> where there is one, writing no line of history for the point picked,
+        /// and gives the point to <paramref name="set"/>. Esc leaves the point. The command is the window's own: it is no command
+        /// typed, and Enter after it runs the command before it again.
+        /// </summary>
+        private void StartPointPick(GeoPoint2? from, Action<GeoPoint2> set)
+        {
+            if (_current == null || _current.Session.IsRunning)
             {
                 return;
             }
 
             AttachTiles(_current);
 
-            if (_current.Session.Start(new CadCommand("PICKPOINT", c => PickPointBody(c, row))))
+            if (_current.Session.Start(new CadCommand("PICKPOINT", c => PickPointBody(c, from, set))))
             {
                 SyncHistory();
                 RunAfterCommand();
             }
         }
 
-        private IEnumerable<CadPrompt> PickPointBody(CadCommandContext c, CadPropertyRow row)
+        private static IEnumerable<CadPrompt> PickPointBody(CadCommandContext c, GeoPoint2? from, Action<GeoPoint2> set)
         {
-            GeoPoint3 at = row.PointValue;
-            yield return CadPrompt.ForPoint("Pick a point in the drawing", new GeoPoint2(at.X, at.Y)).WithoutHistory();
-            GeoPoint2 picked = c.Input.Point;
-            CommitExtensionProperty(row, () => row.PointSetter(new GeoPoint3(picked.X, picked.Y, at.Z)));
+            yield return CadPrompt.ForPoint("Pick a point in the drawing", from).WithoutHistory();
+            set(c.Input.Point);
         }
 
         private IReadOnlyList<string> OptionsOfKind(CadPropertyKind kind)
