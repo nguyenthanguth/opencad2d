@@ -404,7 +404,7 @@ namespace OpenCAD2D
         private CadPrompt LispPrompt(LispAsk ask, bool first)
         {
             // The message up to its last new line is written as lines, the rest is the prompt.
-            string message = ask.Message ?? string.Empty;
+            string message = LispPrinter.Display(ask.Message ?? string.Empty);
             int lineEnd = message.LastIndexOf('\n');
 
             // The first of them goes on the line the routine left open, and a message that starts with a new line ends it.

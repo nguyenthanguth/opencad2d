@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **FIXED.** A routine that writes its prompts with AutoCAD's Unicode escapes (`(getpoint "\nCh\U+1ECDn \U+0111i\U+1EC3m
+  \U+0111\U+1EA7u HCN :")`) showed `Ch\U+1ECDn \U+0111i...` on the command line, in the history and in the box of dynamic
+  input; AutoCAD 2021 shows `Chọn điểm đầu HCN :`. Measured with accoreconsole: a string keeps its seven characters
+  (`(strlen "\U+0111")` is 7) and the escape becomes the character where it is shown (`princ`, `prompt`, `alert` and the
+  message of every `get` function) and where a routine hands it to the drawing (the text of an `entmake`d, `entmod`ed or
+  `command`ed TEXT or MTEXT, a layer or block name, extended data, a name given to `tblsearch`). The messages of the `get`
+  functions and `alert` showed the seven characters; a TEXT made with `(1 . "a\U+0111b")` held nine characters, and a layer
+  named `L\U+0111` was refused. Four hex digits count, in either case: `\U+01111` is `đ1`, `\U+1F600` is `ὠ0`, `\U+0000`
+  ends a stored text. The same escape typed at the `Enter text:` prompt of TEXT, or a layer name, is the character; text
+  typed to `getstring` is not changed.
 - **FIXED.** Every prompt for text took a space as part of the answer, in a script and on the command line, where AutoCAD
   2021 takes it only at a few (measured in accoreconsole with a .scr, 228 runs with a space in the answer): `-LAYER N A B` made
   one layer named `A B` (AutoCAD makes `A` and reads `B` as the next option), `-RENAME LA A B` looked for a layer `A B`

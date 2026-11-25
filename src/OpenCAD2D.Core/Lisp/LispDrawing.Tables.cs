@@ -107,7 +107,7 @@ namespace OpenCAD2D.Lisp
             lisp.Define("TBLSEARCH", 2, 3, a =>
             {
                 string table = TableArgument(a, 0);
-                string name = LispInterpreter.Str(a[1]);
+                string name = LispPrinter.Store(LispInterpreter.Str(a[1]));
                 bool setNext = a.Length > 2 && a[2] != null;
                 return lisp.OnOwner(() => TableSearch(session, walk, a, table, name, setNext));
             });
@@ -120,7 +120,7 @@ namespace OpenCAD2D.Lisp
             lisp.Define("TBLOBJNAME", 2, 2, a =>
             {
                 string table = TableArgument(a, 0);
-                string name = LispInterpreter.Str(a[1]);
+                string name = LispPrinter.Store(LispInterpreter.Str(a[1]));
                 return lisp.OnOwner(() => TableObject(session, a, table, name));
             });
         }

@@ -1255,6 +1255,18 @@ character, `(vl-string->list "\U+0111x")` is `(273 120)`. `vl-list->string` make
 leaves out the others: `(strlen (vl-list->string '(97 0 98)))` is `2`, and a code that is no integer is `bad char code in
 list: 1.5`.
 
+The escape becomes the character in two places, as in AutoCAD 2021 (measured with accoreconsole). What is **shown** does:
+`princ`, `prin1`, `print`, `prompt`, `alert` and the message of `getpoint`, `getcorner`, `getdist`, `getangle`, `getorient`,
+`getint`, `getreal`, `getstring`, `getkword` and `entsel`, on the command line, in the history and in the box of dynamic
+input: `(getpoint "\nCh\U+1ECDn \U+0111i\U+1EC3m :")` asks `Chọn điểm :`. What a routine **hands to the drawing** does: the
+text of an `entmake`, `entmod` or `command` TEXT or MTEXT, a layer or block name, extended data, and a name looked up with
+`tblsearch` or `tblobjname`, so `(entmake '((0 . "TEXT") (10 0.0 0.0 0.0) (40 . 2.5) (1 . "a\U+0111b")))` holds the three
+characters `a`, `đ`, `b` and `(strlen (cdr (assoc 1 (entget (entlast)))))` is `3`. The same escape typed at the prompt of
+`TEXT` or `-LAYER` is the character too, but text typed to a get function (`(getstring)`) stays its seven characters. Exactly
+four hex digits count, in either case, with `\U` or `\u`: `\U+01111` is `đ1` and `\U+1F600` is `ὠ0` (the digits `1F60`, then
+a `0`); fewer digits or letters that are not hex (`\U+011`, `\U+ZZZZ`) read as `UU+011`, `UU+ZZZZ`; `\M+10111` is `M+10111`;
+`\U+0000` ends a stored text.
+
 ### Files
 
 `(open name mode [encoding])` gives a file value, `nil` for a file that cannot be opened (missing to read, a folder that is
