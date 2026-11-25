@@ -331,8 +331,14 @@ Annotative is shown, toggled and kept as annotative text is kept: the definition
 again; mOde asks `Choose mode for selected object conversion [Convert to block/Retain/Delete] <Delete>:` and the base point
 again, Retain keeping the objects, Convert to block putting a reference where they were and Delete, the default, erasing them. A
 name in use asks `Block "GHB3" already exists. Redefine it? [Yes/No] <N>:`, and `?` asks `Enter block(s) to list <*>:` (names or
-patterns), writes `Defined blocks.`, each name quoted and indented two spaces and the four-line table of counts (user blocks,
-external references, dependent blocks, unnamed blocks), and ends the command. -INSERT writes
+patterns, letters of either case the same), writes `Defined blocks.`, each block that matches quoted and indented two spaces in
+the order of the names, and the table of counts of what matched (user blocks, external references, dependent blocks, unnamed
+blocks), and ends the command. An external reference is listed with `Xref: resolved` (`unloaded`, `not found`) and each block
+of its drawing, while it is loaded, with `Xdep: "grid"`, as AutoCAD 2021 writes them: `"grid"` and `"grid|TAG"` for the block
+TAG of the drawing grid, the notes from the 37th column, or 3 spaces after a name that reaches it. These blocks are held while the
+reference is loaded and not in the drawing's table or its file, as AutoCAD keeps them in memory and writes none; -INSERT of one
+says `Cannot insert dependent block.` and -BLOCK refuses its name. -INSERT's `?` lists the user's blocks alone, with the table of
+user blocks and unnamed blocks (`User     Unnamed`), as AutoCAD 2021 lists what it can insert. -INSERT writes
 `Units: Millimeters   Conversion:    1.0000` with the conversion in a field of ten and offers `[Basepoint/Scale/X/Y/Z/Rotate/Explode/REpeat]` at the insertion
 point: Explode asks `Explode block [Yes/No] <Yes>:` and the point again, and the block is exploded where it is placed; REpeat
 (typed `RE`, as `R` is Rotate) places the block again and again until Enter; Scale and X offer `<1>`. AUDIT asks `Fix any errors

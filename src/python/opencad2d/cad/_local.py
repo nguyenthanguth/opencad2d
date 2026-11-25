@@ -449,17 +449,16 @@ class _LocalBackend:
 
     @property
     def blocks(self) -> list[Any]:
-        return sorted(
-            (
-                block
-                for block in self._scratch().BlockTable
-                if not block.IsLayout
-                and not block.IsAnonymous
-                and not block.IsDependent
-                and not str(block.Name).startswith("*")
-            ),
-            key=_name_key,
-        )
+        blocks = [
+            block
+            for block in self._scratch().BlockTable
+            if not block.IsLayout and not block.IsAnonymous and not str(block.Name).startswith("*")
+        ]
+        # The blocks the loaded external references bring (grid|TAG), which the drawing's own table holds none of; one it
+        # holds a record of is kept as the record has it.
+        have = {str(block.Name).upper() for block in blocks}
+        blocks.extend(block for block in self.document.Xrefs.GetDependentBlocks() if str(block.Name).upper() not in have)
+        return sorted(blocks, key=_name_key)
 
     # ---- the user ---------------------------------------------------------------------------------------------------
 

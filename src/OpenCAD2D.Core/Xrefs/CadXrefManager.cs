@@ -254,6 +254,21 @@ namespace OpenCAD2D
             }
         }
 
+        /// <summary>
+        /// Gets the blocks the external references that are loaded bring into the drawing, as AutoCAD lists them in its block
+        /// table while they are: <c>grid|TAG</c> for the block TAG of the drawing <c>grid</c>, each a copy with its objects, in
+        /// the order of their names. A reference unloaded, not found or not read brings none; AutoCAD writes none of them to a
+        /// DXF or a DWG, and the drawing's own <see cref="DxfDatabase.BlockTable"/> holds none (<see cref="DxfSymbolTableRecord.IsDependent"/>
+        /// is true of each). They are not to be inserted or changed: changing a copy changes nothing.
+        /// </summary>
+        /// <remarks>
+        /// A drawing of the reference <c>grid</c> with the blocks TAG and PLAN gives <c>grid|PLAN</c> and <c>grid|TAG</c>, each
+        /// flagged 48; the objects are the drawing's own, naming their layers and blocks as that drawing does (a line of TAG on
+        /// WALL is on WALL, not on <c>grid|WALL</c>).
+        /// </remarks>
+        /// <returns>The blocks.</returns>
+        public IReadOnlyList<DxfBlockTableRecord> GetDependentBlocks() => CadRemoteServer.DependentBlocks(_document);
+
         /// <summary>Finds the file a saved path names, as AutoCAD looks for it from the document's drawing (see the remarks of the class).</summary>
         /// <param name="savedPath">The path as the drawing writes it.</param>
         /// <returns>The full path of the file found; null where none was.</returns>

@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **NEW.** The blocks of the drawing of a loaded external reference (`grid|TAG` for the block TAG of the drawing `grid`),
+  which AutoCAD 2021 holds in its block table while the reference is loaded and writes to no file (measured with
+  accoreconsole: `tblnext` says `70 48`, -BLOCK ? says `Xdep: "grid"`, they go with -XREF Unload and Detach and come back
+  with Reload, and its DXF reader refuses a drawing that names one), are carried where AutoCAD shows them. Remote `Blocks`
+  and Python's `drawing.blocks`, from outside and inside the app, list them with their objects, flagged dependent and
+  resolved (a drawing of the blocks TAG and PLAN attached as `grid` gives `grid|PLAN` and `grid|TAG` after `Bolt` and
+  `grid`); `CadXrefManager.GetDependentBlocks()` gives them as copies; -BLOCK ? lists the references (`"grid"   Xref:
+  resolved`, `unloaded`, `not found`) and their blocks (`"grid|TAG"   Xdep: "grid"`) with the counts of what matched, which
+  it counted from the whole table before; -INSERT of one says `Cannot insert dependent block.`. None is in the drawing's own
+  table or its saved file. This closes the first item of the PW1 parked note: the core library (GeometryHelper, built from
+  the commit of its branch `feat/xref-dependent-blocks`) can now make such a record in the small drawings the Remote
+  channel carries.
+- **FIXED.** -INSERT's `?` wrote the table of four columns of -BLOCK's (user blocks, external references, dependent blocks,
+  unnamed blocks); AutoCAD 2021 lists the blocks it can insert alone, with a table of two columns, `User` and `Unnamed`
+  (`    1        0` for a drawing of one block of its own).
 - **CHANGED.** Measuring a text, an MTEXT or an attribute in the document's fonts (`(textbox)`, `vla-GetBoundingBox`,
   MIRROR, MLEADERALIGN, MLEADEREDIT, the table editor) borrows one set of fonts for each path (`DxfDatabase.BorrowFonts`)
   and keeps it for the life of the drawing, where each text read the font file again: `(textbox)` of 2000 texts in an SHX

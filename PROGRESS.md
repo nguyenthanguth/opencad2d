@@ -531,8 +531,9 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       outside, closing a drawing and reading text styles, dimension styles and blocks. Done 2026-11-23: an empty
       Pythons folder starts no engine (1 ms), one .py costs about 0.45 s at start; Close(discard) refuses unsaved or busy
       drawings; style and block reads as copies sorted by name
-- [ ] PW1 parked: the dependent blocks of an xref (`grid|TAG`) not carried by Blocks (the core cannot make such a
-      record); an unloaded Python row shows no commands (Lisp rows keep theirs); no Global settings row for the Pythons
+- [ ] PW1 parked: closed 2026-11-25: the dependent blocks of a loaded xref (`grid|TAG`) are carried by Remote
+      `Blocks`, Python `drawing.blocks` and `-BLOCK ?` as AutoCAD 2021 lists them (held while loaded, never saved: AutoCAD's
+      DXF reader refuses one; core 2cbd11c5 SetDependent). Left: an unloaded Python row shows no commands (Lisp rows keep theirs); no Global settings row for the Pythons
       folder or the Python Startup Suite; a .py asking a prompt at module level while APPLOAD runs; Remove's tooltip
       naming only Lisps and Plugins. TF7 (2026-11-25) settled the unloaded row's commands (from its plugin.json)
 - [x] PW2. One API: `@command("NAME")`, `cmd(...)` and the get_* prompts; a Drawing API (entities, add, modify, erase,

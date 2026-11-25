@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper;
 using GeometryHelper.Dxf;
 using OpenCAD2D.Remote;
 
@@ -76,15 +77,48 @@ namespace OpenCAD2D
         {
             DxfDatabase source = document.Database;
             DxfDatabase fragment = new DxfDatabase(RemoteFragment.Version);
-            List<DxfBlockTableRecord> blocks = source
+            List<CarriedBlock> blocks = source
                 .BlockTable.Where(b =>
-                    !b.IsLayout && !b.IsAnonymous && !b.IsDependent && !b.Name.StartsWith("*", StringComparison.Ordinal)
+                    !b.IsLayout && !b.IsAnonymous && !b.Name.StartsWith("*", StringComparison.Ordinal)
                 )
+                .Select(b => new CarriedBlock(b, b.Name, source, IsMarkedDependent(b), b.IsResolved))
+                .ToList();
+
+            // The blocks the loaded references bring (grid|TAG), which AutoCAD lists with the drawing's own; one the drawing
+            // holds a record of already is left as that record has it.
+            foreach (CadDependentBlock dependent in CadXrefBlocks.Of(document).Dependents)
+            {
+                if (!source.BlockTable.Has(dependent.Name))
+                {
+                    blocks.Add(new CarriedBlock(dependent.Block, dependent.Name, dependent.Source, true, true));
+                }
+            }
+
+            blocks = blocks
                 .OrderBy(b => b.Name, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(b => b.Name, StringComparer.Ordinal)
                 .ToList();
-            CarryBlocks(fragment, source, blocks);
-            return Records(fragment, blocks.Select(b => b.Name).ToList());
+            CarryBlocks(fragment, blocks);
+            return Records(fragment, blocks.Select(b => b.Name).Where(n => fragment.BlockTable.Has(n)).ToList());
+        }
+
+        /// <summary>Whether a block is one an external reference brought, by the | in its name; the flag alone does not make the small drawing take it.</summary>
+        private static bool IsMarkedDependent(DxfBlockTableRecord block) =>
+            block.IsDependent && block.Name.IndexOf('|') >= 0;
+
+        /// <summary>
+        /// The blocks the loaded external references of a document bring (<c>grid|TAG</c>), each with its objects, in a small
+        /// drawing of their own, in the order of their names: what <see cref="CadXrefManager.GetDependentBlocks"/> gives.
+        /// </summary>
+        internal static IReadOnlyList<DxfBlockTableRecord> DependentBlocks(CadDocument document)
+        {
+            DxfDatabase fragment = new DxfDatabase(RemoteFragment.Version);
+            List<CarriedBlock> blocks = CadXrefBlocks
+                .Of(document)
+                .Dependents.Select(d => new CarriedBlock(d.Block, d.Name, d.Source, true, true))
+                .ToList();
+            CarryBlocks(fragment, blocks);
+            return blocks.Where(b => fragment.BlockTable.Has(b.Name)).Select(b => fragment.BlockTable[b.Name]).ToList();
         }
 
         private static JsonObject Records(DxfDatabase fragment, List<string> names)
@@ -130,25 +164,68 @@ namespace OpenCAD2D
             fragment.File.CopyTableRecords(source.File, table, names);
         }
 
+        /// <summary>A block to carry: as it is in the drawing it comes from, under the name it is to have in the small drawing.</summary>
+        private sealed class CarriedBlock
+        {
+            internal CarriedBlock(
+                DxfBlockTableRecord block,
+                string name,
+                DxfDatabase source,
+                bool dependent,
+                bool resolved
+            )
+            {
+                Block = block;
+                Name = name;
+                Source = source;
+                Dependent = dependent;
+                Resolved = resolved;
+            }
+
+            internal DxfBlockTableRecord Block { get; }
+
+            internal string Name { get; }
+
+            /// <summary>The drawing that holds <see cref="Block"/> and its objects.</summary>
+            internal DxfDatabase Source { get; }
+
+            /// <summary>Whether an external reference brought it, so that the small drawing marks it so (flag 16).</summary>
+            internal bool Dependent { get; }
+
+            /// <summary>Whether that reference is resolved (flag 32).</summary>
+            internal bool Resolved { get; }
+        }
+
+        private static void CarryBlocks(DxfDatabase fragment, DxfDatabase source, List<DxfBlockTableRecord> blocks) =>
+            CarryBlocks(
+                fragment,
+                blocks.Select(b => new CarriedBlock(b, b.Name, source, IsMarkedDependent(b), b.IsResolved)).ToList()
+            );
+
         /// <summary>
         /// Makes blocks in the small drawing, as <see cref="DxfDatabase.Insert(GeometryHelper.Geometry.GeoTransform3, DxfDatabase, bool)"/>
         /// merges them: every record first, then the objects of each, so that an INSERT of one block in another places the
-        /// block the small drawing has of that name. An external reference is carried as its name and path alone.
+        /// block the small drawing has of that name. An external reference is carried as its name and path alone. A block an
+        /// external reference brought (<c>grid|TAG</c>) is marked so, flagged 48 where the reference is resolved, and carried
+        /// with the objects of its own drawing, naming what they draw by as that drawing does; one whose name the small
+        /// drawing cannot take is left out.
         /// </summary>
-        private static void CarryBlocks(DxfDatabase fragment, DxfDatabase source, List<DxfBlockTableRecord> blocks)
+        private static void CarryBlocks(DxfDatabase fragment, List<CarriedBlock> blocks)
         {
-            var made = new List<DxfBlockTableRecord>();
+            var made = new List<CarriedBlock>();
 
-            foreach (DxfBlockTableRecord block in blocks)
+            foreach (CarriedBlock carried in blocks)
             {
-                if (fragment.BlockTable.Has(block.Name))
+                DxfBlockTableRecord block = carried.Block;
+
+                if (fragment.BlockTable.Has(carried.Name))
                 {
                     continue;
                 }
 
                 var record = new DxfBlockTableRecord
                 {
-                    Name = block.Name,
+                    Name = carried.Name,
                     Origin = block.Origin,
                     MadeFlags =
                         (block.HasAttributeDefinitions ? 2 : 0)
@@ -168,7 +245,22 @@ namespace OpenCAD2D
                     record.BlockScaling = block.BlockScaling;
                 }
 
-                fragment.BlockTable.Add(record);
+                if (carried.Dependent)
+                {
+                    record.SetDependent(true, carried.Resolved);
+                }
+
+                try
+                {
+                    fragment.BlockTable.Add(record);
+                }
+                catch (ArgumentException e) when (carried.Dependent)
+                {
+                    GeometryHelperLog.Debug(
+                        "CadRemoteServer: the block " + carried.Name + " is not carried: " + e.Message
+                    );
+                    continue;
+                }
 
                 if (block.Annotative == DxfAnnotativeStates.True)
                 {
@@ -177,17 +269,17 @@ namespace OpenCAD2D
 
                 if (!block.IsFromExternalReference && !block.IsFromOverlayReference)
                 {
-                    made.Add(block);
+                    made.Add(carried);
                 }
             }
 
-            foreach (DxfBlockTableRecord block in made)
+            foreach (CarriedBlock carried in made)
             {
-                var objects = new List<DxfEntity>(block);
+                var objects = new List<DxfEntity>(carried.Block);
 
                 if (objects.Count > 0)
                 {
-                    source.WblockCloneObjects(objects, fragment.BlockTable[block.Name]);
+                    carried.Source.WblockCloneObjects(objects, fragment.BlockTable[carried.Name]);
                 }
             }
         }

@@ -305,7 +305,7 @@ handles = drawing.commit()          # the handles of the circle and the line, in
 | `modify(entity)`, `erase(entity_or_handle)` | queue a change made to `entity.net`, or an erase |
 | `move`, `copy`, `rotate`, `scale`, `mirror`, `offset` | the commands of the same names as calls, on `Entity` objects; they flush what is queued and edit in one undo step ([below](#edits-move-copy-rotate-scale-mirror-offset)) |
 | `commit()` | apply everything queued as one undo step; the handles of the objects added |
-| `layers`, `current_layer`, `text_styles`, `dimension_styles`, `blocks`, `layouts`, `current_layout` | the tables; styles and blocks are read-only copies |
+| `layers`, `current_layer`, `text_styles`, `dimension_styles`, `blocks`, `layouts`, `current_layout` | the tables; styles and blocks are read-only copies, and `blocks` lists `grid|TAG` for each block of a loaded external reference's drawing, as AutoCAD does |
 | `zoom_extents`, `zoom_window`, `zoom_objects`, `zoom_center`, `zoom_scaled`, `zoom_previous`, `pan`, `regen`, `view`, `has_window` | move and read the view, as ZOOM, -PAN and REGEN do ([below](#the-view-selection-and-variables)); `RuntimeError` on a file |
 | `named_views`, `save_view`, `restore_view`, `delete_view` | the named views, as -VIEW does |
 | `select_all`, `select_window`, `select_crossing` | objects by an area as `Entity` copies; the selection of `select` stays |
