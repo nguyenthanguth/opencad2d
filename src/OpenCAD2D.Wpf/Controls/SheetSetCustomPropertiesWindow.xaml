@@ -1,0 +1,117 @@
+<local:SheetSetDialogWindow
+    x:Class="OpenCAD2D.Wpf.SheetSetCustomPropertiesWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
+    Title="{Binding Title}"
+    Style="{DynamicResource SheetSetWindow}"
+    WindowStartupLocation="CenterOwner"
+    Width="505"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/SheetSetDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <local:SheetSetDialogFrame
+        x:Name="Frame"
+        Style="{StaticResource SheetSetFrame}"
+        Title="{Binding Title}"
+        OkEnabled="{Binding CanApply}"
+        IsReadOnlyMode="{Binding IsReadOnly}"
+    >
+        <Grid Margin="16,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border
+                BorderBrush="{StaticResource GhBorder}"
+                BorderThickness="1"
+                CornerRadius="3"
+                Background="{StaticResource GhInput}"
+            >
+                <DockPanel>
+                    <Border
+                        DockPanel.Dock="Top"
+                        Background="{StaticResource GhHeader}"
+                        BorderBrush="{StaticResource GhBorder}"
+                        BorderThickness="0,0,0,1"
+                        Padding="8,5"
+                    >
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Name" Foreground="{StaticResource GhTextMuted}" />
+                            <TextBlock Grid.Column="1" Text="Default Value" Foreground="{StaticResource GhTextMuted}" />
+                            <TextBlock Grid.Column="2" Text="Owner" Foreground="{StaticResource GhTextMuted}" />
+                        </Grid>
+                    </Border>
+                    <ListBox
+                        x:Name="List"
+                        Style="{StaticResource GhListBox}"
+                        ItemContainerStyle="{StaticResource SheetSetListRow}"
+                        ItemsSource="{Binding Items}"
+                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                        Height="260"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        AutomationProperties.Name="Custom properties"
+                    >
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="8,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="160" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Text="{Binding Name}"
+                                        TextTrimming="CharacterEllipsis"
+                                        Margin="0,0,6,0"
+                                    />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding DefaultValue}"
+                                        FontWeight="SemiBold"
+                                        TextTrimming="CharacterEllipsis"
+                                        Margin="0,0,6,0"
+                                    />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Text="{Binding OwnerText}"
+                                        Foreground="{StaticResource GhTextMuted}"
+                                    />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <StackPanel Grid.Column="1" Margin="8,0,0,0" Width="80">
+                <Button
+                    x:Name="AddButton"
+                    Style="{StaticResource GhDialogButton}"
+                    Content="Add..."
+                    Margin="0,0,0,8"
+                    IsEnabled="{Binding CanAdd}"
+                    Click="OnAdd"
+                />
+                <Button
+                    x:Name="DeleteButton"
+                    Style="{StaticResource GhDialogButton}"
+                    Content="Delete"
+                    IsEnabled="{Binding CanDelete}"
+                    Click="OnDelete"
+                />
+            </StackPanel>
+        </Grid>
+    </local:SheetSetDialogFrame>
+</local:SheetSetDialogWindow>

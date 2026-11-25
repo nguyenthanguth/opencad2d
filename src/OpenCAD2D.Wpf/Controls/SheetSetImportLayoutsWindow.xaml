@@ -1,0 +1,167 @@
+<local:SheetSetDialogWindow
+    x:Class="OpenCAD2D.Wpf.SheetSetImportLayoutsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
+    Title="{Binding Title}"
+    Style="{DynamicResource SheetSetWindow}"
+    WindowStartupLocation="CenterOwner"
+    Width="560"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/SheetSetDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <local:SheetSetDialogFrame
+        x:Name="Frame"
+        Style="{StaticResource SheetSetFrame}"
+        Title="{Binding Title}"
+        OkText="Import Checked"
+        OkEnabled="{Binding CanApply}"
+        IsReadOnlyMode="{Binding IsReadOnly}"
+    >
+        <StackPanel Margin="16,14">
+            <Border
+                Style="{StaticResource SheetSetNoticeBox}"
+                Margin="0,0,0,10"
+                Visibility="{Binding IsReadOnly, Converter={StaticResource SheetSetShown}}"
+            >
+                <TextBlock Text="{Binding ReadOnlyNotice}" TextWrapping="Wrap" />
+            </Border>
+            <Button
+                x:Name="BrowseButton"
+                Style="{StaticResource GhDialogButton}"
+                Content="Browse for Drawings..."
+                HorizontalAlignment="Left"
+                Padding="14,6"
+                Margin="0,0,0,10"
+                IsEnabled="{Binding CanBrowse}"
+                Click="OnBrowse"
+            />
+            <TextBlock
+                x:Name="CaptionText"
+                Text="{Binding ListCaption}"
+                Margin="0,0,0,6"
+                TextTrimming="CharacterEllipsis"
+            />
+            <Border
+                BorderBrush="{StaticResource GhBorder}"
+                BorderThickness="1"
+                CornerRadius="3"
+                Background="{StaticResource GhInput}"
+            >
+                <DockPanel>
+                    <Border
+                        DockPanel.Dock="Top"
+                        Background="{StaticResource GhHeader}"
+                        BorderBrush="{StaticResource GhBorder}"
+                        BorderThickness="0,0,0,1"
+                        Padding="8,5"
+                    >
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28" />
+                                <ColumnDefinition Width="210" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Text="Drawing Name" Foreground="{StaticResource GhTextMuted}" />
+                            <TextBlock Grid.Column="2" Text="Layout Name" Foreground="{StaticResource GhTextMuted}" />
+                        </Grid>
+                    </Border>
+                    <Grid>
+                        <ListBox
+                            x:Name="List"
+                            Style="{StaticResource GhListBox}"
+                            ItemContainerStyle="{StaticResource SheetSetListRow}"
+                            ItemsSource="{Binding Layouts}"
+                            Height="150"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            AutomationProperties.Name="Layouts"
+                        >
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="8,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="28" />
+                                            <ColumnDefinition Width="210" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            Style="{StaticResource GhCheckBox}"
+                                            IsChecked="{Binding IsChecked}"
+                                            IsEnabled="{Binding IsRefused, Converter={StaticResource SheetSetHidden}}"
+                                            VerticalAlignment="Center"
+                                        />
+                                        <TextBlock
+                                            x:Name="DrawingText"
+                                            Grid.Column="1"
+                                            Text="{Binding DrawingName}"
+                                            TextTrimming="CharacterEllipsis"
+                                            Margin="0,0,6,0"
+                                        />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <TextBlock x:Name="LayoutText" Text="{Binding LayoutName}" />
+                                            <TextBlock
+                                                Text="{Binding Note}"
+                                                Margin="6,0,0,0"
+                                                FontSize="11"
+                                                Foreground="{StaticResource GhTextMuted}"
+                                                VerticalAlignment="Center"
+                                            />
+                                        </StackPanel>
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsRefused}" Value="True">
+                                            <Setter
+                                                TargetName="DrawingText"
+                                                Property="Foreground"
+                                                Value="{StaticResource GhTextMuted}"
+                                            />
+                                            <Setter
+                                                TargetName="LayoutText"
+                                                Property="Foreground"
+                                                Value="{StaticResource GhTextMuted}"
+                                            />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock
+                            Text="Browse for Drawings... to list their layouts."
+                            Foreground="{StaticResource GhTextMuted}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="False"
+                            Visibility="{Binding HasLayouts, Converter={StaticResource SheetSetHidden}}"
+                        />
+                    </Grid>
+                </DockPanel>
+            </Border>
+            <Border
+                Style="{StaticResource SheetSetNoticeBox}"
+                Visibility="{Binding HasNotice, Converter={StaticResource SheetSetShown}}"
+            >
+                <TextBlock x:Name="NoticeText" Text="{Binding Notice}" TextWrapping="Wrap" />
+            </Border>
+            <Border
+                Style="{StaticResource SheetSetErrorBox}"
+                Visibility="{Binding HasError, Converter={StaticResource SheetSetShown}}"
+            >
+                <TextBlock x:Name="ErrorText" Text="{Binding Error}" TextWrapping="Wrap" />
+            </Border>
+            <CheckBox
+                x:Name="PrefixBox"
+                Style="{StaticResource SheetSetCheck}"
+                Margin="0,12,0,0"
+                Content="Prefix sheet titles with file name"
+                IsChecked="{Binding PrefixTitleWithFileName}"
+            />
+        </StackPanel>
+    </local:SheetSetDialogFrame>
+</local:SheetSetDialogWindow>
