@@ -309,7 +309,10 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 - [x] A4 parked: a UCS change inside the Block Editor and then BCLOSE discard not put back. Done 2026-11-25 as AutoCAD
       2021 does it (measured): BEDIT in the World UCS, UCS/UCSMAN refused inside, BCLOSE puts the UCS back unnamed. The
       UCS dialog half was moot: the presenter has no UCSMAN dialog (new item below)
-- [ ] A5. The UCS dialog (UCSMAN) as AutoCAD's, design first; its changes one undo step per dialog
+- [x] A5. The UCS dialog (UCSMAN) as AutoCAD's, design first; its changes one undo step per dialog. Done 2026-11-25
+      (board A5UcsDialog, AutoCAD probe .claude/scratch/a5): three tabs, rename/delete/Details, depth; OK one step named
+      UCSMAN. Parked: orthographic depth and Reset not measured in AutoCAD (built from its documentation); UCSVP,
+      UCSFOLLOW and UCSSELECTMODE kept on the drawing, not as variables; UCSNAME stays "" for an orthographic system
 
 #### Parked follow-ups
 

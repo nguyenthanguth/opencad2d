@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **NEW.** UCSMAN (UC, DDUCS) opens the UCS dialog as AutoCAD 2021's: Named UCSs (Unnamed, World, Previous and the named systems, with Set Current, Rename in place, Delete and Details to four decimals relative to World, Unnamed or another system), Orthographic UCSs (Top, Bottom, Front, Back, Left and Right with their depth) and Settings (the UCS icon, Allow Selecting UCS icon, Save UCS with viewport, Update view to Plan). Nothing reaches the drawing until OK, and OK is one undo step named UCSMAN; Cancel changes nothing. Names are refused with AutoCAD's three messages, and World, Previous and Unnamed as taken. UCSMAN with no window now says the window shows it, in place of listing the named systems.
+
 - **BREAKING.** Python no longer runs inside the app: every Python tool runs in a `python.exe` process of its own, with a
   venv of its own, and a `.py` file directly in `Pythons` or in the Python Startup Suite no longer loads (Tools as folders).
   `OpenCAD2D.Python` (the pythonnet embedding) and its 22 test files are gone, `Python.Runtime.dll` and

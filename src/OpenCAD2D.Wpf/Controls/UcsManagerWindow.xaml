@@ -1,0 +1,463 @@
+<Window
+    x:Class="OpenCAD2D.Wpf.UcsManagerWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
+    Title="UCS"
+    Width="424"
+    Height="361"
+    WindowStyle="None"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    Background="#262B33"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <local:BoolToVisibilityConverter x:Key="Shown" />
+            <local:BoolToVisibilityConverter x:Key="Hidden" Invert="True" />
+
+            <!-- A row of a list: the selected one on the selection's colour. -->
+            <Style x:Key="UcsRow" TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Row" Background="Transparent" Padding="6,2">
+                                <ContentPresenter />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter
+                                        TargetName="Row"
+                                        Property="Background"
+                                        Value="{StaticResource GhSelected}"
+                                    />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- The words that name a button of the dialog, 96 wide. -->
+            <Style x:Key="UcsSideButton" TargetType="Button" BasedOn="{StaticResource GhDialogButton}">
+                <Setter Property="Width" Value="96" />
+                <Setter Property="Padding" Value="8,4" />
+                <Setter Property="Margin" Value="0,0,0,6" />
+            </Style>
+
+            <!-- The words of a setting, then the variable it is, muted and in mono type. -->
+            <Style x:Key="UcsVariable" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource GhTextMuted}" />
+                <Setter Property="FontFamily" Value="{StaticResource GhMonoFont}" />
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="Margin" Value="8,0,0,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <!-- The menu of a named row, as the board draws it: Set Current, Rename, Delete, Details... -->
+            <ContextMenu x:Key="NamedMenu" Style="{StaticResource GhContextMenu}">
+                <MenuItem
+                    Style="{StaticResource GhMenuItem}"
+                    Header="Set Current"
+                    Command="{Binding SetCurrentCommand}"
+                />
+                <MenuItem Style="{StaticResource GhMenuItem}" Header="Rename" Command="{Binding RenameCommand}" />
+                <MenuItem Style="{StaticResource GhMenuItem}" Header="Delete" Command="{Binding DeleteCommand}" />
+                <MenuItem Style="{StaticResource GhMenuItem}" Header="Details..." Command="{Binding DetailsCommand}" />
+            </ContextMenu>
+
+            <!-- The menu of an orthographic row: Set Current, Reset, Depth, Details... -->
+            <ContextMenu x:Key="OrthoMenu" Style="{StaticResource GhContextMenu}">
+                <MenuItem
+                    Style="{StaticResource GhMenuItem}"
+                    Header="Set Current"
+                    Command="{Binding OrthoSetCurrentCommand}"
+                />
+                <MenuItem Style="{StaticResource GhMenuItem}" Header="Reset" Command="{Binding OrthoResetCommand}" />
+                <MenuItem Style="{StaticResource GhMenuItem}" Header="Depth" Command="{Binding OrthoDepthCommand}" />
+                <MenuItem
+                    Style="{StaticResource GhMenuItem}"
+                    Header="Details..."
+                    Command="{Binding OrthoDetailsCommand}"
+                />
+            </ContextMenu>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Border
+        x:Name="Root"
+        Background="{StaticResource GhBg}"
+        BorderBrush="{StaticResource GhBorder}"
+        BorderThickness="1"
+        TextElement.FontFamily="{StaticResource GhFont}"
+        TextElement.FontSize="12"
+        TextElement.Foreground="{StaticResource GhText}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+    >
+        <DockPanel>
+            <!-- Header: "UCS", dragged to move the dialog, and the close cross. -->
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhPanel}"
+                BorderBrush="{StaticResource GhBorder}"
+                BorderThickness="0,0,0,1"
+                Padding="12,6"
+                MouseLeftButtonDown="OnHeaderDown"
+            >
+                <DockPanel>
+                    <Button
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource GhTitleCloseButton}"
+                        Click="OnCancel"
+                        ToolTip="Close"
+                    />
+                    <TextBlock Text="UCS" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </DockPanel>
+            </Border>
+
+            <!-- Footer: why Set Current was refused, then OK, Cancel and Help. -->
+            <Border
+                DockPanel.Dock="Bottom"
+                Background="{StaticResource GhPanel}"
+                BorderBrush="{StaticResource GhBorder}"
+                BorderThickness="0,1,0,0"
+                Padding="12,10"
+            >
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button
+                            Style="{StaticResource StylePrimaryButton}"
+                            Content="OK"
+                            Width="75"
+                            Padding="0,4"
+                            Margin="0,0,8,0"
+                            Click="OnOk"
+                            IsDefault="True"
+                        />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Cancel"
+                            Width="75"
+                            Padding="0,4"
+                            Margin="0,0,8,0"
+                            Click="OnCancel"
+                            IsCancel="True"
+                        />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Help"
+                            Width="75"
+                            Padding="0,4"
+                            Click="OnHelp"
+                        />
+                    </StackPanel>
+                    <TextBlock
+                        Text="{Binding Notice}"
+                        Foreground="{StaticResource GhWarn}"
+                        FontSize="11"
+                        VerticalAlignment="Center"
+                        TextWrapping="Wrap"
+                        Margin="0,0,10,0"
+                    />
+                </DockPanel>
+            </Border>
+
+            <!-- The tabs, in AutoCAD's order. -->
+            <Border
+                DockPanel.Dock="Top"
+                BorderBrush="{StaticResource GhBorder}"
+                BorderThickness="0,0,0,1"
+                Padding="12,8,12,0"
+            >
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton
+                        Style="{StaticResource StyleTab}"
+                        Content="Named UCSs"
+                        IsChecked="{Binding IsNamedTab, Mode=TwoWay}"
+                    />
+                    <RadioButton
+                        Style="{StaticResource StyleTab}"
+                        Content="Orthographic UCSs"
+                        IsChecked="{Binding IsOrthoTab, Mode=TwoWay}"
+                    />
+                    <RadioButton
+                        Style="{StaticResource StyleTab}"
+                        Content="Settings"
+                        IsChecked="{Binding IsSettingsTab, Mode=TwoWay}"
+                    />
+                </StackPanel>
+            </Border>
+
+            <Grid Margin="12,10">
+                <!-- Named UCSs: the list, Set Current and Details. -->
+                <DockPanel Visibility="{Binding IsNamedTab, Converter={StaticResource Shown}}">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Text="Current UCS:  " Foreground="{StaticResource GhIcon}" />
+                        <TextBlock Text="{Binding CurrentName}" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Margin="10,0,0,0">
+                        <Button Style="{StaticResource UcsSideButton}" Command="{Binding SetCurrentCommand}">
+                            <AccessText Text="Set _Current" />
+                        </Button>
+                        <Button Style="{StaticResource UcsSideButton}" Command="{Binding DetailsCommand}">
+                            <AccessText Text="De_tails" />
+                        </Button>
+                    </StackPanel>
+                    <ListBox
+                        x:Name="NamedList"
+                        Foreground="{StaticResource GhText}"
+                        ItemsSource="{Binding Rows}"
+                        SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+                        ItemContainerStyle="{StaticResource UcsRow}"
+                        Background="{StaticResource GhInput}"
+                        BorderBrush="{StaticResource GhBorder}"
+                        BorderThickness="1"
+                        Padding="0,2"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        AutomationProperties.Name="Named UCSs"
+                        PreviewKeyDown="OnNamedKeyDown"
+                        PreviewMouseLeftButtonDown="OnNamedMouseDown"
+                        PreviewMouseLeftButtonUp="OnNamedMouseUp"
+                        ContextMenu="{StaticResource NamedMenu}"
+                        PreviewMouseRightButtonDown="OnRowRightClick"
+                    >
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="22" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Text="{Binding Mark}"
+                                        FontSize="9"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Left"
+                                    />
+                                    <Path
+                                        Grid.Column="1"
+                                        Data="{Binding Icon}"
+                                        Stroke="{StaticResource GhIcon}"
+                                        StrokeThickness="1.8"
+                                        StrokeStartLineCap="Round"
+                                        StrokeEndLineCap="Round"
+                                        StrokeLineJoin="Round"
+                                        Stretch="Uniform"
+                                        Width="14"
+                                        Height="14"
+                                        HorizontalAlignment="Left"
+                                    />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Text="{Binding Name}"
+                                        VerticalAlignment="Center"
+                                        Visibility="{Binding IsEditing, Converter={StaticResource Hidden}}"
+                                    />
+                                    <TextBox
+                                        Grid.Column="2"
+                                        Style="{StaticResource StyleBox}"
+                                        FontFamily="{StaticResource GhFont}"
+                                        Text="{Binding EditText, UpdateSourceTrigger=PropertyChanged}"
+                                        Padding="4,1"
+                                        Visibility="{Binding IsEditing, Converter={StaticResource Shown}}"
+                                        IsVisibleChanged="OnEditorShown"
+                                        PreviewKeyDown="OnEditorKeyDown"
+                                        LostKeyboardFocus="OnEditorLostFocus"
+                                        AutomationProperties.Name="New name"
+                                    />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+
+                <!-- Orthographic UCSs: the six faces and their depth, Relative to. -->
+                <DockPanel Visibility="{Binding IsOrthoTab, Converter={StaticResource Shown}}">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Text="Current UCS:  " Foreground="{StaticResource GhIcon}" />
+                        <TextBlock Text="{Binding CurrentName}" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock
+                            Text="Relative to:"
+                            Foreground="{StaticResource GhIcon}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,8,0"
+                        />
+                        <ComboBox
+                            Style="{StaticResource GhComboBox}"
+                            Width="153"
+                            ItemsSource="{Binding OrthoBaseChoices}"
+                            SelectedItem="{Binding OrthoBase, Mode=TwoWay}"
+                            DisplayMemberPath="Name"
+                            AutomationProperties.Name="Relative to"
+                        />
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Margin="10,0,0,0">
+                        <Button Style="{StaticResource UcsSideButton}" Command="{Binding OrthoSetCurrentCommand}">
+                            <AccessText Text="Set _Current" />
+                        </Button>
+                        <Button Style="{StaticResource UcsSideButton}" Command="{Binding OrthoDetailsCommand}">
+                            <AccessText Text="De_tails" />
+                        </Button>
+                    </StackPanel>
+                    <Border
+                        Background="{StaticResource GhInput}"
+                        BorderBrush="{StaticResource GhBorder}"
+                        BorderThickness="1"
+                        VerticalAlignment="Top"
+                    >
+                        <DockPanel>
+                            <Border
+                                DockPanel.Dock="Top"
+                                BorderBrush="{StaticResource GhBorder}"
+                                BorderThickness="0,0,0,1"
+                                Padding="8,3"
+                            >
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="80" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Text="Name"
+                                        Foreground="{StaticResource GhTextMuted}"
+                                        FontWeight="SemiBold"
+                                    />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="Depth"
+                                        Foreground="{StaticResource GhTextMuted}"
+                                        FontWeight="SemiBold"
+                                    />
+                                </Grid>
+                            </Border>
+                            <ListBox
+                                x:Name="OrthoList"
+                                Foreground="{StaticResource GhText}"
+                                ItemsSource="{Binding OrthoRows}"
+                                SelectedItem="{Binding SelectedOrtho, Mode=TwoWay}"
+                                ItemContainerStyle="{StaticResource UcsRow}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                AutomationProperties.Name="Orthographic UCSs"
+                                PreviewMouseDoubleClick="OnOrthoDoubleClick"
+                                ContextMenu="{StaticResource OrthoMenu}"
+                                PreviewMouseRightButtonDown="OnRowRightClick"
+                            >
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="80" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Grid Width="14" Height="14" Margin="0,0,6,0">
+                                                    <Path
+                                                        Data="{Binding Face}"
+                                                        Fill="{StaticResource GhAccent}"
+                                                        Opacity="0.7"
+                                                        Stretch="Uniform"
+                                                        Width="14"
+                                                        Height="14"
+                                                    />
+                                                    <Path
+                                                        Data="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5"
+                                                        Stroke="{StaticResource GhIcon}"
+                                                        StrokeThickness="1.6"
+                                                        StrokeLineJoin="Round"
+                                                        Stretch="Uniform"
+                                                        Width="14"
+                                                        Height="14"
+                                                    />
+                                                </Grid>
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{Binding DepthText}"
+                                                FontFamily="{StaticResource GhMonoFont}"
+                                                VerticalAlignment="Center"
+                                            />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Border>
+                </DockPanel>
+
+                <!-- Settings: the UCS icon and the UCS, each box reading its variable at the opening and writing it at OK. -->
+                <StackPanel Visibility="{Binding IsSettingsTab, Converter={StaticResource Shown}}">
+                    <HeaderedContentControl Style="{StaticResource UcsGroup}" Header="UCS Icon settings">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                                <CheckBox
+                                    Style="{StaticResource StyleCheck}"
+                                    Content="On"
+                                    IsChecked="{Binding IconOn}"
+                                />
+                                <TextBlock Style="{StaticResource UcsVariable}" Text="UCSICON 1" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                                <CheckBox
+                                    Style="{StaticResource StyleCheck}"
+                                    Content="Display at UCS origin point"
+                                    IsChecked="{Binding IconAtOrigin}"
+                                />
+                                <TextBlock Style="{StaticResource UcsVariable}" Text="UCSICON 2" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                                <CheckBox
+                                    Style="{StaticResource StyleCheck}"
+                                    Content="Apply to all active viewports"
+                                    IsChecked="{Binding ApplyToAllViewports}"
+                                />
+                                <TextBlock Style="{StaticResource UcsVariable}" Text="once" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox
+                                    Style="{StaticResource StyleCheck}"
+                                    Content="Allow Selecting UCS icon"
+                                    IsChecked="{Binding IconSelectable}"
+                                />
+                                <TextBlock Style="{StaticResource UcsVariable}" Text="UCSSELECTMODE" />
+                            </StackPanel>
+                        </StackPanel>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl Style="{StaticResource UcsGroup}" Header="UCS settings" Margin="0,10,0,0">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                                <CheckBox
+                                    Style="{StaticResource StyleCheck}"
+                                    Content="Save UCS with viewport"
+                                    IsChecked="{Binding SaveWithViewport}"
+                                />
+                                <TextBlock Style="{StaticResource UcsVariable}" Text="UCSVP" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox
+                                    Style="{StaticResource StyleCheck}"
+                                    Content="Update view to Plan when UCS is changed"
+                                    IsChecked="{Binding FollowToPlan}"
+                                />
+                                <TextBlock Style="{StaticResource UcsVariable}" Text="UCSFOLLOW" />
+                            </StackPanel>
+                        </StackPanel>
+                    </HeaderedContentControl>
+                </StackPanel>
+            </Grid>
+        </DockPanel>
+    </Border>
+</Window>

@@ -2208,6 +2208,9 @@ namespace OpenCAD2D.Wpf
                 case "DIMINSPECT":
                     OnMisc2Requested(e);
                     break;
+                case "UCSMAN":
+                    OnUcsManagerRequested(e);
+                    break;
                 case "PASTESPEC":
                     OnPasteSpecialRequested(e);
                     break;

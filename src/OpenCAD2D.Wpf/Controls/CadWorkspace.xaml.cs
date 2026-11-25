@@ -886,6 +886,7 @@ namespace OpenCAD2D.Wpf
                 _model.ShowDrawingProperties = dialog => DrawingPropertiesWindow.Show(Window.GetWindow(this), dialog);
                 _model.ShowHyperlink = dialog => HyperlinkWindow.Show(Window.GetWindow(this), dialog);
                 _model.ShowDimInspect = dialog => DimInspectWindow.Show(Window.GetWindow(this), dialog);
+                _model.ShowUcsManager = dialog => UcsManagerWindow.Show(Window.GetWindow(this), dialog);
                 _model.OpenLink = OpenWithSystem;
                 _model.AskRedefineBlock = name => CadQuestionWindow.AskRedefineBlock(Window.GetWindow(this), name);
                 _model.ShowBlockEdit = dialog => BlockEditWindow.Show(Window.GetWindow(this), dialog);

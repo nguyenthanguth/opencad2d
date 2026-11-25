@@ -111,6 +111,33 @@ namespace OpenCAD2D
 
         private bool _iconAtOrigin = true;
 
+        /// <summary>Gets or sets whether the UCS icon can be selected (UCSSELECTMODE, "Allow Selecting UCS icon" of the UCS dialog); on until set, as AutoCAD's. The presenter draws the icon and does not select it, so the setting is kept and changes nothing else.</summary>
+        public bool IconSelectable
+        {
+            get => _iconSelectable;
+            set => Change(ref _iconSelectable, value);
+        }
+
+        private bool _iconSelectable = true;
+
+        /// <summary>Gets or sets whether each viewport keeps its own UCS (UCSVP, "Save UCS with viewport" of the UCS dialog); on until set, as AutoCAD's. A space has one view here, so the setting is kept and changes nothing else.</summary>
+        public bool SaveWithViewport
+        {
+            get => _saveWithViewport;
+            set => Change(ref _saveWithViewport, value);
+        }
+
+        private bool _saveWithViewport = true;
+
+        /// <summary>Gets or sets whether the view goes to the plan of the system when it changes (UCSFOLLOW, "Update view to Plan when UCS is changed" of the UCS dialog); off until set, as AutoCAD's. The view of the presenter is not turned, so the setting is kept and changes nothing else.</summary>
+        public bool FollowToPlan
+        {
+            get => _followToPlan;
+            set => Change(ref _followToPlan, value);
+        }
+
+        private bool _followToPlan;
+
         /// <summary>Gets whether the systems differ from those the drawing was opened or last saved with: a change taken back by U is none.</summary>
         public bool IsModified => !Capture().SameAs(_saved);
 
@@ -316,14 +343,24 @@ namespace OpenCAD2D
                 // A system whose name was deleted or given to another since comes back with none.
                 CadUcs back = previous[previous.Count - 1];
                 previous.RemoveAt(previous.Count - 1);
-                CadUcs named = back.Name == null ? null : Find(back.Name);
-                Put(
-                    model,
-                    named != null && named.IsSameAs(back, Tolerance.Default) ? named
-                        : back.Name == null ? back
-                        : back.WithName(null)
-                );
+                Put(model, Resolved(back));
             });
+        }
+
+        /// <summary>The system UCS Previous would make current in the space the canvas shows, as <see cref="Previous"/> gives it; null where there is none.</summary>
+        internal CadUcs PeekPrevious()
+        {
+            List<CadUcs> previous = _document.WorkingSpace.IsModel ? _modelPrevious : _paperPrevious;
+            return previous.Count == 0 ? null : Resolved(previous[previous.Count - 1]);
+        }
+
+        /// <summary>A system kept for UCS Previous as it comes back: the named one of its name where that is still the same system, else with no name.</summary>
+        private CadUcs Resolved(CadUcs back)
+        {
+            CadUcs named = back.Name == null ? null : Find(back.Name);
+            return named != null && named.IsSameAs(back, Tolerance.Default) ? named
+                : back.Name == null ? back
+                : back.WithName(null);
         }
 
         /// <summary>Saves the current system of the space the canvas shows under a name, replacing a named system of that name, and names the current system so, as UCS Save; the system as it was, unnamed, is kept for <see cref="Previous"/> first, as AutoCAD does.</summary>
@@ -417,6 +454,57 @@ namespace OpenCAD2D
                 NameCurrent(found.Name, checkedName);
                 Raise();
             });
+        }
+
+        /// <summary>Whether the drawing has a UCS of the name the presenter could not read and keeps as it is, so that no system can take the name.</summary>
+        internal bool KeepsUnread(string name) => name != null && _unread.Contains(name.Trim());
+
+        /// <summary>
+        /// Puts the named systems as the UCS dialog leaves them, renames, deletions and saves together, in the one step the
+        /// command's group is: the current systems follow the name their system has after it, or lose it where it is gone.
+        /// </summary>
+        /// <param name="after">Each named system the dialog leaves, with the name it had in the drawing, null for one saved by the dialog.</param>
+        internal void ReplaceNamed(IReadOnlyList<KeyValuePair<string, CadUcs>> after)
+        {
+            Record(() =>
+            {
+                var renamed = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                _named.Clear();
+
+                foreach (KeyValuePair<string, CadUcs> pair in after)
+                {
+                    _named.Add(pair.Value.Name, pair.Value);
+
+                    if (pair.Key != null)
+                    {
+                        renamed[pair.Key] = pair.Value.Name;
+                    }
+                }
+
+                _tableChanged = true;
+                Model = Followed(Model, renamed, ref _modelChanged);
+                Paper = Followed(Paper, renamed, ref _paperChanged);
+                Raise();
+            });
+        }
+
+        /// <summary>A current system with the name its system has after a rename or deletion.</summary>
+        private static CadUcs Followed(CadUcs current, Dictionary<string, string> renamed, ref bool changed)
+        {
+            if (current.Name == null)
+            {
+                return current;
+            }
+
+            renamed.TryGetValue(current.Name, out string name);
+
+            if (string.Equals(name, current.Name, StringComparison.Ordinal))
+            {
+                return current;
+            }
+
+            changed = true;
+            return current.WithName(name);
         }
 
         /// <summary>Writes the systems into the drawing as AutoCAD writes them, where one has changed: the UCS table, then the header.</summary>
