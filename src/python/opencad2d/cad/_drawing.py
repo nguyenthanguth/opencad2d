@@ -17,7 +17,7 @@ import importlib
 import os
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Protocol, TypeVar, overload
 
 if TYPE_CHECKING:
     import typing_extensions
@@ -31,6 +31,7 @@ else:
 
 K = TypeVar("K", bound="DxfEntity")
 
+_net: Any = importlib.import_module("System")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
 _geo: Any = importlib.import_module("GeometryHelper.Geometry")
 
@@ -61,6 +62,22 @@ class Op:
     layout: str | None = None
     handle: str | None = None
     layer: Layer | None = None
+
+
+class Box(NamedTuple):
+    """A box of the drawing, in the units of the drawing: the least corner and the greatest, as ``drawing.view`` gives the part
+    of the space the canvas shows and takes the one it is to show.
+
+    Example:
+        drawing.zoom_window((0, 0), (10, 10))
+        drawing.view                                  # Box(min_x=-3.82022, min_y=0.0, max_x=13.82022, max_y=10.0)
+        drawing.view = Box(0.0, 0.0, 10.0, 10.0)      # fits the box with no margin, as ZOOM Window does
+    """
+
+    min_x: float
+    min_y: float
+    max_x: float
+    max_y: float
 
 
 class Backend(Protocol):
@@ -108,6 +125,31 @@ class Backend(Protocol):
     def save_as(self, path: str, version: str | None) -> None: ...
     def close(self, discard: bool) -> None: ...
 
+    @property
+    def has_window(self) -> bool: ...
+    def zoom_extents(self) -> None: ...
+    def zoom_window(self, first: Any, second: Any) -> None: ...
+    def zoom_objects(self, handles: list[str]) -> None: ...
+    def zoom_center(self, center: Any, height: float) -> None: ...
+    def zoom_scaled(self, factor: float) -> None: ...
+    def zoom_previous(self) -> bool: ...
+    def pan(self, displacement: Any) -> None: ...
+    def regen(self) -> None: ...
+    @property
+    def view(self) -> Box: ...
+    @view.setter
+    def view(self, box: Box) -> None: ...
+    @property
+    def named_views(self) -> list[str]: ...
+    def save_view(self, name: str) -> None: ...
+    def restore_view(self, name: str) -> None: ...
+    def delete_view(self, name: str) -> None: ...
+    def get_variable(self, name: str) -> Any: ...
+    def set_variable(self, name: str, value: Any) -> None: ...
+    def select_all(self) -> list[tuple[str, Any, Any]]: ...
+    def select_window(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
+    def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
+
 
 def dxf_type_of(net: Any) -> str:
     """The DXF name of an entity (``LINE``, ``LWPOLYLINE``): the first word of its ``ToString``, which the library writes as
@@ -133,6 +175,40 @@ def point3(value: Any) -> Any:
         numbers: list[Any] = list(value)  # pyright: ignore[reportUnknownArgumentType]
         return _geo.GeoPoint3(float(numbers[0]), float(numbers[1]), float(numbers[2]) if len(numbers) == 3 else 0.0)
     raise ValueError(f"A point is a GeoPoint2, a GeoPoint3 or a tuple of 2 or 3 numbers, not {value!r}.")
+
+
+def point2(value: Any) -> Any:
+    """A ``GeoPoint2`` from anything ``point3`` takes; a z is dropped, as the view and the selection calls are 2D."""
+    point = point3(value)
+    return _geo.GeoPoint2(point.X, point.Y)
+
+
+def vector2(value: Any) -> Any:
+    """A ``GeoVector2`` from a ``GeoVector2`` or a tuple or list of 2 numbers; a displacement of 3 numbers is refused."""
+    if isinstance(value, _geo.GeoVector2):
+        return value
+    if isinstance(value, (tuple, list)) and len(value) == 2:  # pyright: ignore[reportUnknownArgumentType]
+        numbers: list[Any] = list(value)  # pyright: ignore[reportUnknownArgumentType]
+        return _geo.GeoVector2(float(numbers[0]), float(numbers[1]))
+    raise ValueError(f"A displacement is a GeoVector2 or a tuple of 2 numbers, not {value!r}.")
+
+
+def variable_value(name: str, value: Any) -> Any:
+    """What ``set_variable`` gives the app for a value, as the .NET object the app tells apart by type (a Python ``int`` would
+    reach it as a ``PyInt``): ``Int32``, ``Double`` or ``String``, a sequence of 2 or 3 numbers as an array of doubles;
+    ``TypeError`` for any other, a ``bool`` included."""
+    if isinstance(value, int) and not isinstance(value, bool):
+        return _net.Int32(value)
+    if isinstance(value, float):
+        return _net.Double(value)
+    if isinstance(value, str):
+        return _net.String(value)
+    if isinstance(value, (tuple, list)) and len(value) in (2, 3):  # pyright: ignore[reportUnknownArgumentType]
+        numbers: list[Any] = list(value)  # pyright: ignore[reportUnknownArgumentType]
+        return _net.Array[_net.Double]([float(number) for number in numbers])
+    raise TypeError(
+        f"The variable {name} is set to an int, a float, a str or a tuple of 2 or 3 numbers, not {value!r}."
+    )
 
 
 class Entity(Generic[E]):
@@ -620,13 +696,211 @@ class Drawing:
             drawing.select([drawing.entities()[0]])       # the first object, as a user would select it
             len(drawing.selection())                      # 1
         """
+        self._backend.select(self._handles_of(items))
+
+    @staticmethod
+    def _handles_of(items: Sequence[Entity | str]) -> list[str]:
+        """The handles of entities or handles; ``ValueError`` for one not committed yet."""
         handles: list[str] = []
         for item in items:
             handle = item.handle if isinstance(item, Entity) else str(item)
             if handle.startswith("~"):
                 raise ValueError(f"The object {handle} is not in the drawing yet: call commit() first.")
             handles.append(handle)
-        self._backend.select(handles)
+        return handles
+
+    # ---- the view, the selection by area, the variables -----------------------------------------------------------
+
+    def zoom_extents(self) -> None:
+        """Zoom to the extents, as ZOOM Extents does: what the space shown draws, fitted with a margin of 5 %. One undo step,
+        ZOOM, and ``zoom_previous()`` goes back to the view before. Like every call that moves the view it works on the
+        drawing the app shows (``CadRemoteException`` otherwise), and ``RuntimeError`` on a drawing of a file, which has none.
+
+        Example:
+            drawing.zoom_extents()                        # a line (0, 0)-(100, 0) and a circle about (50, 50) of radius 25 fill
+            drawing.view                                  # Box(min_x=-23.50187, min_y=-4.16667, max_x=123.50187, max_y=79.16667)
+        """
+        self._backend.zoom_extents()
+
+    def zoom_window(self, first: Any, second: Any) -> None:
+        """Zoom to a window, as ZOOM Window does: the two corners (points of any kind, in either order) fitted with no margin.
+
+        Example:
+            drawing.zoom_window((0, 0), (10, 10))         # in a 942 by 534 pixel view: view is (-3.82022, 0)-(13.82022, 10)
+        """
+        self._backend.zoom_window(point2(first), point2(second))
+
+    def zoom_objects(self, items: Sequence[Entity | str]) -> None:
+        """Zoom to objects, as ZOOM Object does: the box of the ones drawn in the space shown, fitted with a margin of 5 %;
+        none drawn there leaves the view as it was. ``items`` are entities or handles, committed ones.
+
+        Example:
+            circle = drawing.entities("CIRCLE")[0]        # a circle of radius 25 about (50, 50)
+            drawing.zoom_objects([circle])                # the view is 55.556 high about (50, 50)
+        """
+        self._backend.zoom_objects(self._handles_of(items))
+
+    def zoom_center(self, center: Any, height: float) -> None:
+        """Zoom to a height about a centre, as ZOOM Center does: the view shows ``height`` and as much width as the canvas has.
+
+        Example:
+            drawing.zoom_center((50, 50), 20)             # in a 942 by 534 pixel view: view is (32.35955, 40)-(67.64045, 60)
+        """
+        self._backend.zoom_center(point2(center), float(height))
+
+    def zoom_scaled(self, factor: float) -> None:
+        """Scale the view about its centre, as ZOOM nX does: 2 shows half the width and half the height, 0.5 twice as much.
+
+        Example:
+            drawing.zoom_scaled(2)                        # a view 40 wide shows 20 wide about the same centre
+        """
+        self._backend.zoom_scaled(float(factor))
+
+    def zoom_previous(self) -> bool:
+        """Go back to the view before the last zoom or pan, as ZOOM Previous does; False, and nothing written, where none is
+        saved.
+
+        Example:
+            drawing.zoom_extents()
+            drawing.zoom_previous()                       # True: the view before zoom_extents(); False once none is left
+        """
+        return self._backend.zoom_previous()
+
+    def pan(self, displacement: Any) -> None:
+        """Pan so that the drawing moves by the displacement, as -PAN does: ``(10, 0)`` moves what is drawn 10 to the right, so
+        the view shows 10 less at the left. A ``GeoVector2`` or a tuple of 2 numbers; one of 3 raises ``ValueError``.
+
+        Example:
+            drawing.zoom_window((0, 0), (10, 10))         # view (-3.82022, 0)-(13.82022, 10)
+            drawing.pan((10, 0))                          # view (-13.82022, 0)-(3.82022, 10)
+        """
+        self._backend.pan(vector2(displacement))
+
+    def regen(self) -> None:
+        """Regenerate the drawing, as REGEN does without its line on the command line: the fields are evaluated again and the
+        temporary graphics cleared. It is no undo step and works on a drawing of a file too.
+
+        Example:
+            drawing.regen()                               # nothing the script reads changes; a field now shows its new value
+        """
+        self._backend.regen()
+
+    @property
+    def view(self) -> Box:
+        """The part of the space shown that the canvas shows, as a ``Box``: the whole canvas, so wider or taller than the box
+        last given where the shape differs. Setting it fits a box with no margin, as ``zoom_window`` does.
+
+        Example:
+            drawing.view = Box(0.0, 0.0, 10.0, 10.0)     # one undo step, ZOOM
+            drawing.view                                  # Box(min_x=-3.82022, min_y=0.0, max_x=13.82022, max_y=10.0)
+        """
+        return self._backend.view
+
+    @view.setter
+    def view(self, box: Box) -> None:
+        self._backend.view = Box(*box)
+
+    @property
+    def has_window(self) -> bool:
+        """Whether the app shows the drawing in a window. False for a drawing of a file and where the app has no window (a test
+        of the app): the view calls then work on a view of 942 by 534 pixels showing 10 units of height about the origin.
+
+        Example:
+            new_file().has_window                         # False: a drawing of a file has no window
+        """
+        return self._backend.has_window
+
+    @property
+    def named_views(self) -> list[str]:
+        """The names of the named views, as -VIEW ? lists them: in ordinal order, letters of either case alike.
+
+        Example:
+            drawing.save_view("Corner")
+            drawing.named_views                           # ['Corner']
+        """
+        return self._backend.named_views
+
+    def save_view(self, name: str) -> None:
+        """Save the view on screen under a name, as -VIEW Save does; a name that is a view's already redefines it. One undo
+        step, VIEW. A name is not empty, 255 letters at most, and has no space at either end.
+
+        Example:
+            drawing.zoom_window((0, 0), (40, 30))
+            drawing.save_view("Corner")                   # drawing.named_views is now ['Corner']
+        """
+        self._backend.save_view(name)
+
+    def restore_view(self, name: str) -> None:
+        """Show a named view, as -VIEW Restore does; the name ignores case, and one the drawing lacks is refused.
+
+        Example:
+            drawing.restore_view("corner")                # the view saved as Corner is shown again
+        """
+        self._backend.restore_view(name)
+
+    def delete_view(self, name: str) -> None:
+        """Erase a named view, as -VIEW Delete does; one the drawing lacks is refused.
+
+        Example:
+            drawing.delete_view("Corner")                 # drawing.named_views no longer lists it
+        """
+        self._backend.delete_view(name)
+
+    def select_all(self) -> list[Entity]:
+        """Take every object of the space the drawing works in, as the All option of "Select objects:" does, as copies in the
+        order the space lists them. The objects ``select`` selected stay selected; narrow by layer or type with ``entities``.
+
+        Example:
+            [e.dxf_type for e in drawing.select_all()]   # ['LINE', 'CIRCLE'] for a line and a circle
+        """
+        return [Entity(self, handle, net, source) for handle, net, source in self._backend.select_all()]
+
+    def select_window(self, first: Any, second: Any) -> list[Entity]:
+        """Take the objects that lie wholly inside a window, as the Window option of "Select objects:" does: where the app has
+        a window, only those its view shows. The objects ``select`` selected stay selected.
+
+        Example:
+            drawing.select_window((-1, 5), (101, 35))     # the lines at y 10, 20 and 30 of five lines at y 0, 10, 20, 30, 40
+        """
+        return [
+            Entity(self, handle, net, source)
+            for handle, net, source in self._backend.select_window(point2(first), point2(second))
+        ]
+
+    def select_crossing(self, first: Any, second: Any) -> list[Entity]:
+        """Take the objects a window lies across or contains, as the Crossing option of "Select objects:" does, held to the
+        view as ``select_window`` is.
+
+        Example:
+            drawing.select_crossing((50, 15), (60, 25))   # the line at y 20 of five lines at y 0, 10, 20, 30, 40
+        """
+        return [
+            Entity(self, handle, net, source)
+            for handle, net, source in self._backend.select_crossing(point2(first), point2(second))
+        ]
+
+    def get_variable(self, name: str) -> int | float | str | tuple[float, ...]:
+        """The value of a system variable of the drawing as AutoLISP's ``getvar`` gives it: an ``int`` for a whole number or a
+        switch, a ``float`` (an angle in radians), a ``str``, a tuple of 2 or 3 numbers for a point. ``name`` ignores case.
+
+        Example:
+            drawing.get_variable("LUNITS")                # 2 in a new drawing
+            drawing.get_variable("INSBASE")               # (0.0, 0.0, 0.0)
+        """
+        value: Any = self._backend.get_variable(name)
+        if isinstance(value, (int, float, str)):
+            return value
+        return tuple(float(number) for number in value)
+
+    def set_variable(self, name: str, value: int | float | str | Sequence[float]) -> None:
+        """Set a system variable as AutoLISP's ``setvar`` does; one the drawing keeps is one undo step, SETVAR. A name the
+        app lacks, a read-only variable and a value it refuses are refused in the app's words; a ``bool`` is a ``TypeError``.
+
+        Example:
+            drawing.set_variable("LUNITS", 4)             # then drawing.get_variable("LUNITS") is 4
+            drawing.set_variable("INSBASE", (1.5, 2.5, 0.0))
+        """
+        self._backend.set_variable(name, variable_value(name, value))
 
     # ---- adding ---------------------------------------------------------------------------------------------------
 

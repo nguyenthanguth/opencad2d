@@ -305,6 +305,10 @@ handles = drawing.commit()          # the handles of the circle and the line, in
 | `modify(entity)`, `erase(entity_or_handle)` | queue a change made to `entity.net`, or an erase |
 | `commit()` | apply everything queued as one undo step; the handles of the objects added |
 | `layers`, `current_layer`, `text_styles`, `dimension_styles`, `blocks`, `layouts`, `current_layout` | the tables; styles and blocks are read-only copies |
+| `zoom_extents`, `zoom_window`, `zoom_objects`, `zoom_center`, `zoom_scaled`, `zoom_previous`, `pan`, `regen`, `view`, `has_window` | move and read the view, as ZOOM, -PAN and REGEN do ([below](#the-view-selection-and-variables)); `RuntimeError` on a file |
+| `named_views`, `save_view`, `restore_view`, `delete_view` | the named views, as -VIEW does |
+| `select_all`, `select_window`, `select_crossing` | objects by an area as `Entity` copies; the selection of `select` stays |
+| `get_variable`, `set_variable` | system variables, as `getvar` and `setvar` |
 | `pick_point`, `pick_object`, `pick_objects` | ask the user (in a tool they are the `get_*` prompts; `RuntimeError` on a file) |
 | `save()`, `save_as(path, version)`, `close(discard)` | as from outside; a modified drawing is refused by `close` unless `discard` is true |
 | `net` | the `CadRemoteDocument` in a tool (a `CadDocument` for a file); its `Extents` gives the header's extents |
@@ -325,6 +329,58 @@ queued when it ends, inside its own step; `save()` commits first in every backen
 outside the app is lost, without a warning. A round trip to the app costs about 17 ms for one call and 0.15 s for 1 000
 inserts queued and committed: a tool that makes many calls batches them (queue, then one `commit()`; the array API of
 [Python](../python.md#numpy-in-blocks)).
+
+### The view, selection and variables
+
+A `Drawing` moves the view, keeps named views, takes objects by an area and reads and sets system variables as a command of the
+same name would, through the code the commands run ([`CadEditor`](plugins.md#the-editor-the-view-selection-and-variables) in a
+plugin, [the same calls](remote.md#the-view-selection-and-variables) from C# outside the app). The view calls need the view of a
+drawing of the app: in a tool they are the run's own and join its undo step, from outside they work on the drawing the app shows
+(`CadRemoteException` for another one: `The drawing B.dxf is not the drawing shown: activate it first.`).
+
+```python
+drawing.zoom_extents()                              # ZOOM Extents: what the space draws, with a margin of 5 %
+drawing.zoom_window((0, 0), (10, 10))               # ZOOM Window, no margin; points of any kind, either order
+drawing.zoom_center((50, 50), 20)                   # ZOOM Center, a height of 20
+drawing.zoom_scaled(2)                              # ZOOM 2X: half the width and the height about the same centre
+drawing.zoom_objects([circle])                      # ZOOM Object: entities or handles of committed objects
+drawing.pan((10, 0))                                # -PAN: the drawing moves 10 to the right
+went_back = drawing.zoom_previous()                 # False, and nothing written, where none is saved
+drawing.regen()                                     # REGEN: fields evaluated, temporary graphics cleared
+
+box = drawing.view                                  # a Box(min_x, min_y, max_x, max_y): the part the canvas shows
+drawing.view = Box(0.0, 0.0, 10.0, 10.0)            # fits the box with no margin, as zoom_window does
+
+drawing.save_view("Plan")                           # -VIEW Save
+drawing.restore_view("plan")                        # -VIEW Restore, letters of either case alike
+drawing.named_views                                 # ['Plan'], in -VIEW ?'s order
+drawing.delete_view("Plan")                         # -VIEW Delete
+
+inside = drawing.select_window((-1, 5), (101, 35))  # Select objects: Window
+across = drawing.select_crossing((50, 15), (60, 25))  # Select objects: Crossing
+everything = drawing.select_all()                   # Select objects: All; copies, as entities() gives them
+
+drawing.set_variable("LTSCALE", 2.5)                # setvar; one undo step, SETVAR, for a variable the drawing keeps
+drawing.get_variable("LTSCALE")                     # getvar: an int, a float, a str or a tuple of 2 or 3 numbers
+```
+
+In a drawing with a line from (0, 0) to (100, 0) and a circle about (50, 50) of radius 25, shown by an app with no window (942 by
+534 pixels, 10 units high about the origin: the remote test server), `zoom_extents()` makes `view` `Box(-23.50187, -4.16667,
+123.50187, 79.16667)`, `zoom_window((0, 0), (10, 10))` `Box(-3.82022, 0, 13.82022, 10)`, `zoom_center((50, 50), 20)` `Box(32.35955,
+40, 67.64045, 60)`, and `pan((10, 0))` after the window `Box(-13.82022, 0, 3.82022, 10)`. `has_window` says whether the app shows
+the drawing in a window: False there, True in the app, where the canvas has a shape of its own. `view` is the whole canvas, so
+wider or taller than a box given to it where the shape differs.
+
+- **Selection** takes what the command takes and leaves the user's selection as it was: `select(items)` changes that one. With a
+  window, `select_window` and `select_crossing` keep only what the view shows, as the command does; with none, everything in
+  the area. Narrow `select_all` by layer or type with `entities(...)`.
+- **A drawing of a file** (`open_file`, `new_file`) has no view: `zoom_*`, `pan`, `view` and the named views raise
+  `RuntimeError("zoom_extents works on a drawing of the app: a drawing file has no view.")`, with the name of the call, and
+  `has_window` is False. The selections by area (no view holds them), the variables and `regen` work. A refusal of the editor
+  on a file is a `ValueError` (`The system variable NOSUCH is not known.`); from outside it is the `CadRemoteException` the app
+  raised.
+- **What is queued** is not flushed by these calls: `zoom_objects` and the selections see what `commit()` applied. A variable
+  is set to an `int`, a `float`, a `str` or a tuple of 2 or 3 numbers; a `bool` is a `TypeError`.
 
 ### A drawing made and saved in code
 

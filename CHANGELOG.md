@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **NEW.** Python `Drawing.zoom_extents`, `zoom_window`, `zoom_objects`, `zoom_center`, `zoom_scaled`, `zoom_previous`,
+  `pan`, `regen`, `view` (a `Box`) and `has_window`, the named views (`named_views`, `save_view`, `restore_view`,
+  `delete_view`), the selection by area (`select_all`, `select_window`, `select_crossing`) and `get_variable` /
+  `set_variable`, over `CadEditor` and the Remote calls (A6). A drawing of a file has no view: its view calls raise
+  `RuntimeError`; the selections, the variables and `regen` work there.
 - **CHANGED.** Python `Entity` is generic and `Entity.net` is typed: `drawing.entities(DxfCircle)` and the `add_*` calls
   give an `Entity[DxfCircle]` (a class asks for its subclasses too, and a class that is no `DxfEntity` raises `TypeError`),
   while an entity read by name, handle, selection or pick has a `DxfEntity` for `net`. A type checker now asks for
