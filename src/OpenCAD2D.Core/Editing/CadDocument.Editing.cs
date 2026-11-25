@@ -60,6 +60,7 @@ namespace OpenCAD2D
         private string _groupName;
         private List<CadEditRecord> _groupRecords;
         private bool _groupFailed;
+        private bool _groupJoins;
         private bool _realTime;
         private CadUndoStep _realTimeStep;
         private bool _realTimeView;
@@ -703,13 +704,15 @@ namespace OpenCAD2D
             List<CadEditRecord> records = _groupRecords;
             string name = _groupName;
             bool failed = _groupFailed;
+            bool joins = joinsPrevious || _groupJoins;
             _groupRecords = null;
             _groupName = null;
             _groupFailed = false;
+            _groupJoins = false;
 
             if (!failed && records.Count > 0)
             {
-                Commit(name, records, joinsPrevious);
+                Commit(name, records, joins);
                 return true;
             }
 
@@ -738,6 +741,7 @@ namespace OpenCAD2D
             _groupRecords = null;
             _groupName = null;
             _groupFailed = false;
+            _groupJoins = false;
 
             if (made)
             {
@@ -998,6 +1002,54 @@ namespace OpenCAD2D
             }
 
             SaveAs(FileName);
+        }
+
+        /// <summary>
+        /// Runs a save from inside a group of edits, which <see cref="Save"/> and <see cref="SaveAs(string)"/> refuse: the group
+        /// is closed for the save, so that what it has made so far is a step the drawing is saved with, and opened again after
+        /// it, under the same name and as deep. Its edits after the save are a step that joins the first, so that one undo takes
+        /// back both, as it takes back a group nothing was saved in. A group left open with no edit made yet makes no step, and
+        /// the edits after the save are the group's step alone. A group cancelled after the save takes back only what followed
+        /// it: the file cannot be taken back, and the step it was saved with stays. With no group open the save is simply run.
+        /// </summary>
+        /// <param name="save">The save, a call of <see cref="Save"/> or <see cref="SaveAs(string)"/> on this drawing; whatever
+        /// it throws is thrown after the group is opened again.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the save is null.</exception>
+        public void SavingInGroup(Action save)
+        {
+            if (save == null)
+            {
+                throw new ArgumentNullException(nameof(save));
+            }
+
+            if (_groupDepth == 0)
+            {
+                save();
+                return;
+            }
+
+            int depth = _groupDepth;
+            string name = _groupName;
+            bool joins = _groupJoins;
+
+            while (_groupDepth > 0)
+            {
+                joins |= EndGroup(false);
+            }
+
+            try
+            {
+                save();
+            }
+            finally
+            {
+                for (int i = 0; i < depth; i++)
+                {
+                    BeginGroup(name);
+                }
+
+                _groupJoins = joins;
+            }
         }
 
         /// <summary>

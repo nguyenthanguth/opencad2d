@@ -311,10 +311,10 @@ handles = drawing.commit()          # the handles of the circle and the line, in
 | `select_all`, `select_window`, `select_crossing` | objects by an area as `Entity` copies; the selection of `select` stays |
 | `get_variable`, `set_variable` | system variables, as `getvar` and `setvar` |
 | `pick_point`, `pick_object`, `pick_objects` | ask the user (in a tool they are the `get_*` prompts; `RuntimeError` on a file) |
-| `save()`, `save_as(path, version)`, `close(discard)` | as from outside; a modified drawing is refused by `close` unless `discard` is true |
+| `save()`, `save_as(path, version)`, `close(discard)` | as from outside; a modified drawing is refused by `close` unless `discard` is true. A save inside a run writes what the run has made so far and the run goes on, still one undo step: a line, a `save()` and a circle are one `U`, and the file holds the line only. A run that fails or is ended with Esc after a save takes back only what followed it, as the file cannot be taken back |
 | `net` | the `CadRemoteDocument` in a tool (a `CadDocument` for a file); its `Extents` gives the header's extents |
 
-A point is a `GeoPoint2`, a `GeoPoint3` or a tuple of two or three numbers. An `Entity` has `handle`, `dxf_type` and a `net`, a
+A point is a `GeoPoint2`, a `GeoPoint3` or a tuple of two or three numbers. An `Entity` has `handle`, `dxf_type` (the `DxfName` of its `net`) and a `net`, a
 **copy** of the `DxfEntity` that is never the live object, so nothing bypasses undo; `layer`, `color` (256 ByLayer, 0 ByBlock)
 and `linetype` are set on the `Entity` and committed with the drawing; after changing `net`, call `drawing.modify(entity)`. A
 type checker knows the class of `net` of an `Entity` that `entities(DxfCircle)` or an `add_*` gave (`Entity[DxfCircle]`); one
@@ -587,10 +587,6 @@ Measured on Python 3.14 (net48 test host, local wheels): the base 1.7 s once and
 
 ## What is not there yet
 
-- `save()` inside a run makes two undo steps: the run's group ends at the save and opens again, so what was done before it is
-  one step and what follows another.
-- `Entity.dxf_type` is read from the text of the object (`str(net)`): a public DXF name on `DxfEntity` would touch the core
-  library.
 - Custom object snaps, plugin settings, a side panel, Properties rows and menus for a tool (the **not there** rows above).
 - A script editor, completion (Ctrl+Space) and a debugger; a console for typing Python an entry at a time.
 - A Python of the app's own: the app does not bundle one.

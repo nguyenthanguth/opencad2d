@@ -23,12 +23,17 @@ from typing import Any
 from GeometryHelper.Dxf import (
     DxfBlockTableRecord,
     DxfDatabase,
+    DxfDBPoint,
     DxfDimStyleTableRecord,
+    DxfEllipse,
     DxfLine,
+    DxfPoly2dType,
+    DxfPolyline2d,
     DxfTextStyleTableRecord,
     DxfWriter,
 )
-from GeometryHelper.Geometry import GeoPoint2, GeoPoint3
+from GeometryHelper.Geometry import GeoPoint2, GeoPoint3, GeoVector3
+from System import Array
 
 BLANK = "blank"
 FILE = "file"
@@ -154,6 +159,21 @@ def _a_text(d: Any) -> object:
     d.commit()
     text = d.entities()[0]
     return (text.dxf_type, str(text.net.TextString), _p(text.net.Position), _r(text.net.Height))
+
+
+def _the_dxf_type_of_every_kind(d: Any) -> object:
+    d.add_line((0, 0), (10, 0))
+    d.add_circle((0, 0), 5)
+    d.add_arc((0, 0), 10, 0.0, 1.5)
+    d.add_polyline([(0, 0), (10, 0), (10, 5)], closed=True)
+    d.add_text("Plate", (0, 100), 5.0)
+    d.add_mtext("Plate PL10", (10, 20), 5.0)
+    d.add(DxfDBPoint(GeoPoint3(1, 2, 0)))
+    d.add(DxfEllipse(GeoPoint3(0, 0, 0), GeoVector3(0, 0, 1), GeoVector3(10, 0, 0), 0.5, 0.0, 6.283185307179586))
+    corners = Array[GeoPoint3]([GeoPoint3(0, 0, 0), GeoPoint3(10, 0, 0), GeoPoint3(10, 5, 0)])
+    d.add(DxfPolyline2d(DxfPoly2dType.SimplePoly, corners, 0.0, False, 0.0, 0.0, None))
+    d.commit()
+    return [e.dxf_type for e in d.entities()]
 
 
 def _an_mtext_with_layer_and_color(d: Any) -> object:
@@ -387,6 +407,12 @@ SCENARIOS: list[Scenario] = [
     Scenario("a_closed_polyline", BLANK, _a_closed_polyline, ("LWPOLYLINE", [(0, 0), (100, 0), (100, 50)], True)),
     Scenario("points_of_every_kind", BLANK, _points_of_every_kind, [((1, 2, 0), (3, 4, 0)), ((5, 6, 0), (7, 8, 0))]),
     Scenario("a_text", BLANK, _a_text, ("TEXT", "Plate", (0, 100, 0), 5.0)),
+    Scenario(
+        "the_dxf_type_of_every_kind",
+        BLANK,
+        _the_dxf_type_of_every_kind,
+        ["LINE", "CIRCLE", "ARC", "LWPOLYLINE", "TEXT", "MTEXT", "POINT", "ELLIPSE", "POLYLINE"],
+    ),
     Scenario(
         "an_mtext_with_layer_and_color",
         BLANK,

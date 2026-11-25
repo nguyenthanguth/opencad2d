@@ -157,9 +157,8 @@ class Backend(Protocol):
 
 
 def dxf_type_of(net: Any) -> str:
-    """The DXF name of an entity (``LINE``, ``LWPOLYLINE``): the first word of its ``ToString``, which the library writes as
-    ``LINE 2F on steel``, since no public member gives the name."""
-    return str(net).split(None, 1)[0]
+    """The DXF name of an entity (``LINE``, ``LWPOLYLINE``): its ``DxfName``, the type its record is written under."""
+    return str(net.DxfName)
 
 
 def look_color(look: Look) -> Any:
@@ -1335,8 +1334,9 @@ class Drawing:
     # ---- the file -------------------------------------------------------------------------------------------------
 
     def save(self) -> None:
-        """Commit what is queued, then save to the file the drawing came from or was last saved as. In the app a save ends the
-        undo step of the run and opens it again: what was done before it is one step, what follows another.
+        """Commit what is queued, then save to the file the drawing came from or was last saved as. A save inside a group of
+        edits (an ``undo_group``, or the run of a tool) saves what the group has made so far and goes on: what follows it is one
+        undo step with what came before it, and one undo takes back both, the saved part too.
 
         Example:
             drawing = open_file("plan.dxf")

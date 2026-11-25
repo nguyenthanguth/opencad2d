@@ -475,18 +475,9 @@ class _LocalBackend:
     # ---- the file ---------------------------------------------------------------------------------------------------
 
     def _saving(self, action: Callable[[], object]) -> None:
-        """Runs a save. A drawing cannot be saved while a group of edits is open: any is ended for the save and opened again
-        after it."""
-        document = self.document
-        depth = 0
-        while document.IsInGroup:
-            document.EndGroup()
-            depth += 1
-        try:
-            action()
-        finally:
-            for _ in range(depth):
-                document.BeginGroup("PYTHON")
+        """Runs a save. A drawing cannot be saved while a group of edits is open: the document ends the group for the save and
+        opens it again, and what is done after the save is one undo step with what was done before it."""
+        self.document.SavingInGroup(_net.Action(action))
 
     def save(self) -> None:
         self._saving(self.document.Save)

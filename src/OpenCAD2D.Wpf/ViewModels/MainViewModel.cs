@@ -1403,7 +1403,12 @@ namespace OpenCAD2D.Wpf
         /// <summary>Saves the drawing to a file, as a template where <paramref name="template"/> gives its options.</summary>
         private bool SaveAs(string path, string fileType, CadTemplateOptionsRequest template)
         {
-            _current.Session.Escape();
+            // A save the tool of a run asks for goes on under the run's command, which Esc would end.
+            if (!_current.Session.SavingForRun)
+            {
+                _current.Session.Escape();
+            }
+
             string old = _current.Path;
 
             try
