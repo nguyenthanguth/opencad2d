@@ -214,10 +214,10 @@ namespace OpenCAD2D
 
         /// <summary>
         /// How a mirror moves each text and INSERT of the selection, worked out before anything moves, in one scope of the
-        /// document's fonts rather than one a text: each scope reads the font file again, so that MIRROR of 2000 texts in
-        /// opencad2d.shx took 340 ms and not 95. The fonts are not left set while the copies are written, which would put a
-        /// copy's words where they stand as it is appended. Null where nothing is read ahead: no way to move them, or no text
-        /// or INSERT.
+        /// document's fonts rather than one a text: each scope works its folders and path out again, so that MIRROR of 2000
+        /// texts in opencad2d.shx took 117 ms and not 62, though the fonts are read once (<see cref="DxfDatabase.BorrowFonts(string)"/>).
+        /// The fonts are not left set while the copies are written, which would put a copy's words where they stand as it is
+        /// appended. Null where nothing is read ahead: no way to move them, or no text or INSERT.
         /// </summary>
         private static Dictionary<string, CadCommands.ReadableMirror> ReadAhead(
             CadEditScope s,

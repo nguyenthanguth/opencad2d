@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **CHANGED.** Measuring a text, an MTEXT or an attribute in the document's fonts (`(textbox)`, `vla-GetBoundingBox`,
+  MIRROR, MLEADERALIGN, MLEADEREDIT, the table editor) borrows one set of fonts for each path (`DxfDatabase.BorrowFonts`)
+  and keeps it for the life of the drawing, where each text read the font file again: `(textbox)` of 2000 texts in an SHX
+  font took 212 ms and takes 126 ms (.NET Framework 4.8), MIRROR of 2000 texts 69 ms and 62 ms, and MLEADERALIGN of 200
+  multileaders 45 ms and 40 ms, every result the same to the bit. A font file added to a folder the drawing already
+  measured in is read again once the document's fonts are set, which Apply in Global settings does. The core library is
+  updated to GeometryHelper 13.12.1 (core commit 4f575b09), which brings `DxfDatabase.BorrowFonts`.
 - **NEW.** `CadEditor.Check(Action<CadEditor>)` (plugin API 1.5): the dry run of an edit. It runs the calls it is given
   with every check they make (the numbers, the objects, the plan of an offset, the owner's gate), writes nothing, and
   gives null or the words the call would throw: `Check(e => e.Offset(circle, 15, side))` of a circle of radius 10 inward

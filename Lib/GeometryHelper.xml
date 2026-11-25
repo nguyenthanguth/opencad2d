@@ -57441,12 +57441,41 @@
             beside a big font, TrueType fonts of CFF outlines or of symbols, a style named by its typeface alone, one of another
             typeface than its file, and a collection a style names by no typeface: a style of one, or of a font in none of the
             folders, lays its words out as with no fonts, the log saying so at Debug once a file, and a file that is found but
-            is no font, or cannot be read, is said at Warn; nothing throws. Each set reads the fonts anew. No folder is looked in that is not given: not the Fonts folder of
+            is no font, or cannot be read, is said at Warn; nothing throws. Each set reads the fonts anew; <see cref="M:GeometryHelper.Dxf.DxfDatabase.BorrowFonts(System.String)"/> shares one set. No folder is looked in that is not given: not the Fonts folder of
             Windows, and no font is put in for another, as AutoCAD's FONTALT puts one, or as Windows draws a letter a TrueType
             font has not from a font it links it to: a TEXT of such a letter is not measured.
             </para>
             </value>
             <exception cref="T:System.ArgumentNullException">Thrown when the path set is null.</exception>
+        </member>
+        <member name="M:GeometryHelper.Dxf.DxfDatabase.BorrowFonts(System.String)">
+            <summary>
+            Sets <see cref="P:GeometryHelper.Dxf.DxfDatabase.FontSearchPath"/> to a path for as long as the returned scope lives, measuring in one set of fonts that
+            every borrow of that path in this drawing shares, and puts back the path and the fonts the drawing had when the scope is
+            disposed.
+            </summary>
+            <param name="path">The folders of the fonts, as <see cref="P:GeometryHelper.Dxf.DxfDatabase.FontSearchPath"/>; empty for none.</param>
+            <returns>The scope; dispose it to put back what the drawing measured in before.</returns>
+            <remarks>
+            <para>
+            Setting <see cref="P:GeometryHelper.Dxf.DxfDatabase.FontSearchPath"/> reads the fonts anew each time, so that a code page registered since is picked
+            up; code that sets it and puts it back round each text it measures (a text's <see cref="P:GeometryHelper.Dxf.DxfEntity.GeometricExtents"/>
+            in a loop of 2 000) looks for the font file and reads it again 2 000 times, some 0.12 ms each for an SHX font. A
+            borrow reads each font of a path once for the life of the drawing, however many times and in however many scopes it is
+            borrowed, and what it measures is what the same path set measures: "ABC" of txt.shx, 4 high and centred on
+            (100, 50, 0), stands at (94.667, 50, 0) either way.
+            </para>
+            <para>
+            The set of a path is kept by the drawing, the path spelled as it is given, so that "D:\Fonts" and "d:\fonts" are two
+            sets. A font file that changes on disk, or a code page registered after the set was first used, is not seen by a
+            borrow of that path again: set <see cref="P:GeometryHelper.Dxf.DxfDatabase.FontSearchPath"/> itself to read the fonts anew. A path set inside a scope
+            is put back like any other when the scope is disposed. Scopes nest, and each puts back what was there when it began.
+            </para>
+            </remarks>
+            <exception cref="T:System.ArgumentNullException">Thrown when the path is null.</exception>
+        </member>
+        <member name="T:GeometryHelper.Dxf.DxfDatabase.FontScope">
+            <summary>The path and fonts a drawing had before a <see cref="M:GeometryHelper.Dxf.DxfDatabase.BorrowFonts(System.String)"/>, put back once when it is disposed.</summary>
         </member>
         <member name="P:GeometryHelper.Dxf.DxfDatabase.Fonts">
             <summary>The fonts of <see cref="P:GeometryHelper.Dxf.DxfDatabase.FontSearchPath"/>, read as they are first asked for; null where it gives no folder.</summary>
