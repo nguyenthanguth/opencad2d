@@ -393,9 +393,15 @@ namespace OpenCAD2D
                 return null;
             }
 
+            // An AcSm field whose set cannot be reached keeps the words the cell shows.
+            if (draft.Children[0].Evaluator == "AcSm" && table.GetValue(row, column, 0) is string shown)
+            {
+                draft.Children[0].Shown = shown;
+            }
+
             try
             {
-                return CadFields.Evaluate(draft, new CadFieldContext(document, reason), false);
+                return CadFields.Evaluate(draft, new CadFieldContext(document, reason) { Entity = table }, false);
             }
             catch (InvalidOperationException)
             {

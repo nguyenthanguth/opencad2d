@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using GeometryHelper.Dxf;
+using OpenCAD2D.SheetSets;
 
 namespace OpenCAD2D
 {
@@ -46,18 +47,43 @@ namespace OpenCAD2D
 
         /// <summary>A system variable by its name.</summary>
         SystemVariable,
+
+        /// <summary>A property of a sheet set, a subset, a sheet or a view, chosen in the sheet set's tree.</summary>
+        SheetSet,
+
+        /// <summary>A placeholder of a label or callout block that is bound to a view or a sheet when the block is placed.</summary>
+        SheetSetPlaceholder,
+
+        /// <summary>A property of the sheet of the layout the field is on, or of its set, or of its subset.</summary>
+        CurrentSheet,
+
+        /// <summary>A custom property of the sheet of the layout the field is on, or of its set, by the name chosen.</summary>
+        CurrentSheetCustom,
     }
 
     /// <summary>A field by its name in a category of the Field dialog.</summary>
     internal sealed class CadFieldName
     {
-        internal CadFieldName(string name, string category, CadFieldType type, string description)
+        internal CadFieldName(
+            string name,
+            string category,
+            CadFieldType type,
+            string description,
+            string sheetSetCode = null
+        )
         {
             Name = name;
             Category = category;
             Type = type;
             Description = description;
+            SheetSetCode = sheetSetCode;
         }
+
+        /// <summary>
+        /// Gets the component and property a CurrentSheet field reads, as its code writes them (<c>Sheet.Number</c>); for a
+        /// custom property the component and a dot (<c>Sheet.</c>), the name chosen following; null for any other field.
+        /// </summary>
+        internal string SheetSetCode { get; }
 
         /// <summary>Gets the name as the dialog lists it: Date, Author, Object.</summary>
         internal string Name { get; }
@@ -114,6 +140,7 @@ namespace OpenCAD2D
             "Objects",
             "Other",
             "Plot",
+            "SheetSet",
         };
 
         private static readonly CadFieldName[] Names =
@@ -142,6 +169,150 @@ namespace OpenCAD2D
             new CadFieldName("PlotOrientation", "Plot", CadFieldType.Words, "Portrait or landscape"),
             new CadFieldName("PlotScale", "Plot", CadFieldType.Words, "Scale of the plot"),
             new CadFieldName("PlotStyleTable", "Plot", CadFieldType.Words, "Plot style table of the page setup"),
+            new CadFieldName(
+                "SheetSet",
+                "SheetSet",
+                CadFieldType.SheetSet,
+                "A property of a sheet set, a subset, a sheet or a view"
+            ),
+            new CadFieldName(
+                "SheetSetPlaceholder",
+                "SheetSet",
+                CadFieldType.SheetSetPlaceholder,
+                "A placeholder for a label or callout block"
+            ),
+            new CadFieldName(
+                "CurrentSheetCategory",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Category of the sheet of the layout",
+                "Sheet.Category"
+            ),
+            new CadFieldName(
+                "CurrentSheetCustom",
+                "SheetSet",
+                CadFieldType.CurrentSheetCustom,
+                "A custom property of the sheet of the layout",
+                "Sheet."
+            ),
+            new CadFieldName(
+                "CurrentSheetDescription",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Description of the sheet of the layout",
+                "Sheet.Description"
+            ),
+            new CadFieldName(
+                "CurrentSheetIssuePurpose",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Issue purpose of the sheet of the layout",
+                "Sheet.IssuePurpose"
+            ),
+            new CadFieldName(
+                "CurrentSheetNumber",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Number of the sheet of the layout",
+                "Sheet.Number"
+            ),
+            new CadFieldName(
+                "CurrentSheetNumberAndTitle",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Number and title of the sheet of the layout",
+                "Sheet.NumberAndTitle"
+            ),
+            new CadFieldName(
+                "CurrentSheetRevisionDate",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Revision date of the sheet of the layout",
+                "Sheet.RevisionDate"
+            ),
+            new CadFieldName(
+                "CurrentSheetRevisionNumber",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Revision number of the sheet of the layout",
+                "Sheet.RevisionNumber"
+            ),
+            new CadFieldName(
+                "CurrentSheetSet",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Name of the sheet set",
+                "SheetSet.Name"
+            ),
+            new CadFieldName(
+                "CurrentSheetSetCustom",
+                "SheetSet",
+                CadFieldType.CurrentSheetCustom,
+                "A custom property of the sheet set",
+                "SheetSet."
+            ),
+            new CadFieldName(
+                "CurrentSheetSetDescription",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Description of the sheet set",
+                "SheetSet.Description"
+            ),
+            new CadFieldName(
+                "CurrentSheetSetProjectMilestone",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Project milestone of the sheet set",
+                "SheetSet.ProjectMilestone"
+            ),
+            new CadFieldName(
+                "CurrentSheetSetProjectName",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Project name of the sheet set",
+                "SheetSet.ProjectName"
+            ),
+            new CadFieldName(
+                "CurrentSheetSetProjectNumber",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Project number of the sheet set",
+                "SheetSet.ProjectNumber"
+            ),
+            new CadFieldName(
+                "CurrentSheetSetProjectPhase",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Project phase of the sheet set",
+                "SheetSet.ProjectPhase"
+            ),
+            new CadFieldName(
+                "CurrentSheetSubSet",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Name of the subset the sheet is in",
+                "Subset.Name"
+            ),
+            new CadFieldName(
+                "CurrentSheetTitle",
+                "SheetSet",
+                CadFieldType.CurrentSheet,
+                "Title of the sheet of the layout",
+                "Sheet.Title"
+            ),
+        };
+
+        private static readonly string[] PlaceholderNames =
+        {
+            "SheetNumberAndTitle",
+            "SheetTitle",
+            "SheetNumber",
+            "SheetDescription",
+            "SheetCustom",
+            "ViewNumberAndTitle",
+            "ViewTitle",
+            "ViewNumber",
+            "ViewportScale",
         };
 
         private static readonly CadFieldChoice[] CaseChoices =
@@ -201,6 +372,12 @@ namespace OpenCAD2D
         private CadFieldName _name;
         private CadFieldProperty _property;
         private IReadOnlyList<CadFieldProperty> _properties = Array.Empty<CadFieldProperty>();
+        private CadSheetSetFile _setFile;
+        private CadFieldSheetNode _tree;
+        private CadFieldSheetNode _node;
+        private string _setProperty;
+        private string _placeholder = PlaceholderNames[0];
+        private string _customName = string.Empty;
 
         /// <summary>Makes the dialog for a drawing, with Date chosen.</summary>
         /// <param name="context">What the preview is evaluated against.</param>
@@ -209,6 +386,8 @@ namespace OpenCAD2D
             _context = context ?? throw new ArgumentNullException(nameof(context));
             Category = CategoryNames[0];
             Choose(Names.First(n => n.Name == "Date"));
+            CadSheetSetSheet sheet = CadSheetSetFields.SheetOfField(context, out CadSheetSetFile file);
+            SetSheetSet(file, sheet?.Id);
         }
 
         /// <summary>Gets or sets how the dialog was closed.</summary>
@@ -219,6 +398,97 @@ namespace OpenCAD2D
 
         /// <summary>Gets the field chosen.</summary>
         internal CadFieldName Name => _name;
+
+        /// <summary>Gets the sheet set the SheetSet field reads, opened for reading; null where the drawing is no sheet of a set the dialog can reach and none was chosen.</summary>
+        internal CadSheetSetFile SheetSetFile => _setFile;
+
+        /// <summary>Gets the tree of the sheet set: the set, its subsets and sheets in set order, and the views of each sheet; null where there is no set.</summary>
+        internal CadFieldSheetNode SheetSetTree => _tree;
+
+        /// <summary>Gets the node of the tree chosen: a sheet, a subset, a view or the set; null where there is no set.</summary>
+        internal CadFieldSheetNode SheetSetNode => _node;
+
+        /// <summary>Gets the properties the node chosen has, for the property list.</summary>
+        internal IReadOnlyList<string> SheetSetProperties => _node == null ? Array.Empty<string>() : _node.Properties;
+
+        /// <summary>Gets the property chosen of the node; null for none.</summary>
+        internal string SheetSetProperty => _setProperty;
+
+        /// <summary>Gets the types of placeholder the dialog lists.</summary>
+        internal IReadOnlyList<string> PlaceholderTypes => PlaceholderNames;
+
+        /// <summary>Gets the type of placeholder chosen.</summary>
+        internal string PlaceholderType => _placeholder;
+
+        /// <summary>
+        /// Gets the custom properties a field of a custom property may name: those of the set for CurrentSheetSetCustom, those
+        /// every sheet holds for CurrentSheetCustom and the SheetCustom placeholder; none where there is no set.
+        /// </summary>
+        internal IReadOnlyList<string> CustomNames
+        {
+            get
+            {
+                if (_setFile == null)
+                {
+                    return Array.Empty<string>();
+                }
+
+                bool ofSet =
+                    _name.Type == CadFieldType.CurrentSheetCustom
+                    && _name.SheetSetCode.StartsWith("SheetSet", StringComparison.Ordinal);
+                return _setFile
+                    .SheetSet.CustomProperties.Where(p => ofSet ? p.IsSetProperty : p.IsSheetProperty)
+                    .Select(p => p.Name)
+                    .ToList();
+            }
+        }
+
+        /// <summary>Gets the custom property chosen; empty for none.</summary>
+        internal string CustomName => _customName;
+
+        /// <summary>
+        /// Gives the SheetSet field a sheet set to read, as the Open Sheet Set button does: the tree of the set is made and the
+        /// node of a sheet (the set where there is none) chosen.
+        /// </summary>
+        /// <param name="file">The set; null for none.</param>
+        /// <param name="nodeId">The ID of the node to choose; null for the set.</param>
+        internal void SetSheetSet(CadSheetSetFile file, string nodeId = null)
+        {
+            _setFile = file;
+            _tree = file == null ? null : CadFieldSheetNode.Of(file, file.SheetSet);
+            _node = null;
+            _setProperty = null;
+            ChooseSheetSetNode(nodeId);
+            _customName = CustomNames.FirstOrDefault() ?? string.Empty;
+        }
+
+        /// <summary>Chooses a node of the tree by its ID; the set where none has it. The property is kept where the node has it, else the first.</summary>
+        /// <param name="id">The ID of a sheet, subset or view; null for the set.</param>
+        internal void ChooseSheetSetNode(string id)
+        {
+            _node = _tree == null ? null : (id == null ? null : _tree.Find(id)) ?? _tree;
+            ChooseSheetSetProperty(_setProperty);
+        }
+
+        /// <summary>Chooses a property of the node, letter case ignored; the first the node has where the name is none of them.</summary>
+        /// <param name="name">The property's name.</param>
+        internal void ChooseSheetSetProperty(string name) =>
+            _setProperty =
+                _node == null
+                    ? null
+                    : _node.Properties.FirstOrDefault(p => string.Equals(p, name, StringComparison.OrdinalIgnoreCase))
+                        ?? _node.Properties.FirstOrDefault();
+
+        /// <summary>Chooses a placeholder type; the first where the name is none of them.</summary>
+        /// <param name="name">The type, SheetNumber or ViewTitle.</param>
+        internal void ChoosePlaceholder(string name) =>
+            _placeholder = PlaceholderNames.FirstOrDefault(p =>
+                string.Equals(p, name, StringComparison.OrdinalIgnoreCase)
+            ) ?? PlaceholderNames[0];
+
+        /// <summary>Chooses the custom property a custom field names.</summary>
+        /// <param name="name">The name; empty for none.</param>
+        internal void ChooseCustomName(string name) => _customName = name ?? string.Empty;
 
         /// <summary>Gets the handle of the object an Object field reads; null for none.</summary>
         internal string ObjectHandle { get; private set; }
@@ -268,8 +538,15 @@ namespace OpenCAD2D
         /// </summary>
         internal IReadOnlyList<CadFieldChoice> Formats =>
             _name.Type == CadFieldType.FileName ? NameChoices
-            : _name.Type == CadFieldType.Words || IsTextProperty ? CaseChoices
+            : _name.Type == CadFieldType.Words || IsTextProperty || IsSheetSetField ? CaseChoices
             : Array.Empty<CadFieldChoice>();
+
+        /// <summary>Gets whether the field chosen is one of the SheetSet category, which shows words of a sheet set (a case may be set).</summary>
+        internal bool IsSheetSetField =>
+            _name.Type == CadFieldType.SheetSet
+            || _name.Type == CadFieldType.SheetSetPlaceholder
+            || _name.Type == CadFieldType.CurrentSheet
+            || _name.Type == CadFieldType.CurrentSheetCustom;
 
         /// <summary>Gets the units listed for a number: those of lengths, or of angles for an angle.</summary>
         internal IReadOnlyList<CadFieldChoice> Units =>
@@ -303,7 +580,8 @@ namespace OpenCAD2D
                 .Where(n =>
                     category == CategoryNames[0] || string.Equals(n.Category, category, StringComparison.Ordinal)
                 )
-                .OrderBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(n => category == "SheetSet" && n.SheetSetCode == null ? 0 : 1)
+                .ThenBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
         /// <summary>Lists another category; the field chosen is kept where the category holds it, else its first is chosen.</summary>
@@ -396,6 +674,16 @@ namespace OpenCAD2D
                     return Expression.Trim().Length == 0 ? string.Empty : "\\AcDiesel " + Expression.Trim();
                 case CadFieldType.SystemVariable:
                     return Expression.Trim().Length == 0 ? string.Empty : "\\AcVar " + Expression.Trim();
+                case CadFieldType.SheetSet:
+                    return SheetSetBody();
+                case CadFieldType.SheetSetPlaceholder:
+                    return PlaceholderBody();
+                case CadFieldType.CurrentSheet:
+                    return "\\AcSm " + _name.SheetSetCode + Switch(CaseFormat());
+                case CadFieldType.CurrentSheetCustom:
+                    return _customName.Length == 0
+                        ? string.Empty
+                        : "\\AcSm " + _name.SheetSetCode + _customName + Switch(CaseFormat());
                 default:
                     if (ObjectHandle == null || _property == null)
                     {
@@ -412,6 +700,46 @@ namespace OpenCAD2D
                         + _property.Name
                         + Switch(format);
             }
+        }
+
+        private string CaseFormat() => Formats.Count > FormatIndex ? Formats[FormatIndex].Code : string.Empty;
+
+        /// <summary>The bound field of the node and property chosen, as AutoCAD writes one; empty where there is no set to read.</summary>
+        private string SheetSetBody()
+        {
+            if (_setFile == null || _node == null || _setProperty == null)
+            {
+                return string.Empty;
+            }
+
+            return "\\AcSm Database(\""
+                + _setFile.Path
+                + "\").SheetSet(\""
+                + _setFile.SheetSet.Id
+                + "\")"
+                + (_node.Kind == CadFieldSheetNodeKind.Set ? string.Empty : ".Component(\"" + _node.Id + "\")")
+                + "."
+                + _setProperty
+                + Switch(CaseFormat());
+        }
+
+        /// <summary>The placeholder of the type chosen, <c>?Sheet.Number</c> or <c>?View.Title</c>; a custom one of the name chosen, none where it has none.</summary>
+        private string PlaceholderBody()
+        {
+            string type = _placeholder;
+
+            if (type == "SheetCustom")
+            {
+                return _customName.Length == 0 ? string.Empty : "\\AcSm ?Sheet." + _customName + Switch(CaseFormat());
+            }
+
+            if (type == "ViewportScale")
+            {
+                return "\\AcSm ?View.ViewportScale" + Switch(CaseFormat());
+            }
+
+            int split = type.StartsWith("View", StringComparison.Ordinal) ? 4 : 5;
+            return "\\AcSm ?" + type.Substring(0, split) + "." + type.Substring(split) + Switch(CaseFormat());
         }
 
         private static string Decimal(string handle) =>
@@ -575,9 +903,77 @@ namespace OpenCAD2D
                     Choose(Names.First(n => n.Type == CadFieldType.Diesel));
                     Expression = StripFormat(field.Code, "\\AcDiesel ");
                     return true;
+                case "AcSm":
+                    return LoadSheetSet(field, format);
                 default:
                     return false;
             }
+        }
+
+        /// <summary>Sets the dialog to an AcSm field: bound, a placeholder, or the unbound code of one of the CurrentSheet names.</summary>
+        private bool LoadSheetSet(DxfFieldDraft field, string format)
+        {
+            CadSheetSetFields.Target target = CadSheetSetFields.TargetOf(field.Code);
+
+            if (target == null)
+            {
+                return false;
+            }
+
+            int formatAt = Math.Max(0, Array.FindIndex(CaseChoices, c => c.Code == CaseCode(format)));
+
+            if (target.Bound)
+            {
+                CadSheetSetFile file = CadSheetSetFields.OpenSet(target.Database, target.SetId, _context);
+
+                if (file != null)
+                {
+                    SetSheetSet(file, target.ComponentId);
+                }
+
+                Choose(Names.First(n => n.Type == CadFieldType.SheetSet));
+                ChooseSheetSetProperty(target.Property);
+                FormatIndex = formatAt;
+                return true;
+            }
+
+            if (target.Component.StartsWith("?", StringComparison.Ordinal))
+            {
+                Choose(Names.First(n => n.Type == CadFieldType.SheetSetPlaceholder));
+                string kind = target.Component.Substring(1);
+                string type = target.Property.Equals("ViewportScale", StringComparison.OrdinalIgnoreCase)
+                    ? "ViewportScale"
+                    : kind + target.Property;
+                ChoosePlaceholder(type);
+
+                if (!PlaceholderNames.Contains(_placeholder, StringComparer.OrdinalIgnoreCase) || _placeholder != type)
+                {
+                    ChoosePlaceholder("SheetCustom");
+                    ChooseCustomName(target.Property);
+                }
+
+                FormatIndex = formatAt;
+                return true;
+            }
+
+            string code = target.Component + "." + target.Property;
+            CadFieldName named = Names.FirstOrDefault(n =>
+                n.Type == CadFieldType.CurrentSheet
+                && string.Equals(n.SheetSetCode, code, StringComparison.OrdinalIgnoreCase)
+            )
+                ?? Names.First(n =>
+                    n.Type == CadFieldType.CurrentSheetCustom
+                    && string.Equals(n.SheetSetCode, target.Component + ".", StringComparison.OrdinalIgnoreCase)
+                );
+            Choose(named);
+
+            if (named.Type == CadFieldType.CurrentSheetCustom)
+            {
+                ChooseCustomName(target.Property);
+            }
+
+            FormatIndex = formatAt;
+            return true;
         }
 
         private static string StripFormat(string code, string head)
@@ -614,6 +1010,145 @@ namespace OpenCAD2D
             Prefix = parsed.Prefix;
             Suffix = parsed.Suffix;
             Thousands = parsed.Thousands;
+        }
+    }
+
+    /// <summary>What a node of the Field dialog's sheet set tree is.</summary>
+    internal enum CadFieldSheetNodeKind
+    {
+        /// <summary>The sheet set.</summary>
+        Set,
+
+        /// <summary>A subset.</summary>
+        Subset,
+
+        /// <summary>A sheet.</summary>
+        Sheet,
+
+        /// <summary>A view of a sheet.</summary>
+        View,
+    }
+
+    /// <summary>
+    /// A node of the sheet set tree of the Field dialog: the set, a subset, a sheet or a view, the words it is listed by, its ID
+    /// in the set's file, the properties a field of it may read and the nodes under it, in set order.
+    /// </summary>
+    internal sealed class CadFieldSheetNode
+    {
+        private readonly List<CadFieldSheetNode> _children = new List<CadFieldSheetNode>();
+
+        private CadFieldSheetNode(CadFieldSheetNodeKind kind, string id, string text, IReadOnlyList<string> properties)
+        {
+            Kind = kind;
+            Id = id;
+            Text = text;
+            Properties = properties;
+        }
+
+        /// <summary>Gets what the node is.</summary>
+        internal CadFieldSheetNodeKind Kind { get; }
+
+        /// <summary>Gets the ID of the node in the set's file (a <c>g</c> and a GUID).</summary>
+        internal string Id { get; }
+
+        /// <summary>Gets the words the tree lists it by: the name of the set or subset, a sheet's or view's number and title.</summary>
+        internal string Text { get; }
+
+        /// <summary>Gets the properties a field of the node may read, in the order the property list shows them.</summary>
+        internal IReadOnlyList<string> Properties { get; }
+
+        /// <summary>Gets the nodes under it: the subsets and sheets of a set or subset, the views of a sheet.</summary>
+        internal IReadOnlyList<CadFieldSheetNode> Children => _children;
+
+        /// <summary>Finds a node of this one's tree by its ID.</summary>
+        /// <param name="id">The ID.</param>
+        /// <returns>The node; null where none has it.</returns>
+        internal CadFieldSheetNode Find(string id)
+        {
+            if (Id == id)
+            {
+                return this;
+            }
+
+            foreach (CadFieldSheetNode child in _children)
+            {
+                CadFieldSheetNode found = child.Find(id);
+
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public override string ToString() => Text;
+
+        /// <summary>Makes the node of a set or subset and the nodes under it.</summary>
+        internal static CadFieldSheetNode Of(CadSheetSetFile file, CadSheetSubset subset)
+        {
+            bool isSet = subset is CadSheetSet;
+            var properties = new List<string> { "Name", "Description" };
+
+            if (isSet)
+            {
+                properties.AddRange(new[] { "ProjectNumber", "ProjectName", "ProjectPhase", "ProjectMilestone" });
+                properties.AddRange(subset.CustomProperties.Where(p => p.IsSetProperty).Select(p => p.Name));
+            }
+
+            var node = new CadFieldSheetNode(
+                isSet ? CadFieldSheetNodeKind.Set : CadFieldSheetNodeKind.Subset,
+                subset.Id,
+                subset.Name,
+                properties
+            );
+
+            foreach (CadSheetComponent child in subset.Children)
+            {
+                node._children.Add(
+                    child is CadSheetSubset inner ? Of(file, inner) : OfSheet(file, (CadSheetSetSheet)child)
+                );
+            }
+
+            return node;
+        }
+
+        private static CadFieldSheetNode OfSheet(CadSheetSetFile file, CadSheetSetSheet sheet)
+        {
+            var properties = new List<string>
+            {
+                "Number",
+                "Title",
+                "NumberAndTitle",
+                "Description",
+                "Category",
+                "RevisionNumber",
+                "RevisionDate",
+                "IssuePurpose",
+            };
+            properties.AddRange(file.SheetSet.CustomProperties.Where(p => p.IsSheetProperty).Select(p => p.Name));
+            var node = new CadFieldSheetNode(
+                CadFieldSheetNodeKind.Sheet,
+                sheet.Id,
+                CadSheetSetFields.NumberAndTitle(sheet.Number, sheet.Title),
+                properties
+            );
+
+            foreach (CadSheetView view in sheet.Views)
+            {
+                node._children.Add(
+                    new CadFieldSheetNode(
+                        CadFieldSheetNodeKind.View,
+                        view.Id,
+                        CadSheetSetFields.NumberAndTitle(view.Number, view.Title),
+                        new[] { "Number", "Title", "NumberAndTitle" }
+                    )
+                );
+            }
+
+            return node;
         }
     }
 }

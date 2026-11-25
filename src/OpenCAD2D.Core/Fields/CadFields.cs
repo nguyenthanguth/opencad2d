@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.SheetSets;
 
 namespace OpenCAD2D
 {
@@ -35,6 +37,9 @@ namespace OpenCAD2D
         internal CadDocument Document { get; }
 
         internal int Reason { get; }
+
+        /// <summary>Gets or sets the TEXT, MTEXT, attribute or table the fields are evaluated for, which an AcSm field reads the layout it is on from; null for none, as in the Field dialog, which then takes the layout shown.</summary>
+        internal DxfEntity Entity { get; set; }
 
         /// <summary>Gets or sets the time <c>Date</c> shows; now until set.</summary>
         internal DateTime Now { get; set; } = DateTime.Now;
@@ -420,6 +425,7 @@ namespace OpenCAD2D
                 return false;
             }
 
+            context.Entity = entity;
             string words = Evaluate(draft, context, entity is DxfMText);
 
             if (!CanHold(context.Document.Database))
@@ -462,6 +468,8 @@ namespace OpenCAD2D
             }
 
             DxfFieldDraft draft = field.ToDraft();
+            CadSheetSetFields.Remember(field, draft);
+            context.Entity = entity;
             string was = Words(entity);
             string words = Evaluate(draft, context, entity is DxfMText);
             entity.SetField("TEXT", draft);
@@ -479,6 +487,40 @@ namespace OpenCAD2D
             }
 
             return !string.Equals(words, was, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// Changes the fields of a TEXT or MTEXT and evaluates them again, as binding a sheet's fields does: the edit is given
+        /// the field's draft, changes the fields it means to and says how many it changed; where it changed none the text is
+        /// left as it was.
+        /// </summary>
+        /// <param name="entity">The TEXT or MTEXT.</param>
+        /// <param name="edit">The edit of the draft; it gives how many fields it changed.</param>
+        /// <param name="context">What the fields are evaluated against.</param>
+        /// <returns>How many fields the edit changed.</returns>
+        internal static int Rewrite(DxfEntity entity, Func<DxfFieldDraft, int> edit, CadFieldContext context)
+        {
+            DxfField field = Has(entity) ? entity.GetField() : null;
+
+            if (field == null)
+            {
+                return 0;
+            }
+
+            DxfFieldDraft draft = field.ToDraft();
+            CadSheetSetFields.Remember(field, draft);
+            int changed = edit(draft);
+
+            if (changed == 0)
+            {
+                return 0;
+            }
+
+            context.Entity = entity;
+            string words = Evaluate(draft, context, entity is DxfMText);
+            entity.SetField("TEXT", draft);
+            SetWords(entity, words);
+            return changed;
         }
 
         /// <summary>
@@ -500,9 +542,11 @@ namespace OpenCAD2D
 
             var changed = 0;
 
+            Dictionary<string, DxfAttributeReference> attributes = null;
+
             foreach (string handle in TextsWithFields(document))
             {
-                DxfEntity entity = document.FindEntity(handle);
+                DxfEntity entity = TextOf(document, handle, ref attributes);
 
                 if (entity == null || !Has(entity))
                 {
@@ -573,6 +617,50 @@ namespace OpenCAD2D
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// The TEXT, MTEXT or attribute of a handle that holds a field: what <see cref="CadDocument.FindEntity"/> finds, else the
+        /// attribute of an insert in a space, which the index of handles does not hold. The attributes are listed once, at the
+        /// first handle that needs them.
+        /// </summary>
+        /// <param name="document">The drawing.</param>
+        /// <param name="handle">The handle.</param>
+        /// <param name="attributes">The attributes of the inserts of the spaces by handle, made here at the first need; null before.</param>
+        /// <returns>The text; null for none.</returns>
+        internal static DxfEntity TextOf(
+            CadDocument document,
+            string handle,
+            ref Dictionary<string, DxfAttributeReference> attributes
+        )
+        {
+            DxfEntity entity = document.FindEntity(handle);
+
+            if (entity != null)
+            {
+                return entity;
+            }
+
+            if (attributes == null)
+            {
+                attributes = new Dictionary<string, DxfAttributeReference>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (CadSpace space in document.Spaces)
+                {
+                    foreach (DxfBlockReference insert in space.Block.OfType<DxfBlockReference>())
+                    {
+                        foreach (DxfAttributeReference attribute in insert.AttributeCollection)
+                        {
+                            if (attribute.Handle != null && !attributes.ContainsKey(attribute.Handle))
+                            {
+                                attributes.Add(attribute.Handle, attribute);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return attributes.TryGetValue(handle, out DxfAttributeReference found) && !found.IsErased ? found : null;
         }
 
         /// <summary>The handles of the TEXTs and MTEXTs that hold a field, in the order of the drawing's list of fields.</summary>
@@ -756,6 +844,12 @@ namespace OpenCAD2D
         /// <summary>Evaluates one field: its words, its value, and its state, status and error.</summary>
         private static void EvaluateOne(DxfFieldDraft field, CadFieldContext context)
         {
+            if (field.Evaluator == "AcSm")
+            {
+                CadSheetSetFields.Evaluate(field, context);
+                return;
+            }
+
             field.Status = 2;
             field.Error = 0;
             field.Message = string.Empty;

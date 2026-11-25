@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **NEW.** Sheet set fields (A12): `\AcSm Sheet.Number`, `Sheet.Title`, `Sheet.NumberAndTitle`, `Sheet.Description`, a sheet's
+  custom properties, `Subset.Name`, `SheetSet.Name`, `SheetSet.ProjectName` and the set's custom properties are evaluated as
+  AutoCAD 2021 evaluates them (checked on its own FIELD objects: `A-101 - Ground floor`, `----` for a property with no value,
+  `####` for a name it does not know), in their unbound form, as a title block holds it, and in the bound form AutoCAD writes into
+  a sheet (`\AcSm Database("...").SheetSet("g...").Component("g...").Number`); placeholders show their own name. The field
+  keeps the words it showed where the set cannot be reached, and finds a set moved with its sheets. `CadSheetSetFields.Bind` binds
+  the unbound fields of a new or imported sheet to it. The Field dialog has a SheetSet category: a tree of the sheet set and its
+  properties, the nine placeholder types, and the 17 CurrentSheet names, which write `\AcSm Sheet.Number` and its kin (AutoCAD
+  takes `\AcVar CurrentSheetNumber` for no variable and shows `####`).
+- **FIXED.** The fields of an attribute were never evaluated again on open, save, regen or plot (only those of a TEXT or an MTEXT
+  were): a title block's `%<\AcVar Author>%` kept the words it had until the attribute was edited. They are now updated with the
+  other fields of the drawing.
 - **NEW.** Sheet set data files: `CadSheetSetFile` opens, changes and saves AutoCAD 2021's own `.dst` (UTF-8 XML under a
   one-byte cipher), with a typed model over it: the set, its subsets and sheets in set order, a sheet's drawing and
   layout in four forms of the path (found again after the folder is moved), custom properties by owner, resource
