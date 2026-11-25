@@ -11,7 +11,9 @@ namespace OpenCAD2D.Remote.TestServer
     /// Hosts a <see cref="CadRemoteServer"/> over a host with no window, so a script in another process can drive it as it
     /// would drive the real app. It writes <c>READY &lt;pipe name&gt; &lt;process id&gt;</c> when it listens, then answers
     /// each line of its standard input with one line: <c>type &lt;text&gt;</c> types into the active drawing's command line,
-    /// <c>escape</c> presses Escape there (how a test answers or cancels a pick), <c>tools</c> opens the private channel of the
+    /// <c>escape</c> presses Escape there (how a test answers or cancels a pick), <c>window &lt;width&gt; &lt;height&gt;</c> gives the
+    /// session of every drawing a view of a canvas of that size in pixels, so that they are shown in a window (the view calls
+    /// then work on it and not on the session's own console view), <c>tools</c> opens the private channel of the
     /// tools and answers <c>DONE &lt;pipe&gt; &lt;token&gt;</c> (a new token each time), <c>run &lt;NAME&gt; &lt;token&gt;</c> starts the run
     /// of a command of that name in the active drawing for the tool of that token and answers
     /// <c>DONE &lt;run&gt; &lt;drawing&gt;</c>, <c>quit</c> stops it. It exits by itself
@@ -141,7 +143,7 @@ namespace OpenCAD2D.Remote.TestServer
         /// <summary>Runs one console line under the gate, on the active drawing, and gives the line to answer with.</summary>
         private static string Answer(TestHost host, object gate, string word, string rest)
         {
-            if (word != "type" && word != "escape")
+            if (word != "type" && word != "escape" && word != "window")
             {
                 return "ERROR unknown command " + word;
             }
@@ -150,6 +152,36 @@ namespace OpenCAD2D.Remote.TestServer
             {
                 lock (gate)
                 {
+                    if (word == "window")
+                    {
+                        string[] size = rest.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (
+                            size.Length != 2
+                            || !double.TryParse(
+                                size[0],
+                                NumberStyles.Float,
+                                CultureInfo.InvariantCulture,
+                                out double width
+                            )
+                            || !double.TryParse(
+                                size[1],
+                                NumberStyles.Float,
+                                CultureInfo.InvariantCulture,
+                                out double height
+                            )
+                            || !(width >= 1.0)
+                            || !(height >= 1.0)
+                            || double.IsInfinity(width)
+                            || double.IsInfinity(height)
+                        )
+                        {
+                            return "ERROR window needs a width and a height in pixels, each at least 1";
+                        }
+
+                        host.ShowInWindow(width, height);
+                        return "DONE";
+                    }
+
                     CadDocument active = host.ActiveDocument;
                     if (active == null)
                     {

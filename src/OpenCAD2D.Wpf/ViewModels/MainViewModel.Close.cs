@@ -269,6 +269,7 @@ namespace OpenCAD2D.Wpf
 
             file.Session.PromptChanged -= OnPromptChanged;
             file.Session.UiRequested -= OnUiRequested;
+            file.Session.ViewChanged -= OnSessionViewChanged;
             document.Changed -= OnDocumentChanged;
             document.ActiveViewportChanged -= OnActiveViewportChanged;
             document.LayerFilterChanged -= OnLayerFilterChanged;

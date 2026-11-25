@@ -138,10 +138,11 @@ A command is a name or an object, `{ "name": "NUMCIRCLES", "alias": "NC", "descr
 what a [Python tool](python.md#pluginjson) declares for the window; a C# plugin adds to the window in code, as
 [below](#what-a-plugin-adds-to-the-window).
 [`CadPluginManifest.Parse(json)`](xref:OpenCAD2D.Plugins.CadPluginManifest) reads it, and `Refusal()` says
-why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.2
-(`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.2: it needs a
+why the presenter will not load it: a kind other than "command", or a newer plugin API than this build's, which is 1.3
+(`CadPlugin.ApiVersion`): `The plugin Future needs version 2.0 of the plugin API, and this presenter has 1.3: it needs a
 newer presenter.` A plugin that adds to the window, as [below](#what-a-plugin-adds-to-the-window), states 1.1; one that
-uses slide-outs, dialog launchers, macro buttons or `CadSnapRequest.BlockReferences` states 1.2.
+uses slide-outs, dialog launchers, macro buttons or `CadSnapRequest.BlockReferences` states 1.2; one that uses the
+[editor](#the-editor-the-view-selection-and-variables) states 1.3.
 
 A plugin targets netstandard2.0 and references `OpenCAD2D` only, without copying it: the presenter gives a
 plugin its own, so that the `CadCommandContext` it is handed is of the type it was built against.
@@ -609,6 +610,70 @@ point, the nearest point taken however far; `No Circle top found for specified p
 Two plugins that add a tab of the same id, or snaps of the same keyword, keep the first loaded; the second's is left out
 with a line in its `Problems`. After PLUGINUNLOAD the window shows Home where the plugin's tab was shown, and its panels,
 rows, buttons, items and snaps are gone; on .NET 8 the plugin's code is freed with them.
+
+## The editor: the view, selection and variables
+
+A command, a ribbon callback and a plugin test reach the drawing's [`CadEditor`](xref:OpenCAD2D.CadEditor) the way an AutoCAD
+plugin reaches `Editor`: `c.Editor` in a command (`CadCommandContext.Editor`), `context.Editor` in a callback
+(`CadPluginContext.Editor`, null where no drawing is open) and `session.Editor` for a `CadCommandSession` of your own. A
+plugin that uses it states `[assembly: CadPluginApi("1.3")]`. Each call does what the command of its name does, through the
+code the command runs, so what it shows is what the typed command shows and U takes it back the same way.
+
+| AutoCAD | `CadEditor` | The command it is |
+|---|---|---|
+| COM `ZoomExtents()`, `ZoomAll()` | `ZoomExtents()` | ZOOM Extents (ZOOM All is the same here) |
+| COM `ZoomWindow(ll, ur)` | `ZoomWindow(GeoPoint2, GeoPoint2)` | ZOOM Window |
+| `ZoomObjects(handles)` (no AutoCAD call) | `ZoomObjects(IEnumerable<string>)` | ZOOM Object |
+| COM `ZoomCenter(center, magnify)` | `ZoomCenter(GeoPoint2, double height)` | ZOOM Center |
+| COM `ZoomScaled(scale, relative)` | `ZoomScaled(double)` | ZOOM nX |
+| COM `ZoomPrevious()` | `bool ZoomPrevious()` | ZOOM Previous |
+| -PAN | `Pan(GeoVector2)` | -PAN, the drawing moves by the displacement |
+| `Editor.Regen()` | `Regen()` | REGEN without its line |
+| `Editor.GetCurrentView()`, `SetCurrentView` | `DisplayBox GetCurrentView()`, `SetCurrentView(DisplayBox)` | the box the canvas shows; ZOOM Window with no margin |
+| `ViewTable`, -VIEW | `NamedViews`, `SaveView`, `RestoreView`, `DeleteView` | -VIEW ?, Save, Restore, Delete |
+| `Editor.SelectAll` | `SelectAll(Func<DxfEntity, bool> filter = null)` | "Select objects:" All |
+| `Editor.SelectWindow`, `SelectCrossingWindow` | `SelectWindow(p1, p2)`, `SelectCrossingWindow(p1, p2)` | "Select objects:" Window, Crossing |
+| `GetSystemVariable`, `SetSystemVariable` | `GetVariable(name)`, `SetVariable(name, value)` | getvar, setvar |
+
+Points are of the world (WCS), not of the UCS, as AutoCAD's .NET API takes them, and in the units of the drawing. A drawing
+shown in the window is zoomed on the canvas; a session with no window (a test of your plugin) has a view of its own, 942
+by 534 pixels showing 10 units of height about the origin, which the view calls work on, and `HasWindow` says false. On a
+drawing with a line from (0, 0) to (100, 0) and a circle about (50, 50) of radius 25, that view after `ZoomExtents()` shows
+(-23.502, -4.167) to (123.502, 79.167); after `ZoomWindow(new GeoPoint2(0, 0), new GeoPoint2(10, 10))`, (-3.820, 0) to
+(13.820, 10); then `Pan(new GeoVector2(10, 0))` shows (-13.820, 0) to (3.820, 10); `ZoomCenter(new GeoPoint2(50, 50), 20)`
+shows (32.360, 40) to (67.640, 60).
+
+```csharp
+[CadCommand("ZOOMTOPLAN", Description = "Zoom to the plan and save the view")]
+public IEnumerable<CadPrompt> ZoomToPlan(CadCommandContext c)
+{
+    c.Editor.ZoomWindow(new GeoPoint2(0, 0), new GeoPoint2(4000, 3000));
+    c.Editor.SaveView("Plan");
+    c.Editor.SetVariable("LTSCALE", 20.0);
+    yield break;
+}
+```
+
+- **Undo.** Inside a running command the call joins the command's undo step (the command above is one step, `ZOOMTOPLAN`);
+  at rest each call is a step of its own named as the command is: `ZOOM`, `PAN`, `VIEW` (`SaveView`, `RestoreView`,
+  `DeleteView`) or `SETVAR` (a variable the drawing keeps). `ZoomPrevious()` goes back through the same list ZOOM Previous
+  does, 20 deep, and says false, writing nothing, where there is none.
+- **Through a viewport** (MSPACE on a layout) `ZoomExtents`, `ZoomWindow`, `ZoomScaled`, `ZoomPrevious` and `Pan` change the
+  viewport's view, as ZOOM and -PAN do there; `ZoomCenter` and `ZoomObjects` throw `InvalidOperationException`, as ZOOM does
+  not offer them there. `ZoomObjects` is ZOOM Object (a margin of 5 %, the space shown only), not the Find dialog's zoom.
+- **Selection** gives handles in the order the space lists its objects and leaves the pickfirst selection as it was:
+  `c.Document.Selection.Set(handles)` makes the result the selection. `SelectAll` takes the working space's objects, the
+  first viewport of a layout left out; `SelectWindow` the objects wholly inside and `SelectCrossingWindow` those it crosses,
+  held to the view where the session has a window, as the same options are. Objects on locked layers are included. Five lines
+  at y 0, 10, 20, 30 and 40 give 10, 20 and 30 for the window (-1, 5) to (101, 35), and 20 for the crossing (50, 15) to (60, 25).
+- **Variables** are `getvar` and `setvar`: an `int`, a `double` (an angle in radians), a `string` or a `double[]` of two or
+  three coordinates. An unknown name, a read only variable or a value the variable refuses throws `ArgumentException`:
+  `The system variable NOSUCH is not known.`, `The system variable EXTMIN is read only.`, `The value 7 is refused for LUNITS.`
+- **Named views** are the views of the drawing as -VIEW ? lists them; `SaveView` saves the view on screen with no layer
+  snapshot, a name that is a view's already redefines it, and `RestoreView` and `DeleteView` of a name the drawing has not
+  throw `ArgumentException`.
+- **The window** shows a view the editor moved at once, and a new canvas size no longer refits it, as it does not one moved by
+  a typed ZOOM.
 
 ## See also
 

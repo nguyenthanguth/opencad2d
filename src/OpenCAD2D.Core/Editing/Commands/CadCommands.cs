@@ -325,17 +325,7 @@ namespace OpenCAD2D
         private static IEnumerable<CadPrompt> Regen(CadCommandContext c)
         {
             c.Write("Regenerating model.");
-
-            // Points of a relative size take the size of the view regenerated in, as AutoCAD's.
-            if (c.Session.View != null)
-            {
-                c.Document.PointViewHeight = c.Session.WorkView.VisibleBox.Height;
-            }
-
-            // The fields are evaluated again where FIELDEVAL has the regen bit.
-            c.Document.UpdateFields(CadFieldContexts.Regen);
-            c.Session.ClearTemporaryGraphics();
-            c.Document.Regen();
+            CadZoom.Regen(c.Session);
             yield break;
         }
 
@@ -360,20 +350,6 @@ namespace OpenCAD2D
             double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out number)
             && number > 0.0
             && !double.IsInfinity(number);
-
-        /// <summary>
-        /// Scales the view: nX scales it as it is about its centre; n alone scales the view of the extents, as AutoCAD's n scales
-        /// that of the limits.
-        /// </summary>
-        private static void ZoomScaled(CadView view, DisplayBox extents, double factor, bool relative)
-        {
-            if (!relative)
-            {
-                view.ZoomTo(extents);
-            }
-
-            view.ZoomAt(view.Width / 2.0, view.Height / 2.0, factor);
-        }
 
         private static IEnumerable<CadPrompt> Zoom(CadCommandContext c)
         {
@@ -407,11 +383,7 @@ namespace OpenCAD2D
             CadSpace shown = c.Document.CurrentSpace;
 
             // What the space draws and, in a layout, its sheet, as a double click of the middle button shows them.
-            DisplayBox extents = CadBlockAuthoring.WithGlyphs(
-                c.Document,
-                shown,
-                c.Document.GetDisplay(shown).Bounds.Union(shown.PaperBounds)
-            );
+            DisplayBox extents = CadZoom.Extents(c.Document, shown);
 
             if (c.Input.IsNone)
             {
@@ -431,16 +403,7 @@ namespace OpenCAD2D
                 }
 
                 // The box of what is selected, as the objects draw it; nothing selected leaves the view as it was.
-                PickIndex index = c.Document.GetPickIndex(shown);
-                DisplayBox box = DisplayBox.Empty;
-
-                foreach (string handle in c.Selected)
-                {
-                    foreach (int i in index.IndicesOf(handle))
-                    {
-                        box = box.Union(index.List.Items[i].Bounds);
-                    }
-                }
+                DisplayBox box = CadZoom.ObjectsBox(c.Document, shown, c.Selected);
 
                 if (box.IsEmpty)
                 {
@@ -524,7 +487,7 @@ namespace OpenCAD2D
                     c.Write("Requires a distance (or numberX).");
                 }
 
-                ZoomScaled(view, extents, factor, relative);
+                CadZoom.Scaled(view, extents, factor, relative);
             }
             else if (c.Input.Is("Dynamic"))
             {
@@ -551,18 +514,15 @@ namespace OpenCAD2D
                     yield break;
                 }
 
-                ZoomScaled(view, extents, factor, relative);
+                CadZoom.Scaled(view, extents, factor, relative);
             }
             else if (c.Input.Is("Previous"))
             {
-                if (!c.Session.Views.TryTake(shown, out DisplayBox previous))
+                if (!CadZoom.PreviousOfSpace(c.Session, shown, view, before))
                 {
                     c.Write("No previous view saved.");
-                    yield break;
                 }
 
-                view.ZoomTo(previous, 0.0);
-                c.Document.RecordSpaceView(shown, view, before, "ZOOM", false, previous);
                 yield break;
             }
             else if (c.Input.IsPoint || c.Input.Is("Window"))
@@ -601,14 +561,9 @@ namespace OpenCAD2D
                     second = CadViewports.ToPaper(through, second);
                 }
 
-                var box = new DisplayBox(
-                    Math.Min(first.X, second.X),
-                    Math.Min(first.Y, second.Y),
-                    Math.Max(first.X, second.X),
-                    Math.Max(first.Y, second.Y)
-                );
+                DisplayBox box = CadZoom.Window(first, second);
 
-                if (box.Width <= 0.0 || box.Height <= 0.0)
+                if (CadZoom.IsFlat(box))
                 {
                     c.Write("*Invalid window*");
                     yield break;
@@ -659,10 +614,7 @@ namespace OpenCAD2D
 
             if (c.Input.Is("All") || c.Input.Is("Extents"))
             {
-                if (!extents.IsEmpty)
-                {
-                    CadViewports.Fit(viewport, extents, out center, out height);
-                }
+                CadZoom.FitViewport(viewport, extents, ref center, ref height);
             }
             else if (c.Input.Kind == CadInputKind.Text)
             {
@@ -685,37 +637,14 @@ namespace OpenCAD2D
                     yield break;
                 }
 
-                if (paper)
-                {
-                    height = viewport.Height / factor;
-                }
-                else
-                {
-                    if (!relative && !extents.IsEmpty)
-                    {
-                        CadViewports.Fit(viewport, extents, out center, out height);
-                    }
-
-                    height /= factor;
-                }
+                CadZoom.ScaleViewport(viewport, extents, factor, paper, relative, ref center, ref height);
             }
             else if (c.Input.Is("Previous"))
             {
                 // Each viewport goes back through views of its own, as AutoCAD's.
-                if (!c.Session.Views.TryTake(handle, out center, out height))
+                if (!CadZoom.PreviousOfViewport(c.Session, c.Command.Name, handle))
                 {
                     c.Write("No previous view saved.");
-                    yield break;
-                }
-
-                CadEditResult taken = c.Apply(
-                    c.Document.ViewRecord(handle, center, height),
-                    CadDocument.ViewWriter(handle, center, height)
-                );
-
-                if (taken.Succeeded)
-                {
-                    c.Document.TookViewportView(taken, handle, center, height);
                 }
 
                 yield break;
@@ -748,14 +677,9 @@ namespace OpenCAD2D
                 }
 
                 GeoPoint2 second = c.Input.Point;
-                var box = new DisplayBox(
-                    Math.Min(first.X, second.X),
-                    Math.Min(first.Y, second.Y),
-                    Math.Max(first.X, second.X),
-                    Math.Max(first.Y, second.Y)
-                );
+                DisplayBox box = CadZoom.Window(first, second);
 
-                if (box.Width <= 0.0 || box.Height <= 0.0)
+                if (CadZoom.IsFlat(box))
                 {
                     c.Write("*Invalid window*");
                     yield break;
@@ -768,15 +692,7 @@ namespace OpenCAD2D
                 yield break;
             }
 
-            CadEditResult moved = c.Apply(
-                c.Document.ViewRecord(handle, center, height),
-                CadDocument.ViewWriter(handle, center, height)
-            );
-
-            if (moved.Succeeded)
-            {
-                c.Document.KeepViewportView(moved, handle, wasCenter, wasHeight);
-            }
+            CadZoom.SetViewport(c.Session, c.Command.Name, handle, center, height, wasCenter, wasHeight);
         }
 
         /// <summary>A scale factor typed, as 2, 0.5 or 1/50: a finite number above nought.</summary>
@@ -845,29 +761,17 @@ namespace OpenCAD2D
                 yield return CadPrompt.ForPoint("Specify second point", start);
                 GeoVector2 shift = c.Input.IsPoint ? c.Input.Point - start : new GeoVector2(start.X, start.Y);
                 var viewport = (DxfViewport)c.Document.FindEntity(handle);
-                GeoPoint2 wasCenter = viewport.ViewCenter;
-                double wasHeight = viewport.ViewHeight;
 
                 // The view's centre is kept turned by its twist: the shift of model space turned with it.
-                if (viewport.TwistAngle != 0.0)
-                {
-                    double cos = Math.Cos(viewport.TwistAngle);
-                    double sin = Math.Sin(viewport.TwistAngle);
-                    shift = new GeoVector2(cos * shift.X - sin * shift.Y, sin * shift.X + cos * shift.Y);
-                }
-
-                GeoPoint2 center = viewport.ViewCenter - shift;
-
-                CadEditResult panned = c.Apply(
-                    c.Document.ViewRecord(handle, center, viewport.ViewHeight),
-                    CadDocument.ViewWriter(handle, center, viewport.ViewHeight)
+                CadZoom.SetViewport(
+                    c.Session,
+                    c.Command.Name,
+                    handle,
+                    CadZoom.PannedCenter(viewport, shift),
+                    viewport.ViewHeight,
+                    viewport.ViewCenter,
+                    viewport.ViewHeight
                 );
-
-                if (panned.Succeeded)
-                {
-                    c.Document.KeepViewportView(panned, handle, wasCenter, wasHeight);
-                }
-
                 yield break;
             }
 
@@ -890,11 +794,11 @@ namespace OpenCAD2D
             // A displacement through a locked viewport is of model space, the paper moving by it at the viewport's scale.
             if (through != null)
             {
-                move = move * (through.Height / through.ViewHeight);
+                move = CadZoom.OnPaper(through, move);
             }
 
             DisplayBox was = view.VisibleBox;
-            view.Pan(move.X * view.PixelsPerUnit, -move.Y * view.PixelsPerUnit);
+            CadZoom.Pan(view, move);
             c.Document.RecordSpaceView(c.Document.CurrentSpace, view, was, "PAN", false);
         }
 

@@ -318,6 +318,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       current view read and set) made public for C# plugins (the command context), Remote (`CadRemoteDocument`) and
       Python (`Drawing.zoom_extents()` ...), one meaning in all three; a survey first of every such internal function
       worth exposing. -> verify: each call tested in-process, through Remote and from a Python tool; docs and stubs.
+      C# and Remote done 2026-11-25 (API T1, CadEditor, plugin API 1.3); Python waits on T4
 - [x] A7. Typed entities in Python, as C#'s `if (obj is Line line)`: `Entity.net` typed `DxfEntity` (not `Any`) so that
       `isinstance(e.net, DxfLine)` and `match e.net: case DxfCircle() as c:` narrow in Pylance (both already run under
       pythonnet, checked 2026-11-25); `Entity` generic, `entities(DxfCircle)` giving `list[Entity[DxfCircle]]`.

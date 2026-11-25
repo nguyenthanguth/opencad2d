@@ -142,6 +142,7 @@ namespace OpenCAD2D
         {
             Document = document ?? throw new ArgumentNullException(nameof(document));
             Registry = registry ?? CadCommandRegistry.CreateDefault();
+            Editor = new CadEditor(this);
         }
 
         /// <summary>Raised when the prompt changes: a command started, a prompt answered, a command ended.</summary>
@@ -150,8 +151,23 @@ namespace OpenCAD2D
         /// <summary>Raised when a command asks the window for something: PROPERTIES, LAYER, OPTIONS, QSAVE.</summary>
         public event EventHandler<CadUiRequestEventArgs> UiRequested;
 
+        /// <summary>
+        /// Raised, on the thread of the drawing, when a call of <see cref="Editor"/> has moved the view the window shows: the
+        /// window shows the new view at once, and no longer fits it to the space's extents when its canvas changes size.
+        /// </summary>
+        internal event EventHandler ViewChanged;
+
+        /// <summary>Tells the window that the view it shows was moved by <see cref="Editor"/>.</summary>
+        internal void RaiseViewChanged() => ViewChanged?.Invoke(this, EventArgs.Empty);
+
         /// <summary>Gets the document.</summary>
         public CadDocument Document { get; }
+
+        /// <summary>
+        /// Gets the editor of this session: its view, the selection by area, the system variables and the named views, as a
+        /// plugin, a program driving the app through Remote, or a Python script uses them. Made once, with the session.
+        /// </summary>
+        public CadEditor Editor { get; }
 
         /// <summary>Gets the commands it knows.</summary>
         public CadCommandRegistry Registry { get; }
@@ -1373,6 +1389,9 @@ namespace OpenCAD2D
             }
         }
 
+        /// <summary>Whether an undo step of the session's own is open now: the running command's, or a routine's.</summary>
+        internal bool IsGrouped => _grouped;
+
         internal void EnsureGroup(string name)
         {
             if (!_grouped)
@@ -1400,11 +1419,15 @@ namespace OpenCAD2D
 
             if (!result.Succeeded)
             {
+                LastRefusal = result.Message;
                 Write(result.Message);
             }
 
             return result;
         }
+
+        /// <summary>The words of the last edit <see cref="Apply"/> was refused, which <see cref="CadEditor"/> turns into the exception of its call; null until one is.</summary>
+        internal string LastRefusal { get; set; }
 
         internal bool Request(string name, CadDocument document = null, object payload = null) =>
             Ask(name, document, payload).Handled;

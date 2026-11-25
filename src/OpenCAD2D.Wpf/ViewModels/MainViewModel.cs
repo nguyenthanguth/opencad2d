@@ -1725,6 +1725,22 @@ namespace OpenCAD2D.Wpf
             RefreshViewGroup();
         }
 
+        /// <summary>
+        /// The view of the drawing shown was moved by a call of its editor (a plugin's, a program's through Remote): the canvas
+        /// draws the new view at once, and a new canvas size no longer refits it. Inside a command the step is not committed
+        /// until it ends, so the document's change event is not what tells the canvas.
+        /// </summary>
+        private void OnSessionViewChanged(object sender, EventArgs e)
+        {
+            if (_current == null || sender != _current.Session)
+            {
+                return;
+            }
+
+            NotifyViewChangedByUser();
+            Revision++;
+        }
+
         /// <summary>Copies into <see cref="History"/> what the session has written since, as after a grip drag the canvas made.</summary>
         public void RefreshHistory() => SyncHistory();
 
@@ -1872,6 +1888,7 @@ namespace OpenCAD2D.Wpf
             file.Session = new CadCommandSession(document, Commands());
             file.Session.PromptChanged += OnPromptChanged;
             file.Session.UiRequested += OnUiRequested;
+            file.Session.ViewChanged += OnSessionViewChanged;
             file.Session.DclHost = _dclHost;
             file.Session.LoadSecurity = _loadSecurity;
             file.Session.LispEnvironment = _lispEnvironment;

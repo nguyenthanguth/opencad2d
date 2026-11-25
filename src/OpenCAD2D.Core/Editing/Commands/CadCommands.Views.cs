@@ -67,7 +67,7 @@ namespace OpenCAD2D
                 {
                     if (request.ToRestore != null)
                     {
-                        RestoreView(c, request.ToRestore);
+                        CadNamedViews.Restore(c, request.ToRestore);
                     }
 
                     yield break;
@@ -99,7 +99,7 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                DisplayBox box = Box(first, c.Input.Point);
+                DisplayBox box = CadNamedViews.Box(first, c.Input.Point);
 
                 if (box.Width <= 0.0 || box.Height <= 0.0)
                 {
@@ -111,7 +111,7 @@ namespace OpenCAD2D
                 {
                     request.NewWindow = box;
                 }
-                else if (FindView(c, request.Selected) != null)
+                else if (CadNamedViews.Find(c, request.Selected) != null)
                 {
                     if (mark == null)
                     {
@@ -131,7 +131,7 @@ namespace OpenCAD2D
                                 Values(box.MinX, box.MinY, box.MaxX, box.MaxY)
                             ),
                         },
-                        s => Bound(FindView(c, name), box)
+                        s => CadNamedViews.Bound(CadNamedViews.Find(c, name), box)
                     );
                 }
             }
@@ -183,12 +183,12 @@ namespace OpenCAD2D
                         0.0
                     );
 
-            if (request.Selected != null && FindView(c, request.Selected) == null)
+            if (request.Selected != null && CadNamedViews.Find(c, request.Selected) == null)
             {
                 request.Selected = null;
             }
 
-            if (request.ToRestore != null && FindView(c, request.ToRestore) == null)
+            if (request.ToRestore != null && CadNamedViews.Find(c, request.ToRestore) == null)
             {
                 request.ToRestore = null;
             }
@@ -206,12 +206,12 @@ namespace OpenCAD2D
             {
                 string name = (request.NewName ?? string.Empty).Trim();
 
-                if (!IsViewName(name))
+                if (!CadNamedViews.IsName(name))
                 {
                     return "Invalid view name.";
                 }
 
-                if (FindView(c, name) != null && texts[0] != "1")
+                if (CadNamedViews.Find(c, name) != null && texts[0] != "1")
                 {
                     return "A view named " + name + " already exists.";
                 }
@@ -223,8 +223,8 @@ namespace OpenCAD2D
                     return "There is no view to save.";
                 }
 
-                SaveView(c, name, box.Value, request.NewLayerSnapshot);
-                request.Selected = FindView(c, name).Name;
+                CadNamedViews.Save(c, name, box.Value, request.NewLayerSnapshot);
+                request.Selected = CadNamedViews.Find(c, name).Name;
                 request.NewWindow = null;
                 request.IsNewViewOpen = false;
                 return null;
@@ -237,11 +237,11 @@ namespace OpenCAD2D
                     return "Choose a view and Set Current first.";
                 }
 
-                RestoreView(c, request.ToRestore);
+                CadNamedViews.Restore(c, request.ToRestore);
                 return null;
             }
 
-            DxfViewTableRecord view = FindView(c, request.Selected);
+            DxfViewTableRecord view = CadNamedViews.Find(c, request.Selected);
 
             if (view == null)
             {
@@ -253,21 +253,21 @@ namespace OpenCAD2D
             switch (what)
             {
                 case "Delete":
-                    DeleteViews(c, new[] { chosen });
+                    CadNamedViews.Delete(c, new[] { chosen });
                     request.Selected = null;
                     return null;
                 case "Layers":
-                    SnapshotView(c, chosen, true);
+                    CadNamedViews.Snapshot(c, chosen, true);
                     return null;
                 case "Rename":
                     string typed = (texts[0] ?? string.Empty).Trim();
 
-                    if (!IsViewName(typed))
+                    if (!CadNamedViews.IsName(typed))
                     {
                         return "Invalid view name.";
                     }
 
-                    DxfViewTableRecord other = FindView(c, typed);
+                    DxfViewTableRecord other = CadNamedViews.Find(c, typed);
 
                     if (other != null && !string.Equals(other.Name, chosen, StringComparison.Ordinal))
                     {
@@ -276,7 +276,7 @@ namespace OpenCAD2D
 
                     c.Apply(
                         new[] { new CadEditRecord(CadEditRecordKind.TableChanged, null, "Rename view", chosen, typed) },
-                        s => RenameView(c, chosen, typed)
+                        s => CadNamedViews.Rename(c, chosen, typed)
                     );
                     request.Selected = typed;
                     return null;
@@ -311,7 +311,7 @@ namespace OpenCAD2D
                         },
                         s =>
                         {
-                            DxfViewTableRecord record = FindView(c, chosen);
+                            DxfViewTableRecord record = CadNamedViews.Find(c, chosen);
                             record.Height = height;
                             record.Width = width;
                         }
@@ -344,7 +344,7 @@ namespace OpenCAD2D
 
                     if (c.Input.Kind == CadInputKind.Text)
                     {
-                        List<string> names = ViewsMatching(c, c.Input.Text);
+                        List<string> names = CadNamedViews.Matching(c, c.Input.Text);
 
                         if (names.Count == 0)
                         {
@@ -353,7 +353,7 @@ namespace OpenCAD2D
                         else
                         {
                             c.OpenUndoStep();
-                            DeleteViews(c, names);
+                            CadNamedViews.Delete(c, names);
                         }
                     }
 
@@ -366,7 +366,7 @@ namespace OpenCAD2D
 
                     if (c.Input.Kind == CadInputKind.Text)
                     {
-                        DxfViewTableRecord view = FindView(c, c.Input.Text.Trim());
+                        DxfViewTableRecord view = CadNamedViews.Find(c, c.Input.Text.Trim());
 
                         if (view == null)
                         {
@@ -412,7 +412,7 @@ namespace OpenCAD2D
                             }
                         }
 
-                        RestoreView(c, restoreName, through);
+                        CadNamedViews.Restore(c, restoreName, through);
                     }
 
                     break;
@@ -422,7 +422,7 @@ namespace OpenCAD2D
                     yield return CadPrompt.ForString("Enter view name to save");
                     string name = c.Input.Kind == CadInputKind.Text ? c.Input.Text.Trim() : string.Empty;
 
-                    if (!IsViewName(name))
+                    if (!CadNamedViews.IsName(name))
                     {
                         if (name.Length > 0)
                         {
@@ -451,7 +451,7 @@ namespace OpenCAD2D
                             break;
                         }
 
-                        box = Box(first, c.Input.Point);
+                        box = CadNamedViews.Box(first, c.Input.Point);
                     }
 
                     if (box == null || box.Value.Width <= 0.0 || box.Value.Height <= 0.0)
@@ -460,10 +460,12 @@ namespace OpenCAD2D
                         break;
                     }
 
-                    if (FindView(c, name) != null)
+                    if (CadNamedViews.Find(c, name) != null)
                     {
                         yield return CadPrompt.ForKeyword(
-                            "View \"" + FindView(c, name).Name + "\" already exists. Do you want to redefine it?",
+                            "View \""
+                                + CadNamedViews.Find(c, name).Name
+                                + "\" already exists. Do you want to redefine it?",
                             new[] { "Yes", "No" },
                             "No"
                         );
@@ -475,7 +477,7 @@ namespace OpenCAD2D
                     }
 
                     c.OpenUndoStep();
-                    SaveView(c, name, box.Value, false);
+                    CadNamedViews.Save(c, name, box.Value, false);
                     break;
                 default:
                     yield return CadPrompt.ForKeyword(
@@ -513,7 +515,7 @@ namespace OpenCAD2D
                             break;
                         }
 
-                        DxfViewTableRecord view = FindView(c, c.Input.Text.Trim());
+                        DxfViewTableRecord view = CadNamedViews.Find(c, c.Input.Text.Trim());
 
                         if (view == null)
                         {
@@ -527,7 +529,7 @@ namespace OpenCAD2D
                         if (c.Input.Is("Save") || c.Input.Is("Delete"))
                         {
                             c.OpenUndoStep();
-                            SnapshotView(c, chosen, c.Input.Is("Save"));
+                            CadNamedViews.Snapshot(c, chosen, c.Input.Is("Save"));
                         }
 
                         break;
@@ -540,7 +542,7 @@ namespace OpenCAD2D
         /// <summary>-VIEW ?: the views whose names match, each with M for model space or P for a layout, as AutoCAD 2021 lists them.</summary>
         private static void ListViews(CadCommandContext c, string pattern)
         {
-            List<string> names = ViewsMatching(c, pattern);
+            List<string> names = CadNamedViews.Matching(c, pattern);
             c.Write("Saved views:");
 
             if (names.Count == 0)
@@ -553,287 +555,11 @@ namespace OpenCAD2D
 
             foreach (string name in names)
             {
-                c.Write(("\"" + name + "\"").PadRight(35) + (FindView(c, name).IsPaperspaceView ? "P" : "M"));
+                c.Write(("\"" + name + "\"").PadRight(35) + (CadNamedViews.Find(c, name).IsPaperspaceView ? "P" : "M"));
             }
         }
-
-        /// <summary>The names of the views that match a list of patterns, each with its wildcards, in ordinal order, letters of either case alike.</summary>
-        private static List<string> ViewsMatching(CadCommandContext c, string patterns)
-        {
-            string[] wanted = (string.IsNullOrWhiteSpace(patterns) ? "*" : patterns)
-                .Split(',')
-                .Select(p => p.Trim())
-                .Where(p => p.Length > 0)
-                .ToArray();
-            var names = new List<string>();
-
-            foreach (DxfViewTableRecord view in c.Database.ViewTable)
-            {
-                if (wanted.Any(p => CadWildcard.IsMatch(view.Name, p, true)))
-                {
-                    names.Add(view.Name);
-                }
-            }
-
-            names.Sort(
-                (a, b) =>
-                {
-                    int order = StringComparer.OrdinalIgnoreCase.Compare(a, b);
-                    return order != 0 ? order : string.CompareOrdinal(a, b);
-                }
-            );
-
-            return names;
-        }
-
-        /// <summary>A view's name AutoCAD takes: not empty, 255 letters at most, no space at either end and none of &lt;&gt;/\":;?*|=`.</summary>
-        private static bool IsViewName(string name) =>
-            !string.IsNullOrEmpty(name)
-            && name.Length <= 255
-            && name.Trim().Length == name.Length
-            && name.IndexOfAny("<>/\\\":;?*|=`".ToCharArray()) < 0
-            && !name.Any(ch => ch < ' ');
-
-        private static DxfViewTableRecord FindView(CadCommandContext c, string name) =>
-            string.IsNullOrEmpty(name) || !c.Database.ViewTable.Has(name) ? null : c.Database.ViewTable[name];
 
         /// <summary>What the canvas shows of the space on screen; null where it shows none.</summary>
         private static DisplayBox? Shown(CadCommandContext c) => c.Session.CommandView.VisibleBox;
-
-        private static DisplayBox Box(GeoPoint2 a, GeoPoint2 b) =>
-            new DisplayBox(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
-
-        /// <summary>A view of a box saved in the space on screen, an edit of the command's step: made, or redefined where the name has one; its layer snapshot saved where asked.</summary>
-        private static void SaveView(CadCommandContext c, string name, DisplayBox box, bool snapshot)
-        {
-            bool paper = !c.Document.CurrentSpace.IsModel;
-            c.Apply(new[] { new CadEditRecord(CadEditRecordKind.TableChanged, null, "View", null, name) }, s =>
-            {
-                DxfViewTableRecord view = FindView(c, name);
-
-                if (view == null)
-                {
-                    view = new DxfViewTableRecord
-                    {
-                        Name = name,
-                        IsPaperspaceView = paper,
-                        CenterPoint = new GeoPoint2((box.MinX + box.MaxX) / 2.0, (box.MinY + box.MaxY) / 2.0),
-                        Height = box.Height,
-                        Width = box.Width,
-                    };
-                    s.Database.ViewTable.Add(view);
-                }
-                else
-                {
-                    view.IsPaperspaceView = paper;
-                    Bound(view, box);
-                }
-
-                // A view saved in a layout remembers the layout, as AutoCAD's -VIEW Save does; one of model space has none.
-                view.Layout = paper ? c.Document.CurrentSpace.Layout : null;
-            });
-
-            if (snapshot)
-            {
-                SnapshotView(c, FindView(c, name).Name, true);
-            }
-        }
-
-        /// <summary>A view's centre, height and width set from a box.</summary>
-        private static void Bound(DxfViewTableRecord view, DisplayBox box)
-        {
-            view.CenterPoint = new GeoPoint2((box.MinX + box.MaxX) / 2.0, (box.MinY + box.MaxY) / 2.0);
-            view.Height = box.Height;
-            view.Width = box.Width;
-        }
-
-        /// <summary>
-        /// A view's layer snapshot saved from the layers as they stand, as the hidden state ACAD_VIEWS_ and its name with
-        /// AutoCAD 2021's mask 0x8200, or deleted with the state; an edit of the command's step.
-        /// </summary>
-        private static void SnapshotView(CadCommandContext c, string name, bool save)
-        {
-            string state = CadLayerStates.ViewPrefix + name;
-            c.Apply(
-                new[]
-                {
-                    new CadEditRecord(
-                        CadEditRecordKind.TableChanged,
-                        null,
-                        "View layer snapshot",
-                        name,
-                        save ? state : null
-                    ),
-                },
-                s =>
-                {
-                    DxfViewTableRecord view = FindView(c, name);
-                    string had = view.LayerState;
-
-                    if (had.Length > 0 && !string.Equals(had, state, StringComparison.OrdinalIgnoreCase))
-                    {
-                        CadLayerStates.Delete(s.Database, had);
-                    }
-
-                    if (save)
-                    {
-                        CadLayerStates.Save(
-                            s.Database,
-                            state,
-                            string.Empty,
-                            CadLayerStates.Hidden | CadLayerStates.CurrentViewport
-                        );
-                        view.LayerState = state;
-                    }
-                    else
-                    {
-                        CadLayerStates.Delete(s.Database, state);
-                        view.LayerState = string.Empty;
-                    }
-                }
-            );
-        }
-
-        /// <summary>A view renamed, its layer snapshot's state given the name that goes with the new one.</summary>
-        private static void RenameView(CadCommandContext c, string name, string newName)
-        {
-            DxfViewTableRecord view = FindView(c, name);
-            string state = view.LayerState;
-            view.Name = newName;
-
-            if (state.Length > 0 && CadLayerStates.Find(c.Database, state) != null)
-            {
-                string renamed = CadLayerStates.ViewPrefix + newName;
-                CadLayerStates.Rename(c.Database, state, renamed);
-                view.LayerState = renamed;
-            }
-        }
-
-        /// <summary>Views erased with their layer snapshots, an edit of the command's step.</summary>
-        private static void DeleteViews(CadCommandContext c, IReadOnlyList<string> names)
-        {
-            c.Apply(
-                names
-                    .Select(n => new CadEditRecord(CadEditRecordKind.TableChanged, null, "Delete view", n, null))
-                    .ToArray(),
-                s =>
-                {
-                    foreach (string name in names)
-                    {
-                        DxfViewTableRecord view = FindView(c, name);
-                        string state = view.LayerState;
-                        view.Erase();
-
-                        if (state.Length > 0)
-                        {
-                            CadLayerStates.Delete(s.Database, state);
-                        }
-                    }
-                }
-            );
-        }
-
-        /// <summary>
-        /// A view shown: its space made current where the canvas shows another (a layout view in the layout it was saved in, else
-        /// the layout on screen or the first layout), the canvas zoomed to it, and its layer snapshot restored, the one edit of
-        /// the step. A view of model space given a viewport of the layout shown goes into that viewport, as AutoCAD 2021 puts it:
-        /// the viewport shows the whole view, its centre the view's and its height the view's, or the view's width over the
-        /// viewport's shape where that is more (a view 44.85 by 25.4 into a viewport 3 by 2 is shown 29.9 high), and the viewport
-        /// is the one worked through afterwards.
-        /// </summary>
-        private static void RestoreView(CadCommandContext c, string name, string viewport = null)
-        {
-            DxfViewTableRecord view = FindView(c, name);
-
-            if (view == null)
-            {
-                return;
-            }
-
-            if (viewport != null)
-            {
-                RestoreViewInViewport(c, view, viewport);
-                return;
-            }
-
-            GeoPoint2 center = view.CenterPoint;
-            var box = new DisplayBox(
-                center.X - view.Width / 2.0,
-                center.Y - view.Height / 2.0,
-                center.X + view.Width / 2.0,
-                center.Y + view.Height / 2.0
-            );
-            CadSpace space = c.Document.CurrentSpace;
-            string layout = view.IsPaperspaceView ? view.Layout?.Handle : null;
-            CadSpace wanted = view.IsPaperspaceView
-                ? c.Document.Spaces.FirstOrDefault(s =>
-                    !s.IsModel
-                    && layout != null
-                    && string.Equals(s.Layout?.Handle, layout, StringComparison.OrdinalIgnoreCase)
-                ) ?? (space.IsModel ? c.Document.Spaces.FirstOrDefault(s => !s.IsModel) : space)
-                : c.Document.ModelSpace;
-
-            if (wanted == null)
-            {
-                c.Write("The drawing has no layout to show the view \"" + view.Name + "\" in.");
-                return;
-            }
-
-            if (wanted == space && c.Session.View != null)
-            {
-                c.Session.View.ZoomTo(box, 0.0);
-            }
-            else
-            {
-                // The switch joins the command's step, as AutoCAD 2021's console undoes -VIEW Restore from the Model tab in one
-                // U that goes back to the tab, the layout shown by it.
-                c.OpenUndoStep();
-                CadEditResult shown = c.Document.ShowSpace(wanted, c.Command.Name);
-
-                if (!shown.Succeeded)
-                {
-                    c.Write(shown.Message);
-                    return;
-                }
-
-                wanted.PendingView = box;
-            }
-
-            RestoreViewLayers(c, view);
-        }
-
-        /// <summary>A view of model space shown through a viewport of the layout on screen, which is then the one worked through.</summary>
-        private static void RestoreViewInViewport(CadCommandContext c, DxfViewTableRecord view, string handle)
-        {
-            if (!(c.Document.FindEntity(handle) is DxfViewport viewport) || !(viewport.Height > 0.0))
-            {
-                return;
-            }
-
-            // The view shown whole: its height, or its width fitted to the viewport's shape where that takes more.
-            double height = Math.Max(view.Height, view.Width * viewport.Height / viewport.Width);
-            c.OpenUndoStep();
-            CadEditResult set = c.Document.SetViewportView(handle, view.CenterPoint, height, c.Command.Name);
-
-            if (!set.Succeeded)
-            {
-                c.Write(set.Message);
-                return;
-            }
-
-            c.Document.WorkThrough(handle, c.Command.Name);
-            RestoreViewLayers(c, view);
-        }
-
-        /// <summary>A view's layer snapshot restored, as an edit of the command's step; nothing where the view keeps none.</summary>
-        private static void RestoreViewLayers(CadCommandContext c, DxfViewTableRecord view)
-        {
-            string state = view.LayerState;
-
-            if (state.Length > 0 && CadLayerStates.Find(c.Database, state) != null)
-            {
-                RestoreLayerState(c, state, false);
-            }
-        }
     }
 }

@@ -282,7 +282,7 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>Makes the context a plugin's callback, predicate or provider gets: the drawing shown, the objects selected, whether a command runs.</summary>
+        /// <summary>Makes the context a plugin's callback, predicate or provider gets: the drawing shown, the objects selected, whether a command runs, and the editor of the drawing shown.</summary>
         internal CadPluginContext PluginContext()
         {
             CadDocument document = _current?.Document;
@@ -290,7 +290,14 @@ namespace OpenCAD2D.Wpf
         }
 
         private CadPluginContext PluginContext(CadDocument document, IReadOnlyList<string> selected) =>
-            new CadPluginContext(document, selected, IsCommandRunning, Say, StartPluginCommand);
+            new CadPluginContext(
+                document,
+                selected,
+                IsCommandRunning,
+                Say,
+                StartPluginCommand,
+                document == null ? null : _current?.Session?.Editor
+            );
 
         /// <summary>The handles of the objects selected that the drawing has, in ordinal order.</summary>
         private static List<string> SelectedHandles(CadDocument document)

@@ -317,7 +317,7 @@ namespace OpenCAD2D
                 case "Ucs":
                     return c.Document.Ucs.Find(name) != null;
                 case "VIew":
-                    return FindView(c, name) != null;
+                    return CadNamedViews.Find(c, name) != null;
                 default:
                     // A configuration the tiles hold; *Active and *Multiple are not renamed, as AutoCAD does not rename them.
                     return c.Document.TiledViewports.Names.Any(n =>
@@ -367,13 +367,13 @@ namespace OpenCAD2D
                     }
 
                 case "VIew":
-                    if (!IsViewName(wanted))
+                    if (!CadNamedViews.IsName(wanted))
                     {
                         return "Invalid view name.";
                     }
 
-                    DxfViewTableRecord other = FindView(c, wanted);
-                    string was = FindView(c, old).Name;
+                    DxfViewTableRecord other = CadNamedViews.Find(c, wanted);
+                    string was = CadNamedViews.Find(c, old).Name;
 
                     if (other != null && !string.Equals(other.Name, was, StringComparison.OrdinalIgnoreCase))
                     {
@@ -382,7 +382,7 @@ namespace OpenCAD2D
 
                     result = c.Apply(
                         new[] { new CadEditRecord(CadEditRecordKind.TableChanged, null, "Rename view", was, wanted) },
-                        s => RenameView(c, was, wanted)
+                        s => CadNamedViews.Rename(c, was, wanted)
                     );
                     break;
                 default:

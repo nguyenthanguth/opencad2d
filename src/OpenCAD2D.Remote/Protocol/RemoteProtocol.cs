@@ -108,6 +108,36 @@ namespace OpenCAD2D.Remote
 
         /// <summary>Reads the extents the header of a drawing holds (<c>EXTMIN</c> and <c>EXTMAX</c>).</summary>
         public const string Extents = "extents";
+
+        /// <summary>Zooms the view of the drawing shown: extents, window, objects, center, scaled or previous (<c>how</c>).</summary>
+        public const string Zoom = "zoom";
+
+        /// <summary>Pans the view of the drawing shown by a displacement (<c>dx</c>, <c>dy</c>).</summary>
+        public const string Pan = "pan";
+
+        /// <summary>Regenerates a drawing, as REGEN does.</summary>
+        public const string Regen = "regen";
+
+        /// <summary>Reads the view of the drawing shown (<c>min</c>, <c>max</c>, <c>window</c>), or sets it where <c>min</c> and <c>max</c> are given.</summary>
+        public const string View = "view";
+
+        /// <summary>The names of the named views of a drawing.</summary>
+        public const string NamedViews = "namedViews";
+
+        /// <summary>Saves the view on screen under a name.</summary>
+        public const string SaveView = "saveView";
+
+        /// <summary>Shows a named view.</summary>
+        public const string RestoreView = "restoreView";
+
+        /// <summary>Erases a named view.</summary>
+        public const string DeleteView = "deleteView";
+
+        /// <summary>Reads a system variable of a drawing, or sets it where <c>value</c> is given.</summary>
+        public const string Variable = "variable";
+
+        /// <summary>The objects a window or a crossing window takes, or all of the working space (<c>how</c>), as <see cref="Get"/> answers.</summary>
+        public const string SelectArea = "selectArea";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

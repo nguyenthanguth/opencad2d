@@ -75,6 +75,35 @@ namespace OpenCAD2D.Remote.TestServer
 
         public CadCommandSession SessionOf(CadDocument document) => _sessions[document];
 
+        /// <summary>
+        /// Gives the session of every drawing, now and later, a view of a canvas of this size in pixels, 10 units high about the
+        /// origin as the console's own starts: the drawings are then shown in a window of that size, as in the app.
+        /// </summary>
+        public void ShowInWindow(double width, double height)
+        {
+            _windowWidth = width;
+            _windowHeight = height;
+            _hasWindow = true;
+
+            foreach (CadCommandSession session in _sessions.Values)
+            {
+                GiveView(session);
+            }
+        }
+
+        private double _windowWidth;
+        private double _windowHeight;
+        private bool _hasWindow;
+
+        private void GiveView(CadCommandSession session)
+        {
+            if (_hasWindow)
+            {
+                session.View = new CadView(_windowWidth, _windowHeight);
+                session.View.ZoomToHeight(0.0, 0.0, 10.0);
+            }
+        }
+
         public void Type(CadDocument document, string line)
         {
             CadCommandSession session = _sessions[document];
@@ -110,6 +139,7 @@ namespace OpenCAD2D.Remote.TestServer
         {
             _documents.Add(document);
             _sessions[document] = new CadCommandSession(document) { PickAperture = 1.0 };
+            GiveView(_sessions[document]);
             ActiveDocument = document;
             return document;
         }
