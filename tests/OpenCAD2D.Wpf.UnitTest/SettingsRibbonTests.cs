@@ -121,14 +121,14 @@ namespace OpenCAD2D.Wpf.UnitTest
                     Assert.NotNull(title);
                     Assert.All(buttons, b => Assert.Single(Descendants(b).OfType<IconView>()));
                     Assert.All(buttons, b =>
-                        Assert.False(Descendants(b).OfType<IconView>().Single().Data.IsEmpty(), (string)b.Content)
+                        Assert.False(
+                            Descendants(b).OfType<IconView>().Single().Icon.Large.Bounds.IsEmpty,
+                            (string)b.Content
+                        )
                     );
                     Assert.Equal(
                         buttons.Count,
-                        buttons
-                            .Select(b => Descendants(b).OfType<IconView>().Single().Data.ToString())
-                            .Distinct()
-                            .Count()
+                        buttons.Select(b => Descendants(b).OfType<IconView>().Single().Icon).Distinct().Count()
                     );
                 }
             );

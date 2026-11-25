@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **CHANGED.** The ribbon's icons are drawn in colour (A13), one drawing for each of 378 commands in AutoCAD 2021's dark
+  look and the program's own hand: light lines, blue points and arrows, teal windows and data, yellow results, red for
+  delete and markup, green for add and ok. Each has a large drawing for 32 pixels and a small one for 16, lines whole
+  pixels at 100 %; a slot of 16 at 150 % (24 pixels) shows the large drawing at 0.75. Home, Insert, Annotate, Parametric,
+  View, Manage, Output, Settings, the Text Editor, Table Cell, Block Editor, Hatch, Array, Image and PDF Underlay tabs, the
+  Quick Access Toolbar and the layer state glyph. The seven Block Editor buttons that had no icon (Block Table, Delete,
+  Authoring Palettes, Parameter Manager, Construction, Make Visible, Make Invisible) have one, and the Close Text Editor
+  button takes its icon like the others. The collapsed panel button is 4 pixels taller in its icon slot (32, from 28).
+  The monochrome `GhIcon...` keys stay for the command line, the palettes and the dialogs.
+- **NEW.** `RibbonIcon` (`Large` and `Small`, two drawings on a 32 grid), `IconView.Icon` (a colour icon drawn instead
+  of `Data`, the drawing chosen by the device pixels of its size) and `RibbonPanel.RibbonIcon` (the colour icon of a
+  collapsed panel's button). Plugins keep `IconView.Data` and `RibbonPanel.Icon`. The seven colours are the theme brushes
+  `GhIconInk`, `GhIconGrey`, `GhIconBlue`, `GhIconTeal`, `GhIconYellow`, `GhIconRed` and `GhIconGreen`.
 - **NEW.** Plugin Settings: Settings..., after Remove in Load/Unload Applications, opens a dialog for a loaded C#
   plugin's `[CadSetting]` properties or a Python tool's `"settings"`: a row per setting by kind, its description and
   range in grey, a refused value in red under it with OK greyed; OK applies every value at once and writes

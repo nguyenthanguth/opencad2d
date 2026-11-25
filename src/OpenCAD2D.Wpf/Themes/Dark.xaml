@@ -42,6 +42,24 @@
     <SolidColorBrush x:Key="GhError" Color="{StaticResource GhErrorColor}" />
     <SolidColorBrush x:Key="GhHover" Color="#323944" />
 
+    <!-- The seven colours of the ribbon's icons (RibbonIcons.xaml), each at least 3 to 1 on the panel GhPanel: ink for what a
+         command makes or acts on, grey for what it leaves, blue for points and arrows, teal for windows and data, yellow for the
+         result or the selection, red for delete and markup, green for add and ok. -->
+    <Color x:Key="GhIconInkColor">#E6EBF0</Color>
+    <Color x:Key="GhIconGreyColor">#8E99A8</Color>
+    <Color x:Key="GhIconBlueColor">#4DA3FF</Color>
+    <Color x:Key="GhIconTealColor">#2BC4B4</Color>
+    <Color x:Key="GhIconYellowColor">#F5C242</Color>
+    <Color x:Key="GhIconRedColor">#F2584B</Color>
+    <Color x:Key="GhIconGreenColor">#45C45A</Color>
+    <SolidColorBrush x:Key="GhIconInk" Color="{StaticResource GhIconInkColor}" />
+    <SolidColorBrush x:Key="GhIconGrey" Color="{StaticResource GhIconGreyColor}" />
+    <SolidColorBrush x:Key="GhIconBlue" Color="{StaticResource GhIconBlueColor}" />
+    <SolidColorBrush x:Key="GhIconTeal" Color="{StaticResource GhIconTealColor}" />
+    <SolidColorBrush x:Key="GhIconYellow" Color="{StaticResource GhIconYellowColor}" />
+    <SolidColorBrush x:Key="GhIconRed" Color="{StaticResource GhIconRedColor}" />
+    <SolidColorBrush x:Key="GhIconGreen" Color="{StaticResource GhIconGreenColor}" />
+
     <!-- The two steps of the accent for a button filled with it: lighter under the mouse, darker pressed. A flat button turns
          grey (GhHover) under the mouse, which on a blue button would drop the blue altogether. -->
     <SolidColorBrush x:Key="GhAccentHover" Color="#63AFFF" />

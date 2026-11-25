@@ -8,21 +8,6 @@
     Visibility and Close. Its logic is BlockEditorRibbonViewModel. Auto Constrain, Linear, Delete and the Parameter Manager start the constraint commands; Block Table and Construction are greyed; the
     rest is live, as BigButton and SmallButton grey a button by default.
     -->
-    <UserControl.Resources>
-        <Geometry x:Key="IconEditBlock">M4 4h10v10H4zM14 14l6 6M16 4l4 4-9 9H7v-4z</Geometry>
-        <Geometry x:Key="IconSaveBlock">M5 3h11l3 3v15H5zM8 3v5h7V3M8 21v-7h8v7</Geometry>
-        <Geometry x:Key="IconSaveAs">M5 3h11l3 3v15H5zM8 3v5h7V3M14 14l4 4M18 14v4h-4</Geometry>
-        <Geometry x:Key="IconTest">M7 4v16l13-8z</Geometry>
-        <Geometry x:Key="IconAutoConstrain">M4 20 20 4M4 4h6M14 20h6M7 4v.01M17 20v.01</Geometry>
-        <Geometry x:Key="IconLinear">M4 8v8M20 8v8M4 12h16M4 12l3-2v4zM20 12l-3-2v4z</Geometry>
-        <Geometry x:Key="IconAttribute">M4 6h16v12H4zM8 10h4M8 14h8M15 9l2 2-2 2</Geometry>
-        <Geometry x:Key="IconProperties">M4 4h16v16H4zM8 9h8M8 13h8M8 17h5</Geometry>
-        <Geometry x:Key="IconPoint">M4 18h16M4 14v8M20 14v8M8 10l4-6 4 6z</Geometry>
-        <Geometry x:Key="IconMove">M13 3 5 14h6l-1 7 8-11h-6z</Geometry>
-        <Geometry x:Key="IconVisibility">M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 .01 0</Geometry>
-        <Geometry x:Key="IconClose">M6 6l12 12M18 6 6 18</Geometry>
-    </UserControl.Resources>
-
     <StackPanel Orientation="Horizontal">
         <Border Style="{DynamicResource GroupBorder}">
             <DockPanel>
@@ -30,7 +15,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconEditBlock}"
+                        Tag="{DynamicResource IconEditBlock.Color}"
                         Content="Edit Block"
                         IsEnabled="True"
                         Command="{Binding EditBlockCommand}"
@@ -38,7 +23,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconSaveBlock}"
+                        Tag="{DynamicResource IconSaveBlock.Color}"
                         Content="Save Block"
                         IsEnabled="True"
                         Command="{Binding SaveBlockCommand}"
@@ -47,7 +32,7 @@
                     <WrapPanel Style="{DynamicResource SmallColumn}">
                         <Button
                             Style="{DynamicResource SmallButton}"
-                            Tag="{StaticResource IconSaveAs}"
+                            Tag="{DynamicResource IconSaveAs.Color}"
                             Content="Save As"
                             IsEnabled="True"
                             Command="{Binding SaveAsCommand}"
@@ -55,7 +40,7 @@
                         />
                         <Button
                             Style="{DynamicResource SmallButton}"
-                            Tag="{StaticResource IconTest}"
+                            Tag="{DynamicResource IconTest.Color}"
                             Content="Test Block"
                             IsEnabled="True"
                             Command="{Binding TestBlockCommand}"
@@ -76,7 +61,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconAutoConstrain}"
+                        Tag="{DynamicResource IconAutoConstrain.Color}"
                         Content="Auto Constrain"
                         IsEnabled="True"
                         Command="{Binding AutoConstrainCommand}"
@@ -97,7 +82,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconLinear}"
+                        Tag="{DynamicResource IconLinear.Color}"
                         Content="Linear"
                         IsEnabled="True"
                         Command="{Binding LinearConstraintCommand}"
@@ -106,12 +91,14 @@
                     <WrapPanel Style="{DynamicResource SmallColumn}">
                         <Button
                             Style="{DynamicResource SmallButton}"
+                            Tag="{DynamicResource IconBlockTable.Color}"
                             Content="Block Table"
                             ToolTip="Not built: a block table needs the lookup table, which is not in this version"
                             ToolTipService.ShowOnDisabled="True"
                         />
                         <Button
                             Style="{DynamicResource SmallButton}"
+                            Tag="{DynamicResource IconDeleteConstraints.Color}"
                             Content="Delete"
                             IsEnabled="True"
                             Command="{Binding DeleteConstraintsCommand}"
@@ -127,7 +114,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconAttribute}"
+                        Tag="{DynamicResource IconAttribute.Color}"
                         Content="Attribute Definition"
                         IsEnabled="True"
                         Command="{Binding AttributeDefinitionCommand}"
@@ -135,7 +122,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconProperties}"
+                        Tag="{DynamicResource IconProperties.Color}"
                         Content="Block Properties"
                         IsEnabled="True"
                         Command="{Binding BlockPropertiesCommand}"
@@ -144,6 +131,7 @@
                     <WrapPanel Style="{DynamicResource SmallColumn}">
                         <Button
                             Style="{DynamicResource SmallButton}"
+                            Tag="{DynamicResource IconAuthoringPalettes.Color}"
                             Content="Authoring Palettes"
                             IsEnabled="True"
                             Command="{Binding AuthoringPalettesCommand}"
@@ -151,6 +139,7 @@
                         />
                         <Button
                             Style="{DynamicResource SmallButton}"
+                            Tag="{DynamicResource IconParameterManager.Color}"
                             Content="Parameter Manager"
                             IsEnabled="True"
                             Command="{Binding ParameterManagerCommand}"
@@ -158,6 +147,7 @@
                         />
                         <Button
                             Style="{DynamicResource SmallButton}"
+                            Tag="{DynamicResource IconConstruction.Color}"
                             Content="Construction"
                             ToolTip="Not built: construction geometry, which a block shows only in the editor, is not kept apart from the block's objects"
                             ToolTipService.ShowOnDisabled="True"
@@ -172,7 +162,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconPoint}"
+                        Tag="{DynamicResource IconPoint.Color}"
                         Content="{Binding ParameterButton}"
                         IsEnabled="True"
                         Click="OnParameterMenu"
@@ -180,7 +170,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconMove}"
+                        Tag="{DynamicResource IconMove.Color}"
                         Content="{Binding ActionButton}"
                         IsEnabled="True"
                         Click="OnActionMenu"
@@ -196,7 +186,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconVisibility}"
+                        Tag="{DynamicResource IconVisibility.Color}"
                         Content="Visibility States"
                         IsEnabled="True"
                         Command="{Binding VisibilityStatesCommand}"
@@ -214,6 +204,7 @@
                         />
                         <Button
                             Style="{DynamicResource SmallButton}"
+                            Tag="{DynamicResource IconMakeVisible.Color}"
                             Content="Make Visible"
                             IsEnabled="{Binding HasVisibilityStates}"
                             Command="{Binding MakeVisibleCommand}"
@@ -221,6 +212,7 @@
                         />
                         <Button
                             Style="{DynamicResource SmallButton}"
+                            Tag="{DynamicResource IconMakeInvisible.Color}"
                             Content="Make Invisible"
                             IsEnabled="{Binding HasVisibilityStates}"
                             Command="{Binding MakeInvisibleCommand}"
@@ -235,7 +227,7 @@
                 <TextBlock DockPanel.Dock="Bottom" Style="{DynamicResource GroupTitle}" Text="Close" />
                 <Button
                     Style="{DynamicResource BigButton}"
-                    Tag="{StaticResource IconClose}"
+                    Tag="{DynamicResource IconClose.Color}"
                     Content="Close Block Editor"
                     IsEnabled="True"
                     Command="{Binding CloseCommand}"

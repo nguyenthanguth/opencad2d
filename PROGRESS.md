@@ -372,7 +372,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          tests of open/save round trips, renumbering, a field in a title block updating with the sheet.
       4. Window (Wpf): the palette and dialogs from the boards -> verify: view-model tests, screenshots against the boards.
       5. Publish and transmit -> verify: a set of three drawings published to one PDF with the pages in set order.
-- [ ] A13. Colour ribbon icons (maintainer 2026-11-25; design first): redraw the ribbon's icons of OpenCAD2D in colour,
+- [x] A13. Colour ribbon icons (maintainer 2026-11-25; design first): redraw the ribbon's icons of OpenCAD2D in colour,
       in the visual language of AutoCAD 2021's ribbon (the maintainer's screenshot: Home tab, dark theme: blue/teal
       accents, yellow highlights, red where AutoCAD uses red), so commands are recognised at a glance. Our own drawings:
       AutoCAD's icons are Autodesk's and are never copied, traced or extracted (look and colour roles only; see
@@ -387,6 +387,13 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       3. Build -> verify: the icons as vector geometry (as today's icons are drawn) in the theme resources, every button
          bound, a test that every ribbon command has an icon and none is missing, screenshots of each tab at 100 % and
          150 % against the boards.
+      DONE 2026-11-26: 378 icons (371 keys + 7 Block Editor buttons that had none) on 15 tabs, palette of 7 (Ink
+      #E6EBF0, Grey #8E99A8, Blue #4DA3FF, Teal #2BC4B4, Yellow #F5C242, Red #F2584B, Green #45C45A); boards A13* on the
+      canvas (v228); keys `<old>.Color` (57 old keys are plain geometry elsewhere); `RibbonIcon`, `IconView.Icon`,
+      `RibbonPanel.RibbonIcon`; generator `tools/ribbon-icons`; Python icon "Py" lettering (not the PSF mark). Spec and
+      decisions in .claude/scratch/a13/spec.md. Left: the search glass at Size 12 scales the small drawing to 0.75;
+      the hover/pressed knock-out colour is the fixed panel colour; RibbonIcons.xaml merges Dark.xaml (+45 ms a
+      workspace) and could take a small palette dictionary instead.
 
 #### Parked follow-ups
 

@@ -11,28 +11,6 @@
     -->
     <UserControl.Resources>
         <local:RgbBrushConverter x:Key="FillBrush" />
-        <Geometry x:Key="IconInsertAbove">M3 12h18v8H3zM12 3v6M9 6h6</Geometry>
-        <Geometry x:Key="IconInsertBelow">M3 4h18v8H3zM12 15v6M9 18h6</Geometry>
-        <Geometry x:Key="IconDeleteRows">M3 8h18v8H3zM8 10l8 4M16 10l-8 4</Geometry>
-        <Geometry x:Key="IconInsertLeft">M12 3h8v18h-8zM3 12h6M6 9v6</Geometry>
-        <Geometry x:Key="IconInsertRight">M4 3h8v18H4zM15 12h6M18 9v6</Geometry>
-        <Geometry x:Key="IconDeleteColumns">M8 3h8v18H8zM10 8l4 8M14 8l-4 8</Geometry>
-        <Geometry x:Key="IconMerge">M3 5h18v14H3zM8 12h8M10 10l-2 2 2 2M14 10l2 2-2 2</Geometry>
-        <Geometry x:Key="IconUnmerge">M3 5h18v14H3zM3 12h18M12 5v14</Geometry>
-        <Geometry x:Key="IconMatch">M5 3h10v6H5zM9 9v4M9 13h8v8H9z</Geometry>
-        <Geometry x:Key="IconAlign">M4 6h16M7 12h10M4 18h16</Geometry>
-        <Geometry x:Key="IconBorders">M4 4h16v16H4z</Geometry>
-        <Geometry x:Key="IconLock">M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3</Geometry>
-        <Geometry x:Key="IconFormat">M4 6h4M4 12h8M4 18h6M15 5l5 14</Geometry>
-        <Geometry x:Key="IconBlock">M4 4h16v16H4zM4 4l16 16</Geometry>
-        <Geometry x:Key="IconField">M4 6h16v12H4zM8 10h3M8 14h8M14 10h2</Geometry>
-        <Geometry x:Key="IconFormula">M7 4h10M7 4l6 8-6 8h10</Geometry>
-        <Geometry x:Key="IconContents">M4 6h16M4 12h16M4 18h10</Geometry>
-        <Geometry x:Key="IconLink">
-            M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1
-        </Geometry>
-        <Geometry x:Key="IconDownload">M12 3v12M7 10l5 5 5-5M4 21h16</Geometry>
-        <Geometry x:Key="IconUpload">M12 15V3M7 8l5-5 5 5M4 21h16</Geometry>
     </UserControl.Resources>
 
     <StackPanel Orientation="Horizontal">
@@ -42,7 +20,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconInsertAbove}"
+                        Tag="{DynamicResource IconInsertAbove.Color}"
                         Content="Insert Above"
                         IsEnabled="True"
                         Command="{Binding InsertAboveCommand}"
@@ -50,7 +28,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconInsertBelow}"
+                        Tag="{DynamicResource IconInsertBelow.Color}"
                         Content="Insert Below"
                         IsEnabled="True"
                         Command="{Binding InsertBelowCommand}"
@@ -58,7 +36,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconDeleteRows}"
+                        Tag="{DynamicResource IconDeleteRows.Color}"
                         Content="Delete Row(s)"
                         IsEnabled="True"
                         Command="{Binding DeleteRowsCommand}"
@@ -74,7 +52,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconInsertLeft}"
+                        Tag="{DynamicResource IconInsertLeft.Color}"
                         Content="Insert Left"
                         IsEnabled="True"
                         Command="{Binding InsertLeftCommand}"
@@ -82,7 +60,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconInsertRight}"
+                        Tag="{DynamicResource IconInsertRight.Color}"
                         Content="Insert Right"
                         IsEnabled="True"
                         Command="{Binding InsertRightCommand}"
@@ -90,7 +68,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconDeleteColumns}"
+                        Tag="{DynamicResource IconDeleteColumns.Color}"
                         Content="Delete Column(s)"
                         IsEnabled="True"
                         Command="{Binding DeleteColumnsCommand}"
@@ -106,7 +84,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconMerge}"
+                        Tag="{DynamicResource IconMerge.Color}"
                         Content="Merge Cells ▾"
                         IsEnabled="{Binding CanMerge}"
                         Click="OnMenu"
@@ -137,7 +115,7 @@
                     </Button>
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconUnmerge}"
+                        Tag="{DynamicResource IconUnmerge.Color}"
                         Content="Unmerge Cells"
                         IsEnabled="True"
                         Command="{Binding UnmergeCommand}"
@@ -154,7 +132,7 @@
                     <WrapPanel Style="{DynamicResource SmallColumn}">
                         <Button
                             Style="{DynamicResource SmallButton}"
-                            Tag="{StaticResource IconMatch}"
+                            Tag="{DynamicResource IconMatch.Color}"
                             Content="Match Cell"
                             IsEnabled="True"
                             Command="{Binding MatchCellCommand}"
@@ -162,7 +140,7 @@
                         />
                         <Button
                             Style="{DynamicResource SmallButton}"
-                            Tag="{StaticResource IconAlign}"
+                            Tag="{DynamicResource IconAlign.Color}"
                             Content="{Binding AlignmentName}"
                             IsEnabled="True"
                             Click="OnMenu"
@@ -232,7 +210,7 @@
                         </Button>
                         <Button
                             Style="{DynamicResource SmallButton}"
-                            Tag="{StaticResource IconBorders}"
+                            Tag="{DynamicResource IconBorders.Color}"
                             Content="Cell Borders ▾"
                             IsEnabled="True"
                             Click="OnMenu"
@@ -343,7 +321,7 @@
                 <WrapPanel Style="{DynamicResource SmallColumn}">
                     <Button
                         Style="{DynamicResource SmallButton}"
-                        Tag="{StaticResource IconLock}"
+                        Tag="{DynamicResource IconLock.Color}"
                         Content="Cell Locking ▾"
                         IsEnabled="True"
                         Click="OnMenu"
@@ -383,7 +361,7 @@
                     </Button>
                     <Button
                         Style="{DynamicResource SmallButton}"
-                        Tag="{StaticResource IconFormat}"
+                        Tag="{DynamicResource IconFormat.Color}"
                         Content="Data Format ▾"
                         IsEnabled="True"
                         Click="OnMenu"
@@ -466,7 +444,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconBlock}"
+                        Tag="{DynamicResource IconBlock.Color}"
                         Content="Block"
                         IsEnabled="True"
                         Command="{Binding InsertBlockCommand}"
@@ -474,7 +452,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconField}"
+                        Tag="{DynamicResource IconField.Color}"
                         Content="Field"
                         IsEnabled="True"
                         Command="{Binding InsertFieldCommand}"
@@ -482,7 +460,7 @@
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconFormula}"
+                        Tag="{DynamicResource IconFormula.Color}"
                         Content="Formula ▾"
                         IsEnabled="True"
                         Click="OnMenu"
@@ -528,7 +506,7 @@
                     </Button>
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconContents}"
+                        Tag="{DynamicResource IconContents.Color}"
                         Content="Manage Cell Contents"
                         ToolTip="Several contents in a cell: not offered"
                         Margin="0"
@@ -542,21 +520,21 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconLink}"
+                        Tag="{DynamicResource IconLink.Color}"
                         Content="Link Cell"
                         Command="{Binding LinkCellCommand}"
                         ToolTip="Link the cells to a data link (Excel workbook or CSV file): its data is put in from the cell"
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconDownload}"
+                        Tag="{DynamicResource IconDownload.Color}"
                         Content="Download from Source"
                         Command="{Binding DownloadCommand}"
                         ToolTip="Update the table's data links from their sources (DATALINKUPDATE)"
                     />
                     <Button
                         Style="{DynamicResource BigButton}"
-                        Tag="{StaticResource IconUpload}"
+                        Tag="{DynamicResource IconUpload.Color}"
                         Content="Upload to Source"
                         Command="{Binding UploadCommand}"
                         ToolTip="Write the table's cells back to the source files of the data links that allow it"

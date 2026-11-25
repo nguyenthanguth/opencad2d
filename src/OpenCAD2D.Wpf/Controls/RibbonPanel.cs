@@ -54,6 +54,14 @@ namespace OpenCAD2D.Wpf
             new PropertyMetadata(null)
         );
 
+        /// <summary>Identifies the <see cref="RibbonIcon"/> property.</summary>
+        public static readonly DependencyProperty RibbonIconProperty = DependencyProperty.Register(
+            nameof(RibbonIcon),
+            typeof(RibbonIcon),
+            typeof(RibbonPanel),
+            new PropertyMetadata(null)
+        );
+
         /// <summary>Identifies the <see cref="IconImage"/> property.</summary>
         public static readonly DependencyProperty IconImageProperty = DependencyProperty.Register(
             nameof(IconImage),
@@ -191,6 +199,13 @@ namespace OpenCAD2D.Wpf
         {
             get => (System.Windows.Media.Geometry)GetValue(IconProperty);
             set => SetValue(IconProperty, value);
+        }
+
+        /// <summary>Gets or sets the colour icon of the collapsed button, drawn 32 wide over <see cref="Icon"/>; null for none, as a plugin's panel has.</summary>
+        public RibbonIcon RibbonIcon
+        {
+            get => (RibbonIcon)GetValue(RibbonIconProperty);
+            set => SetValue(RibbonIconProperty, value);
         }
 
         /// <summary>Gets or sets the picture of the collapsed button where the icon is a raster, as a plugin's is, drawn over <see cref="Icon"/>; null for none.</summary>
