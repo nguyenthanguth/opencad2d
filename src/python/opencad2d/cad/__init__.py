@@ -484,8 +484,10 @@ from ._drawing import (  # noqa: E402
     Documents as Documents,
     Drawing as Drawing,
     Entity as Entity,
+    Frame as Frame,
     Layer as Layer,
     Linetypes as Linetypes,
+    Measurement as Measurement,
     OverlapTable as OverlapTable,
     TextStyles as TextStyles,
 )

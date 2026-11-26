@@ -330,6 +330,87 @@ class _RemoteBackend:
         table = self._document.GetOverlaps(layout, names(words), names(over), names(handles), tolerance)
         return [str(w) for w in table.Words], [str(o) for o in table.Others], table.Boxes
 
+    # ---- measuring before placing (PW7.1) -----------------------------------------------------------------------------
+
+    @staticmethod
+    def _measurement(measured: Any) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]:
+        box = [float(n) for n in measured.Box]
+        numbers = [float(n) for n in measured.Frames]
+        return (
+            tuple(box) if box else None,
+            [tuple(numbers[i : i + 5]) for i in range(0, len(numbers), 5)],
+        )
+
+    def measure(self, entity: Any) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]:
+        return self._measurement(self._document.Measure(entity))
+
+    def measure_leader(
+        self,
+        style: str | None,
+        arrow: tuple[float, float],
+        landing: tuple[float, float],
+        words: str,
+        scale: float | None,
+    ) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]:
+        return self._measurement(
+            self._document.MeasureLeader(
+                style,
+                arrow[0],
+                arrow[1],
+                landing[0],
+                landing[1],
+                words,
+                None if scale is None else _net.Nullable[_net.Double](scale),
+            )
+        )
+
+    def free_space(
+        self,
+        layout: str | None,
+        frame: tuple[float, float, float, float],
+        kinds: list[str] | None,
+        margin: float,
+        min_width: float,
+        min_height: float,
+        tolerance: float,
+    ) -> list[tuple[float, float, float, float]]:
+        table = self._document.GetFreeSpace(
+            layout,
+            frame[0],
+            frame[1],
+            frame[2],
+            frame[3],
+            None if kinds is None else _net.Array[_net.String](kinds),
+            margin,
+            min_width,
+            min_height,
+            tolerance,
+        )
+        numbers = [float(n) for n in table.Boxes]
+        return [(numbers[i], numbers[i + 1], numbers[i + 2], numbers[i + 3]) for i in range(0, len(numbers), 4)]
+
+    def fits(
+        self,
+        layout: str | None,
+        candidate: tuple[float, float, float, float, float],
+        kinds: list[str] | None,
+        margin: float,
+        tolerance: float,
+    ) -> bool:
+        return bool(
+            self._document.Fits(
+                layout,
+                candidate[0],
+                candidate[1],
+                candidate[2],
+                candidate[3],
+                candidate[4],
+                None if kinds is None else _net.Array[_net.String](kinds),
+                margin,
+                tolerance,
+            )
+        )
+
 
 class App:
     """A running OpenCAD2D, to use as ``with connect() as app``: ``documents``, ``active_drawing``, ``open``,

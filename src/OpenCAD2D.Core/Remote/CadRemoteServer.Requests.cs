@@ -249,6 +249,14 @@ namespace OpenCAD2D
                     return Bounds(Find(request), request);
                 case RemoteOps.Overlaps:
                     return Overlaps(Find(request), request);
+                case RemoteOps.Measure:
+                    return Measure(Find(request), request);
+                case RemoteOps.MeasureLeader:
+                    return MeasureLeader(Find(request), request);
+                case RemoteOps.FreeSpace:
+                    return FreeSpace(Find(request), request);
+                case RemoteOps.Fits:
+                    return Fits(Find(request), request);
                 default:
                     throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }

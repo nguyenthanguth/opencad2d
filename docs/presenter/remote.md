@@ -120,6 +120,19 @@ answers of `CadSpatial` in the app, whose [guide](display.md#where-things-are-dr
 are the whole answer, which a program copies as it does: Python gives them as NumPy arrays (`drawing.bounds()`,
 `drawing.overlaps()`, `entity.bounds`). A layout that is not there is a `CadRemoteException`.
 
+## Measuring before placing
+
+`drawing.Measure(entity)` asks the app what an object would take once added, without adding it, as a `CadRemoteMeasurement`: `Box`
+(four numbers, none where nothing is drawn) and `Frames` (five numbers a word: its first corner, width, height and angle). The
+object travels as a small drawing, as an insert does, and is drawn by the app's own code in the app's own styles and fonts; a
+dimension names the style it is drawn in, and a style the app has not is a `CadRemoteException`. `drawing.MeasureLeader(style, arrowX,
+arrowY, landingX, landingY, words, scale)` is the same for the multileader of words MLEADER would make. `drawing.GetFreeSpace(layout,
+minX, minY, maxX, maxY, kinds, margin, minWidth, minHeight, tolerance)` gives the empty rectangles of a frame, the largest first, as
+a `CadRemoteFreeSpace` (`Boxes`, four numbers a rectangle), and `drawing.Fits(layout, x, y, width, height, rotation, kinds, margin,
+tolerance)` says whether one candidate place is free. They are the requests `measure`, `measureLeader`, `freeSpace` and `fits` and the
+answers of [`CadMeasure` and `CadSpatial`](display.md#measuring-before-placing) in the app. Python has them as
+`drawing.measure_text`, `measure_mtext`, `measure_dimension`, `measure_leader`, `free_space` and `fits`.
+
 ## Layers and layouts
 
 `drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)

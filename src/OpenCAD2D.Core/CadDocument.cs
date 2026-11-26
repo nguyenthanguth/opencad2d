@@ -194,6 +194,37 @@ namespace OpenCAD2D
         private Dictionary<string, DxfItem> _byHandle;
         private Dictionary<string, DxfBlockTableRecord> _blockByHandle;
 
+        /// <summary>
+        /// Draws an entity that is in no space as it would be drawn once added, by the builder that draws the spaces, for a
+        /// measure (<see cref="CadMeasure"/>): the items, kept nowhere. The layout an MTEXT is given is not kept, so that a
+        /// program that measures a thousand words keeps no thousand layouts.
+        /// </summary>
+        internal IReadOnlyList<DisplayItem2> BuildLoose(DxfEntity entity)
+        {
+            try
+            {
+                return _builder.BuildLoose(new[] { entity });
+            }
+            finally
+            {
+                if (entity is DxfMText text)
+                {
+                    lock (_keptGate)
+                    {
+                        _keptLayouts.Remove(text);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Makes a drawing of no entities to draw one thing in beside this one, whose fonts and folder it takes: the scratch a
+        /// measure draws a dimension in (<see cref="CadMeasure"/>), whose picture needs it in a drawing of its own.
+        /// </summary>
+        /// <param name="database">The scratch's records, which the caller has filled.</param>
+        internal CadDocument MakeScratch(DxfDatabase database) =>
+            new CadDocument(database, FileName) { _hasPath = _hasPath, Fonts = Fonts };
+
         /// <summary>The width the display gives the words of a text, as MIRROR measures one it keeps readable.</summary>
         internal double TextWidth(DxfDBText text) => _builder.WidthOf(text);
 

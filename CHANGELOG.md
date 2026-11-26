@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **NEW.** Python measures before it places, for a program that lays a drawing out: `drawing.measure_text`, `measure_mtext`,
+  `measure_dimension` and `measure_leader` give the box a thing would take and the frame of each of its words (a `Measurement`:
+  `box` and `frames`, each a `Frame` of a first corner, a width, a height and an angle), without adding it, by the code that draws
+  and measures the thing once it is added, so the box equals `entity.bounds` of the thing added to 1e-6 (SHX and TrueType words,
+  turned and justified, the lines of an MTEXT, a dimension's picture in its style, a multileader with its landing).
+  `drawing.free_space(box, kinds, margin, min_width, min_height)` gives the empty places of a frame, the maximal empty rectangles
+  (a box lies in one exactly when it fits), the largest first, and `drawing.fits(candidate, kinds, margin)` says whether a box, a
+  turned frame or a measurement is free of what is drawn, tested on the real lines, arcs, fills and word frames and not their boxes.
+  On a file, in the app and from outside. 100 000 objects: `fits` 0.2 ms a call, a TEXT measured in 0.6 ms and a dimension in
+  2.3 ms, the empty places of a 300 by 300 frame in 0.4 s and those at least 20 by 20 of the whole drawing in 1 s.
+- **NEW.** `CadMeasure` in the core: `Of(document, entity)` and `Leader(document, style, arrow, landing, words, scale)` give a
+  `CadMeasurement` (a `DisplayBox` and the `CadFrame` of each word) of a thing not in the drawing, without touching the drawing;
+  `CadSpatial.FreeSpace(document, space, frame, options, tolerance)` gives the maximal empty rectangles as a `CadFreeSpace`
+  and `CadSpatial.Fits(document, space, candidate, options, tolerance)` whether a `CadFrame` is free, with the kinds, margin
+  and least size of a `CadFreeSpaceOptions`. The client library of a running app has `Measure`, `MeasureLeader`, `GetFreeSpace` and
+  `Fits` (`CadRemoteMeasurement`, `CadRemoteFreeSpace`), which are the new requests `measure`, `measureLeader`, `freeSpace` and
+  `fits` of the channel.
 - **FIXED.** On a drawing file with no app, a layer switched off or frozen by Python (`drawing.layers["Steel"].is_on = False`, then
   `commit()`) left the drawing's display list as it was, so what the display list feeds (`entity.bounds`, `drawing.bounds()`,
   `drawing.overlaps()`, picks) still counted the layer's objects: the commit wrote the layer but told the document nothing for a

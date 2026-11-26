@@ -237,6 +237,35 @@ class Backend(Protocol):
         tolerance: float,
     ) -> tuple[list[str], list[str], Any]: ...
 
+    # ---- measuring before placing (PW7.1) ----
+    def measure(self, entity: Any) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]: ...
+    def measure_leader(
+        self,
+        style: str | None,
+        arrow: tuple[float, float],
+        landing: tuple[float, float],
+        words: str,
+        scale: float | None,
+    ) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]: ...
+    def free_space(
+        self,
+        layout: str | None,
+        frame: tuple[float, float, float, float],
+        kinds: list[str] | None,
+        margin: float,
+        min_width: float,
+        min_height: float,
+        tolerance: float,
+    ) -> list[tuple[float, float, float, float]]: ...
+    def fits(
+        self,
+        layout: str | None,
+        candidate: tuple[float, float, float, float, float],
+        kinds: list[str] | None,
+        margin: float,
+        tolerance: float,
+    ) -> bool: ...
+
 
 def dxf_type_of(net: Any) -> str:
     """The DXF name of an entity (``LINE``, ``LWPOLYLINE``): its ``DxfName``, the type its record is written under."""
@@ -1108,6 +1137,7 @@ class Drawing:
         self._changed_entities: list[Entity] = []
         self._changed_layers: list[Layer] = []
         self._tickets = 0
+        self._drafts: list[Any] | None = None
         self._noted = False
         self._layers = Layers(self)
         self._text_styles = TextStyles(self)
@@ -1532,6 +1562,231 @@ class Drawing:
         )
         return OverlapTable(words, others, _rows(boxes))
 
+    # ---- measuring before placing (PW7.1) -------------------------------------------------------------------------
+
+    def _drafted(self, make: Callable[[], Any]) -> Any:
+        """The .NET object an ``add_*`` call makes, taken without queueing it: what a measure draws is the very object that
+        adding it would add, the same code having made it."""
+        made: list[Any] = []
+        tickets = self._tickets
+        self._drafts = made
+        try:
+            make()
+        finally:
+            self._drafts = None
+            self._tickets = tickets
+        return made[0]
+
+    def _measured(self, answer: tuple[tuple[float, ...] | None, list[tuple[float, ...]]]) -> Measurement:
+        box, frames = answer
+        return Measurement(None if box is None else Box(*box), [Frame(*frame) for frame in frames])
+
+    def measure_text(
+        self,
+        text: str,
+        at: Any,
+        height: float,
+        style: str | None = None,
+        rotation: float = 0.0,
+        justify: str | None = None,
+    ) -> Measurement:
+        """Measure the single-line text ``add_text`` would add, without adding it: the box it would take and the frame of its
+        word, found by the code that draws the text once it is in the drawing, in the drawing's text style and fonts, so that the
+        box equals ``bounds`` of the text added to 1e-6. ``at`` is the insertion point, or the point the text stands about
+        where ``justify`` is given: ``"left"``, ``"center"``, ``"right"``, ``"middle"`` or an AutoCAD code, ``"TL"``, ``"TC"``,
+        ``"TR"``, ``"ML"``, ``"MC"``, ``"MR"``, ``"BL"``, ``"BC"`` or ``"BR"`` (any case). ``rotation`` is in radians. A style the
+        drawing lacks is a ``ValueError``. Nothing is queued and nothing is added.
+
+        Example:
+            m = drawing.measure_text("Plate A-12", (10, 20), 5.0, style="NOTE")
+            m.box                                         # Box(min_x=10.0, min_y=19.99..., max_x=..., max_y=...)
+            drawing.fits(m.frames[0], margin=1.0)         # True where the place is free by a millimetre all round
+        """
+        positive("The height of a text", height)
+        finite("The rotation of a text", rotation)
+        at2 = point2(at)
+        finite("The point of a text", at2.X, at2.Y)
+        net = self._drafted(lambda: self.add_text(text, at, height, rotation, style))
+        if justify is not None:
+            net.Justify = _justification(justify, True)
+            net.AlignmentPoint = point3(at)
+        return self._measured(self._backend.measure(net))
+
+    def measure_mtext(
+        self,
+        text: str,
+        at: Any,
+        height: float,
+        width: float = 0.0,
+        style: str | None = None,
+        rotation: float = 0.0,
+        justify: str | None = None,
+    ) -> Measurement:
+        """Measure the multi-line text ``add_mtext`` would add, without adding it: the box of its lines and a frame for each
+        run of a line, as the drawing lays it out in its fonts (wrapped at ``width``, 0 for no wrapping). ``justify`` is the
+        attachment, ``"TL"`` (the default), ``"TC"``, ``"TR"``, ``"ML"``, ``"MC"``, ``"MR"``, ``"BL"``, ``"BC"`` or ``"BR"``; ``rotation``
+        is in radians. Nothing is added.
+
+        Example:
+            m = drawing.measure_mtext("Plate PL10\\PGrade S355", (10, 20), 5.0, width=60)
+            len(m.frames)                                 # 2: a frame for each line
+        """
+        positive("The height of a text", height)
+        finite("The width and rotation of a text", width, rotation)
+        at2 = point2(at)
+        finite("The point of a text", at2.X, at2.Y)
+        net = self._drafted(lambda: self.add_mtext(text, at, height, width, style))
+        if rotation:
+            net.Rotation = float(rotation)
+        if justify is not None:
+            net.Attachment = _justification(justify, False)
+        return self._measured(self._backend.measure(net))
+
+    def measure_dimension(
+        self,
+        kind: str,
+        points: Sequence[Any],
+        dim_style: str | None = None,
+        text: str | None = None,
+        angle: float | None = None,
+    ) -> Measurement:
+        """Measure the dimension an ``add_*_dim`` call would add, without adding it: the box of its lines, arrows and words, and
+        the frame of its words, as the drawing draws its picture in the style ``dim_style`` (the current one where None; a
+        style the drawing lacks is a ``ValueError``). ``kind`` and ``points`` are ``"linear"`` and ``(first, second, location)``
+        (with ``angle`` of the dimension line, as ``add_linear_dim`` takes it), ``"aligned"`` and ``(first, second, location)``,
+        ``"radial"`` and ``"diameter"`` and ``(center, rim, location)``, a point of the circle in place of the radius, and
+        ``"angular"`` and ``(vertex, first, second, location)``. ``text`` is the words in place of the measurement.
+
+        Example:
+            m = drawing.measure_dimension("linear", [(0, 0), (100, 0), (50, 20)])
+            m.box.max_y > 20.0                            # True: the words stand above the dimension line
+        """
+        count = {"linear": 3, "aligned": 3, "radial": 3, "diameter": 3, "angular": 4}
+        name = str(kind).strip().lower()
+        if name not in count:
+            raise ValueError(f"A dimension to measure is of the kind {', '.join(count)}, not {kind!r}.")
+        given = list(points)
+        if len(given) != count[name]:
+            raise ValueError(f"A {name} dimension is measured from {count[name]} points, not {len(given)}.")
+
+        def make() -> Any:
+            if name == "linear":
+                return self.add_linear_dim(given[0], given[1], given[2], angle, text, dim_style)
+            if name == "aligned":
+                return self.add_aligned_dim(given[0], given[1], given[2], text, dim_style)
+            if name == "angular":
+                return self.add_angular_dim(given[0], given[1], given[2], given[3], text, dim_style)
+            centre, rim = point2(given[0]), point2(given[1])
+            finite("A point of a dimension", centre.X, centre.Y, rim.X, rim.Y)
+            radius = math.hypot(rim.X - centre.X, rim.Y - centre.Y)
+            if name == "radial":
+                return self.add_radial_dim(given[0], radius, given[2], text, dim_style)
+            return self.add_diameter_dim(given[0], radius, given[2], text, dim_style)
+
+        return self._measured(self._backend.measure(self._drafted(make)))
+
+    def measure_leader(
+        self, arrow: Any, landing: Any, text: str, style: str | None = None, scale: float | None = None
+    ) -> Measurement:
+        """Measure the multileader of words the MLEADER command would make with its arrow at ``arrow`` and its landing at
+        ``landing``, in the multileader style ``style`` (the current one where None, and Standard, as MLEADER makes it, in a drawing
+        with none) at ``scale`` (the one MLEADER gives where None), without adding it: the box of the leader line, its arrowhead, the landing and the words, and the frame of the
+        words, laid out as the command lays them. A style the drawing lacks, one of a block or of no content, and an annotative
+        one, are a ``ValueError``.
+
+        Example:
+            m = drawing.measure_leader((0, 0), (30, 20), "B-12")
+            m.box.min_x                                   # 0.0: the arrowhead's point
+        """
+        start, end = point2(arrow), point2(landing)
+        finite("A point of a leader", start.X, start.Y, end.X, end.Y)
+        if scale is not None:
+            positive("The scale of a leader", scale)
+        return self._measured(
+            self._backend.measure_leader(
+                style,
+                (float(start.X), float(start.Y)),
+                (float(end.X), float(end.Y)),
+                str(text),
+                None if scale is None else float(scale),
+            )
+        )
+
+    def free_space(
+        self,
+        box: Any,
+        kinds: Sequence[str] | None = None,
+        margin: float = 0.0,
+        min_width: float = 0.0,
+        min_height: float = 0.0,
+        layout: str | None = None,
+        tolerance: float = 0.001,
+    ) -> list[Box]:
+        """The empty places of a frame: every rectangle, not turned, inside ``box`` that no line or word of the ``kinds`` (DXF
+        names, ``"TEXT"``, ``"LINE"``, ``"INSERT"``; every kind where None) runs through or comes within ``margin`` of, and that
+        cannot be made larger, as a list of ``Box`` with the largest first (equal areas by min_y, min_x, max_y, max_x). They
+        overlap one another, as the empty places of a page do: a box a thing could stand in lies inside one of them, which is the
+        test ``fits`` makes exactly. A word is taken by the box of its frame, a slanted line by a staircase of boxes along it, a hatch
+        by its box, and ``margin`` is a gap measured along the axes. In a crowded frame the rectangles number in thousands: give the
+        width and height of the thing to place as ``min_width`` and ``min_height`` and only the rectangles it could stand in come back,
+        which is exact and far faster. ``ValueError`` for a frame with no width or height, a margin or size below nought, and a
+        frame too crowded to list every rectangle in a few seconds. 100 000 objects over 3 000 by 3 000: a 300 by 300 frame in 0.4 s, the whole
+        at least 20 by 20 in 1 s.
+
+        Example:
+            places = drawing.free_space((0, 0, 100, 50), kinds=["LINE"], margin=2.0, min_width=20, min_height=10)
+            places[0]                                     # Box(min_x=0.0, min_y=0.0, max_x=68.0, max_y=50.0) beside a line at x 70
+        """
+        frame = _frame_box(box)
+        if not (frame[2] > frame[0] and frame[3] > frame[1]):
+            raise ValueError(f"A frame has a width and a height above nought, not {box!r}.")
+        for what, value in (("The margin", margin), ("The least width", min_width), ("The least height", min_height)):
+            if not (math.isfinite(value) and value >= 0.0):
+                raise ValueError(f"{what} is a finite number of nought or more, not {value!r}.")
+        _tolerance(tolerance)
+        rows = self._backend.free_space(
+            layout,
+            frame,
+            None if kinds is None else [str(kind) for kind in kinds],
+            float(margin),
+            float(min_width),
+            float(min_height),
+            float(tolerance),
+        )
+        return [Box(*row) for row in rows]
+
+    def fits(
+        self,
+        candidate: Any,
+        kinds: Sequence[str] | None = None,
+        margin: float = 0.0,
+        layout: str | None = None,
+        tolerance: float = 0.001,
+    ) -> bool:
+        """Whether a place is free: nothing of the ``kinds`` (every kind where None) runs through ``candidate`` or comes within
+        ``margin`` of it, tested on the real lines, arcs, fills and word frames and not on their boxes, as ``overlaps`` tests a word,
+        so a diagonal passing a corner at a distance fits. What only touches it within ``tolerance`` does not count.
+        ``candidate`` is a ``Box`` or four numbers (min_x, min_y, max_x, max_y), a ``Frame`` as ``measure_text`` gives (turned as
+        the word is), or a ``Measurement`` (its box). A layout agent calls it in a loop: about 0.2 ms a call over 100 000 objects.
+
+        Example:
+            drawing.fits((40, 10, 60, 20))                # True where nothing is in the 20 by 10 box
+            drawing.fits(Frame(40, 10, 20, 10, 0.5))      # the same size turned half a radian about (40, 10)
+        """
+        place = _frame_of(candidate)
+        if not (math.isfinite(margin) and margin >= 0.0):
+            raise ValueError(f"The margin is a finite number of nought or more, not {margin!r}.")
+        _tolerance(tolerance)
+        return bool(
+            self._backend.fits(
+                layout,
+                (place.x, place.y, place.width, place.height, place.rotation),
+                None if kinds is None else [str(kind) for kind in kinds],
+                float(margin),
+                float(tolerance),
+            )
+        )
+
     # ---- adding ---------------------------------------------------------------------------------------------------
 
     def _made(self, entity: K, props: dict[str, Any]) -> K:
@@ -1558,6 +1813,9 @@ class Drawing:
         self._tickets += 1
         clone: Any = dxf_entity.Clone()
         entity: Entity[K] = Entity(self, f"~{self._tickets}", clone)
+        if self._drafts is not None:  # a measure takes the object an add_* makes and queues nothing
+            self._drafts.append(clone)
+            return entity
         self._queue(Op("insert", entity=entity, copy=dxf_entity.Clone(), layout=layout))
         return entity
 
@@ -2389,3 +2647,118 @@ class OverlapTable:
 
     def __len__(self) -> int:
         return len(self.words)
+
+
+# ---- measuring before placing: what the calls give and take (PW7.1) -----------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Frame:
+    """A rectangle that may be turned, the frame of a word on the page: its first corner (``x``, ``y``), the one at the foot of
+    the start of the line, its ``width`` along the line, its ``height`` across it, and the ``rotation`` in radians the line runs
+    at. A word 20 long and 5 high set at (10, 30) and turned a quarter turn has its corners at (10, 30), (10, 50), (5, 50) and
+    (5, 30).
+
+    Example:
+        frame = Frame(10, 30, 20, 5, math.pi / 2)
+        frame.box                                     # Box(min_x=5.0, min_y=30.0, max_x=10.0, max_y=50.0), within rounding
+    """
+
+    x: float
+    y: float
+    width: float
+    height: float
+    rotation: float = 0.0
+
+    @property
+    def corners(self) -> list[tuple[float, float]]:
+        """The four corners, counter-clockwise from the first.
+
+        Example:
+            Frame(0, 0, 4, 2).corners                     # [(0.0, 0.0), (4.0, 0.0), (4.0, 2.0), (0.0, 2.0)]
+        """
+        c, s = math.cos(self.rotation), math.sin(self.rotation)
+        return [
+            (self.x + a * c - b * s, self.y + a * s + b * c)
+            for a, b in ((0.0, 0.0), (self.width, 0.0), (self.width, self.height), (0.0, self.height))
+        ]
+
+    @property
+    def box(self) -> Box:
+        """The box that holds the four corners.
+
+        Example:
+            Frame(0, 0, 4, 2).box                         # Box(min_x=0.0, min_y=0.0, max_x=4.0, max_y=2.0)
+        """
+        xs = [x for x, _ in self.corners]
+        ys = [y for _, y in self.corners]
+        return Box(min(xs), min(ys), max(xs), max(ys))
+
+
+@dataclass(frozen=True)
+class Measurement:
+    """What ``drawing.measure_text`` and its kin give: ``box``, the box of everything the thing would draw (``None`` where it draws
+    nothing, a text of no words), and ``frames``, the ``Frame`` of each of its words in the order they are drawn: one for a text,
+    one for each run of a line of an MTEXT, those of a dimension's words.
+
+    Example:
+        m = drawing.measure_text("Plate", (0, 0), 5.0)
+        m.box is not None and len(m.frames) == 1      # True
+    """
+
+    box: Box | None
+    frames: list[Frame]
+
+
+def _justification(name: str, single: bool) -> Any:
+    """The ``DxfAttachmentPoint`` a justify name stands for: for a TEXT the words ``left``, ``center``, ``right`` and ``middle`` as
+    well as the codes; for an MTEXT the codes alone. ``ValueError`` for another."""
+    codes = {
+        "TL": "TopLeft",
+        "TC": "TopCenter",
+        "TR": "TopRight",
+        "ML": "MiddleLeft",
+        "MC": "MiddleCenter",
+        "MR": "MiddleRight",
+        "BL": "BottomLeft",
+        "BC": "BottomCenter",
+        "BR": "BottomRight",
+    }
+    words = {"LEFT": "BaseLeft", "CENTER": "BaseCenter", "RIGHT": "BaseRight", "MIDDLE": "MiddleCenter"}
+    key = str(name).strip().upper()
+    found = codes.get(key) or (words.get(key) if single else None)
+    if found is None:
+        allowed = [*codes, *(word.lower() for word in words)] if single else list(codes)
+        raise ValueError(f"A justification is one of {', '.join(allowed)}, not {name!r}.")
+    return getattr(_dxf.DxfAttachmentPoint, found)
+
+
+def _tolerance(tolerance: float) -> None:
+    if not (math.isfinite(tolerance) and tolerance >= 0.0):
+        raise ValueError(f"The tolerance is a finite number of nought or more, not {tolerance!r}.")
+
+
+def _frame_box(box: Any) -> tuple[float, float, float, float]:
+    """The four numbers of a ``Box`` or a sequence of four, which must be finite."""
+    if not isinstance(box, (tuple, list)) or len(box) != 4:  # pyright: ignore[reportUnknownArgumentType]
+        raise ValueError(f"A frame is a Box or four numbers (min_x, min_y, max_x, max_y), not {box!r}.")
+    numbers = [float(n) for n in box]  # pyright: ignore[reportUnknownVariableType, reportUnknownArgumentType]
+    finite("A number of a frame", *numbers)
+    return (numbers[0], numbers[1], numbers[2], numbers[3])
+
+
+def _frame_of(candidate: Any) -> Frame:
+    """The ``Frame`` a candidate stands for: a ``Frame``, a ``Measurement`` (its box), a ``Box`` or four numbers."""
+    if isinstance(candidate, Frame):
+        place = candidate
+    else:
+        if isinstance(candidate, Measurement):
+            if candidate.box is None:
+                raise ValueError("The measurement has no box: the thing measured draws nothing.")
+            candidate = candidate.box
+        low_x, low_y, high_x, high_y = _frame_box(candidate)
+        place = Frame(low_x, low_y, high_x - low_x, high_y - low_y, 0.0)
+    finite("A number of a candidate", place.x, place.y, place.width, place.height, place.rotation)
+    if not (place.width > 0.0 and place.height > 0.0):
+        raise ValueError("A candidate has a width and a height above nought.")
+    return place
