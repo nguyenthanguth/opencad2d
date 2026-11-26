@@ -4358,13 +4358,28 @@ applied, `The current style has been modified.` and `Do you want to save your ch
 the trusted folders, and the one over a file that cannot be read, are the presenter's own.
 [`CadViewports`](xref:OpenCAD2D.CadViewports) has the arithmetic: the canvas's view in model units
 (`ModelView`) and the view a viewport takes back from it (`ViewOf`), a box fitted to the frame (`Fit`), and the scales'
-names. A viewport whose view is not a plan is not entered. One whose view is twisted, as DVIEW TWist leaves it (group 51),
+names. A viewport whose view is not a plan from above is drawn projected and not entered (the paragraph below). One whose view is twisted, as DVIEW TWist leaves it (group 51),
 is shown and worked through turned, as AutoCAD 2021 shows it: the view's centre is kept about its target and turned by
 the twist (`ToView` and `FromView`, AutoCAD's TRANS from the world to the view), so through a viewport 120 by 80 about
 (100, 100) at 1:5, its view about (100, 50) twisted 30 degrees, the point (100, 0) of model space is at (97.320, 100) on
 the paper, where AutoCAD's console puts it. Entered, the canvas's view in model units turns with it (`CadView.Twist`):
 picks, snaps and boxes (taken as turned polygons), the crosshair and the UCS icon follow the turn, PAN moves the view by
 the model distance given, and ZOOM Window fits the box as the view turns it.
+
+A viewport whose view is not a plan from above (its view direction, group 16, is not the world's Z: a viewport set up in
+AutoCAD to a south-east isometric, a front or a view from below) is drawn and plotted projected, and is not entered. Model
+space is taken through it along the direction as AutoCAD's display coordinates take it (TRANS from the world to the view,
+`CadViewports.ToView(viewport, point3)`): the point from the view's target, then its X axis across the direction and level
+with the world's XY plane (the arbitrary axis algorithm), its Y up the screen, the depth dropped, and last the twist. Seen from
+(1, -1, 1) the point (100, 0, 0) is at (70.711, -40.825) and (0, 0, 100) at (0, 81.650) in the view; from the front, along
+(0, -1, 0), (100, 60, 40) is at (100, 40). The projection is parallel, as AutoCAD's with perspective off, whatever the viewport's
+perspective flag says, and it is a wire frame: nothing is hidden or shaded. Lines, arcs, circles, polylines, ellipses, splines,
+points and faces of model space are projected with their heights (an arc or a circle standing off the plan is drawn as the
+ellipse it is, sampled); text, hatches, dimensions, blocks and the other annotation are placed as the plan of the world lies in
+the view, at no height, which is where they are when the drawing is flat. Layers frozen in the viewport, overrides, clips and
+the scale are as for a plan viewport, and the PDF, the printer and the raster plots draw the same list. MSPACE, CHSPACE and a
+double click do not enter it (`MSPACE` says `Cannot work in model space through a viewport whose view is not a plan from above
+(the presenter is 2D).`), and nothing is snapped to model space through it.
 
 ### Maximizing a viewport
 

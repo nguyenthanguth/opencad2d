@@ -28,6 +28,44 @@ namespace OpenCAD2D
         public CadSpace WorkingSpace => ActiveViewport != null ? ModelSpace : CurrentSpace;
 
         /// <summary>
+        /// Gets whether the layout shown has a viewport that is on, with a frame and a view of some size, on a layer that is
+        /// shown, and whose view is not a plan from above (<see cref="CadViewports.HasPlanView"/>): one the display draws
+        /// projected and MSPACE refuses to work through.
+        /// </summary>
+        internal bool HasViewportWithThreeDView
+        {
+            get
+            {
+                CadSpace space = CurrentSpace;
+
+                if (space == null || space.IsModel)
+                {
+                    return false;
+                }
+
+                foreach (DxfEntity entity in space.Block)
+                {
+                    if (
+                        entity is DxfViewport viewport
+                        && !viewport.IsErased
+                        && viewport.Number > 1
+                        && viewport.On
+                        && viewport.Width > 0.0
+                        && viewport.Height > 0.0
+                        && viewport.ViewHeight > 0.0
+                        && !CadViewports.HasPlanView(viewport)
+                        && IsOnShownLayer(viewport)
+                    )
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Works in model space through a viewport of the layout shown, as a double click inside it does in AutoCAD: the
         /// selection is let go, and <see cref="ActiveViewportChanged"/> raised where it was not already the one.
         /// </summary>
@@ -156,7 +194,7 @@ namespace OpenCAD2D
         /// </summary>
         /// <param name="handle">The handle of the viewport.</param>
         /// <param name="viewCenter">The point of model space at the middle of the frame, as the viewport keeps it
-        /// (<see cref="DxfViewport.ViewCenter"/>, about the view's target and turned by its twist; see <see cref="CadViewports.ToView"/>).</param>
+        /// (<see cref="DxfViewport.ViewCenter"/>, about the view's target and turned by its twist; see <see cref="CadViewports.ToView(DxfViewport, GeoPoint2)"/>).</param>
         /// <param name="viewHeight">The height of model space shown, above nought.</param>
         /// <param name="name">The name of the undo step, as ZOOM or PAN.</param>
         /// <returns>What came of it: refused for no such viewport, a height not above nought, or a viewport whose display is locked.</returns>
@@ -325,6 +363,10 @@ namespace OpenCAD2D
     {
         private static readonly string[] Scales = BuildScales();
 
+        /// <summary>The line the command line gives where a viewport cannot be worked through because its view is not a plan from above.</summary>
+        internal const string ThreeDViewRefusal =
+            "Cannot work in model space through a viewport whose view is not a plan from above (the presenter is 2D).";
+
         /// <summary>
         /// Gets the standard scales a viewport is set to, as the status bar and the Properties' Standard scale offer them: 1:1,
         /// 1:2, 1:4, 1:5, 1:8, 1:10, 1:16, 1:20, 1:30, 1:40, 1:50, 1:100, 2:1, 4:1, 8:1, 10:1 and 100:1.
@@ -357,8 +399,97 @@ namespace OpenCAD2D
                 return false;
             }
 
+            return HasPlanView(viewport);
+        }
+
+        /// <summary>
+        /// Gets whether a viewport looks straight down on model space, its view direction (group 16) the world's Z: the only view
+        /// the canvas can work through, and the one the display draws as a plan, without a projection. A viewport set up in
+        /// AutoCAD with a south-east isometric view, direction (1, -1, 1), has none; nor has one that looks from below.
+        /// </summary>
+        /// <param name="viewport">The viewport.</param>
+        /// <returns>Whether its view is a plan seen from above.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the viewport is null.</exception>
+        public static bool HasPlanView(DxfViewport viewport)
+        {
+            if (viewport == null)
+            {
+                throw new ArgumentNullException(nameof(viewport));
+            }
+
             GeoVector3 direction = viewport.ViewDirection;
             return Math.Abs(direction.X) <= 1E-12 && Math.Abs(direction.Y) <= 1E-12 && direction.Z > 0.0;
+        }
+
+        /// <summary>
+        /// The axes of a viewport's display coordinate system before its twist, as AutoCAD's arbitrary axis algorithm gives them
+        /// for the view direction: Z along the direction, X across it and level with the world's XY plane (the world's Y where
+        /// the direction is within 1/64 of the Z axis), Y up the screen. For direction (1, -1, 1) the X axis runs to the north-east,
+        /// (0.7071, 0.7071, 0), and the Y axis is (-0.4082, 0.4082, 0.8165). False where the direction has no length.
+        /// </summary>
+        private static bool TryAxes(DxfViewport viewport, out GeoVector3 x, out GeoVector3 y, out GeoVector3 z)
+        {
+            GeoVector3 direction = viewport.ViewDirection;
+            double length = Math.Sqrt(
+                direction.X * direction.X + direction.Y * direction.Y + direction.Z * direction.Z
+            );
+
+            if (!(length > 0.0) || double.IsInfinity(length))
+            {
+                x = y = z = default;
+                return false;
+            }
+
+            double nx = direction.X / length;
+            double ny = direction.Y / length;
+            double nz = direction.Z / length;
+
+            // The world's Y crossed with the direction where it is within 1/64 of the Z axis, else the world's Z.
+            bool upright = Math.Abs(nx) < 1.0 / 64.0 && Math.Abs(ny) < 1.0 / 64.0;
+            double ax = upright ? nz : -ny;
+            double ay = upright ? 0.0 : nx;
+            double az = upright ? -nx : 0.0;
+            double span = Math.Sqrt(ax * ax + ay * ay + az * az);
+            ax /= span;
+            ay /= span;
+            az /= span;
+            z = new GeoVector3(nx, ny, nz);
+            x = new GeoVector3(ax, ay, az);
+
+            // Y = N x X.
+            y = new GeoVector3(ny * az - nz * ay, nz * ax - nx * az, nx * ay - ny * ax);
+            return true;
+        }
+
+        /// <summary>
+        /// The transformation that takes a point of model space into the display coordinates of a viewport whose view is not a
+        /// plan, before the twist: the point taken from the view's target, then along the display axes of
+        /// <see cref="TryAxes"/>. The display draws model space through it and drops the depth, which is a parallel projection
+        /// along the view direction, as AutoCAD draws a viewport whose perspective is off.
+        /// </summary>
+        /// <param name="viewport">The viewport.</param>
+        /// <returns>The transformation; null for a viewport whose view is a plan (<see cref="HasPlanView"/>) or whose direction
+        /// has no length, which the display draws as it is.</returns>
+        internal static GeoTransform3 ProjectionOf(DxfViewport viewport)
+        {
+            if (HasPlanView(viewport) || !TryAxes(viewport, out GeoVector3 x, out GeoVector3 y, out GeoVector3 z))
+            {
+                return null;
+            }
+
+            GeoPoint3 target = viewport.ViewTarget;
+            double tx = x.X * target.X + x.Y * target.Y + x.Z * target.Z;
+            double ty = y.X * target.X + y.Y * target.Y + y.Z * target.Z;
+            double tz = z.X * target.X + z.Y * target.Y + z.Z * target.Z;
+            return new GeoTransform3(
+                new[,]
+                {
+                    { x.X, x.Y, x.Z, -tx },
+                    { y.X, y.Y, y.Z, -ty },
+                    { z.X, z.Y, z.Z, -tz },
+                    { 0.0, 0.0, 0.0, 1.0 },
+                }
+            );
         }
 
         /// <summary>
@@ -465,7 +596,40 @@ namespace OpenCAD2D
             return new GeoPoint2(cos * x - sin * y, sin * x + cos * y);
         }
 
-        /// <summary>The point of model space a point in the coordinates of a viewport's view stands for: the way back from <see cref="ToView"/>.</summary>
+        /// <summary>
+        /// A point of model space, height and all, in the coordinates of a viewport's view, as AutoCAD's display coordinates
+        /// (TRANS 0 to 2): the point taken from the view's target, along the view's axes, then turned by its twist. Through a
+        /// viewport looking from (1, -1, 1), the point (100, 0, 0) is (70.711, -40.825), (0, 0, 100) is (0, 81.650), and the
+        /// depth, which is its third coordinate, is dropped. Through a plan it is the point of <see cref="ToView(DxfViewport, GeoPoint2)"/>
+        /// whatever its height.
+        /// </summary>
+        /// <param name="viewport">The viewport.</param>
+        /// <param name="model">The point of model space.</param>
+        /// <returns>The point in the view's coordinates, where <see cref="DxfViewport.ViewCenter"/> is given.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the viewport is null.</exception>
+        public static GeoPoint2 ToView(DxfViewport viewport, GeoPoint3 model)
+        {
+            GeoTransform3 projection = ProjectionOf(viewport ?? throw new ArgumentNullException(nameof(viewport)));
+
+            if (projection == null)
+            {
+                return ToView(viewport, new GeoPoint2(model.X, model.Y));
+            }
+
+            GeoPoint3 seen = projection.Transform(model);
+            double twist = viewport.TwistAngle;
+
+            if (twist == 0.0)
+            {
+                return new GeoPoint2(seen.X, seen.Y);
+            }
+
+            double cos = Math.Cos(twist);
+            double sin = Math.Sin(twist);
+            return new GeoPoint2(cos * seen.X - sin * seen.Y, sin * seen.X + cos * seen.Y);
+        }
+
+        /// <summary>The point of model space a point in the coordinates of a viewport's view stands for: the way back from <see cref="ToView(DxfViewport, GeoPoint2)"/>.</summary>
         /// <param name="viewport">The viewport.</param>
         /// <param name="view">The point in the view's coordinates.</param>
         /// <returns>The point of model space.</returns>

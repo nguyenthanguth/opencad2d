@@ -372,6 +372,12 @@ namespace OpenCAD2D
         private string _scaleOverride;
         private Dictionary<string, DisplayList2> _scaledModels;
 
+        // The projection a space is drawn through when it is the model space a viewport with a 3D view shows (null: drawn as it
+        // is, in plan), and the matrix of the root frame that goes with it: the image of the plan of the world, by which what the
+        // projection does not take (text, hatches, blocks) is placed.
+        private GeoTransform3 _projection;
+        private Affine2 _rootMatrix = Affine2.Identity;
+
         /// <summary>
         /// Takes the scale annotative objects are drawn at for a space about to be built, and gives its key, the scale's name and
         /// ANNOALLVISIBLE, which a list made at another scale does not share its runs across; null where the drawing has no list
@@ -558,7 +564,7 @@ namespace OpenCAD2D
                 FontFolder = fontFolder,
                 AnnotationKey = annotation,
             };
-            var root = new Frame(Affine2.Identity);
+            var root = new Frame(_rootMatrix);
 
             // The patterns are kept for this build only: an edit between two builds may have changed a hatch.
             _patterns.Clear();
@@ -2235,16 +2241,26 @@ namespace OpenCAD2D
 
             _inBlock = frame.Depth > 0;
 
+            // Through a viewport with a 3D view, the shapes of the space itself, which have their heights, are taken into the
+            // display coordinates whole and drawn by their first two: the frame's matrix would take only the plan of the world.
+            Affine2 under = frame.Matrix;
+            GeoTransform3 projection = frame.Depth == 0 ? _projection : null;
+
+            if (projection != null)
+            {
+                under = Affine2.Identity;
+            }
+
             // The one shape most entities have is taken bare, and a list is walked by place: neither makes an enumerator.
             if (shapes == null)
             {
-                AddShape(one, frame.Matrix, list, style, handle, layerName, fill, mask);
+                AddShape(Projected(one, projection), under, list, style, handle, layerName, fill, mask);
             }
             else
             {
                 for (int i = 0; i < shapes.Count; i++)
                 {
-                    AddShape(shapes[i], frame.Matrix, list, style, handle, layerName, fill, mask);
+                    AddShape(Projected(shapes[i], projection), under, list, style, handle, layerName, fill, mask);
                 }
             }
 
@@ -3115,6 +3131,14 @@ namespace OpenCAD2D
             GeoPoint3 center = viewport.CenterPoint;
             GeoPoint2 view = CadViewports.FromView(viewport, viewport.ViewCenter);
             double twist = viewport.TwistAngle;
+            GeoTransform3 projection = CadViewports.ProjectionOf(viewport);
+
+            if (projection != null)
+            {
+                // The model it shows is drawn in the display coordinates before the twist, about the target: the view's centre
+                // untwisted is the point at the middle of the frame.
+                view = new GeoPoint2(view.X - viewport.ViewTarget.X, view.Y - viewport.ViewTarget.Y);
+            }
 
             // A viewport drawn under a move, as a paste previews it, takes its frame with it and the model it shows as it is.
             Affine2 under = frame.Matrix;
@@ -3136,7 +3160,7 @@ namespace OpenCAD2D
                     view.Y,
                     scale,
                     twist,
-                    ModelSeenThrough(viewport),
+                    ModelSeenThrough(viewport, projection),
                     frozen,
                     style,
                     handle,
@@ -3151,9 +3175,11 @@ namespace OpenCAD2D
         /// <summary>
         /// The display list of model space a viewport shows: that of model space as it stands, or, where a layer looks otherwise
         /// in the viewport (its colour, linetype or lineweight overridden there, as the Layer manager's VP columns set them),
-        /// model space drawn again with those layers as the viewport has them, as AutoCAD regenerates each viewport.
+        /// model space drawn again with those layers as the viewport has them, as AutoCAD regenerates each viewport. Through a
+        /// viewport whose view is not a plan (<paramref name="projection"/>), model space drawn again through the projection, in
+        /// the viewport's display coordinates, once for each view and scale the viewports have.
         /// </summary>
-        private DisplayList2 ModelSeenThrough(DxfViewport viewport)
+        private DisplayList2 ModelSeenThrough(DxfViewport viewport, GeoTransform3 projection)
         {
             List<DxfLayerViewportProperties> looks = null;
 
@@ -3167,6 +3193,11 @@ namespace OpenCAD2D
             }
 
             string scaleName = ViewportScale(viewport);
+
+            if (projection != null && _database.ModelSpace != null)
+            {
+                return ModelProjected(viewport, projection, looks, scaleName);
+            }
 
             if ((looks == null && scaleName == null) || _database.ModelSpace == null)
             {
@@ -3198,6 +3229,114 @@ namespace OpenCAD2D
             }
 
             return inner.Build(_database.ModelSpace, false);
+        }
+
+        /// <summary>
+        /// The display list of model space seen through a viewport whose view is not a plan: model space drawn through the
+        /// projection, its shapes taken into the display coordinates and drawn by their first two, what the projection does not
+        /// take (text, hatches, blocks) placed as the plan of the world is, with the layers as the viewport has them.
+        /// </summary>
+        private DisplayList2 ModelProjected(
+            DxfViewport viewport,
+            GeoTransform3 projection,
+            List<DxfLayerViewportProperties> looks,
+            string scaleName
+        )
+        {
+            // The plan of the world as the projection shows it: where (x, y, 0) goes, and the way x and y run from there.
+            GeoPoint3 origin = projection.Transform(new GeoPoint3(0.0, 0.0, 0.0));
+            GeoPoint3 along = projection.Transform(new GeoPoint3(1.0, 0.0, 0.0));
+            GeoPoint3 up = projection.Transform(new GeoPoint3(0.0, 1.0, 0.0));
+            var inner = new DisplayBuilder(_database, _document)
+            {
+                _scaleOverride = scaleName,
+                _projection = projection,
+                _rootMatrix = new Affine2(
+                    along.X - origin.X,
+                    along.Y - origin.Y,
+                    up.X - origin.X,
+                    up.Y - origin.Y,
+                    origin.X,
+                    origin.Y
+                ),
+            };
+
+            if (looks != null)
+            {
+                foreach (DxfLayerViewportProperties look in looks)
+                {
+                    inner._layers[look.Layer.Name] = new LayerState(look.Layer, look, _defaultWeight);
+                }
+
+                return inner.Build(_database.ModelSpace, false);
+            }
+
+            // Kept in the table of the scaled models, which a change of model space empties, under a key no scale's name has.
+            GeoVector3 direction = viewport.ViewDirection;
+            GeoPoint3 target = viewport.ViewTarget;
+            string key = string.Join(
+                "|",
+                "view",
+                scaleName ?? string.Empty,
+                direction.X.ToString("R", CultureInfo.InvariantCulture),
+                direction.Y.ToString("R", CultureInfo.InvariantCulture),
+                direction.Z.ToString("R", CultureInfo.InvariantCulture),
+                target.X.ToString("R", CultureInfo.InvariantCulture),
+                target.Y.ToString("R", CultureInfo.InvariantCulture),
+                target.Z.ToString("R", CultureInfo.InvariantCulture)
+            );
+            _scaledModels = _scaledModels ?? new Dictionary<string, DisplayList2>(StringComparer.Ordinal);
+
+            if (!_scaledModels.TryGetValue(key, out DisplayList2 drawn))
+            {
+                drawn = inner.Build(_database.ModelSpace, false);
+                _scaledModels[key] = drawn;
+            }
+
+            return drawn;
+        }
+
+        /// <summary>A shape taken through a projection, which is a rotation and a move: the shape in the display coordinates; the shape as it is where there is none.</summary>
+        private static object Projected(object shape, GeoTransform3 projection)
+        {
+            if (projection == null)
+            {
+                return shape;
+            }
+
+            switch (shape)
+            {
+                case GeoPoint3 point:
+                    return projection.Transform(point);
+                case GeoLine3 line:
+                    return line.TransformBy(projection);
+                case GeoRay3 ray:
+                    return ray.TransformBy(projection);
+                case GeoXLine3 xline:
+                    return xline.TransformBy(projection);
+                case GeoArc3 arc:
+                    return arc.TransformBy(projection);
+                case GeoCircle3 circle:
+                    return circle.TransformBy(projection);
+                case GeoPolylineArc3 chain:
+                    return chain.TransformBy(projection);
+                case GeoPolygonArc3 ring:
+                    return ring.TransformBy(projection);
+                case GeoFace3 face:
+                    return face.TransformBy(projection);
+                case GeoPolyline3 polyline:
+                    return polyline.TransformBy(projection);
+                case GeoPolygon3 polygon:
+                    return polygon.TransformBy(projection);
+                case GeoTriangle3 triangle:
+                    return triangle.TransformBy(projection);
+                case GeoEllipse3 ellipse:
+                    return ellipse.TransformBy(projection);
+                case GeoSpline3 spline:
+                    return spline.TransformBy(projection);
+                default:
+                    return shape;
+            }
         }
 
         private void DrawText(

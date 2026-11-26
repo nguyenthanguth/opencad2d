@@ -35,7 +35,11 @@ namespace OpenCAD2D
 
             if (viewport == null)
             {
-                c.Write("There are no active Model space viewports.");
+                c.Write(
+                    c.Document.HasViewportWithThreeDView
+                        ? CadViewports.ThreeDViewRefusal
+                        : "There are no active Model space viewports."
+                );
             }
 
             c.Document.WorkThrough(viewport?.Handle, "MSPACE");
