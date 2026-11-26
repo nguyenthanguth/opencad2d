@@ -1402,13 +1402,48 @@ namespace OpenCAD2D
             mline.SetRuns(segment, element, runs);
         }
 
-        /// <summary>Whether, on a closed multiline, going on from the first pick to the second takes more than half the way round.</summary>
+        /// <summary>
+        /// Whether, on a closed multiline, going on from the first pick to the second takes more than half the way round. Where
+        /// the two ways are as long as each other, AutoCAD 2021 takes the one that does not run past the multiline's start, so the
+        /// first pick's way is the long one when it is the later of the two along the line.
+        /// </summary>
         private static bool GoesTheLongWay(DxfMlineBuilder mline, GeoPoint3 firstPick, GeoPoint3 secondPick)
         {
             double total = ArcStart(mline, mline.SegmentCount);
-            double round = ArcAt(mline, secondPick) - ArcAt(mline, firstPick);
+            double first = ArcAt(mline, firstPick);
+            double second = ArcAt(mline, secondPick);
+            double round = second - first;
             round -= Math.Floor(round / total) * total;
+
+            if (Math.Abs(round * 2.0 - total) <= Tiny)
+            {
+                return first > second;
+            }
+
             return round * 2.0 > total + Tiny;
+        }
+
+        /// <summary>
+        /// The cut of an element a pick lies off (the first pick short of the start of the stretch of a mitred element, or past
+        /// its end), as AutoCAD 2021 makes it: the stretch from the other pick away from the first vertex of the multiline, so
+        /// from the pick on to the end of the segment, or on the last segment of a closed multiline up to the pick. Nothing is cut
+        /// where that pick lies off the element as well.
+        /// </summary>
+        private static void HalfCut(DxfMlineBuilder mline, int segment, int element, double reach, double length)
+        {
+            if (reach <= Tiny || reach >= length - Tiny)
+            {
+                return;
+            }
+
+            bool last = mline.IsClosed && segment == mline.SegmentCount - 1;
+            List<DxfMlineBuilder.Run> left = Without(
+                mline.RunsOf(segment, element),
+                last ? 0.0 : reach,
+                last ? reach : double.PositiveInfinity
+            );
+            left.RemoveAll(r => r.From >= length - Tiny);
+            mline.SetRuns(segment, element, left);
         }
 
         /// <summary>
@@ -1450,6 +1485,21 @@ namespace OpenCAD2D
 
             for (int e = allElements ? 0 : element; e < (allElements ? mline.ElementCount : element + 1); e++)
             {
+                // Whether the first pick lies along this element's own stretch of its segment: at a mitred corner the element
+                // starts or ends away from the vertex, and a pick short of its start or past its end is not on it.
+                bool firstOnElement = true;
+
+                if (!weld && sequence.Count > 1)
+                {
+                    GeoVector3 firstWay = mline.SegmentDirection(sequence[0]);
+                    GeoPoint3 firstStart = mline.ElementPoint(sequence[0], e);
+                    double firstLength = firstStart
+                        .GetVectorTo(mline.ElementPoint(Next(mline, sequence[0]), e))
+                        .DotProduct(firstWay);
+                    double firstReach = firstStart.GetVectorTo(firstPick).DotProduct(firstWay);
+                    firstOnElement = firstReach > Tiny && firstReach < firstLength - Tiny;
+                }
+
                 for (int k = 0; k < sequence.Count; k++)
                 {
                     int s = sequence[k];
@@ -1458,6 +1508,21 @@ namespace OpenCAD2D
                     double length = start.GetVectorTo(mline.ElementPoint(Next(mline, s), e)).DotProduct(way);
                     double from;
                     double to;
+
+                    if (!firstOnElement)
+                    {
+                        // AutoCAD cuts only at the second pick then, the stretches before it left whole.
+                        if (k < sequence.Count - 1)
+                        {
+                            continue;
+                        }
+
+                        if (!(mline.IsClosed && s == 0))
+                        {
+                            HalfCut(mline, s, e, start.GetVectorTo(secondPick).DotProduct(way), length);
+                            continue;
+                        }
+                    }
 
                     // Where the pick range lies along this segment's element, before it is held to the element: what a weld takes
                     // the stops and starts of.
@@ -1468,6 +1533,13 @@ namespace OpenCAD2D
                     {
                         double a = start.GetVectorTo(firstPick).DotProduct(way);
                         double b = start.GetVectorTo(secondPick).DotProduct(way);
+
+                        if (!weld && Math.Min(a, b) < -Tiny)
+                        {
+                            HalfCut(mline, s, e, Math.Max(a, b), length);
+                            continue;
+                        }
+
                         from = Math.Max(0.0, Math.Min(a, b));
                         to = Math.Min(length, Math.Max(a, b));
                         reachFrom = Math.Min(a, b);
@@ -1493,7 +1565,12 @@ namespace OpenCAD2D
                     }
                     else
                     {
-                        from = double.NegativeInfinity;
+                        // A cut that runs on round past the first vertex of a closed multiline takes the first segment from
+                        // the vertex too, so the stretch of a mitred element before the vertex is left.
+                        from =
+                            s == 0 && mline.IsClosed && !weld
+                                ? start.GetVectorTo(mline.Points[0]).DotProduct(way)
+                                : double.NegativeInfinity;
                         to = double.PositiveInfinity;
                         reachFrom = double.NegativeInfinity;
                         reachTo = double.PositiveInfinity;
