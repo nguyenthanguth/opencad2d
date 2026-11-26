@@ -45,9 +45,16 @@ namespace OpenCAD2D.Mcp.UnitTest
                 "add_polyline",
                 "add_radial_dim",
                 "add_text",
+                "app_screenshot",
+                "audit",
                 "bounds",
+                "command_history",
+                "compare_drawings",
+                "dump_drawing",
                 "erase",
+                "export_svg",
                 "info",
+                "last_errors",
                 "list_blocks",
                 "list_dimension_styles",
                 "list_layers",
@@ -56,14 +63,21 @@ namespace OpenCAD2D.Mcp.UnitTest
                 "new_drawing",
                 "open_drawing",
                 "overlaps",
+                "plot_pdf",
+                "purge",
                 "query_entities",
                 "render_png",
                 "rotate",
                 "run_command",
                 "save",
+                "save_as",
                 "scale",
                 "set_properties",
+                "timings",
                 "undo",
+                "zoom_extents",
+                "zoom_object",
+                "zoom_window",
             };
             Assert.Equal(expected, names.OrderBy(n => n, StringComparer.Ordinal).ToArray());
 
@@ -81,8 +95,12 @@ namespace OpenCAD2D.Mcp.UnitTest
             await using McpHarness harness = await McpHarness.StartAsync(Options(Drawings.Plate(folder)));
             string[] reading =
             {
+                "app_screenshot",
                 "bounds",
+                "command_history",
+                "compare_drawings",
                 "info",
+                "last_errors",
                 "list_blocks",
                 "list_dimension_styles",
                 "list_layers",
@@ -90,6 +108,7 @@ namespace OpenCAD2D.Mcp.UnitTest
                 "overlaps",
                 "query_entities",
                 "render_png",
+                "timings",
             };
 
             var tools = await harness.Client.ListToolsAsync();

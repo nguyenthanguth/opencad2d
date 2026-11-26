@@ -411,7 +411,12 @@ namespace OpenCAD2D.Wpf
         /// <returns>The switch that keeps the server.</returns>
         private static CadRemoteSwitch StartRemote(MainViewModel model, CadAppWindow window)
         {
-            var remote = new CadRemoteSwitch(model, () => window.Title, window.Dispatcher);
+            var remote = new CadRemoteSwitch(
+                model,
+                () => window.Title,
+                window.Dispatcher,
+                () => window.WorkspaceView?.DrawingCanvas
+            );
             remote.Apply();
             model.SettingsApplied += (s, e) => remote.Apply();
             window.Activated += (s, e) => remote.NoteActivated();

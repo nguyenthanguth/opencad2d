@@ -69,11 +69,13 @@ server may be started before the app is.
 
 | Flag | Effect |
 |---|---|
-| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `save` and `run_command`. Opening and rendering still work |
+| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `purge`, `audit` with `fix` and `run_command`; attached, also the three `zoom_*` tools, which move the view the user has on screen. Opening, rendering, the reading tools, the check of `audit`, `dump_drawing` and the debug tools still work |
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
-- Only `save` writes a file: to the drawing's own file, which is in the folder it was opened from, or to the path the agent
-  gives it. `render_png` makes its picture in memory (a temporary file under the system's temporary folder, deleted at once).
+- Files are written by `save` (the drawing's own file, which is in the folder it was opened from, or the path the agent gives
+  it), by `save_as`, `plot_pdf` and `export_svg` (the path the agent gives; a file that is there is refused unless `overwrite`
+  is true), and by `dump_drawing`, which writes only inside the debug folder. `render_png` makes its picture in memory (a
+  temporary file under the system's temporary folder, deleted at once).
 - `open_drawing` and `new_drawing` refuse to replace a drawing that has changes not saved, unless the call says
   `discard: true`.
 - The server listens on no port. It speaks only on its standard input and output, and writes nothing else on standard output.
@@ -114,6 +116,73 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 A refusal comes back as a tool error with the reason in plain words and the next step where there is one, such as
 `The drawing has no text style NOTE: list_text_styles shows the ones it has.` An unexpected failure is written to standard
 error as well.
+
+### Output, files and housekeeping
+
+| Tool | What it does |
+|---|---|
+| `plot_pdf(path, layout=, paper=, scale=, fit=, overwrite=)` | plots a layout (the one the drawing is in now by default, or `Model`) to a PDF of one page, as PLOT to the PDF plotter does: the layout's own sheet and scale, lines at their lineweights, text as text. `paper` (`A3`, `ISO A3`, `ANSI B`), `scale` (`1:10`, `2:1`) and `fit` change the setup for this one plot and are not written into the drawing; a space that was never set up is fitted to an A3 sheet. The text of an SHX font is also written as invisible text over its strokes, so the PDF reader's search, and a program that reads the plot back, find the words. Answers the file, the sheet in millimetres, the scale and the part of the drawing on the page |
+| `export_svg(path, box=, layout=, width=, height=, dpi=, overwrite=)` | the layout, or a part of it, as an SVG, drawn as `render_png` draws it (vectors, text as text). Without a `box` it draws the view `zoom_window` or `zoom_object` set |
+| `save_as(path, format=, version=, overwrite=)` | writes a **copy** of the drawing as a `dxf` or `dwg` (`format` is taken from the extension where left out) of a version: `2000`, `2004`, `2007`, `2010`, `2013`, `2018` or its code (`AC1027`), and `12` for a DXF. The open drawing keeps its own file, its name and its unsaved changes; `save` with a path is the tool that moves it. Answers what the version could not hold |
+| `purge(kinds)` | purges what nothing uses, as -PURGE does, repeating until nothing more goes: `blocks`, `layers`, `linetypes`, `text_styles`, `dimension_styles`, `groups`, `multileader_styles`, `table_styles`, `plot_styles`, `shapes`, or `all` of them; `zero_length` erases the lines, arcs and polylines of no length and `empty_text` the texts of no content. It types fixed -PURGE input into the command session, never free text. Answers how many of each |
+| `audit(fix=)` | the errors AUDIT finds, counted by kind with its first sentences; with `fix` it also fixes what it can as one undo step and audits again (`found`, `remaining`). The check alone writes nothing |
+| `zoom_extents`, `zoom_window(box)`, `zoom_object(handles)` | attached: ZOOM Extents, Window and Object on the app's window, moving what the user sees. On a file: the view `render_png` and `export_svg` draw when they are given no `box`, kept for the layout in this server (a `box` given still wins). They answer the part of the drawing now shown, `[minX, minY, maxX, maxY]` |
+
+- A file that is there is refused unless `overwrite` is `true`; the drawing's own file is named in the refusal. The folder is made
+  where it is not there. An extension other than the tool's is refused (`plot_pdf` writes `.pdf`, `export_svg` `.svg`).
+- Attached, `plot_pdf`, `export_svg` and `save_as` work on a copy of the app's drawing as it stands (the request `database`, [unsaved
+  changes included](remote.md#the-drawing-as-the-app-has-it)), made in the server's process; the app's drawing, its file and its
+  name are never touched. `purge` and `audit` with `fix` type on the app's command line, and are refused while a command is
+  running there (answer it or press Esc first).
+- `purge` and `audit` with `fix` are the undo steps of the command (a `purge` of two kinds is two commands); `undo` takes each back.
+
+## Debugging with MCP
+
+The server also helps find what is wrong in a drawing you are working in. Start it attached and read-only, so that nothing it
+does can change the drawing, and register it as in [Registering it](#registering-it):
+
+```
+OpenCAD2D.Mcp.exe --attach --read-only
+```
+
+The app must allow other programs to connect ([the setting](remote.md#the-setting)). Everything below works under `--read-only`;
+only the `zoom_*` tools are refused there, because they move the view the user has on screen.
+
+| Tool | What it tells |
+|---|---|
+| `app_screenshot(max_side=)` | the **picture of the app's canvas** as the window last drew it (what the user sees under the cursor, grips and command line), as an image, with its size in pixels and the part of the drawing it shows. `render_png` with that `box` and size draws the same part from the drawing, to compare what the user sees with what the drawing holds. The app shows nothing and draws nothing again for it. Attached only: a file has no canvas, and an app with no window (a test's) says so |
+| `command_history(count=)` | the last lines of the drawing's command line, the oldest first: each command, each prompt with its answer, each message, whoever typed them, and whether a command is running and at what prompt. On a file it is this server's own session: what went through the command line (`run_command`, `purge`, `audit` with `fix`), not the edits the typed tools make |
+| `last_errors(count=)` | what went wrong lately. `app`: the entries of the app's crash log (`%AppData%\OpenCAD2D\crash.log`, then `crash.old.log`: the exception nobody caught, where it was caught, the command running then, the head of its stack) and the requests the app could not answer since it started. `server`: the tool calls this server could not do, newest first, each with its message and, for a fault that is no plain refusal, the head of the stack |
+| `dump_drawing(path=)` | saves the drawing **as it is now**, unsaved changes included, as a DXF in the debug folder `%TEMP%\OpenCAD2D\mcp-debug` (a name, or a path inside that folder; the drawing's name and the time where left out), and answers the path. It writes nowhere else and never the drawing's own file, so it is allowed with `--read-only` |
+| `compare_drawings(a, b=, max_rows=)` | the objects **added**, **removed** and **changed** between two states, by handle: for a changed one the names of what differs (`layer`, `end`, `box`, `text` ...), the box before and after and how far it moved. `a` and `b` are `current` (the drawing as it is now) or a DXF or DWG file, a dump of the debug folder by its name or its path. The lists are cut at `max_rows` (100, up to 500) and the counts are of everything |
+| `audit` | the errors AUDIT finds in the app's drawing as it stands (the check never writes) |
+| `timings(what, runs=, layout=)` | milliseconds of `regen` (REGEN of the current space), `render` (a `render_png` of a layout) or `open` (reading the drawing's file into a new document), each run and the median. The first run often includes warming up: ask for 3 |
+
+Files and the debug folder: `dump_drawing` makes `%TEMP%\OpenCAD2D\mcp-debug` on its first call and leaves its files there;
+delete them when you are done. The comparison reads the drawings as the AI export does ([the JSON](remote.md#the-drawing-as-json-and-as-a-graph)),
+every entity walked down to its shapes in millimetres, so a block's pieces are told apart by their place in the block.
+It is meant for two states of one drawing; two drawings drawn separately share no handles, and everything of one is added and removed.
+
+### A session that finds a misplaced text
+
+The user has the plate open in the app and has typed a text over the line across it. The agent, attached read-only:
+
+```
+info                         -> { "mode": "app", "readOnly": true, "name": "plate.dxf", "modified": true, "entityCount": 6 }
+overlaps                     -> { "total": 3, "rows": [
+                                   { "word": "107", "other": "104", "box": [80.001, 50, 94.749, 50] }, ... ] }
+query_entities kinds ["TEXT"]-> 107: TEXT "OVER" at (80, 48), 5 high
+dump_drawing path "before.dxf" -> { "path": "C:\\Users\\...\\Temp\\OpenCAD2D\\mcp-debug\\before.dxf", "bytes": 6188, "mode": "app" }
+command_history count 12     -> ... "Command: TEXT", "Specify start point of text or [Justify/Style]: 80,48",
+                                    "Specify height <2.5000>: 5", "Enter text: OVER", "Command: LINE" ...
+app_screenshot               -> an image of the canvas: "PNG W by H pixels ... It shows [minX, minY, maxX, maxY] of the drawing"
+render_png box [minX, minY, maxX, maxY] width W height H   -> the same part drawn from the drawing
+```
+
+The picture the user sees and the picture of the drawing are the same part at the same size, so a difference between them (a
+layer frozen in one view only, an object that is not drawn) is the fault. The user moves the text; the agent asks `compare_drawings
+a "before.dxf"` and reads `changed: [{ "handle": "107", "properties": ["box", ...], "movedBy": [0, 12] }]`, or
+`overlaps` again, which is `0`.
 
 ## A session
 

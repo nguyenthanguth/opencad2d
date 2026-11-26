@@ -31,7 +31,7 @@ namespace OpenCAD2D.Remote
     /// }
     /// </code>
     /// </example>
-    public sealed class CadApplication : IDisposable
+    public sealed partial class CadApplication : IDisposable
     {
         private readonly RemoteConnection _connection;
         private readonly Dictionary<int, CadRemoteDocument> _documents = new Dictionary<int, CadRemoteDocument>();

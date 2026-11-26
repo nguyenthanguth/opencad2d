@@ -432,6 +432,27 @@ after the app starts, so `OpenCAD2D  plan.dxf` is there at once, not only after 
 activated only when the user activates the window; a file left by a process that died is ignored and removed by the next client that finds it. No new package
 is used, and nothing is installed on the machine.
 
+## What the app is doing and what went wrong in it
+
+Three requests read what a program that debugs the app needs; none changes a drawing, and none shows a window or a dialog. The
+[MCP server](mcp.md#debugging-with-mcp) answers `app_screenshot`, `command_history` and `last_errors` with them.
+
+| Call | The request | What it gives |
+|---|---|---|
+| `app.GetScreenshot(maxSide)` | `screenshot` | a [`CadRemoteScreenshot`](xref:OpenCAD2D.Remote.CadRemoteScreenshot): the PNG of the drawing canvas as the window last drew it (8-bit red, green and blue, the pixels `--screenshot --canvas` writes, under the overlays the window adds), its `Width` and `Height`, the `View` it shows as `[minX, minY, maxX, maxY]` and the `Document` shown. A `maxSide` above nought makes a larger picture smaller, keeping its shape |
+| `drawing.GetHistory(count)` | `history` | a [`CadRemoteHistory`](xref:OpenCAD2D.Remote.CadRemoteHistory): the last `count` lines (1 to 1000) of the drawing's command line, the oldest first, as the user sees them, `Total` lines in all, whether a command `IsRunning` and its `Prompt` |
+| `app.GetErrors(count)` | `errors` | a [`CadRemoteErrors`](xref:OpenCAD2D.Remote.CadRemoteErrors): `CrashLog`, the newest `count` entries of `%AppData%\OpenCAD2D\crash.log` (then `crash.old.log`) as [`CadRemoteError`](xref:OpenCAD2D.Remote.CadRemoteError)s, each with its time, where it was caught, the command that ran, whether it was fatal and the head of the exception and its stack, and `Requests`, the requests the app could not answer for a fault of its own since it started (the last 50), newest first. A refusal in words (a handle it has not) is no fault and is not listed |
+
+The canvas is the one the user sees: `GetScreenshot` reads the bitmap the window drew last and does not draw again, because drawing
+commits a viewport's view, which a request to look must not do. It is refused in words where the app has no window (a test server), the
+window shows no drawing, or `maxSide` is not from 0 to 16384. Drawing the same part of the drawing with the facade at the
+picture's size (`CadRender.Draw` with `Box` the `View`, `Width` and `Height` of the screenshot) gives the picture's own pixels but for the grid
+and what the window lays over them.
+
+A host that is not the app's window tells the server what it has by implementing `ICadRemoteDiagnostics` (`CanvasPicture` and
+`CrashLogPath`) beside `ICadRemoteHost`; the server asks only when the host does, so a plugin's or a test's host is not broken by it, and an
+app of an older version answers the three requests "does not know the request". The protocol stays at version 1.
+
 ## Errors
 
 Everything the app or the channel refuses is a `CadRemoteException` with the reason in the words the app's own command line

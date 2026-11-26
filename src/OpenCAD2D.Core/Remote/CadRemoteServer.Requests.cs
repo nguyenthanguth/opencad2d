@@ -122,6 +122,7 @@ namespace OpenCAD2D
             catch (Exception ex) when (!(ex is OutOfMemoryException))
             {
                 GeometryHelperLog.Warn("CadRemoteServer: the request " + op + " failed.", ex);
+                NoteFailure(op, ex);
                 return Failure(id, "OpenCAD2D could not do the request " + op + ": " + ex.Message);
             }
         }
@@ -264,7 +265,7 @@ namespace OpenCAD2D
                 case RemoteOps.CheckStandard:
                     return CheckStandard(Find(request), request);
                 default:
-                    throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
+                    return OtherRequest(op, request);
             }
         }
 
