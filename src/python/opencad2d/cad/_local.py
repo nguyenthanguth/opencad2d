@@ -32,6 +32,7 @@ from ._drawing import (
 _net: Any = importlib.import_module("System")
 _cad: Any = importlib.import_module("OpenCAD2D")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
+_geometry: Any = importlib.import_module("GeometryHelper")
 
 
 _KINDS = ("STYLE", "LTYPE", "BLOCK", "DIMSTYLE")
@@ -457,6 +458,9 @@ class _LocalBackend:
         if add:
             layers.Add(layer)
             scope.Record(_cad.CadEditRecord(_cad.CadEditRecordKind.TableChanged, None, "New layer", None, look.name))
+        else:
+            # A layer changed is told to the document, which draws the spaces again: its objects may have gone off or frozen.
+            scope.Record(_cad.CadEditRecord(_cad.CadEditRecordKind.TableChanged, None, "Layer", None, look.name))
         layer.Description = look.description
 
     @property
@@ -667,6 +671,52 @@ class _LocalBackend:
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]:
         try:
             return self._taken(self._editor.SelectCrossingWindow(first, second))
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
+    # ---- where things are drawn (PW6.2) -----------------------------------------------------------------------------
+
+    def _space(self, layout: str | None) -> Any:
+        """The space of a layout name (model space where None); ValueError for a name the drawing lacks."""
+        return self.document.ModelSpace if layout is None else self._spaces(layout)[0]
+
+    def bounds(self, layout: str | None, handles: list[str] | None) -> tuple[list[str], Any]:
+        if handles is not None:
+            table = _cad.CadSpatial.Bounds(self.document, _net.Array[_net.String](handles))
+        else:
+            table = _cad.CadSpatial.Bounds(self.document, self._space(layout))
+        return [str(handle) for handle in table.Handles], table.Boxes
+
+    def overlaps(
+        self,
+        layout: str | None,
+        words: list[str] | None,
+        over: list[str] | None,
+        handles: list[str] | None,
+        tolerance: float,
+    ) -> tuple[list[str], list[str], Any]:
+        options = _cad.CadOverlapOptions()
+        if words is not None:
+            options.Words = _net.Array[_net.String](words)
+        if over is not None:
+            options.Over = _net.Array[_net.String](over)
+        if handles is not None:
+            options.Handles = _net.Array[_net.String](handles)
+        table = _cad.CadSpatial.Overlaps(
+            self.document, self._space(layout), options, _geometry.Tolerance(tolerance, 1e-5)
+        )
+        return [str(w) for w in table.Words], [str(o) for o in table.Others], table.Boxes
+
+    # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
+
+    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
+        """The JSON text of the drawing (``what`` is ``"json"``) or of its graph (``"graph"``, with the ``CadDrawingGraph``
+        too, whose edge array is copied in one piece); the core does the work."""
+        try:
+            if what == "graph":
+                graph = _cad.CadDrawingGraph.Build(self.document, layout, tolerance)
+                return str(graph.ToJson()), graph
+            return str(_cad.CadDrawingJson.Write(self.document, layout)), None
         except _net.ArgumentException as error:
             raise _refused(error) from None
 

@@ -2,6 +2,40 @@
 
 ## Unreleased
 
+- **NEW.** Real drawings read for AI pipelines (PW6.3). `drawing.flatten()` walks every block reference of a drawing, nested ones and
+  arrays of them (MINSERT) included, to the objects it draws, in world coordinates and millimetres, each with its handle, the path of
+  block names it came out of, the 4 by 4 matrix that placed it, and the layer, colour and linetype it is drawn with (what is on layer 0
+  or ByBlock takes the reference's, as BURST gives it); the shapes are the ones EXPLODE gives, so a circle under a scale unlike along
+  its axes is an ellipse, and the drawing is not changed. `drawing.to_json()` (and `to_dict()`) is the whole drawing as one document
+  of schema `opencad2d.drawing`, version 1, with a JSON Schema in `docs/schemas`, validated by a test: entities in handle order,
+  tables by name, numbers to a nanometre, the same text on every run and on both runtimes. `drawing.to_graph(tolerance=0.001)` is
+  the drawing as a graph for a GNN or a transformer, a node for each object and edges that `touches` (ends within the tolerance, or
+  crossing), `contains`, `dimensions` (DIMASSOC, else the points of the dimension) and `annotates` (a leader's arrow), found with a
+  grid over the boxes (10 000 objects in 0.25 s on .NET 8, 0.4 s on .NET Framework), with `edge_index` and `edge_kind` numpy arrays. Units are normalised to millimetres
+  from INSUNITS (paper space from the plot paper units); a drawing of no unit is left as it is and says so; a block drawn in another
+  unit, a clipped or external reference and a reference that could not be walked are listed in the document's `report`. The same on a
+  file, in the app and from outside it. In C#: `CadFlatten`, `CadUnitScale`, `CadDrawingJson` and `CadDrawingGraph` of the core,
+  and `CadRemoteDocument.ExportJson` and `ExportGraph` (the request `export`).
+- **FIXED.** On a drawing file with no app, a layer switched off or frozen by Python (`drawing.layers["Steel"].is_on = False`, then
+  `commit()`) left the drawing's display list as it was, so what the display list feeds (`entity.bounds`, `drawing.bounds()`,
+  `drawing.overlaps()`, picks) still counted the layer's objects: the commit wrote the layer but told the document nothing for a
+  layer that already existed. It now tells it, and the spaces are drawn again: the objects of a layer switched off or frozen have no
+  bounds and no overlaps, and are back when it is switched on or thawed. In the app and from outside the app this already worked.
+- **NEW.** Python asks where things are drawn, for a program that lays out a drawing and scores it: `entity.bounds` is the box an
+  object takes (`Box(min_x, min_y, max_x, max_y)`, `None` where nothing is drawn), `drawing.bounds(layout=None)` the boxes of a
+  whole space as a `BoundsTable` (`handles` and `boxes`, a NumPy array of n by 4), and `drawing.overlaps(kinds, over, layout, of,
+  tolerance)` the pairs whose words overlap what is near them as an `OverlapTable` (`words`, `others` and the `boxes` of the
+  places they meet). The boxes are the display list's, so an SHX or TrueType word is its letters and not its insertion point, a
+  dimension its lines, arrows and words, a block however deep and scaled its contents, an MTEXT its columns and a wide polyline
+  its width; a TrueType TEXT, whose display width is a guess of 0.6 of the height a letter, is measured by its font. A word is
+  its turned frame (an MTEXT run by run, so the gap between two columns is no word); it overlaps a line, arc, polyline, hatch
+  edge or filled area that runs through it and another word it shares an area with, and not what only touches it within the
+  tolerance or a part of its own object. On a file, in the app and from outside. 100 000 objects: the overlaps in 0.3 to 0.6 s,
+  the pairs of one object in a few milliseconds.
+- **NEW.** `CadSpatial` in the core: `Bounds(document, space)`, `Bounds(document, handles)` and `Overlaps(document, space, options,
+  tolerance)` give `CadBoundsTable` and `CadOverlapTable` (handles and four numbers a row, as arrays), over an STR-packed R-tree
+  made once for each display list. The client library of a running app has `GetBounds`, `GetBoundsOf` and `GetOverlaps`
+  (`CadRemoteBounds`, `CadRemoteOverlaps`), which are the new requests `bounds` and `overlaps` of the channel.
 - **NEW.** `CadRender`, `CadRenderOptions` and `CadRenderImage` in `OpenCAD2D.Rendering` (namespace `OpenCAD2D`): a drawing of a
   file drawn with no window as the app's canvas draws it. `CadRender.Draw` gives the pixels (red, green and blue, rows from the
   top), `WritePng` a PNG of colour type 2, `WriteSvg` the same picture in vectors (at the screen's level of detail: an item

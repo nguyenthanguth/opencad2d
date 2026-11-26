@@ -14,11 +14,13 @@ from __future__ import annotations
 
 import builtins
 import importlib
+import json
 import math
 import os
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic, Literal, NamedTuple, Protocol, TypeVar, cast, overload
+
 
 if TYPE_CHECKING:
     import numpy as np
@@ -240,6 +242,19 @@ class Backend(Protocol):
     def select_window(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
     def render(self, kind: str, path: str | None, options: RenderOptions) -> Any: ...
+
+    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]: ...
+
+    # ---- where things are drawn (PW6.2) ----
+    def bounds(self, layout: str | None, handles: list[str] | None) -> tuple[list[str], Any]: ...
+    def overlaps(
+        self,
+        layout: str | None,
+        words: list[str] | None,
+        over: list[str] | None,
+        handles: list[str] | None,
+        tolerance: float,
+    ) -> tuple[list[str], list[str], Any]: ...
 
 
 def dxf_type_of(net: Any) -> str:
@@ -614,6 +629,23 @@ class Entity(Generic[E]):
     @linetype.setter
     def linetype(self, value: str) -> None:
         self._set("Linetype", value)
+
+    @property
+    def bounds(self) -> Box | None:
+        """The box the object takes as the drawing draws it, as a ``Box`` of (min_x, min_y, max_x, max_y): the letters of an SHX
+        or TrueType word and not its insertion point, the picture of a dimension, a block however deep and scaled, the width
+        of a wide polyline. ``None`` where the drawing draws nothing of it (an object on a layer that is off or frozen). It is
+        the drawing as committed: a change queued and not committed is not in it, and an object just added (``~1``) is a
+        ``ValueError`` until ``commit()``.
+
+        Example:
+            line = drawing.add_line((0, 0), (100, 40))
+            drawing.commit()
+            line.bounds                                   # Box(min_x=0.0, min_y=0.0, max_x=100.0, max_y=40.0)
+        """
+        if self._handle.startswith("~"):
+            raise ValueError(f"The {self._type} {self._handle} is not in the drawing yet: call commit() first.")
+        return self._drawing._bounds_of(self._handle)  # pyright: ignore[reportPrivateUsage]
 
     def __repr__(self) -> str:
         return f"<Entity {self._type} {self._handle} on {self.layer}>"
@@ -1451,6 +1483,73 @@ class Drawing:
             drawing.set_variable("INSBASE", (1.5, 2.5, 0.0))
         """
         self._backend.set_variable(name, variable_value(name, value))
+
+    # ---- where things are drawn: bounds and overlaps (PW6.2) ------------------------------------------------------
+
+    def _bounds_of(self, handle: str) -> Box | None:
+        """The box of one object as drawn, or None where the drawing draws nothing of it."""
+        handles, boxes = self._backend.bounds(None, [handle])
+        if not handles:
+            return None
+        one = [float(number) for number in boxes]
+        return Box(one[0], one[1], one[2], one[3])
+
+    def bounds(self, layout: str | None = None) -> BoundsTable:
+        """The box every object of a space takes as the drawing draws it, as a ``BoundsTable``: ``handles`` and ``boxes``, a
+        NumPy array of one row of (min_x, min_y, max_x, max_y) for each, in the order the space draws them. Read from the
+        display list, so the box is the one the canvas fills: the letters of SHX and TrueType words, a dimension's lines,
+        arrows and words, the contents of a block however deep and scaled, the columns of an MTEXT, the width of a polyline.
+        ``layout`` names a layout (model space where None). An object that draws nothing has no row. Needs numpy
+        (``pip install opencad2d[numpy]``). A drawing of 100 000 objects answers in 0.3 s the first time (it makes its index) and 0.01 s after.
+
+        Example:
+            table = drawing.bounds()
+            table.handles                                 # ['101', '102'] for a line and a text
+            table.boxes[0]                                # array([0., 0., 100., 40.]) for the line from (0, 0) to (100, 40)
+        """
+        handles, boxes = self._backend.bounds(layout, None)
+        return BoundsTable(handles, _rows(boxes))
+
+    def overlaps(
+        self,
+        kinds: Sequence[str] | None = None,
+        over: Sequence[str] | None = None,
+        layout: str | None = None,
+        of: Sequence[Entity | str] | None = None,
+        tolerance: float = 0.001,
+    ) -> OverlapTable:
+        """Find the objects whose words overlap what is drawn near them, as an ``OverlapTable``: ``words`` and ``others``, the
+        handles of each pair, and ``boxes``, a NumPy array of the box (min_x, min_y, max_x, max_y) of the common part. A
+        word is the frame of a text (a TEXT, the runs of an MTEXT line by line so that a gap between columns is no word, the
+        words of a dimension), turned as the text is; it overlaps a line, an arc, a polyline, a hatch or a filled area that
+        runs through it and the frame of another word it shares an area with. What only touches it within ``tolerance``
+        (millimetres, 0.001) does not, and neither does a part of the word's own object: a dimension's text is not over its
+        own lines. A pair is one row however many of the parts of the two meet; the box holds all the places they do.
+
+        ``kinds`` are the DXF names whose words are looked at (``"TEXT"``, ``"MTEXT"``, ``"DIMENSION"``, ``"MULTILEADER"``; None
+        takes those four), ``over`` the names of what they are looked at against (None takes every kind, words included, so
+        two texts that overlap are a row, the one drawn first as ``words``). The words of an INSERT, its attributes and the
+        text of its block, are of the kind ``"INSERT"``. ``of`` limits the answer to pairs in which one of these objects
+        stands, on either side. ``layout`` names a layout (model space where None). Fast enough for a reward function: 100 000
+        objects in about 0.5 s, and one object's pairs in a few milliseconds. Needs numpy.
+
+        Example:
+            hits = drawing.overlaps()                     # a text with a line through it
+            hits.words, hits.others                       # (['101'], ['102'])
+            drawing.overlaps(kinds=["DIMENSION"], over=["LINE", "LWPOLYLINE"])   # where dimension words sit on lines
+            drawing.overlaps(of=[line])                   # what the object just moved meets
+        """
+        if not (math.isfinite(tolerance) and tolerance >= 0.0):
+            raise ValueError(f"The tolerance is a finite number of nought or more, not {tolerance!r}.")
+        handles = None if of is None else self._handles_of(of)
+        words, others, boxes = self._backend.overlaps(
+            layout,
+            None if kinds is None else [str(kind) for kind in kinds],
+            None if over is None else [str(kind) for kind in over],
+            handles,
+            float(tolerance),
+        )
+        return OverlapTable(words, others, _rows(boxes))
 
     # ---- adding ---------------------------------------------------------------------------------------------------
 
@@ -2342,8 +2441,112 @@ class Drawing:
         self._discard()
         self._backend.close(discard)
 
+    # ---- the export for AI pipelines: flatten, JSON, graph (PW6.3) ------------------------------------------------
+
+    def flatten(self, layout: str | None = None) -> list[dict[str, Any]]:
+        """The drawing's objects with every block reference replaced by what it draws, nested blocks and arrays of references
+        (MINSERT) included, in world coordinates and millimetres, as a ``list`` of ``dict``, read and not changed. Each has
+        ``handle`` (that of the reference in the space, for a piece of a block), ``kind``, ``layer``, ``color``, ``linetype``,
+        ``layout``, ``box`` ([min x, min y, max x, max y]), ``path`` (the names of the blocks it came out of, outermost first),
+        and for a piece of a block ``indexPath`` and ``matrix`` (4 by 4, block coordinates to world millimetres), then its
+        geometry and words. A piece on layer 0 or ByBlock has the look of the reference it is in, as BURST gives it, and a
+        circle under a scale unlike along its axes comes out an ellipse, as EXPLODE gives it. ``layout`` is one layout's name
+        (``"Model"``), or None for model space and every layout. Not committed: what is queued is not in it.
+
+        Example:
+            flat = drawing.flatten()                                  # a block BOLT of a circle and a line, inserted twice, gives 4
+            [(e["kind"], e["path"]) for e in flat]                    # [('CIRCLE', ['BOLT']), ('LINE', ['BOLT']), ('CIRCLE', ['BOLT']), ...]
+            flat[0]["matrix"][0]                                      # [1.0, 0.0, 0.0, 100.0]: the first INSERT at (100, 100), not turned
+        """
+        entities: list[dict[str, Any]] = self.to_dict(layout)["entities"]
+        return entities
+
+    def to_json(self, layout: str | None = None) -> str:
+        """The drawing as one JSON document of schema ``opencad2d.drawing``, version 1 (``docs/schemas``), in world millimetres:
+        ``units``, ``layouts``, ``layers``, ``textStyles``, ``dimStyles``, ``linetypes``, ``blocks``, ``report`` and ``entities``
+        (those of ``flatten``). The same drawing gives the same text on every run and on every backend: entities in the order
+        of their handles as numbers, tables by name, numbers rounded to a nanometre. A drawing of no unit (INSUNITS 0) is left
+        as it is and ``units.normalised`` says so. Not committed: what is queued is not in it.
+
+        Example:
+            text = drawing.to_json()                                  # a str, 3 MB for 10 000 entities
+            json.loads(text)["units"]                                 # {'insunits': 'Inches', ..., 'toMillimetres': 25.4, 'normalised': True}
+            drawing.to_json("Layout1")                                # the entities of that layout alone
+        """
+        text, _ = self._backend.export("json", layout, 0.0)
+        return text
+
+    def to_dict(self, layout: str | None = None) -> dict[str, Any]:
+        """``to_json`` read: the document as a ``dict``, its entities a ``list`` of ``dict``.
+
+        Example:
+            document = drawing.to_dict()
+            document["entities"][0]["kind"]                           # 'LINE'
+            document["units"]["toMillimetres"]                        # 1.0 for a drawing of millimetres
+        """
+        return _export_document(self.to_json(layout))
+
+    def to_graph(self, layout: str | None = None, tolerance: float = 0.001) -> dict[str, Any]:
+        """The drawing as a graph for a network to read: a node for each entity of ``flatten`` (``nodes``, numbered as
+        ``flatten`` lists them) and an edge for each way two are related (``edges``: ``source``, ``target``, ``kind`` and ``at``):
+        ``touches`` (two curves that come within ``tolerance`` millimetres of each other: ends that meet, an end on the other, a crossing), ``contains`` (a closed curve that
+        holds the other inside it), ``dimensions`` (a dimension and what its association or its points tie it to) and
+        ``annotates`` (a leader and what its arrow points at). With numpy installed the dict also holds ``edge_index`` (an array
+        of shape (2, E), int64) and ``edge_kind`` (E, int64; an index into ``["touches", "contains", "dimensions",
+        "annotates"]``).  The graph is found with a grid over the boxes: 10 000 entities take about 0.25 s.
+
+        Example:
+            graph = drawing.to_graph()                                # a plate with a circle in it and a line from its corner
+            [(e["source"], e["target"], e["kind"]) for e in graph["edges"]]   # [(0, 2, 'touches'), (2, 3, 'contains'), ...]
+            graph["edge_index"].shape                                 # (2, 5): with numpy
+        """
+        if not (0.0 < tolerance < math.inf):
+            raise ValueError("The tolerance is a number of millimetres above nought.")
+        text, native = self._backend.export("graph", layout, tolerance)
+        return _export_graph(text, native)
+
     def __repr__(self) -> str:
         return f"<Drawing {self.name}>"
+
+
+# ---- what the export for AI pipelines reads (PW6.3) ------------------------------------------------------------------------
+
+_EDGE_KINDS: tuple[str, ...] = ("touches", "contains", "dimensions", "annotates")
+"""The kinds of edge of a graph, in the order of their numbers: ``edge_kind`` of ``to_graph`` holds an index into this."""
+
+
+def _export_document(text: str) -> dict[str, Any]:
+    """The JSON document of a drawing (``to_json``), read."""
+    return json.loads(text)  # pyright: ignore[reportAny]
+
+
+def _export_edges(graph: dict[str, Any], native: Any) -> Any:
+    """The edges of a graph as an array of shape (E, 3) of float64: source, target and kind of each, or None without numpy.
+
+    A graph made in this process (``native`` is the ``CadDrawingGraph``) hands its edge array over with one copy through
+    ``opencad2d.arrays``; one that came as text from the app is built from its edge list.
+    """
+    try:
+        import numpy as np
+    except ImportError:
+        return None
+    if native is not None:
+        from .. import arrays
+
+        return arrays.to_numpy(native.EdgeArray()).reshape(-1, 3)
+    edges: list[dict[str, Any]] = graph["edges"]
+    flat = [number for edge in edges for number in (edge["source"], edge["target"], _EDGE_KINDS.index(edge["kind"]))]
+    return np.asarray(flat, dtype=np.float64).reshape(-1, 3)
+
+
+def _export_graph(text: str, native: Any) -> dict[str, Any]:
+    """A graph as a dict: ``tolerance``, ``nodes``, ``edges`` and, with numpy, ``edge_index`` (2, E) int64 and ``edge_kind`` (E,) int64."""
+    result = _export_document(text)
+    numbers = _export_edges(result, native)
+    if numbers is not None:
+        result["edge_index"] = numbers[:, :2].T.astype("int64")
+        result["edge_kind"] = numbers[:, 2].astype("int64")
+    return result
 
 
 class Documents:
@@ -2380,3 +2583,47 @@ class Documents:
             if drawing.name.upper() == key.upper():
                 return drawing
         raise KeyError(f"No drawing named {key!r} is open.")
+
+
+def _rows(boxes: Any) -> NDArray[np.float64]:
+    """A .NET array of doubles, four to a box, as a NumPy array of shape (n, 4)."""
+    arrays: Any = importlib.import_module("opencad2d.arrays")
+    return arrays.to_numpy(boxes).reshape(-1, 4)
+
+
+@dataclass(frozen=True, eq=False)
+class BoundsTable:
+    """The boxes ``drawing.bounds()`` gives: ``handles``, the handle of each object, and ``boxes``, a NumPy array of shape
+    (n, 4) whose row ``i`` is (min_x, min_y, max_x, max_y) of the object ``handles[i]``, in the units of the drawing.
+
+    Example:
+        table = drawing.bounds()
+        len(table)                                    # 2
+        dict(zip(table.handles, table.boxes.tolist()))   # {'101': [0.0, 0.0, 100.0, 40.0], '102': [10.0, 20.0, 31.2, 22.5]}
+    """
+
+    handles: list[str]
+    boxes: NDArray[np.float64]
+
+    def __len__(self) -> int:
+        return len(self.handles)
+
+
+@dataclass(frozen=True, eq=False)
+class OverlapTable:
+    """The pairs ``drawing.overlaps()`` gives: ``words``, the handle of the object whose words meet ``others``, the handle of the
+    object they meet (the object drawn first where both are words), and ``boxes``, a NumPy array of shape (n, 4) whose row
+    ``i`` is (min_x, min_y, max_x, max_y) of the places the pair meets. The rows are in the order the space draws the objects.
+
+    Example:
+        hits = drawing.overlaps()
+        list(zip(hits.words, hits.others))            # [('101', '102')]: the text 101 has the line 102 through it
+        hits.boxes[0]                                 # array([20., 20.001, 20., 24.999]): the part of the line inside the frame
+    """
+
+    words: list[str]
+    others: list[str]
+    boxes: NDArray[np.float64]
+
+    def __len__(self) -> int:
+        return len(self.words)

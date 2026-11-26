@@ -315,6 +315,37 @@ class _RemoteBackend:
             "render open_file(path) instead."
         )
 
+    # ---- where things are drawn (PW6.2) -----------------------------------------------------------------------------
+
+    def bounds(self, layout: str | None, handles: list[str] | None) -> tuple[list[str], Any]:
+        if handles is not None:
+            table = self._document.GetBoundsOf(_net.Array[_net.String](handles))
+        else:
+            table = self._document.GetBounds(layout)
+        return [str(handle) for handle in table.Handles], table.Boxes
+
+    def overlaps(
+        self,
+        layout: str | None,
+        words: list[str] | None,
+        over: list[str] | None,
+        handles: list[str] | None,
+        tolerance: float,
+    ) -> tuple[list[str], list[str], Any]:
+        def names(items: list[str] | None) -> Any:
+            return None if items is None else _net.Array[_net.String](items)
+
+        table = self._document.GetOverlaps(layout, names(words), names(over), names(handles), tolerance)
+        return [str(w) for w in table.Words], [str(o) for o in table.Others], table.Boxes
+
+    # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
+
+    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
+        """The JSON text of the drawing or of its graph, as the app writes it; there is no .NET graph on this side."""
+        if what == "graph":
+            return str(self._document.ExportGraph(layout, tolerance)), None
+        return str(self._document.ExportJson(layout)), None
+
 
 class App:
     """A running OpenCAD2D, to use as ``with connect() as app``: ``documents``, ``active_drawing``, ``open``,

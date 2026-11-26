@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencad2d.com/schemas/opencad2d-drawing-v1.schema.json",
+  "title": "OpenCAD2D drawing, version 1",
+  "description": "A drawing walked down to its shapes (block references replaced by what they draw), in world millimetres, as drawing.to_json() writes it. Points are [x, y]; angles are degrees counter-clockwise; numbers are rounded to 6 decimals.",
+  "type": "object",
+  "required": ["schema", "version", "name", "units", "layouts", "layers", "textStyles", "dimStyles", "linetypes", "blocks", "report", "entities"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "opencad2d.drawing" },
+    "version": { "const": 1 },
+    "name": { "type": "string" },
+    "units": {
+      "type": "object",
+      "required": ["insunits", "insunitsCode", "toMillimetres", "normalised"],
+      "additionalProperties": false,
+      "properties": {
+        "insunits": { "type": "string", "description": "INSUNITS by name: Millimeters, Inches, Undefined ..." },
+        "insunitsCode": { "type": "integer", "minimum": 0, "maximum": 24 },
+        "toMillimetres": { "type": "number", "exclusiveMinimum": 0, "description": "The factor applied to the lengths of model space; 1 for a drawing of no unit." },
+        "normalised": { "type": "boolean", "description": "False when INSUNITS is 0 and the lengths are left as the drawing has them." }
+      }
+    },
+    "layouts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "isModel", "toMillimetres", "normalised"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "isModel": { "type": "boolean" },
+          "toMillimetres": { "type": "number", "exclusiveMinimum": 0 },
+          "normalised": { "type": "boolean" }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "color", "linetype", "lineweight", "on", "frozen", "locked", "plot"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "color": { "$ref": "#/$defs/color" },
+          "linetype": { "type": "string" },
+          "lineweight": { "type": ["number", "null"], "description": "Millimetres; null for the default or by-layer weight." },
+          "on": { "type": "boolean" },
+          "frozen": { "type": "boolean" },
+          "locked": { "type": "boolean" },
+          "plot": { "type": "boolean" }
+        }
+      }
+    },
+    "textStyles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "font", "bigFont", "height", "widthFactor"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "font": { "type": ["string", "null"] },
+          "bigFont": { "type": ["string", "null"] },
+          "height": { "type": "number", "description": "Millimetres; 0 where each text gives its own." },
+          "widthFactor": { "type": "number" }
+        }
+      }
+    },
+    "dimStyles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "scale", "textHeight", "arrowSize", "decimals"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "scale": { "type": "number" },
+          "textHeight": { "type": "number" },
+          "arrowSize": { "type": "number" },
+          "decimals": { "type": "integer" }
+        }
+      }
+    },
+    "linetypes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "patternLength"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "patternLength": { "type": "number" }
+        }
+      }
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "origin", "units", "anonymous", "dynamic", "xref", "entities"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "origin": { "$ref": "#/$defs/point" },
+          "units": { "type": "string" },
+          "anonymous": { "type": "boolean" },
+          "dynamic": { "type": "boolean" },
+          "xref": { "type": "boolean" },
+          "entities": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "report": {
+      "type": "object",
+      "required": ["inserts", "xrefs", "clipped", "refused", "blockUnits"],
+      "additionalProperties": false,
+      "properties": {
+        "inserts": { "type": "integer", "minimum": 0, "description": "Block references walked, nested ones counted each time they are placed." },
+        "xrefs": { "$ref": "#/$defs/strings", "description": "External references left as one entity each." },
+        "clipped": { "$ref": "#/$defs/strings", "description": "Blocks placed with a clip (XCLIP), walked unclipped." },
+        "refused": { "$ref": "#/$defs/strings", "description": "NAME: why, for a reference that could not be walked." },
+        "blockUnits": { "$ref": "#/$defs/strings", "description": "Blocks drawn in a unit other than the drawing's." }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "description": "In the order of the handles; the pieces of one block reference after each other by indexPath.",
+      "items": { "$ref": "#/$defs/entity" }
+    }
+  },
+  "$defs": {
+    "point": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+    "points": { "type": "array", "items": { "$ref": "#/$defs/point" } },
+    "numbers": { "type": "array", "items": { "type": "number" } },
+    "strings": { "type": "array", "items": { "type": "string" } },
+    "color": {
+      "type": "string",
+      "description": "ByLayer, ByBlock, ACI:n for an index, RGB:rrggbb for a true colour, Foreground or None.",
+      "pattern": "^(ByLayer|ByBlock|Foreground|None|ACI:[0-9]{1,3}|RGB:[0-9a-f]{6})$"
+    },
+    "entity": {
+      "type": "object",
+      "required": ["handle", "kind", "layer", "color", "linetype", "layout", "box", "path"],
+      "properties": {
+        "handle": { "type": "string", "description": "The handle of the entity of the space; for a piece of a block, that of the block reference of the space." },
+        "kind": { "type": "string", "description": "The DXF name: LINE, CIRCLE, ARC, ELLIPSE, LWPOLYLINE, POLYLINE, SPLINE, POINT, TEXT, ATTRIB, ATTDEF, MTEXT, DIMENSION, LEADER, MULTILEADER, HATCH, SOLID, TRACE, 3DFACE, INSERT, or any other the library reads." },
+        "layer": { "type": "string" },
+        "color": { "$ref": "#/$defs/color" },
+        "linetype": { "type": "string" },
+        "layout": { "type": "string" },
+        "box": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 }
+          ],
+          "description": "[min x, min y, max x, max y] of the extents."
+        },
+        "path": { "$ref": "#/$defs/strings", "description": "The names of the blocks the entity came out of, outermost first; empty for an entity of a space." },
+        "indexPath": { "type": "array", "items": { "type": "integer" } },
+        "matrix": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Block coordinates to world millimetres, 4 by 4, rows first; with indexPath, only for a piece of a block."
+        },
+        "clipped": { "const": true },
+        "dynamic": { "const": true },
+        "constant": { "const": true }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "LINE" } } }, "then": { "required": ["start", "end"], "properties": { "start": { "$ref": "#/$defs/point" }, "end": { "$ref": "#/$defs/point" } } } },
+        { "if": { "properties": { "kind": { "const": "CIRCLE" } } }, "then": { "required": ["center", "radius"], "properties": { "center": { "$ref": "#/$defs/point" }, "radius": { "type": "number", "minimum": 0 } } } },
+        { "if": { "properties": { "kind": { "const": "ARC" } } }, "then": { "required": ["center", "radius", "startAngle", "endAngle"], "properties": { "center": { "$ref": "#/$defs/point" }, "radius": { "type": "number", "minimum": 0 }, "startAngle": { "type": "number", "minimum": 0, "maximum": 360 }, "endAngle": { "type": "number", "minimum": 0, "maximum": 360 } } } },
+        { "if": { "properties": { "kind": { "const": "ELLIPSE" } } }, "then": { "required": ["center", "majorAxis", "minorAxis", "startParam", "endParam", "closed"], "properties": { "center": { "$ref": "#/$defs/point" }, "majorAxis": { "$ref": "#/$defs/point" }, "minorAxis": { "$ref": "#/$defs/point" }, "startParam": { "type": "number" }, "endParam": { "type": "number" }, "closed": { "type": "boolean" } } } },
+        { "if": { "properties": { "kind": { "enum": ["LWPOLYLINE", "POLYLINE"] } } }, "then": { "required": ["vertices", "closed"], "properties": { "vertices": { "$ref": "#/$defs/points" }, "bulges": { "$ref": "#/$defs/numbers" }, "closed": { "type": "boolean" } } } },
+        { "if": { "properties": { "kind": { "const": "SPLINE" } } }, "then": { "required": ["degree", "closed", "controlPoints", "fitPoints", "knots", "weights"], "properties": { "degree": { "type": "integer", "minimum": 1 }, "closed": { "type": "boolean" }, "controlPoints": { "$ref": "#/$defs/points" }, "fitPoints": { "$ref": "#/$defs/points" }, "knots": { "$ref": "#/$defs/numbers" }, "weights": { "$ref": "#/$defs/numbers" } } } },
+        { "if": { "properties": { "kind": { "const": "POINT" } } }, "then": { "required": ["position"], "properties": { "position": { "$ref": "#/$defs/point" } } } },
+        { "if": { "properties": { "kind": { "enum": ["TEXT", "ATTRIB", "ATTDEF"] } } }, "then": { "required": ["position", "alignmentPoint", "justify", "height", "rotation", "widthFactor", "style", "text"], "properties": { "position": { "$ref": "#/$defs/point" }, "alignmentPoint": { "$ref": "#/$defs/point" }, "justify": { "type": "string" }, "height": { "type": "number" }, "rotation": { "type": "number" }, "widthFactor": { "type": "number" }, "style": { "type": "string" }, "text": { "type": "string" }, "tag": { "type": "string" }, "invisible": { "type": "boolean" } } } },
+        { "if": { "properties": { "kind": { "enum": ["ATTRIB", "ATTDEF"] } } }, "then": { "required": ["tag", "invisible"] } },
+        { "if": { "properties": { "kind": { "const": "MTEXT" } } }, "then": { "required": ["position", "height", "width", "rotation", "attachment", "style", "text", "contents"], "properties": { "position": { "$ref": "#/$defs/point" }, "height": { "type": "number" }, "width": { "type": "number" }, "rotation": { "type": "number" }, "attachment": { "type": "string" }, "style": { "type": "string" }, "text": { "type": "string" }, "contents": { "type": "string" } } } },
+        { "if": { "properties": { "kind": { "const": "DIMENSION" } } }, "then": { "required": ["dimType", "measurement", "text", "textPosition", "style", "points"], "properties": { "dimType": { "enum": ["linear", "aligned", "radius", "diameter", "ordinate", "angular2Line", "angular3Point", "arcLength", "jogged", "other"] }, "measurement": { "type": "number" }, "text": { "type": "string" }, "textPosition": { "$ref": "#/$defs/point" }, "style": { "type": "string" }, "points": { "type": "object", "additionalProperties": { "$ref": "#/$defs/point" } } } } },
+        { "if": { "properties": { "kind": { "const": "LEADER" } } }, "then": { "required": ["vertices", "arrow", "annotation"], "properties": { "vertices": { "$ref": "#/$defs/points" }, "arrow": { "type": "boolean" }, "annotation": { "type": ["string", "null"] } } } },
+        { "if": { "properties": { "kind": { "const": "MULTILEADER" } } }, "then": { "required": ["text", "textLocation", "lines"], "properties": { "text": { "type": ["string", "null"] }, "textLocation": { "$ref": "#/$defs/point" }, "lines": { "type": "array", "items": { "$ref": "#/$defs/points" } } } } },
+        { "if": { "properties": { "kind": { "const": "HATCH" } } }, "then": { "required": ["pattern", "solid", "associative", "loops"], "properties": { "pattern": { "type": "string" }, "solid": { "type": "boolean" }, "associative": { "type": "boolean" }, "loops": { "type": "array", "items": { "$ref": "#/$defs/points" } } } } },
+        { "if": { "properties": { "kind": { "enum": ["SOLID", "TRACE", "3DFACE"] } } }, "then": { "required": ["vertices"], "properties": { "vertices": { "$ref": "#/$defs/points" } } } },
+        { "if": { "properties": { "kind": { "const": "INSERT" } } }, "then": { "required": ["name", "position", "scale", "rotation", "attributes"], "properties": { "name": { "type": "string" }, "position": { "$ref": "#/$defs/point" }, "scale": { "$ref": "#/$defs/point" }, "rotation": { "type": "number" }, "attributes": { "type": "array", "items": { "type": "object", "required": ["tag", "text"], "properties": { "tag": { "type": "string" }, "text": { "type": "string" } } } } } } }
+      ]
+    }
+  }
+}

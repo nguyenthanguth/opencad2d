@@ -73,6 +73,9 @@ namespace OpenCAD2D.Remote
         /// <summary>Reads or sets the current dimension style of a drawing.</summary>
         public const string CurrentDimStyle = "currentDimStyle";
 
+        /// <summary>The drawing as JSON, or as a graph, in millimetres, block references walked down to what they draw.</summary>
+        public const string Export = "export";
+
         /// <summary>Closes a drawing without saving; refused where it has changes not saved, unless told to discard them.</summary>
         public const string Close = "close";
 
@@ -156,6 +159,12 @@ namespace OpenCAD2D.Remote
 
         /// <summary>The objects a window or a crossing window takes, or all of the working space (<c>how</c>), as <see cref="Get"/> answers.</summary>
         public const string SelectArea = "selectArea";
+
+        /// <summary>The boxes of the entities of a space as they are drawn (<c>layout</c>), or of the handles asked (<c>handles</c>): <c>handles</c> and <c>boxes</c>, four numbers a handle.</summary>
+        public const string Bounds = "bounds";
+
+        /// <summary>The entities whose words overlap what is drawn near them (<c>layout</c>, <c>words</c>, <c>over</c>, <c>handles</c>, <c>tolerance</c>): <c>words</c>, <c>others</c> and <c>boxes</c>.</summary>
+        public const string Overlaps = "overlaps";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

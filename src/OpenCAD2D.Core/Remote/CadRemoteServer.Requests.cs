@@ -221,6 +221,8 @@ namespace OpenCAD2D
                     return Linetypes(Find(request));
                 case RemoteOps.CurrentDimStyle:
                     return CurrentDimStyle(Find(request), request.GetString("name"));
+                case RemoteOps.Export:
+                    return Export(Find(request), request);
                 case RemoteOps.Layouts:
                     return Layouts(Find(request));
                 case RemoteOps.CurrentLayout:
@@ -245,6 +247,10 @@ namespace OpenCAD2D
                     return Variable(Find(request), request);
                 case RemoteOps.SelectArea:
                     return SelectArea(Find(request), request);
+                case RemoteOps.Bounds:
+                    return Bounds(Find(request), request);
+                case RemoteOps.Overlaps:
+                    return Overlaps(Find(request), request);
                 default:
                     throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }

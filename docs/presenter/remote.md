@@ -109,6 +109,37 @@ dimension style new dimensions are drawn in (one undo step, `DIMSTYLE`, at once)
 `dimension_styles.add`, `linetypes.load` and `blocks.add` ([the Drawing API](../python.md#styles-linetypes-dimensions-hatches-and-blocks))
 are made of these calls from outside the app.
 
+## Where things are drawn
+
+`drawing.GetBounds(layout)` gives the box of every entity of model space (null) or a layout as the app draws it, as a
+`CadRemoteBounds`: `Handles` and `Boxes`, four numbers a row. `drawing.GetBoundsOf(handles)` gives those of some handles, in the
+order asked, each in the space that holds it. `drawing.GetOverlaps(layout, words, over, handles, tolerance)` gives the entities whose
+words overlap what is drawn near them, as a `CadRemoteOverlaps` (`Words`, `Others`, `Boxes`); the kinds are DXF names (`TEXT`,
+`MTEXT`, `DIMENSION`, `MULTILEADER`, `LINE`) and null takes the defaults. They are the requests `bounds` and `overlaps` and the
+answers of `CadSpatial` in the app, whose [guide](display.md#where-things-are-drawn) says what a box and an overlap are. The arrays
+are the whole answer, which a program copies as it does: Python gives them as NumPy arrays (`drawing.bounds()`,
+`drawing.overlaps()`, `entity.bounds`). A layout that is not there is a `CadRemoteException`.
+
+## The drawing as JSON and as a graph
+
+A program that learns from drawings (a model that lays them out, a dataset of real projects) reads them better with the blocks opened
+and the units one. `drawing.ExportJson(layout)` gives the drawing as one JSON text, `drawing.ExportGraph(layout, tolerance)` as a
+graph; `layout` is the name of a layout (`"Model"`) or null for model space and every layout, `tolerance` the millimetres two ends may
+be apart to touch (0.001 is the library's own):
+
+```csharp
+string json = drawing.ExportJson(null);               // schema opencad2d.drawing, version 1
+string graph = drawing.ExportGraph(null, 0.001);      // schema opencad2d.graph, version 1
+```
+
+The app writes them with the core's own `CadFlatten.Walk` (block references, nested ones and arrays of them included, walked down to
+the shapes they draw, in world coordinates, with the path of blocks and the transformation of each), `CadDrawingJson.Write` and
+`CadDrawingGraph.Build`; a program that holds a `CadDocument` calls them directly. The request is `export`, and a layout the drawing
+lacks, or a tolerance that is not above nought, is refused in words. The JSON is described by
+[`docs/schemas/opencad2d-drawing-v1.schema.json`](https://github.com/nguyenthanguth/OpenCAD2D/blob/main/docs/schemas/opencad2d-drawing-v1.schema.json),
+and Python's `drawing.flatten()`, `to_json()`, `to_dict()` and `to_graph()` ([the guide](../python.md#preparing-real-drawings-for-ai-flatten-json-and-graph))
+read the same text on a file, in the app and from outside it.
+
 ## Layers and layouts
 
 `drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)

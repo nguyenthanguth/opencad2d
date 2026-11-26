@@ -71,13 +71,12 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       1. Headless render from Python: drawing.render_png(path, box=, dpi=), render_svg, render_pdf, no window. Spec and
          rulings in `.claude/scratch/pw6/render-spec.md`, in four parts:
          P1 (done, 2ce58ef5) the `OpenCAD2D.Rendering` netstandard2.0 assembly, the nine Skia/PDF files moved, types forwarded
-         from `OpenCAD2D.Wpf`; P2 (running) the `CadRender` facade (PNG, SVG, PDF) and `--screenshot --canvas`; P3 Python (after
-         PW5's merge); P4 docs and example.
+         from `OpenCAD2D.Wpf`; P2 (done, 5ee2b298) the `CadRender` facade (PNG, SVG, PDF) and `--screenshot --canvas`; P3 (running) Python; P4 docs and example.
          -> verify: the same pixels as the app's --screenshot for 10 drawings; SVG and PDF read back; time per page.
-      2. Spatial queries: entity.bounds as drawn (SHX/TTF words, dimension and block pictures, MTEXT columns), and
+      2. DONE 2026-11-26 (d7dc6b09). Spatial queries: entity.bounds as drawn (SHX/TTF words, dimension and block pictures, MTEXT columns), and
          overlaps (text or dimension over lines, over each other) with a spatial index, fast enough for a reward
          function. -> verify: bounds equal the display list's within 1E-6; an overlap test of 100 000 objects timed.
-      3. Preparing real DWG data: walk nested blocks with their transforms (flattened entities in world
+      3. DONE 2026-11-26 (3cdbe6bd). Preparing real DWG data: walk nested blocks with their transforms (flattened entities in world
          coordinates), normalise units (INSUNITS -> mm), export the drawing as JSON and as a graph (nodes = entities,
          edges = touching/containing/dimensioning) for GNN, Transformer or LLM input. -> verify: JSON schema tests,
          round trip of a block tree, the graph of a sample drawing.
@@ -86,7 +85,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 
 - [ ] PW7. More for AI drawing layout (proposed by the lead 2026-11-26, the maintainer: "kế hoạch em đưa ra tốt đó";
       after PW6; heavy work in C#, Python wraps it):
-      1. Measure before placing: measure_text, measure_dimension, measure_leader (the box a thing would take, not
+      1. (running) Measure before placing: measure_text, measure_dimension, measure_leader (the box a thing would take, not
          added), and free_space(box) (the empty regions of a frame). -> verify: equal to the box once added.
       2. A standards checker as reward terms: words on paper at the plotted scale, minimum gaps between words and
          lines, dimension chains in line, layers/linetypes/styles per a company standard file; a score per rule and
@@ -95,7 +94,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          -> verify: reset time for a 10 000-entity drawing; state equal after reset.
       4. Labelled renders: the world-to-pixel matrix, class masks (words, dimensions, lines, hatches), COCO boxes.
          -> verify: a box drawn back from the matrix covers the entity's pixels.
-      5. An MCP server so an LLM agent drives OpenCAD2D (open, read, place, render, check), in C# (decided
+      5. (running) An MCP server so an LLM agent drives OpenCAD2D (open, read, place, render, check), in C# (decided
          2026-11-26): a project of its own, `src/OpenCAD2D.Mcp`, a net8.0 console exe `OpenCAD2D.Mcp.exe` installed
          beside the app (the SDK's packages stay out of Core, its NuGet and the wheel; no WPF loaded, no window);
          headless on a file, or `--attach` to a running app through Remote; the official .NET MCP SDK; stdio only,
