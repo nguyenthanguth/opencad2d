@@ -526,7 +526,7 @@
                         Foreground="{StaticResource GhTextMuted}"
                         TextWrapping="Wrap"
                         Margin="0,8,0,0"
-                        Text="Files in the Lisps and Plugins folders beside the app load at every start; their At start box is greyed. Hover a Commands cell for the full list."
+                        Text="Files in the Lisps, Pythons and Plugins folders beside the app load at every start; their At start box is greyed. Hover a Commands cell for the full list."
                     />
                 </StackPanel>
             </Grid>

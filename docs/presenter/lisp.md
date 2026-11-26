@@ -250,7 +250,7 @@ otherwise, with a tooltip that says why; a small slider mark after the name of s
 **Remove**, the
 button after Unload, with red text, unloads the rows chosen where they are loaded and takes them out of the table, out of the
 known list and, for an AutoLISP file, out of the Startup Suite; for a plugin the plugin manager forgets it, its At start entry
-too, so that it is gone until its file is loaded again. A file of the `Lisps` or `Plugins` folder cannot leave the table, as
+too, so that it is gone until its file is loaded again. A file of the `Lisps`, `Pythons` or `Plugins` folder cannot leave the table, as
 it loads at every start: Remove is greyed when only such rows are chosen, and its tooltip says so; with both kinds chosen it
 acts on the others. Unload and Delete never take a row out. Reload and a tick of a box
 keep the rows chosen. A file loaded again drops the `c:` commands it no longer defines: a `pair.lsp` that defined `c:KEEP1`

@@ -10,6 +10,7 @@ from GeometryHelper.Dxf import DxfLine
 
 with CadApplication() as app:
     doc = app.ActiveDocument
+    assert doc is not None  # the app may have no drawing open
     print(app.Running.ProcessId)
 
     # Kind takes the Python class of a .NET type (pythonnet passes it as the System.Type)

@@ -66,6 +66,8 @@ def test_the_wheel_holds_the_files_of_the_list_and_nothing_else() -> None:
     own = [f for f in files if f.startswith("opencad2d/")]
     assert [f for f in own if not f.startswith("opencad2d/lib/")] == [
         "opencad2d/__init__.py",
+        "opencad2d/_pyinstaller/__init__.py",
+        "opencad2d/_pyinstaller/hook-opencad2d.py",
         "opencad2d/arrays.py",
         "opencad2d/cad/__init__.py",
         "opencad2d/cad/_drawing.py",
@@ -78,6 +80,16 @@ def test_the_wheel_holds_the_files_of_the_list_and_nothing_else() -> None:
     ]
     assert [f for f in files if not f.startswith(("opencad2d/", "GeometryHelper-stubs/", "OpenCAD2D-stubs/", "System-stubs/"))
             and ".dist-info/" not in f] == []
+
+
+def test_pyinstaller_finds_the_hook_folder_through_the_entry_point() -> None:
+    points = [p for p in _distribution().entry_points if p.group == "pyinstaller40"]
+
+    assert [(p.name, p.value) for p in points] == [("hook-dirs", "opencad2d._pyinstaller:get_hook_dirs")]
+    from opencad2d._pyinstaller import get_hook_dirs
+
+    folders = get_hook_dirs()
+    assert len(folders) == 1 and (Path(folders[0]) / "hook-opencad2d.py").is_file()
 
 
 @pytest.mark.parametrize("folder", ["Fonts", "Hatches", "Linetypes"])

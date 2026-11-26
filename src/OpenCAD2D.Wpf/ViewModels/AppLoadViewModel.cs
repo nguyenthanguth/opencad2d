@@ -202,7 +202,7 @@ namespace OpenCAD2D.Wpf
     /// Every file loaded is also kept in <see cref="GlobalSettings.KnownApplications"/>, with the commands it last defined, so
     /// that an unloaded file stays in the table, unticked, in a new window and after a restart of the app, as AutoCAD keeps its
     /// History list; ticking it loads it. Remove unloads the rows chosen and takes them out of the table, the known list and the
-    /// Startup Suite (a plugin is forgotten by the plugin manager, its At start entry too); a file of the Lisps or Plugins
+    /// Startup Suite (a plugin is forgotten by the plugin manager, its At start entry too); a file of the Lisps, Pythons or Plugins
     /// folder cannot be removed, since it loads at every start.
     /// </para>
     /// <para>
@@ -364,16 +364,16 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the command of Unload, which needs a row chosen.</summary>
         public ICommand UnloadCommand { get; }
 
-        /// <summary>Gets the command of Remove, which needs a row chosen that is not of the Lisps or Plugins folder.</summary>
+        /// <summary>Gets the command of Remove, which needs a row chosen that is not of the Lisps, Pythons or Plugins folder.</summary>
         public ICommand RemoveCommand { get; }
 
         /// <summary>
-        /// Gets the tooltip of Remove: what it does, or, where every row chosen lies in the Lisps or Plugins folder, why it
+        /// Gets the tooltip of Remove: what it does, or, where every row chosen lies in the Lisps, Pythons or Plugins folder, why it
         /// cannot be pressed.
         /// </summary>
         public string RemoveToolTip =>
             _chosen.Count > 0 && _chosen.All(r => r.IsAtStartFixed)
-                ? "Files in the Lisps and Plugins folders load at every start, so they cannot be taken out of the list."
+                ? "Files in the Lisps, Pythons and Plugins folders load at every start, so they cannot be taken out of the list."
                 : "Unload the chosen files and take them out of the list";
 
         /// <summary>Gets the command of Settings…, which needs one row chosen that is loaded and declares settings.</summary>
@@ -593,7 +593,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Remove: unloads the rows chosen that are loaded, as Unload does, and takes them out of the table, out of
         /// <see cref="GlobalSettings.KnownApplications"/> and, for an AutoLISP file, out of the Startup Suite; a plugin is
-        /// forgotten by the plugin manager, which takes it off its startup list too. A row of the Lisps or Plugins folder is
+        /// forgotten by the plugin manager, which takes it off its startup list too. A row of the Lisps, Pythons or Plugins folder is
         /// left as it is, since it loads at every start.
         /// </summary>
         public void Remove()

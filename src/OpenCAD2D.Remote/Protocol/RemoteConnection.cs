@@ -28,7 +28,8 @@ namespace OpenCAD2D.Remote
 
     /// <summary>
     /// A client's connection to one app: its pipe, opened on the first request and again after it broke, one request at a
-    /// time. A request that the app refuses is a <see cref="CadRemoteException"/> with the app's words.
+    /// time, until it is disposed: a request after that is an <see cref="ObjectDisposedException"/>, not a new pipe. A request
+    /// that the app refuses is a <see cref="CadRemoteException"/> with the app's words.
     /// </summary>
     internal sealed class RemoteConnection : IDisposable
     {
@@ -38,6 +39,7 @@ namespace OpenCAD2D.Remote
         private readonly string _token;
         private NamedPipeClientStream _stream;
         private long _nextId;
+        private bool _disposed;
 
         /// <summary>The time a connection waits for the app to take it, in milliseconds.</summary>
         public int ConnectTimeout { get; set; } = 5000;
@@ -68,6 +70,16 @@ namespace OpenCAD2D.Remote
 
             lock (_gate)
             {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(
+                        nameof(CadApplication),
+                        "The connection to OpenCAD2D (process "
+                            + _processId
+                            + ") was closed by Dispose, or by the end of the with block that held it: make a new CadApplication to work with the app again."
+                    );
+                }
+
                 EnsureConnected();
                 request.Set("id", ++_nextId);
 
@@ -184,6 +196,7 @@ namespace OpenCAD2D.Remote
         {
             lock (_gate)
             {
+                _disposed = true;
                 Close();
             }
         }

@@ -505,8 +505,16 @@ What the stubs say, so that the editor and pythonnet agree:
 - a parameter that pythonnet takes a Python list for is `Sequence[T] | System.Array[T]`, and one it does not is the .NET
   class only;
 - a delegate is `System.Action[...]` or `System.Func[...]`, and an event `+=` takes a plain function;
-- a settable reference-type property takes `None` when it is a delegate or its summary says null (106 members), unless its
-  comment says it throws `ArgumentNullException`;
+- a settable reference-type property takes `None` unless its comment says it throws `ArgumentNullException`, or
+  `ArgumentException` with a summary that does not speak of null (306 setters take it, 214 do not). The assemblies carry no nullable
+  annotations, so the comment is what there is to read; the library documents every setter that refuses null, which a probe of
+  223 properties, each set to null on an object made by its default constructor, bore out: 91 refused it (80 with
+  `ArgumentNullException`, 11 with `ArgumentException`) and none of those takes `None` in the stubs; of the 132 that did not, 129 take it
+  and 3 do not;
+- a getter, a field or a static property whose summary or returns says it can give null (`null where the file has none`, `or null`,
+  `gives null`) is `T | None`, 359 of them, so a checker asks for the `None` to be seen to before the member is used:
+  `CadApplication.ActiveDocument` is `CadRemoteDocument | None`, as the app may have no drawing open;
+- an optional parameter whose default is null takes `None` (152 more parameters than before);
 - an enum is made from a number, `DxfEraseFlags(3)`;
 - a `[Flags]` enum has `|`, `&`, `^` and `~`, a plain enum none;
 - the 33 members named as Python keywords are left out, and a parameter named so is `from_`, positional-only;
@@ -534,6 +542,12 @@ each is reported before the script runs. On the test machine pyright 1.1.414 che
 to 1.68 s from the command line (five runs), against 0.89 to 0.92 s for a file of one line, so the stubs add about 0.75 s
 to a command-line check; an editor's language server reads them once. The package itself, `opencad2d`, type-checks
 with no error in pyright's strict mode, and `py.typed` says its annotations are for use.
+
+A script that imports `opencad2d` freezes with PyInstaller as it is, `pyinstaller script.py`: the package brings a hook
+(the `pyinstaller40` entry point, `opencad2d._pyinstaller`) that names pythonnet and clr_loader, which the package imports by
+name when it runs, and takes the .NET libraries and `opencad2d.runtimeconfig.json` into the frozen folder (40 MB for a script that
+prints a point's X). The frozen program needs the .NET 8 runtime (or .NET Framework 4.8, with `OPENCAD2D_RUNTIME=netfx`) on the
+machine, as the script does.
 
 Do not install `dotnet-stubs` (from domdfcoding) beside it: it installs a `System-stubs` of its own, and the two clash.
 

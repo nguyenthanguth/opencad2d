@@ -329,7 +329,9 @@ The pipe is `OpenCAD2D.<process id>`, open to the Windows user who runs the app 
 only: other users on the machine and other machines cannot connect. Any program that user runs can drive the app, as any
 program can drive the user's Tekla; turn the setting off where that is not wanted. The app announces itself in
 `%LocalAppData%\OpenCAD2D.Core\Remote\<process id>.json` (process id, window title, time last activated) and deletes the file
-when it stops; a file left by a process that died is ignored and removed by the next client that finds it. No new package
+when it stops; the title is written again each time the window's title changes (the drawing the command line gave opens a moment
+after the app starts, so `OpenCAD2D  plan.dxf` is there at once, not only after the next click on the window), and the time last
+activated only when the user activates the window; a file left by a process that died is ignored and removed by the next client that finds it. No new package
 is used, and nothing is installed on the machine.
 
 ## Errors
@@ -526,8 +528,10 @@ Where Python differs from the C# of the sections above, measured on .NET 8 and o
 - **`with` closes the connection.** pythonnet makes every .NET type that is `IDisposable` a context manager, so
   `with CadApplication() as app:` calls `Dispose`, which closes the pipe, at the end of the block and also when the block
   raises: a `ValueError("boom")` raised inside came out of the block as it was. Without `with`, call `app.Dispose()`. A call
-  made on the object after `Dispose` opens a new pipe without a word, as a lost connection is opened again, so leave the
-  object alone once the block has ended.
+  made on the object, or on a drawing of it, after `Dispose` raises `System.ObjectDisposedException` (`The connection to
+  OpenCAD2D (process 4120) was closed by Dispose, or by the end of the with block that held it: make a new CadApplication to
+  work with the app again.`) and opens no pipe; a connection the app lost is still opened again at the next call. Make a new
+  `CadApplication` (a new `with connect()`) to work on.
 - **A collection argument is an array.** `drawing.Select(["1A", "1B"])` is a `TypeError: No method matches given arguments
   for Select: (<class 'list'>)`, since `Select` takes an `IEnumerable<string>` and pythonnet converts a Python list only to
   an array. Write `Select(Array[String](["1A", "1B"]))`, or a `List[String]()` filled by `Add` (`List[String](["1A"])` is

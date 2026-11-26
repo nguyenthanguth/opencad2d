@@ -476,6 +476,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             Assert.False(dialog.RemoveCommand.CanExecute(null));
             Assert.Contains("Lisps", dialog.RemoveToolTip);
+            Assert.Contains("Pythons", dialog.RemoveToolTip);
             Assert.Contains("every start", dialog.RemoveToolTip);
 
             dialog.ChooseRows(dialog.Rows);
@@ -1023,7 +1024,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             }
 
             Assert.Contains(
-                "Files in the Lisps and Plugins folders beside the app load at every start; their At start box is greyed. Hover a Commands cell for the full list.",
+                "Files in the Lisps, Pythons and Plugins folders beside the app load at every start; their At start box is greyed. Hover a Commands cell for the full list.",
                 texts
             );
             Assert.Contains("C1, C2", texts);

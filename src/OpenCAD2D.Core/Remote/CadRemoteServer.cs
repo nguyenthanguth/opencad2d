@@ -143,11 +143,21 @@ namespace OpenCAD2D
         /// Writes the instance file again with the window's title and the time now as the time the app was last activated.
         /// The host calls it when the user activates the window, on the thread of the drawings.
         /// </summary>
-        public void NoteActivated()
+        public void NoteActivated() => Reannounce(true);
+
+        /// <summary>
+        /// Writes the instance file again with the window's title as it is now, and the time the app was last activated as it
+        /// was: the title of a window that opens its drawing after the server starts, or a drawing saved under another name, is
+        /// not the one announced at the start, and a program that lists the apps reads it. The host calls it when its title
+        /// changes, on the thread of the drawings.
+        /// </summary>
+        public void NoteTitleChanged() => Reannounce(false);
+
+        private void Reannounce(bool activated)
         {
             try
             {
-                Announce();
+                Announce(activated);
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             {
@@ -155,7 +165,7 @@ namespace OpenCAD2D
             }
         }
 
-        private void Announce()
+        private void Announce(bool activated = true)
         {
             // The channel of the tools is announced nowhere: a tool is given its pipe's name.
             if (_announced == null)
@@ -164,7 +174,12 @@ namespace OpenCAD2D
             }
 
             _announced.Title = _host.Title;
-            _announced.LastActivated = DateTime.UtcNow;
+
+            if (activated)
+            {
+                _announced.LastActivated = DateTime.UtcNow;
+            }
+
             _announced.Write();
         }
 

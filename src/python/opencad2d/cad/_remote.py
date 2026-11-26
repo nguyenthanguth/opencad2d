@@ -290,7 +290,9 @@ class _RemoteBackend:
 
 class App:
     """A running OpenCAD2D, to use as ``with connect() as app``: ``documents``, ``active_drawing``, ``open``,
-    ``new`` and ``run_command``. Leaving the ``with`` ends the connection and drops what the drawings still have queued.
+    ``new`` and ``run_command``. Leaving the ``with`` ends the connection and drops what the drawings still have queued; a call
+    on the app or on one of its drawings after that raises ``System.ObjectDisposedException`` (the connection was closed by the
+    end of the ``with`` block: make a new ``connect()``), and does not open a new connection.
 
     ``App(cad_application)`` takes a ``CadApplication`` already made, which ``connect()`` makes for you::
 

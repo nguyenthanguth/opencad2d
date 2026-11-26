@@ -26,6 +26,9 @@ classifiers = [
 [project.optional-dependencies]
 numpy = ["numpy>=1.26"]
 
+[project.entry-points.pyinstaller40]
+hook-dirs = "opencad2d._pyinstaller:get_hook_dirs"
+
 [project.urls]
 Documentation = "https://github.com/nguyenthanguth/opencad2d"
 Source = "https://github.com/nguyenthanguth/opencad2d"

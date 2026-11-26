@@ -45,7 +45,7 @@ namespace OpenCAD2D.PyStubs.UnitTest
 
             Assert.Contains("    def __enter__(self) -> Self: ...\n", application);
             Assert.Contains("    def __exit__(self, *args: object) -> None: ...\n", application);
-            Assert.Contains("    def Kind(self) -> System.Type:\n", filter);
+            Assert.Contains("    def Kind(self) -> System.Type | None:\n", filter);
             Assert.Contains("    def Kind(self, value: System.Type | type[Any] | None) -> None: ...\n", filter);
         }
 
