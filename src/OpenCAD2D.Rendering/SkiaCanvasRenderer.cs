@@ -23,6 +23,13 @@ namespace OpenCAD2D.Wpf
         internal int BackgroundOf(CadSpace space) =>
             space.IsModel ? (space.IsBlockEditor ? BlockEditorBackground : Background) : Paper;
 
+        /// <summary>
+        /// Gets or sets the id mode: where given, every item is drawn in the flat colour this returns for it (0xRRGGBB, 0 being
+        /// the ground; a negative number draws nothing), with no antialiasing, no tint, no clip shade and no paper, picture or frame, so that each pixel holds the
+        /// id of the item on top of it exactly (<see cref="CadRender.DrawLabels"/>); null, the default, draws the picture.
+        /// </summary>
+        internal Func<DisplayItem2, int> IdOf { get; set; }
+
         /// <summary>Gets or sets the colour of selected entities and their grips as 0xRRGGBB.</summary>
         public int SelectionColor { get; set; } = 0x3D9BFF;
 
@@ -923,7 +930,7 @@ namespace OpenCAD2D.Wpf
             DisplayList2 list = document.GetDisplay(space);
             Affine2 m = view.DrawingToScreen;
 
-            if (!space.IsModel)
+            if (!space.IsModel && options.IdOf == null)
             {
                 DrawPaper(canvas, space.PaperBounds, m, options);
             }
@@ -1044,16 +1051,19 @@ namespace OpenCAD2D.Wpf
             IReadOnlyList<int> shown = IndexOf(document, list, model)?.IndicesIn(visible);
             int count = shown?.Count ?? items.Count;
 
+            // In id mode nothing is antialiased: a pixel holds the id of one item or none.
+            bool smooth = options.IdOf == null;
+
             using (
                 var stroke = new SKPaint
                 {
                     IsStroke = true,
-                    IsAntialias = true,
+                    IsAntialias = smooth,
                     StrokeCap = SKStrokeCap.Butt,
                     StrokeJoin = SKStrokeJoin.Miter,
                 }
             )
-            using (var fill = new SKPaint { IsStroke = false, IsAntialias = true })
+            using (var fill = new SKPaint { IsStroke = false, IsAntialias = smooth })
             using (var dots = new Dots())
             {
                 for (int k = 0; k < count; k++)
@@ -1142,6 +1152,12 @@ namespace OpenCAD2D.Wpf
         /// </summary>
         private SKColor ColorOf(DisplayItem2 item, CanvasOptions options, bool isSelected, bool isHover, int background)
         {
+            if (options.IdOf != null && _plot == null)
+            {
+                int id = options.IdOf(item);
+                return Color(id & 0xFFFFFF, id < 0 ? (byte)0 : (byte)255);
+            }
+
             // What an underlay draws is faded, greyed or turned for the background where it is painted.
             DisplayUnderlayLook underlay = item.Style?.Underlay;
 
@@ -1209,7 +1225,7 @@ namespace OpenCAD2D.Wpf
                 {
                     using (SKPath ring = RingsPath(new[] { region.Ring }, m))
                     {
-                        canvas.ClipPath(ring, SKClipOperation.Intersect, true);
+                        canvas.ClipPath(ring, SKClipOperation.Intersect, options.IdOf == null);
                     }
                 }
 
@@ -1306,7 +1322,10 @@ namespace OpenCAD2D.Wpf
                     DrawQuickText(canvas, text, m, stroke);
                     break;
                 case DisplayText2 text when text.Parts != null:
-                    DrawFieldGround(canvas, text, m);
+                    if (options.IdOf == null)
+                    {
+                        DrawFieldGround(canvas, text, m);
+                    }
 
                     // An MTEXT of several looks: its runs and their lines, each in its own colour, all in the selection's when selected.
                     foreach (DisplayItem2 part in text.Parts)
@@ -1328,11 +1347,18 @@ namespace OpenCAD2D.Wpf
 
                     break;
                 case DisplayText2 text:
-                    DrawFieldGround(canvas, text, m);
+                    if (options.IdOf == null)
+                    {
+                        DrawFieldGround(canvas, text, m);
+                    }
+
                     DrawText(canvas, text, m, zoom, stroke, fill, color, options);
                     break;
                 case DisplayViewport2 viewport:
                     DrawViewport(canvas, document, viewport, m, options, stroke, background, isSelected);
+                    break;
+                case DisplayImage2 _ when options.IdOf != null:
+                    // A picture has no id to hold: its pixels are its own colours.
                     break;
                 case DisplayImage2 picture:
                     DrawPicture(canvas, picture, m, stroke, background, isSelected || isHover);
@@ -1760,7 +1786,8 @@ namespace OpenCAD2D.Wpf
 
             if (widest > 0.0 && widest < DenseHatchPixels)
             {
-                fill.Color = color.WithAlpha((byte)Math.Round(color.Alpha * (1.0 - bare)));
+                // A tint is a share of the colour: in id mode (no antialiasing) the area is the hatch's, whole.
+                fill.Color = stroke.IsAntialias ? color.WithAlpha((byte)Math.Round(color.Alpha * (1.0 - bare))) : color;
 
                 using (SKPath path = RingsPath(segments.Rings, m))
                 {
@@ -2301,6 +2328,12 @@ namespace OpenCAD2D.Wpf
             {
                 font.ScaleX = (float)text.WidthFactor;
                 font.SkewX = (float)-Math.Tan(text.Oblique);
+
+                if (!fill.IsAntialias)
+                {
+                    font.Edging = SKFontEdging.Alias;
+                }
+
                 fill.Color = color;
                 string[] lines = text.Text.Split('\n');
                 int n = lines.Length;
@@ -2345,6 +2378,7 @@ namespace OpenCAD2D.Wpf
                                 {
                                     ScaleX = font.ScaleX,
                                     SkewX = font.SkewX,
+                                    Edging = font.Edging,
                                 };
                                 others[runs[r].Value] = drawn[r];
                             }
@@ -2567,7 +2601,7 @@ namespace OpenCAD2D.Wpf
             {
                 using (SKPath outline = RingsPath(viewport.Clip.FlattenAll(OutlineTolerance / m.Scale), m))
                 {
-                    canvas.ClipPath(outline, SKClipOperation.Intersect, true);
+                    canvas.ClipPath(outline, SKClipOperation.Intersect, options.IdOf == null);
                 }
             }
             else
@@ -2604,7 +2638,7 @@ namespace OpenCAD2D.Wpf
             );
             canvas.Restore();
 
-            if (cos == 0.0 && sin == 0.0)
+            if ((cos == 0.0 && sin == 0.0) || options.IdOf != null)
             {
                 return;
             }

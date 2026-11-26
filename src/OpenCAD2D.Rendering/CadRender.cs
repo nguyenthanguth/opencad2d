@@ -142,6 +142,67 @@ namespace OpenCAD2D
         }
 
         /// <summary>
+        /// Gives the matrix from the drawing to the pixels of the picture <see cref="Draw"/> makes for the same options: the very
+        /// view the renderer draws by, nine numbers of a 3 by 3 row by row, <c>[a, c, e, b, d, f, 0, 0, 1]</c>, so that a point
+        /// (x, y) of the space is at the pixel position <c>(a x + c y + e, b x + d y + f)</c>. Pixel (column, row) is the square from
+        /// (column, row) to (column + 1, row + 1), row 0 at the top and y of the drawing upward, so the pixel a point falls in is
+        /// the floor of both numbers and the centre of a pixel is at column + 0.5. For a drawing 400 by 300 whose extents are drawn
+        /// at 1 600 by 1 200 pixels with the margin ZOOM Extents leaves (a scale of 3.6), the point (0, 0) is at (80, 1 140) and
+        /// (400, 300) at (1 520, 60). On a layout it maps the paper in millimetres; the model entities a viewport shows have the
+        /// viewport's own matrix on top, which is not given here. The inverse is the matrix inverted.
+        /// </summary>
+        /// <param name="document">The drawing.</param>
+        /// <param name="options">The space, the part, the size and the ground; null for the defaults.</param>
+        /// <returns>The nine numbers.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the document is null.</exception>
+        /// <exception cref="ArgumentException">Thrown for the options <see cref="Draw"/> refuses.</exception>
+        public static double[] Transform(CadDocument document, CadRenderOptions options)
+        {
+            Set(document, options, out CadView view, out _);
+            Affine2 m = view.DrawingToScreen;
+            return new[] { m.A, m.C, m.E, m.B, m.D, m.F, 0.0, 0.0, 1.0 };
+        }
+
+        /// <summary>
+        /// Draws a space of a drawing in flat ids and gives, for every pixel, the class of what is drawn on it and the entity that
+        /// draws it: the picture <see cref="Draw"/> makes for the same options, as labels for training a vision model. It is the
+        /// renderer of the canvas, drawing each item in the colour that is its id with no antialiasing, in the order the drawing draws
+        /// them, so what is on top in the picture is on top in the labels; a pixel is of one entity and one class, exactly. A text
+        /// under 3 pixels high, as in the picture, is left out; the paper of a layout, the frame of a viewport and raster images are not
+        /// labelled. The classes are those of <see cref="CadLabelClass"/>. An INSERT's items are classed by what they are unless
+        /// blocks are asked for, when all of them are class 5. The ground option has no effect: the ground is class 0.
+        /// </summary>
+        /// <param name="document">The drawing.</param>
+        /// <param name="options">The space, the part, the size; null for the defaults.</param>
+        /// <param name="classes">
+        /// The classes to label, from 1 to 5 (<see cref="CadLabelClass"/>); null for the first four, which leave blocks off. A pixel
+        /// of a class not given is 0 in both arrays.
+        /// </param>
+        /// <returns>The labels.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the document is null.</exception>
+        /// <exception cref="ArgumentException">
+        /// Thrown for the options <see cref="Draw"/> refuses, a class that is not 1 to 5, or a space of more than 2 097 151 entities.
+        /// </exception>
+        public static CadRenderLabels DrawLabels(CadDocument document, CadRenderOptions options, int[] classes)
+        {
+            CadSpace space = Set(document, options, out CadView view, out CanvasOptions canvas);
+            return CadLabeller.Draw(
+                document,
+                space,
+                view,
+                canvas,
+                classes
+                    ?? new[]
+                    {
+                        CadLabelClass.Words,
+                        CadLabelClass.Dimensions,
+                        CadLabelClass.Lines,
+                        CadLabelClass.Hatches,
+                    }
+            );
+        }
+
+        /// <summary>
         /// Draws a space of a drawing to a PNG file, replacing a file of the name: the picture of <see cref="Draw"/> as 8-bit
         /// red, green and blue with no alpha, as PNGOUT writes it.
         /// </summary>

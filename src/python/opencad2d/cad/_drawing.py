@@ -155,7 +155,8 @@ class Box(NamedTuple):
 @dataclass
 class RenderOptions:
     """What a render call was given, checked: the part drawn (None for the extents), the picture's size (None for the default),
-    the ground as 0xRRGGBB, and the layout (None for the space the drawing was left in)."""
+    the ground as 0xRRGGBB, the layout (None for the space the drawing was left in), and for the labelled renders the class
+    numbers to label (None for the default four)."""
 
     box: Box | None = None
     dpi: float = 96.0
@@ -163,6 +164,12 @@ class RenderOptions:
     height: int | None = None
     background: int = 0
     layout: str | None = None
+    classes: tuple[int, ...] | None = None
+
+
+LABEL_CLASSES: tuple[str, ...] = ("words", "dimensions", "lines", "hatches", "blocks")
+"""The classes of ``render_masks`` and the categories of ``to_coco``: the name of class number ``i + 1`` is ``LABEL_CLASSES[i]``
+(0 is the ground)."""
 
 
 class Backend(Protocol):
@@ -242,6 +249,8 @@ class Backend(Protocol):
     def select_all(self) -> list[tuple[str, Any, Any]]: ...
     def select_window(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
+    def render(self, kind: str, path: str | None, options: RenderOptions) -> Any: ...
+
     def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]: ...
 
     # ---- where things are drawn (PW6.2) ----
@@ -254,8 +263,6 @@ class Backend(Protocol):
         handles: list[str] | None,
         tolerance: float,
     ) -> tuple[list[str], list[str], Any]: ...
-
-    def render(self, kind: str, path: str | None, options: RenderOptions) -> Any: ...
 
     # ---- measuring before placing (PW7.1) ----
     def measure(self, entity: Any) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]: ...
@@ -2668,6 +2675,114 @@ class Drawing:
         rgb: IEnumerable[int] = picture.Rgb
         return arrays.to_numpy(rgb).reshape(int(picture.Height), int(picture.Width), 3)
 
+    # ---- labelled renders: the matrix, class and instance masks, COCO (PW7.4) -----------------------------------------
+
+    def render_transform(
+        self,
+        box: Box | tuple[float, float, float, float] | None = None,
+        dpi: float = 96.0,
+        width: int | None = None,
+        height: int | None = None,
+        layout: str | None = None,
+    ) -> NDArray[np.float64]:
+        """Give the matrix from the drawing to the pixels of the picture ``render_png`` and ``render_image`` make for the same
+        arguments, as a numpy array of shape ``(3, 3)``: the very view the renderer draws by, so the point ``(x, y)`` is at pixel
+        position ``(m @ [x, y, 1])[:2]``. Pixel ``(column, row)`` is the square from ``(column, row)`` to ``(column + 1, row +
+        1)``, row 0 at the top and y of the drawing upward, so the pixel a point falls in is the floor of both numbers. The
+        inverse, from pixels to the drawing, is ``numpy.linalg.inv(m)``. On a layout it maps the paper in millimetres. The
+        arguments and the refusals are those of ``render_png``. Needs numpy (``pip install opencad2d[numpy]``).
+
+        Example:
+            drawing = new_file()
+            drawing.add_line((0, 0), (400, 300))
+            m = drawing.render_transform()                # the picture is 1 600 by 1 200 pixels with ZOOM Extents' margin
+            (m @ [0, 0, 1])[:2]                           # array([  80., 1140.]): the line's start, near the bottom left
+            (m @ [400, 300, 1])[:2]                       # array([1520.,   60.]): its end, near the top right
+        """
+        options = self._render_options(box, dpi, width, height, "black", layout)
+        return _matrix(self._backend.render("transform", None, options))
+
+    def render_masks(
+        self,
+        classes: Sequence[str] = LABEL_CLASSES[:4],
+        instances: bool = False,
+        box: Box | tuple[float, float, float, float] | None = None,
+        dpi: float = 96.0,
+        width: int | None = None,
+        height: int | None = None,
+        layout: str | None = None,
+    ) -> RenderMasks:
+        """Draw the drawing as labels for training a vision model: for each pixel of the picture ``render_png`` makes for the
+        same ``box``, ``dpi``, ``width``, ``height`` and ``layout``, the class of what is drawn on it, and with ``instances`` the
+        entity. The renderer is the canvas's, drawing each item in a flat colour that is its id, with no antialiasing, in the
+        order the drawing draws them, so what is on top in the picture is on top in the masks; a pixel is one class exactly.
+        ``classes`` are names of ``LABEL_CLASSES`` (``"words"`` 1, ``"dimensions"`` 2, ``"lines"`` 3, ``"hatches"`` 4,
+        ``"blocks"`` 5), by what the item is and the kind of its entity: letters and everything of a TEXT, MTEXT or attribute
+        are words, the lines and arrowheads of a DIMENSION dimensions, the pattern and fill of a HATCH, SOLID, TRACE or
+        WIPEOUT hatches, and the rest lines. With ``"blocks"`` among the classes every item of an INSERT is class 5; without it
+        a block's pieces are classed by what they are. A pixel of a class not asked for is 0, as is the ground. A text under 3
+        pixels high, as in the picture, is left out; the paper of a layout, the frame of a viewport and raster images are not
+        labelled. Letters are drawn by the font's monochrome rasteriser, so a letter's pixels can sit a pixel off the antialiased
+        picture's. The result is a ``RenderMasks``. Needs numpy; a drawing of the app raises ``RuntimeError``; the other
+        refusals are those of ``render_png``, and an empty ``classes`` or a name that is none of the five a ``ValueError``.
+
+        Example:
+            drawing = new_file()
+            drawing.add_line((0, 0), (400, 300))
+            drawing.add_text("Plate A-12", (50, 200), 30.0)
+            masks = drawing.render_masks(instances=True)
+            masks.classes.shape                           # (1200, 1600): rows from the top, like render_image
+            sorted(set(masks.classes.ravel().tolist()))   # [0, 1, 3]: the ground, the words and the line
+            masks.handles                                 # ['100', '101']: the instance k is the object handles[k - 1]
+        """
+        numbers = _class_numbers(classes)
+        options = self._render_options(box, dpi, width, height, "black", layout)
+        options.classes = numbers
+        labels = self._backend.render("masks", None, options)
+        return _masks(labels, instances)
+
+    def to_coco(
+        self,
+        image_path: str,
+        classes: Sequence[str] = LABEL_CLASSES[:4],
+        segmentation: bool = False,
+        box: Box | tuple[float, float, float, float] | None = None,
+        dpi: float = 96.0,
+        width: int | None = None,
+        height: int | None = None,
+        ground: Literal["black", "white"] = "black",
+        layout: str | None = None,
+        image_id: int = 1,
+    ) -> dict[str, Any]:
+        """Write the picture of the drawing to ``image_path`` as ``render_png`` does and give its annotations in COCO detection
+        format, a ``dict`` ready for ``json.dump``: ``images`` (the one picture: ``id`` ``image_id``, ``file_name`` the name of
+        the file, ``width``, ``height``), ``annotations`` and ``categories``. The categories are fixed, ids 1 to 5, ``supercategory``
+        ``"drawing"``: words, dimensions, lines, hatches, blocks. There is an annotation for each object that shows a pixel in the
+        masks of ``classes`` (``render_masks``) and whose own kind is one of them: the kind is words for a TEXT, MTEXT, ATTRIB or
+        ATTDEF, dimensions for a DIMENSION, hatches for a HATCH, SOLID, TRACE or WIPEOUT, blocks for an INSERT (so it has an annotation
+        only where ``"blocks"`` is asked for) and lines for any other. Its ``bbox`` is ``[x, y, width, height]`` in whole pixels from
+        the top left, the box the drawing takes through ``render_transform`` widened to hold every pixel of the object, clipped to the
+        picture; ``area`` the object's pixels in the masks; ``iscrowd`` 0; ``id`` the object's number in ``render_masks(...).handles``
+        counted from 1 (an id is the same in every call and unique in one image, so renumber when files are joined). The
+        annotations are in the order of those numbers. With ``segmentation`` a words object gets the frames of its words, turned as
+        they are drawn, each as the 8 numbers of its corners in pixels, and any other object the four corners of its box. The other
+        arguments are those of ``render_png`` and ``render_masks``. Needs numpy; a drawing of the app raises ``RuntimeError``.
+
+        Example:
+            drawing = new_file()
+            drawing.add_line((0, 0), (400, 300))
+            drawing.add_text("Plate A-12", (50, 200), 30.0)
+            coco = drawing.to_coco("plan.png", width=800)   # writes plan.png, 800 by 600
+            [category["name"] for category in coco["categories"]]   # ['words', 'dimensions', 'lines', 'hatches', 'blocks']
+            [(a["category_id"], a["bbox"]) for a in coco["annotations"]]   # [(3, [40, 30, 720, 540]), (1, [130, 155, 327, 72])]
+        """
+        numbers = _class_numbers(classes)
+        options = self._render_options(box, dpi, width, height, ground, layout)
+        options.classes = numbers
+        labels = self._backend.render("to_coco", None, options)
+        self._backend.render("png", os.path.abspath(image_path), options)
+        return _coco(labels, image_path, numbers, segmentation, image_id)
+
     # ---- the file -------------------------------------------------------------------------------------------------
 
     def save(self) -> None:
@@ -2900,6 +3015,112 @@ class Documents:
             if drawing.name.upper() == key.upper():
                 return drawing
         raise KeyError(f"No drawing named {key!r} is open.")
+
+
+@dataclass(frozen=True, eq=False)
+class RenderMasks:
+    """The labels ``drawing.render_masks()`` gives: ``classes``, a NumPy array of shape (height, width) and type uint8 of the class
+    number of each pixel (0 the ground, 1 words, 2 dimensions, 3 lines, 4 hatches, 5 blocks); ``instances``, with ``instances=True``,
+    an int32 array of the same shape of the object of each pixel (0 none, else k for the object ``handles[k - 1]``), else None;
+    ``handles``, the handles instance numbers stand for, in the order the space draws the objects (those that draw nothing included,
+    then the model objects a layout's viewports show); ``transform``, the (3, 3) matrix of ``render_transform``; and ``names``, the
+    name of each class number.
+
+    Example:
+        masks = drawing.render_masks(instances=True)
+        masks.names                                   # ['background', 'words', 'dimensions', 'lines', 'hatches', 'blocks']
+        int((masks.classes == 3).sum()) > 0           # True: the pixels of lines
+    """
+
+    classes: NDArray[np.uint8]
+    instances: NDArray[np.int32] | None
+    handles: list[str]
+    transform: NDArray[np.float64]
+    names: list[str]
+
+
+def _class_numbers(classes: Sequence[str]) -> tuple[int, ...]:
+    """The class numbers of names of ``LABEL_CLASSES``, in the order of the numbers; ``ValueError`` for an empty list or a name that is none."""
+    if isinstance(classes, str) or not classes:  # pyright: ignore[reportUnnecessaryIsInstance]
+        raise ValueError(f"classes is a list of names of {list(LABEL_CLASSES)}, not {classes!r}.")
+    for name in classes:
+        if name not in LABEL_CLASSES:
+            raise ValueError(f"A class is one of {list(LABEL_CLASSES)}, not {name!r}.")
+    return tuple(sorted({LABEL_CLASSES.index(name) + 1 for name in classes}))
+
+
+def _bytes(values: Any) -> NDArray[np.uint8]:
+    """A .NET array of bytes as a NumPy array."""
+    arrays: Any = importlib.import_module("opencad2d.arrays")
+    return arrays.to_numpy(values)
+
+
+def _ints(values: Any) -> NDArray[np.int32]:
+    """A .NET array of Int32 as a NumPy array, copied by one block as bytes (``opencad2d.arrays`` takes bytes and doubles)."""
+    system: Any = importlib.import_module("System")
+    raw = system.Array[system.Byte](4 * len(values))
+    system.Buffer.BlockCopy(values, 0, raw, 0, 4 * len(values))
+    return _bytes(raw).view("<i4").astype("int32", copy=False)
+
+
+def _matrix(numbers: Any) -> NDArray[np.float64]:
+    """The nine numbers of ``CadRender.Transform`` as a (3, 3) array."""
+    arrays: Any = importlib.import_module("opencad2d.arrays")
+    return arrays.to_numpy(numbers).reshape(3, 3)
+
+
+def _masks(labels: Any, instances: bool) -> RenderMasks:
+    """The ``RenderMasks`` of the ``CadRenderLabels`` of a call."""
+    shape = (int(labels.Height), int(labels.Width))
+    return RenderMasks(
+        _bytes(labels.Classes).reshape(shape),
+        _ints(labels.Instances).reshape(shape) if instances else None,
+        [str(handle) for handle in labels.Handles],
+        _matrix(labels.Transform),
+        ["background", *LABEL_CLASSES],
+    )
+
+
+def _coco(labels: Any, image_path: str, classes: tuple[int, ...], segmentation: bool, image_id: int) -> dict[str, Any]:
+    """The COCO dict of the ``CadRenderLabels`` of a call (see ``Drawing.to_coco``)."""
+    arrays: Any = importlib.import_module("opencad2d.arrays")
+    np: Any = importlib.import_module("numpy")
+    kinds = _bytes(labels.Categories)
+    areas = _ints(labels.Areas)
+    boxes = arrays.to_numpy(labels.Boxes).reshape(-1, 4)
+    frames: dict[int, list[list[float]]] = {}
+    if segmentation:
+        numbers = _ints(labels.FrameInstances)
+        corners = arrays.to_numpy(labels.FrameCorners).reshape(-1, 8)
+        for number, frame in zip(numbers.tolist(), corners.tolist()):
+            frames.setdefault(number, []).append(frame)
+    annotations: list[dict[str, Any]] = []
+    for k in np.flatnonzero((areas > 0) & np.isin(kinds, classes)).tolist():
+        x0, y0, x1, y1 = (int(number) for number in boxes[k])
+        annotation: dict[str, Any] = {
+            "id": k + 1,
+            "image_id": image_id,
+            "category_id": int(kinds[k]),
+            "bbox": [x0, y0, x1 - x0, y1 - y0],
+            "area": float(areas[k]),
+            "iscrowd": 0,
+        }
+        if segmentation:
+            rectangle = [float(number) for number in (x0, y0, x1, y0, x1, y1, x0, y1)]
+            annotation["segmentation"] = frames.get(k + 1, [rectangle]) if int(kinds[k]) == 1 else [rectangle]
+        annotations.append(annotation)
+    return {
+        "images": [
+            {
+                "id": image_id,
+                "file_name": os.path.basename(image_path),
+                "width": int(labels.Width),
+                "height": int(labels.Height),
+            }
+        ],
+        "annotations": annotations,
+        "categories": [{"id": i + 1, "name": name, "supercategory": "drawing"} for i, name in enumerate(LABEL_CLASSES)],
+    }
 
 
 def _rows(boxes: Any) -> NDArray[np.float64]:

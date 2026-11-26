@@ -307,6 +307,15 @@ class _RemoteBackend:
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]:
         return self._pairs(self._document.SelectCrossingWindow(first, second))
 
+    def render(self, kind: str, path: str | None, options: RenderOptions) -> Any:
+        """Refuses: the drawing is in the app, and the Python process holds no ``CadDocument`` to draw. Save it
+        (``save_as``) and render ``open_file`` of the copy."""
+        name = kind if kind == "to_coco" else f"render_{kind}"
+        raise RuntimeError(
+            f"{name} works on a drawing of a file: this drawing is in the app. Call save_as(path) and "
+            "render open_file(path) instead."
+        )
+
     # ---- where things are drawn (PW6.2) -----------------------------------------------------------------------------
 
     def bounds(self, layout: str | None, handles: list[str] | None) -> tuple[list[str], Any]:
@@ -345,14 +354,6 @@ class _RemoteBackend:
         if what == "graph":
             return str(self._document.ExportGraph(layout, tolerance)), None
         return str(self._document.ExportJson(layout)), None
-
-    def render(self, kind: str, path: str | None, options: RenderOptions) -> Any:
-        """Refuses: the drawing is in the app, and the Python process holds no ``CadDocument`` to draw. Save it
-        (``save_as``) and render ``open_file`` of the copy."""
-        raise RuntimeError(
-            f"render_{kind} works on a drawing of a file: this drawing is in the app. Call save_as(path) and "
-            "render open_file(path) instead."
-        )
 
     # ---- measuring before placing (PW7.1) -----------------------------------------------------------------------------
 

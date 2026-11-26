@@ -93,7 +93,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          the violations with their places. -> verify: a rule test each; a drawing scored before/after a fix.
       3. Fast snapshot and reset of a drawing in memory (thousands of RL episodes without reading the file again).
          -> verify: reset time for a 10 000-entity drawing; state equal after reset.
-      4. Labelled renders: the world-to-pixel matrix, class masks (words, dimensions, lines, hatches), COCO boxes.
+      4. DONE 2026-11-26 (2a0b634f). Labelled renders: the world-to-pixel matrix, class masks (words, dimensions, lines, hatches), COCO boxes.
          -> verify: a box drawn back from the matrix covers the entity's pixels.
       5. DONE 2026-11-26 (fabc8d7c, 6961615e): 33 tools, file and attach modes, an attached render of the app's
          drawing as it is (the Remote database request). An MCP server so an LLM agent drives OpenCAD2D (open, read, place, render, check), in C# (decided

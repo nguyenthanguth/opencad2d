@@ -1050,6 +1050,124 @@ of the fonts). A PNG is dominated by its encoding, 25 to 30 ms for 1 600 by 960 
 drawn in 5 to 10 ms; the SVG and the PDF of a drawing of lines and hatches take 1 to 25 ms. The test asserts only a ceiling of 10 seconds
 a call, against a hang.
 
+## Labelled renders for training vision models
+
+A model that reads drawings is trained on pictures and on what is in them: for each pixel which kind of thing it is, which object
+it belongs to, and where each object is. `render_transform`, `render_masks` and `to_coco` give those, made by the renderer
+that draws the picture, so that a label is where the picture shows the thing: the matrix the picture is drawn by, the class
+(and the object) of every pixel, and a COCO detection file. They work on a drawing of a file and need numpy
+(`pip install opencad2d[numpy]`); the arguments that say what is drawn (`box`, `dpi`, `width`, `height`, `layout`) are those of
+`render_png`, and with the same ones the labels are of the same picture.
+
+```python
+from opencad2d.cad import new_file
+
+drawing = new_file()
+drawing.add_line((0, 0), (400, 300))
+drawing.add_text("Plate A-12", (50, 200), 30.0)
+drawing.commit()                                   # ['100', '101']
+m = drawing.render_transform()                     # 3 by 3, the view the picture is drawn by
+m.tolist()                                         # [[3.6, 0.0, 80.0], [0.0, -3.6, 1140.0], [0.0, 0.0, 1.0]]
+(m @ [400, 300, 1])[:2].tolist()                   # [1520.0, 60.0]
+masks = drawing.render_masks(instances=True)
+masks.classes.shape                                # (1200, 1600)
+masks.names                                        # ['background', 'words', 'dimensions', 'lines', 'hatches', 'blocks']
+masks.handles                                      # ['100', '101']
+int((masks.classes == 3).sum())                    # 1800
+int((masks.instances == 1).sum())                  # 1800
+coco = drawing.to_coco("plan.png", width=800)      # writes plan.png, 800 by 600, and gives its objects
+coco["images"]                                     # [{'id': 1, 'file_name': 'plan.png', 'width': 800, 'height': 600}]
+coco["annotations"][0]["bbox"]                     # [40, 30, 720, 540]
+coco["annotations"][1]["category_id"]              # 1
+```
+
+The line's instance 1 and the text's instance 2 are the order the space draws them in (`masks.handles[k - 1]`), the 1 800 pixels
+of the line all belong to instance 1, and the `bbox` of the line is `[x, y, width, height]` in pixels from the top left.
+
+### The matrix
+
+`render_transform(...)` is a numpy array of shape `(3, 3)`: the view the renderer draws by, taken from the same code path as the
+picture (not worked out again), so the point `(x, y)` of the drawing is at the pixel position `(m @ [x, y, 1])[:2]`. Pixel
+`(column, row)` is the square from `(column, row)` to `(column + 1, row + 1)`, row 0 at the top, and y of the drawing runs up while
+the rows run down, so the pixel a point falls in is the floor of both numbers and the centre of a pixel is at `column + 0.5`.
+The inverse, from a pixel to the drawing, is `numpy.linalg.inv(m)`. On a layout it maps the paper in millimetres; the model objects a
+viewport shows have the viewport's own matrix on top of it, which is not given.
+
+### The masks
+
+`render_masks(classes=..., instances=False, ...)` draws every item of the space in a flat colour that is its id, in the order the drawing
+draws them, with no antialiasing, and gives a `RenderMasks`: `classes`, an array of type `uint8` and shape `(height, width)`, and with
+`instances=True` `instances`, an `int32` array of the same shape, with `handles` and `transform`. A pixel is the class and the object
+of the item on top of it, so what is on top in the picture is on top in the masks, exactly, with no blend at an edge (a text drawn
+over a hatch is words where the letters are and hatches where they are not; a wipeout blanks what is under it, as it does in the picture).
+
+| Class | Name | What it is |
+|---|---|---|
+| 0 | background | nothing is drawn, or the class was not asked for |
+| 1 | `words` | the letters of a TEXT, an MTEXT (its underlines too), an attribute, a dimension's text, a leader's text |
+| 2 | `dimensions` | the lines and arrowheads of a DIMENSION |
+| 3 | `lines` | lines, arcs, circles, polylines, splines, ellipses, leaders and table lines: whatever is drawn as a curve |
+| 4 | `hatches` | the pattern lines and fill of a HATCH, a SOLID, a TRACE, a WIPEOUT; a hatch too fine to show lines (under 2 pixels) is its whole area |
+| 5 | `blocks` | every item of an INSERT, only where `"blocks"` is among the `classes` |
+
+`classes` is a list of those names (default the first four, as `LABEL_CLASSES[:4]`); the pixels of any other class are 0. Without
+`"blocks"` the pieces of a block are classed by what they are, a bolt's lines as lines and its words as words; with it a block is one
+class, as FloorPlanCAD labels a door or a window. An empty list or a name that is none of the five raises `ValueError`.
+`instances[y, x]` is 0 for no object and else `k`, the object `handles[k - 1]`: the objects of the space in the order its display list first
+draws them (those that draw nothing included, so a number stays while the drawing does), then, on a layout, the model objects its
+viewports show. A space of more than 2 097 151 objects is refused.
+
+What is left out is what the picture leaves out: a text under 3 pixels high, and the paper of a layout, the frame of a viewport and raster
+images, which have no id. Letters are drawn by the font's own monochrome rasteriser, which snaps a letter to the pixel grid, so a
+letter's pixels can sit a pixel from the antialiased picture's: every pixel of a text's mask is lit or beside a lit pixel of the picture, and
+nearly every bright pixel of the picture is in or beside the mask.
+
+### The COCO file
+
+`to_coco(image_path, classes=..., segmentation=False, ..., image_id=1)` writes the picture to `image_path` as `render_png` does and gives
+a `dict` of the three lists COCO detection has, ready for `json.dump`. The categories are fixed, with the ids of the classes:
+
+| id | name |
+|---|---|
+| 1 | words |
+| 2 | dimensions |
+| 3 | lines |
+| 4 | hatches |
+| 5 | blocks |
+
+An annotation is made for each object that shows a pixel in the masks of `classes` and whose own kind is one of them: words for a TEXT,
+MTEXT, ATTRIB or ATTDEF, dimensions for a DIMENSION, hatches for a HATCH, SOLID, TRACE or WIPEOUT, blocks for an INSERT (so an INSERT has an
+annotation only where `"blocks"` is asked for, and its pieces never have one of their own) and lines for the rest. It has `id` (the object's
+number in `masks.handles`, from 1: the same in every call and unique in one image, so renumber when the files of several images are
+joined, as `coco_dataset.py` does), `image_id`, `category_id`, `bbox`, `area` and `iscrowd` (0). The `bbox` is `[x, y, width, height]` in
+whole pixels from the top left, the box the drawing gives the object (`drawing.bounds()`) through the matrix, widened to hold every pixel of its
+mask (a line's pixels reach half its width past its geometric box) and clipped to the picture; the `area` is the pixels of the
+object in the masks, the visible part. The annotations are in the order of the ids. With `segmentation=True` a words object has a `segmentation` of
+the frame of each of its words, turned as the text is, each the 8 numbers of its four corners in pixels (not clipped), and any other object the 4
+corners of its box. An object with no pixel in the masks, whether it is under another or left out, has no annotation.
+`examples/library/coco_dataset.py` writes the pictures, masks and one such file of three drawings built in code.
+
+### What it costs
+
+Seconds for 1 600 by 1 200 pixels of a drawing of 10 000 objects (2 000 each of lines, circles, texts, hatches and linear
+dimensions in a grid), as `first call / median of 7 after`: the first call of a drawing carries the display list and the spatial index.
+
+| Call | .NET 8 | .NET Framework 4.8 |
+|---|---|---|
+| `render_image` | 0.531 / 0.047 | 0.565 / 0.041 |
+| `render_png` | 0.105 / 0.094 | 0.103 / 0.098 |
+| `render_transform` | 0.001 / 0.0001 | 0.001 / 0.0001 |
+| `render_masks` | 0.140 / 0.076 | 0.125 / 0.088 |
+| `render_masks(instances=True)` | 0.081 / 0.079 | 0.090 / 0.086 |
+| `to_coco`, with the PNG written | 0.190 / 0.200 | 0.204 / 0.191 |
+| `to_coco(segmentation=True)` | 0.206 / 0.191 | 0.201 / 0.195 |
+
+The masks cost about the picture's drawing plus a pass over its pixels; a `to_coco` is the PNG, the masks and 10 000 dictionaries.
+The numbers are from the second of three runs on 26 November 2026, an Intel Core i9-12900F with 64 GB, on commit `449e7da2` and the working
+tree of PW7.4 (the third ran while other builds did and is not used). The picture's own drawing is not slower for the id mode: `render_image`
+of the same drawing took 0.047 and 0.045 s on .NET 8 and 0.044 and 0.040 s on .NET Framework before, against 0.049 and 0.047 s and
+0.042 and 0.041 s after, the spread of the runs.
+
 ## Inside OpenCAD2D
 
 The same library runs in the app's tools. OpenCAD2D loads a Python tool, a folder with a `requirements.txt`, an `__init__.py`
@@ -1155,7 +1273,7 @@ the block, also when it raises. A tool of the app uses `opencad2d.cad`, whose `c
 | Page | What it covers |
 |---|---|
 | [How do I](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
-| [Python examples](python-examples.md) | fifteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
+| [Python examples](python-examples.md) | sixteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
 | [Python API](../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
 | [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md), [Reading and writing DWG files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) | the drawing, its tables and entities, read and written |
 | [The 2D presenter](presenter/index.md), [Editing as AutoCAD does](presenter/editing.md) | `CadDocument`, its command session and undo |

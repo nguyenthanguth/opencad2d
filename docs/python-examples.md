@@ -1,6 +1,6 @@
 # Python examples
 
-Fifteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
+Sixteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
 drawing in code, draw one to pictures with no window, cut one solid from another, number points in the app, draw in an app that is running. They are in
 `src/python/examples` of the repository, in three folders for the three places Python works with the library (a tool of the
 app is a folder of its own), and this page shows each as it is, with what it prints. A test of the repository runs every file, on .NET 8 and on .NET Framework
@@ -23,6 +23,7 @@ is what the files do.
 | [`batch_folder.py`](#a-csv-report-of-a-folder) | one CSV row for each DXF and DWG file of a folder |
 | [`convert.py`](#convert-between-dxf-and-dwg) | a drawing read and written again as DXF or DWG, in a version |
 | [`render_views.py`](#pictures-of-a-drawing-with-no-window) | a drawing drawn to two PNGs, an SVG and a PDF with no window |
+| [`coco_dataset.py`](#a-dataset-for-a-vision-model) | three drawings written as pictures, class masks and one COCO file |
 | [`number_points`](#number-the-points-you-pick) | a number written at each point you pick |
 | [`drawing_tools`](#commands-of-your-own) | the commands RECTC and LAYERCOUNT |
 | [`selection_lengths`](#the-length-of-a-selection) | the length and closed area of the selected objects |
@@ -208,9 +209,30 @@ A drawing with nothing in model space says so on the standard error and exits wi
 
 [!code-python[](../src/python/examples/library/render_views.py)]
 
+### A dataset for a vision model
+
+`coco_dataset.py OUT_FOLDER` builds three drawings in code (a room with a hatched slab, a dimension, a text, an MTEXT and some
+bolts inserted, laid out by a seed), and for each writes `images/drawingN.png` (the picture, 1 200 pixels wide), `masks/drawingN.png`
+(the class of each pixel as a grey level from 0 to 5, so it looks black: multiply by 50 to see it) and the objects of all three in
+one `annotations.json` in COCO detection format, with the ids of the objects renumbered so that they are unique in the file. It
+prints the size of each picture and how many objects it holds:
+
+```text
+$ python coco_dataset.py dataset
+drawing1.png 1200 by 1173 pixels, 9 objects
+drawing2.png 1200 by 1025 pixels, 9 objects
+drawing3.png 1200 by 1098 pixels, 8 objects
+3 pictures and 26 objects written to dataset
+```
+
+The picture and the objects come from one `to_coco` call and the mask from `render_masks` with the same arguments, so all
+three are of one picture ([Labelled renders](python.md#labelled-renders-for-training-vision-models)). It needs numpy.
+
+[!code-python[](../src/python/examples/library/coco_dataset.py)]
+
 ## Tools of the app
 
-The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the fifteen: they
+The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the sixteen: they
 are in the app's `Pythons` folder and in `examples\Pythons` of the repository, and [Python commands and
 tools](presenter/python.md#where-tools-load-from) shows what they write. Each tool below is run in a `python.exe` of its own, with a
 venv of its own that its `requirements.txt` fills (these need no package, so their files are empty).
