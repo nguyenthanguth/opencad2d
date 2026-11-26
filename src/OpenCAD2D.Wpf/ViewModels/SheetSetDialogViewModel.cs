@@ -35,6 +35,9 @@ namespace OpenCAD2D.Wpf
         /// </summary>
         public string ReadOnlyReason { get; set; }
 
+        /// <summary>Gets or sets whether the Name row of Sheet Set Properties is read-only: the Create Sheet Set wizard, which names the set on its own page, opens the dialog so.</summary>
+        public bool NameReadOnly { get; set; }
+
         /// <summary>Gets or sets how a change is made; null for <see cref="CadSheetSetFile.Change"/> of the dialog's own file.</summary>
         public SheetSetChanger Changer { get; set; }
 

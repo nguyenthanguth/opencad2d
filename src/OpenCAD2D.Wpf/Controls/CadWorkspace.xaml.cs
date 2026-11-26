@@ -956,6 +956,7 @@ namespace OpenCAD2D.Wpf
                 AttachViewUtility();
                 AttachDialogsFive();
                 AttachDataLinks();
+                AttachNewSheetSet();
                 MainViewModel shown = _model;
                 _model.ShowExternalReferences = palette =>
                     ExternalReferencesWindow.ShowPalette(Window.GetWindow(this), shown, palette);

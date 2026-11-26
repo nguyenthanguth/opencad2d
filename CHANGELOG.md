@@ -35,6 +35,16 @@
   `CadPublishOptions.CreateBookmarks` / `IncludeHyperlinks`, `CadPublishList.AddLayout` / `SheetSetName`,
   `CadPdfBookmark`, and overloads of `CadPdfWriter.WritePages` and `CadPublisher.Publish` (with progress and cancel).
   An existing publish writes the same bytes as before (18 pages, same SHA-256).
+- **NEW.** The Create Sheet Set wizard (A12, NEWSHEETSET's window): New Sheet Set… of the Sheet Set Manager opens a 660 by 470
+  wizard with the pages of the route down the left. From **an example sheet set**: Sheet Set Example (the examples listed, or
+  browse to any `.dst`), Sheet Set Details (name, description, the folder of the `.dst`, Create a folder hierarchy based on
+  subsets, Sheet Set Properties…) and Confirm. From **existing drawings**: Sheet Set Details, Choose Layouts (a tree of folder,
+  drawing and layout with tick boxes, mixed boxes above, a layout with a `#` or a sheet of another set grey with its reason) with
+  Import Options (Prefix sheet titles with file name, Create subsets based on folder structure, Ignore top level folder, all on
+  and kept in the settings), and Confirm with the Sheet Set Preview. Next is grey while the page's red line says what is wrong
+  (an empty or unfit name, a `.dst` that is there already, an example that is no sheet set, no layout ticked); nothing is written
+  before Finish, which makes the set, opens it in the palette and puts it first in Recent. The route, the folder and the
+  import options are kept for the next time. The guide is `docs/presenter/sheet-sets.md`.
 - **NEW.** The Sheet Set Manager (A12, the palette): SHEETSET shows it as a floating window beside the drawing and
   SHEETSETHIDE closes it. The sheet set control lists the sets open (the current one ticked), Recent (the last ten `.dst`
   files, newest first) and New Sheet Set… / Open…; the Sheet List tab shows the set, its subsets and its sheets in set order
