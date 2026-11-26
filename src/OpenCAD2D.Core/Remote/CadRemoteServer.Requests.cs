@@ -245,6 +245,10 @@ namespace OpenCAD2D
                     return Variable(Find(request), request);
                 case RemoteOps.SelectArea:
                     return SelectArea(Find(request), request);
+                case RemoteOps.Bounds:
+                    return Bounds(Find(request), request);
+                case RemoteOps.Overlaps:
+                    return Overlaps(Find(request), request);
                 default:
                     throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }
