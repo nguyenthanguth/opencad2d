@@ -182,17 +182,27 @@ area and to the area plotted. Solids and hatches are filled.
 
 The page is the sheet's exact size: ISO A3 on its side is 1 190.5512 by 841.8898 points, where SkiaSharp alone writes 1 191
 by 842. The text of a TrueType font is written as text with its font embedded and a map from its glyphs to its letters, so
-a reader finds and copies ROOM 1; the text of an SHX font is its strokes, as the canvas draws it, and is not found. The
-font is embedded whole, so a PDF with Arial in it is 543 KB at least.
+a reader finds and copies ROOM 1; the text of an SHX font is its strokes, as the canvas draws it, and is not found. Only
+the glyphs the pages show are embedded, as AutoCAD's PDFs and every PDF writer's do, and the font carries the tag of a
+subset in its name (`MYREES+ArialMT`, six capitals made from the glyphs kept): a plot of 100 lines and one text in Arial
+is 10 KB, where SkiaSharp alone embeds Arial whole and it was 543 KB. The glyphs keep their numbers, so the map to letters,
+and with it the search and copy of Vietnamese (Đường Nguyễn Huệ), Korean and Chinese text, is as before; a font of a
+collection (MS Gothic, SimSun, Microsoft YaHei, which SkiaSharp embeds as the whole .ttc, 10 to 20 MB) is cut from the face
+the PDF names and embedded as a font of its own, so a plot with Chinese text in Microsoft YaHei is 16 KB. A font whose OS/2
+table forbids subsetting (fsType bit 8), one of CFF outlines (an .otf), or one the cut cannot read stays whole.
 
 PDFs are written one at a time: SkiaSharp's PDF writer shares the typefaces its font manager caches, and two pages written
 at once lost the map of their text in 3 to 6 of 64.
 
 | Plot of the extents on ISO A3, best of 5 | .NET Framework 4.8 | .NET 8 | File |
 |---|---|---|---|
-| 100 lines and 1 text | 24.0 ms | 22.3 ms | 543 KB |
-| 10 000 lines and 100 texts | 42.1 ms | 41.3 ms | 744 KB |
-| 100 000 lines and 1 000 texts | 200.1 ms | 180.7 ms | 2 563 KB |
+| 100 lines and 1 text | 24.0 ms | 22.3 ms | 10 KB |
+| 10 000 lines and 100 texts | 42.1 ms | 41.3 ms | 226 KB |
+| 100 000 lines and 1 000 texts | 200.1 ms | 180.7 ms | 1 959 KB |
+
+The timings are those of before the fonts were cut. The cut reads the pages' content once more, and adds about 6 ms to the
+two large plots (on .NET 8, 54.0 to 59.9 ms and 237.9 to 244.6 ms); the file written is smaller, and a publish of 18
+pages of a small plan is 30.0 ms where it was 35.3 ms (the less it writes, the less it costs).
 
 ## The commands
 
