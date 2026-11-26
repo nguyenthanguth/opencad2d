@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **NEW.** Python in the setup (S13): the setup carries python.org's own Python 3.12.10 (64-bit, with `venv`, `pip` and its
+  PSF licence; the `python` package of nuget.org, pinned by version and SHA-512, fetched once into `artifacts\cache` by
+  `tools\installer\fetch-python-runtime.ps1` and never held in the repository) in `python\runtime` beside the exe, so Python
+  tools run on a computer with neither .NET nor Python. The app takes the Python of Global settings, else the machine's
+  (PEP 514), else this one (Global settings names it as **Bundled with OpenCAD2D**); a tool's venv is made from it as from
+  any Python. The setup grows from 83 886 219 to 94 125 007 bytes (83.9 to 89.8 MB; 41 MB installed, 1 322 files), and the
+  uninstaller removes the folder with the `__pycache__` folders Python writes in it.
+
 ## 2.0.0 (2026-11-26)
 
 - **NEW.** eTransmit of a sheet set (A12): the eTransmit item of the Sheet List's set, subset and sheet menus opens

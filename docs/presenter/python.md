@@ -9,10 +9,11 @@ raises, loops for ever or exits takes nothing of the app with it. A program outs
 in its list of open drawings with the same names ([Driving the app from another program](remote.md)). Python here is a way to
 write commands: the app has no Python console.
 
-The Python is yours: the app does not bring one. It needs a CPython 3.11 to 3.15, 64-bit, with pip, on the machine, and finds
-it as [Finding Python](#finding-python) says. With none the app works as it did, and says what to install where a tool is
-used. This page is about Python tools in the app; a script that runs outside it, on the library alone or against a running
-app, is on [Python](../python.md) and [Driving the app from another program](remote.md).
+The app needs a CPython 3.11 to 3.15, 64-bit, with pip, and finds one as [Finding Python](#finding-python) says: the Python of
+Global settings, else the one installed on the machine, else the Python 3.12 the setup carries in `python\runtime` beside the
+exe, so that a machine with neither .NET nor Python runs the tools of the setup as it is. Where the app is run from a build
+folder with none of the three, it works as it did, and says what to install where a tool is used. This page is about Python
+tools in the app; a script that runs outside it, on the library alone or against a running app, is on [Python](../python.md) and [Driving the app from another program](remote.md).
 
 ```text
 Pythons\Stairs\
@@ -157,6 +158,10 @@ is set:
    a problem to show, never replaced silently by another Python.
 2. The Python launcher's registry entries (PEP 514), `HKCU` then `HKLM`, under `Software\Python\PythonCore\<tag>`: the newest
    64-bit 3.11 to 3.15 whose files are there, `HKCU` before `HKLM` at one version.
+3. The Python the setup installs, `python\runtime\python.exe` beside the app's exe (python.org's Python 3.12.10, 64-bit, with
+   `venv`, `pip` and its licence, 41 MB installed), taken only where steps 1 and 2 found none. It is run once to ask its version,
+   as a setting is. Global settings shows it as the source **Bundled with OpenCAD2D**; where it does not run, its reason is in
+   the "Passed over" lines (`Bundled: <path> did not run as Python.`) and the sentence of an empty search below is the one shown.
 
 A process needs the `python.exe` alone, so nothing else of an install is checked. The registry holds more than what is installed: it may list 3.10 with no install path, 3.13 whose
 `python.exe` is gone from the disk, and 3.14 (3.14.4, 64-bit). The finder checks the files, so it takes 3.14 and keeps the
@@ -706,7 +711,7 @@ the app closes.
 
 A tool has a venv of its own, `%LocalAppData%\OpenCAD2D\python\envs\<name>-<8 hex>` (the hex is the start of the SHA-256 of the
 tool folder's full path, so two tools of one name in two places have two), made from the Python of Global settings > Python, else
-the newest 64-bit 3.11 to 3.15 the registry lists, and never from your own Python environment. It holds the packages of the
+the newest 64-bit 3.11 to 3.15 the registry lists, else the Python the setup carries, and never from your own Python environment. It holds the packages of the
 tool's `requirements.txt`, so a tool that pins `numpy==1.26.4` and another that pins `numpy==2.3.5` both install and both run.
 The venv is made at the tool's first command, off the window's thread, while the drawing waits at `STAIRSPY is working...`.
 
@@ -747,7 +752,6 @@ Measured on Python 3.14 (net48 test host, local wheels): the base 1.7 s once and
 
 - A side panel, Properties rows and menus for a tool (the **not there** rows above), and a snap that depends on the cursor.
 - A script editor, completion (Ctrl+Space) and a debugger; a console for typing Python an entry at a time.
-- A Python of the app's own: the app does not bundle one.
 - Systems other than Windows: the app is Windows only.
 
 ## See also

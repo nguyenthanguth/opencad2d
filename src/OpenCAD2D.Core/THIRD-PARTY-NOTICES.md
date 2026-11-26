@@ -1,7 +1,7 @@
 # Third-party notices
 
-OpenCAD2D holds a word list, the NuGet client and four Python wheels that come from other projects. Their notices
-follow. The setup installs this file beside `OpenCAD2D.exe`.
+OpenCAD2D holds a word list, the NuGet client, four Python wheels and a Python runtime that come from other projects.
+Their notices follow. The setup installs this file beside `OpenCAD2D.exe`.
 
 ## English word list (SCOWL / ESDB)
 
@@ -365,3 +365,11 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
+
+## Python (the runtime of the setup)
+
+The setup also carries Python 3.12.10 (64-bit), python.org's own build as the `python` package of nuget.org (Python
+Software Foundation), unchanged, in `python\runtime` beside the exe, so that Python tools run on a computer that has no
+Python. Python is under the PSF License Agreement; the licence text, with the licences of the software Python bundles
+(pip among them), is `python\runtime\LICENSE.txt`, and each package under `python\runtime\Lib\site-packages` carries its
+own. The app uses it only where Global settings names no Python and the computer has none registered.

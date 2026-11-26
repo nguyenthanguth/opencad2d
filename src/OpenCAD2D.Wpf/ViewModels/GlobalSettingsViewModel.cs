@@ -1304,7 +1304,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets whether the Python found can be used.</summary>
         public bool IsPythonUsable => PythonEnvironment.IsUsable;
 
-        /// <summary>Gets where the Python was looked for: Global settings, Registry (PEP 514), or Automatic: nothing usable.</summary>
+        /// <summary>Gets where the Python was looked for: Global settings, Registry (PEP 514), Bundled with OpenCAD2D, or Automatic: nothing usable.</summary>
         public string PythonSource => PythonEnvironment.Source ?? "Automatic: nothing usable";
 
         /// <summary>Gets the candidates the finder left out, each with its reason, in the order it looked at them.</summary>
