@@ -266,6 +266,142 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal(0.0, text.Y, 9);
         }
 
+        /// <summary>
+        /// AutoCAD 2021's own display coordinates, <c>(trans p 0 2)</c> (X and Y; the depth is dropped) in a viewport of each
+        /// view, read in its console (probe P0, trans-p1 and trans-e): the view direction, the target, the twist in degrees, then
+        /// the points, each as its X, Y and Z in the world and its X and Y in the view.
+        /// </summary>
+        public static IEnumerable<object[]> AutoCADsViews()
+        {
+            yield return View(
+                "south-east",
+                "1 -1 1",
+                "0 0 0",
+                0,
+                "100 60 40 113.137085 16.329932; 110 20 5 91.923882 -32.659863; 0 0 0 0 0; 1 0 0 0.707107 -0.408248;"
+                    + " 0 1 0 0.707107 0.408248; 100 0 0 70.710678 -40.824829; 0 0 100 0 81.649658;"
+                    + " 30 40 50 49.497475 44.907312; -20 70 10 35.355339 44.907312; 120 -35 -8 60.104076 -69.810458"
+            );
+            yield return View(
+                "south-west",
+                "-1 -1 1",
+                "0 0 0",
+                0,
+                "100 0 0 70.710678 40.824829; 0 100 0 -70.710678 40.824829; 0 0 100 0 81.649658;"
+                    + " 30 40 50 -7.071068 69.402209; -20 70 10 -63.63961 28.57738; 120 -35 -8 109.601551 28.169132"
+            );
+            yield return View(
+                "front",
+                "0 -1 0",
+                "0 0 0",
+                0,
+                "100 0 0 100 0; 0 100 0 0 0; 0 0 100 0 100; 30 40 50 30 50; -20 70 10 -20 10; 120 -35 -8 120 -8"
+            );
+            yield return View(
+                "right",
+                "1 0 0",
+                "0 0 0",
+                0,
+                "100 0 0 0 0; 0 100 0 100 0; 0 0 100 0 100; 30 40 50 40 50; -20 70 10 70 10; 120 -35 -8 -35 -8"
+            );
+            yield return View(
+                "from below, the south-east",
+                "1 1 -1",
+                "0 0 0",
+                0,
+                "100 0 0 -70.710678 40.824829; 0 100 0 70.710678 40.824829; 0 0 100 0 81.649658;"
+                    + " 30 40 50 7.071068 69.402209; -20 70 10 63.63961 28.57738; 120 -35 -8 -109.601551 28.169132"
+            );
+
+            // Straight below, where the arbitrary axis algorithm turns X round: (100, 60, 40) is at (-100, 60).
+            yield return View(
+                "bottom",
+                "0 0 -1",
+                "0 0 0",
+                0,
+                "100 60 40 -100 60; 110 20 5 -110 20; 1 0 0 -1 0; 0 1 0 0 1"
+            );
+
+            // Within 1/64 of the Z axis, where the world's Y is crossed with the direction in place of its Z.
+            yield return View(
+                "near vertical",
+                "0.001 0 1",
+                "0 0 0",
+                0,
+                "100 60 40 99.95995 60; 110 20 5 109.994945 20; 1 0 0 1 0; 0 1 0 0 1"
+            );
+            yield return View(
+                "south-east about a target, twisted 30 degrees",
+                "1 -1 1",
+                "10 20 5",
+                30,
+                "100 60 40 75.525934 53.033009; 110 20 5 81.649658 0; 0 0 0 -14.28869 -17.67767;"
+                    + " 1 0 0 -13.472194 -17.67767; 0 1 0 -13.880442 -16.970563"
+            );
+            yield return View(
+                "south-east about another target, twisted 30 degrees",
+                "1 -1 1",
+                "8 2.5 2",
+                30,
+                "0 0 0 -6.736097 -3.181981; 100 0 0 74.913561 -3.181981; 0 100 0 34.088732 67.528698;"
+                    + " 0 0 100 -47.560926 67.528698; 30 40 50 13.676318 60.45763; -20 70 10 1.428869 53.386562;"
+                    + " 120 -35 -8 80.220789 -33.587572"
+            );
+
+            // A direction of any length: (100, -100, 90) about the target (50, 20, 10).
+            yield return View(
+                "a long direction about a target",
+                "100 -100 90",
+                "50 20 10",
+                0,
+                "0 0 0 -49.497475 2.952772; 100 0 0 21.213203 -35.011437; 0 100 0 21.213203 40.91698;"
+                    + " 0 0 100 -49.497475 87.31768; 30 40 50 0 48.931647; -20 70 10 -14.142136 45.55705;"
+                    + " 120 -35 -8 10.606602 -62.640944"
+            );
+        }
+
+        private static object[] View(string name, string direction, string target, double twist, string points) =>
+            new object[] { name, direction, target, twist, points };
+
+        private static double[] Numbers(string text) =>
+            text.Split(new[] { ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(v => double.Parse(v, System.Globalization.CultureInfo.InvariantCulture))
+                .ToArray();
+
+        [Theory]
+        [MemberData(nameof(AutoCADsViews))]
+        public void ThePointsOfAViewport_AreAtAutoCADsDisplayCoordinates(
+            string name,
+            string direction,
+            string target,
+            double twist,
+            string points
+        )
+        {
+            double[] d = Numbers(direction);
+            double[] t = Numbers(target);
+            double[] p = Numbers(points);
+            BoxThrough(
+                new GeoVector3(d[0], d[1], d[2]),
+                new GeoPoint3(t[0], t[1], t[2]),
+                twist * Math.PI / 180.0,
+                out DxfViewport viewport,
+                out _
+            );
+            Assert.Equal(0, p.Length % 5);
+
+            for (int i = 0; i < p.Length; i += 5)
+            {
+                Near(
+                    P(p[i + 3], p[i + 4]),
+                    CadViewports.ToView(viewport, new GeoPoint3(p[i], p[i + 1], p[i + 2])),
+                    2E-5
+                );
+            }
+
+            Assert.NotNull(name);
+        }
+
         [Fact]
         public void AViewportLookingFromBelow_DoesNotCrash_AndShowsTheBoxProjected()
         {
