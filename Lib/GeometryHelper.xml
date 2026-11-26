@@ -51587,7 +51587,7 @@
         </member>
         <member name="M:GeometryHelper.Dwg.DwgRecord.Double(System.String)">
             <summary>
-            A real number as DXF writes it; 0 for a broken one. Read by the library's own exact parse, as the double nearest the
+            A real number as DXF writes it; 0 for a broken one or one too large for a double (on either runtime), NaN and the infinities read as .NET writes them. Read by the library's own exact parse, as the double nearest the
             text, for the parse of .NET Framework is a unit off in the last bit for about one decimal of 6 to 15 digits in a
             thousand (-0.999778 is read as the next double), and the DWG written from the text would not be the one .NET Core writes.
             </summary>
@@ -51945,7 +51945,7 @@
             </summary>
         </member>
         <member name="M:GeometryHelper.Dwg.DwgSat.Real(System.String,System.Double@)">
-            <summary>A real as the SAT writes it; -0 keeps its sign, which the framework's parser drops.</summary>
+            <summary>A real as the SAT writes it; -0 keeps its sign.</summary>
         </member>
         <member name="M:GeometryHelper.Dwg.DwgSat.ValueOf(System.String,System.String,System.Int64@,System.Boolean@)">
             <summary>The value a word names in the spec of a flag or an enum ("w0,w1" by place, "2=w,4=v" by value); false where it names none.</summary>
@@ -61155,6 +61155,14 @@
         <member name="P:GeometryHelper.Dxf.DxfOsnapPointRef.IntersectionObjectHandle">
             <summary>Gets the handle of the second entity of an intersection (group 332); null where there is none.</summary>
         </member>
+        <member name="P:GeometryHelper.Dxf.DxfOsnapPointRef.ViewportHandle">
+            <summary>
+            Gets the handle of the viewport the point was snapped through, for a dimension on a layout tied to objects of model
+            space as AutoCAD's trans-spatial association ties it (DIMASSOC 70 written 1): AutoCAD writes it as a group 331 before
+            the object's, and before the second object's 332 of an intersection. Null for a point snapped in the space the
+            dimension is in.
+            </summary>
+        </member>
         <member name="P:GeometryHelper.Dxf.DxfOsnapPointRef.LastPointReference">
             <summary>
             Gets the reference of the point a perpendicular or a tangent was drawn from (group 75 written 1, then that reference),
@@ -61181,13 +61189,24 @@
             <param name="point">The point drawn from, in world coordinates.</param>
             <returns>The copy.</returns>
         </member>
+        <member name="M:GeometryHelper.Dxf.DxfOsnapPointRef.WithViewport(System.String)">
+            <summary>
+            Gives a copy of the reference snapped through a viewport, as AutoCAD 2021 ties a dimension on a layout to the model
+            space objects a viewport shows (trans-spatial association, DIMASSOC 70 written 1): the handle of the viewport goes
+            before the handle of the object, and of the second object of an intersection, in the DIMASSOC, and the DIMASSOC is
+            among the reactors of the viewport. The point of the reference is kept as no point there, as AutoCAD keeps none (it
+            writes 0, 0, 0 and, for an end, 2E50 for its Z): the object and the parameter say where the point is.
+            </summary>
+            <param name="viewportHandle">The handle of the viewport; null for a point snapped in the space of the dimension.</param>
+            <returns>The copy.</returns>
+        </member>
         <member name="M:GeometryHelper.Dxf.DxfOsnapPointRef.ToString">
             <inheritdoc/>
         </member>
-        <member name="M:GeometryHelper.Dxf.DxfOsnapPointRef.Read(System.Collections.Generic.IReadOnlyList{GeometryHelper.Dxf.DxfTypedValue},System.Int32,System.Int32)">
+        <member name="M:GeometryHelper.Dxf.DxfOsnapPointRef.Read(System.Collections.Generic.IReadOnlyList{GeometryHelper.Dxf.DxfTypedValue},System.Int32,System.Int32,System.Boolean)">
             <summary>Reads the references of a DIMASSOC from its groups after its 71.</summary>
         </member>
-        <member name="M:GeometryHelper.Dxf.DxfOsnapPointRef.ReadOne(System.Collections.Generic.IReadOnlyList{GeometryHelper.Dxf.DxfTypedValue},System.Int32@,System.Int32)">
+        <member name="M:GeometryHelper.Dxf.DxfOsnapPointRef.ReadOne(System.Collections.Generic.IReadOnlyList{GeometryHelper.Dxf.DxfTypedValue},System.Int32@,System.Int32,System.Boolean)">
             <summary>
             Reads one reference from its group 1 at <paramref name="i"/>, and the reference of its last point after it where its
             75 is 1, as AutoCAD writes a perpendicular or a tangent; <paramref name="i"/> left at the last group read.
@@ -107798,8 +107817,9 @@
         </member>
         <member name="T:GeometryHelper.Export.Numbers">
             <summary>
-            How the writers that keep their numbers exactly print a double: a text that reads back to that very double, on either
-            runtime.
+            How the library prints a double it keeps exactly, as a text that reads back to that very double, and reads a double from
+            a text, as the double nearest it: the same on either runtime, which .NET Framework's own <c>"R"</c> and parser are not. No
+            other code of the library calls <c>double.Parse</c> or <c>double.TryParse</c>.
             </summary>
         </member>
         <member name="M:GeometryHelper.Export.Numbers.Exact(System.Double)">
@@ -107870,6 +107890,19 @@
             digits and the power of ten with no array made, by <see cref="T:GeometryHelper.Dxf.DxfFastNumber"/>, which gives the double the long way
             does or says it is not sure of it; the long way, <see cref="M:GeometryHelper.Export.Numbers.TryReadLong(System.String,System.Double@)"/>, reads whatever it is not sure of.
             </remarks>
+        </member>
+        <member name="M:GeometryHelper.Export.Numbers.Parse(System.String)">
+            <summary>
+            Reads a number that has to be one, as <see cref="M:GeometryHelper.Export.Numbers.TryRead(System.String,System.Double@)"/> does: the text of a constant, or of a value a record
+            gives as a number once it has been checked.
+            </summary>
+            <exception cref="T:System.FormatException">Thrown when the text is not a finite number a double holds.</exception>
+        </member>
+        <member name="M:GeometryHelper.Export.Numbers.TryReadNotFinite(System.String,System.Double@)">
+            <summary>
+            Reads the words <c>NaN</c> and <c>Infinity</c> (a sign before the second), the texts .NET writes for a number that is
+            not finite and <see cref="M:GeometryHelper.Export.Numbers.TryRead(System.String,System.Double@)"/> does not read. Spaces either side are allowed; letter case is not told apart.
+            </summary>
         </member>
         <member name="M:GeometryHelper.Export.Numbers.TryReadLong(System.String,System.Double@)">
             <summary>
