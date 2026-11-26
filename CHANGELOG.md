@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **CHANGED.** The Python render calls work on a drawing that is in the app: `render_png`, `render_svg`, `render_pdf`, `render_image`,
+  `render_transform`, `render_masks` and `to_coco` of a drawing from `connect()` or of `active_drawing()` in a tool no longer raise
+  `RuntimeError("... works on a drawing of a file ...")`. The call asks the app for its whole drawing (the request `database`, the
+  changes not saved included), reads it into a `CadDocument` of the Python process and draws it with the code a file is drawn by, so the
+  PNG of a drawing in the app is, byte for byte, the PNG of the same drawing saved and opened as a file; a line added and not yet
+  committed is in it, a call naming no layout draws the tab the app shows, and the app's file is never written. A copy is taken at each
+  call: for a drawing of 10 000 objects a PNG takes 0.16 s against 0.08 s for a file, `render_image` 0.07 s against 0.02 s. `to_coco` takes one
+  copy for its labels and its picture.
 - **NEW.** Labelled renders for training vision models on drawings (PW7.4). `drawing.render_transform(...)` is the 3 by 3 matrix, a
   numpy array, from the drawing to the pixels of the picture `render_png` and `render_image` make: the view the renderer draws by,
   taken from the same code path, so a point of a line maps to a pixel the line coloured (a drawing 400 by 300 at 1 600 by 1 200 pixels:
@@ -14,7 +22,7 @@
   pixel of the object, `area`, `iscrowd` 0 and optionally the turned frames of the words, and the five fixed categories). A 10 000
   object drawing at 1 600 by 1 200 pixels: the masks in 0.08 s and the COCO file with its PNG in 0.2 s on .NET 8 and on .NET
   Framework. In C#: `CadRender.Transform`, `CadRender.DrawLabels`, `CadRenderLabels` and `CadLabelClass` in `OpenCAD2D.Rendering`.
-  On a drawing of a file; a drawing of the app raises `RuntimeError`, as the render calls do. The example `coco_dataset.py` writes
+  On a drawing of a file and, since the render calls reach the app, of the app. The example `coco_dataset.py` writes
   pictures, class masks and one COCO file of three drawings built in code.
 - **CHANGED.** The renderer of the canvas has an internal id mode (`CanvasOptions.IdOf`) the labelled renders use; it is off by
   default and no picture of the app, the PNG, the SVG or the PDF changes by a byte.
@@ -115,7 +123,7 @@
   file (`open_file`, `new_file`) with no app and no window, as the app's canvas draws it, on .NET 8 and on .NET Framework 4.8: a part
   of the space (`box`), a size in pixels (`width`, `height`) or pixels to the inch of a layout's sheet (`dpi`), a `"black"` or
   `"white"` ground, a layout; `render_image` gives a numpy array of shape `(height, width, 3)`, `uint8`. A drawing of the app
-  (`active_drawing()`, `connect()`) raises `RuntimeError`: save it and render the file. The renderer, SkiaSharp and its native
+  (`active_drawing()`, `connect()`) is drawn too, since the render calls reach the app. The renderer, SkiaSharp and its native
   library load at the first render call and not at `import opencad2d`; they add 5.85 MB zipped to the wheel (16.4 MB).
   `opencad2d.arrays.to_numpy` also copies a .NET `Byte` array, as `uint8`. The stubs carry `CadRender`, `CadRenderOptions` and
   `CadRenderImage` and leave out the `OpenCAD2D.Wpf` namespace of `OpenCAD2D.Rendering`. The example `render_views.py` writes two

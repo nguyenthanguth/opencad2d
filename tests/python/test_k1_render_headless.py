@@ -35,7 +35,6 @@ from GeometryHelper.Geometry import GeoPoint3
 from opencad2d import arrays
 from opencad2d.cad import Box, new_file, open_file
 from opencad2d.cad._drawing import Drawing
-from opencad2d.cad._remote import _RemoteBackend  # pyright: ignore[reportPrivateUsage]
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 APP = REPOSITORY / "src" / "OpenCAD2D.App" / "bin" / "Release" / "net8.0-windows" / "OpenCAD2D.exe"
@@ -249,20 +248,6 @@ def test_a_failed_render_leaves_no_file(tmp_path: Path) -> None:
         drawing.render_svg(str(tmp_path / "x.svg"), ground="red")  # pyright: ignore[reportArgumentType]
 
     assert list(tmp_path.iterdir()) == []
-
-
-def test_a_drawing_of_the_app_refuses_in_the_words_of_the_view_calls(tmp_path: Path) -> None:
-    # The backend of a running app holds no CadDocument in this process; nothing is asked of it before the refusal.
-    drawing = Drawing(_RemoteBackend(None, None))
-
-    for call in (
-        lambda: drawing.render_png(str(tmp_path / "a.png")),
-        lambda: drawing.render_svg(str(tmp_path / "a.svg")),
-        lambda: drawing.render_pdf(str(tmp_path / "a.pdf")),
-        lambda: drawing.render_image(),
-    ):
-        with pytest.raises(RuntimeError, match="works on a drawing of a file"):
-            call()
 
 
 # ---- SVG and PDF read back -------------------------------------------------------------------------------------------
