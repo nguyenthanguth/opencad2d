@@ -106,6 +106,21 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       6. Compare two drawings (added, removed, moved). 7. Sheets from code (layout, title block, viewport at scale,
          PDF). 8. Parallel workers with deterministic results (seeded). 9. A synthetic drawing generator for data.
       Most valuable: 1, 2 and 5.
+      10. MCP phase 2 (the maintainer 2026-11-26: "MCP còn cần thêm tool nào nữa"): the tools an AutoCAD-like MCP
+         server is expected to have, from five public CAD MCP servers compared (Autodesk's AutoCAD MCP, autocad-mcp,
+         best-cad-mcp, CAD-MCP on ezdxf, FreeCAD MCP): read and query (get_entity, count/aggregate, layouts, sysvars,
+         texts, dimensions, blocks, measure, select), create (rectangle, polygon, ellipse, spline, mleader, table,
+         define_block, styles), modify (copy, mirror, offset, arrays, explode, join, trim, extend, fillet, chamfer,
+         stretch, edit_text, draw order, match properties, redo), layers and layouts (viewports at a scale), output
+         (plot_pdf, save_as, purge, audit, zoom), run_plan (many steps validated, dry run, one undo step) and debug
+         (app_screenshot, command_history, last_errors, dump_drawing, audit, compare_drawings, timings). Spec in
+         `.claude/scratch/pw7/mcp-phase2-spec.md`; after the AI tools (feat/mcp-ai-tools) land.
+         Goal (the maintainer): enough for an LLM to replace a drafter, from nothing to a plotted PDF, and to debug the
+         user's app (attach --read-only). -> verify: one scripted MCP session, MCP tools only, in both modes: new
+         drawing, layers and styles, a plate detail (polylines, holes, hatch, a block with attributes twice, a mirror,
+         an array), dimensions and a multileader placed with measure/free_space/fits (overlaps 0, check_standard 1),
+         an A3 layout in mm with a filled title block and viewports at 1:10 and 1:5, plot_pdf, save as DWG; the PDF
+         reads back with its words; the tool calls counted with and without run_plan.
 
 ## The website and Share (planned 2026-11-23)
 

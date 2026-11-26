@@ -174,7 +174,7 @@ def test_a_line_through_a_text_is_one_row_with_the_piece_of_the_line_in_the_fram
     assert hits.boxes.shape == (1, 4)
     x0, y0, x1, y1 = hits.boxes[0]
     assert x0 == pytest.approx(x1)
-    assert 20.0 - 1.0 < y0 < y1 < 20.0 + 6.0
+    assert 20.0 - 2.0 < y0 < y1 < 20.0 + 6.0
 
 
 def test_a_line_that_only_touches_the_words_within_the_tolerance_is_no_overlap() -> None:

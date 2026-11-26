@@ -137,6 +137,9 @@ namespace OpenCAD2D.Remote.TestServer
 
         private CadDocument Add(CadDocument document)
         {
+            // The app sets a drawing up on opening it, with the fonts and the measure of its canvas; a server that did not would
+            // measure the words of its drawings another way than the app does.
+            CadRender.Prepare(document);
             _documents.Add(document);
             _sessions[document] = new CadCommandSession(document) { PickAperture = 1.0 };
             GiveView(_sessions[document]);

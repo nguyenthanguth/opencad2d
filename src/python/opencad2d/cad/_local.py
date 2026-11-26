@@ -687,11 +687,20 @@ class _LocalBackend:
         """The space of a layout name (model space where None); ValueError for a name the drawing lacks."""
         return self.document.ModelSpace if layout is None else self._spaces(layout)[0]
 
+    @property
+    def _as_drawn(self) -> Any:
+        """The document set up as the app sets one up on opening it (``CadRender.Prepare``: the fonts and measure of the canvas),
+        for a call that reads the boxes of words. Without it a drawing of a file is laid out with every letter 0.6 of its height
+        wide until the first picture of the process sets the canvas's measure for every drawing, and the boxes change with it."""
+        document = self.document
+        _render.load().CadRender.Prepare(document)
+        return document
+
     def bounds(self, layout: str | None, handles: list[str] | None) -> tuple[list[str], Any]:
         if handles is not None:
-            table = _cad.CadSpatial.Bounds(self.document, _net.Array[_net.String](handles))
+            table = _cad.CadSpatial.Bounds(self._as_drawn, _net.Array[_net.String](handles))
         else:
-            table = _cad.CadSpatial.Bounds(self.document, self._space(layout))
+            table = _cad.CadSpatial.Bounds(self._as_drawn, self._space(layout))
         return [str(handle) for handle in table.Handles], table.Boxes
 
     def overlaps(
@@ -710,7 +719,7 @@ class _LocalBackend:
         if handles is not None:
             options.Handles = _net.Array[_net.String](handles)
         table = _cad.CadSpatial.Overlaps(
-            self.document, self._space(layout), options, _geometry.Tolerance(tolerance, 1e-5)
+            self._as_drawn, self._space(layout), options, _geometry.Tolerance(tolerance, 1e-5)
         )
         return [str(w) for w in table.Words], [str(o) for o in table.Others], table.Boxes
 
@@ -722,7 +731,7 @@ class _LocalBackend:
         """The scores and violations of the core's check of the drawing against the standard (its JSON text)."""
         try:
             result = _cad.CadStandards.Check(
-                self.document, _cad.CadStandard.Parse(standard), model_scale, _geometry.Tolerance(tolerance, 1e-5)
+                self._as_drawn, _cad.CadStandard.Parse(standard), model_scale, _geometry.Tolerance(tolerance, 1e-5)
             )
         except _net.ArgumentException as error:
             raise _refused(error) from None
@@ -756,7 +765,7 @@ class _LocalBackend:
 
     def measure(self, entity: Any) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]:
         try:
-            return self._measurement(_cad.CadMeasure.Of(self.document, entity))
+            return self._measurement(_cad.CadMeasure.Of(self._as_drawn, entity))
         except _net.ArgumentException as error:
             raise _refused(error) from None
 
@@ -771,7 +780,7 @@ class _LocalBackend:
         try:
             return self._measurement(
                 _cad.CadMeasure.Leader(
-                    self.document,
+                    self._as_drawn,
                     style,
                     _geo.GeoPoint2(arrow[0], arrow[1]),
                     _geo.GeoPoint2(landing[0], landing[1]),
@@ -805,7 +814,7 @@ class _LocalBackend:
         options.MinHeight = min_height
         try:
             table = _cad.CadSpatial.FreeSpace(
-                self.document,
+                self._as_drawn,
                 self._space(layout),
                 _cad.DisplayBox(frame[0], frame[1], frame[2], frame[3]),
                 options,
@@ -827,7 +836,7 @@ class _LocalBackend:
         try:
             return bool(
                 _cad.CadSpatial.Fits(
-                    self.document,
+                    self._as_drawn,
                     self._space(layout),
                     _cad.CadFrame(*candidate),
                     self._space_options(kinds, margin),
