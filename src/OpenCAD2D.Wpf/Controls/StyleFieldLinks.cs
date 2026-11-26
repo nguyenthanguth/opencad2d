@@ -138,20 +138,23 @@ namespace OpenCAD2D.Wpf
             );
         }
 
-        private static FrameworkElement FirstControl(DependencyObject parent)
+        /// <summary>Whether something is an input control that can be focused now: a box, a list, a tick, a radio button, shown and enabled.</summary>
+        internal static bool IsControl(DependencyObject child) =>
+            (child is TextBox || child is ComboBox || child is CheckBox || child is RadioButton)
+            && child is FrameworkElement element
+            && element.IsVisible
+            && element.IsEnabled;
+
+        /// <summary>The first control, as <see cref="IsControl"/> says, under a parent.</summary>
+        internal static FrameworkElement FirstControl(DependencyObject parent)
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(parent, i);
 
-                if (
-                    (child is TextBox || child is ComboBox || child is CheckBox || child is RadioButton)
-                    && child is FrameworkElement element
-                    && element.IsVisible
-                    && element.IsEnabled
-                )
+                if (IsControl(child))
                 {
-                    return element;
+                    return (FrameworkElement)child;
                 }
 
                 FrameworkElement found = FirstControl(child);

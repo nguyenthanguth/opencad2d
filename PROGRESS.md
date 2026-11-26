@@ -439,7 +439,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       the hover/pressed knock-out colour is the fixed panel colour; RibbonIcons.xaml merges Dark.xaml (+45 ms a
       workspace) and could take a small palette dictionary instead.
 
-- [ ] A14. Dimension style preview, readable and linked to the fields (maintainer 2026-11-26; design first): today's
+- [x] A14. Dimension style preview, readable and linked to the fields (maintainer 2026-11-26; design first): today's
       preview is a 256 x 164 bitmap scaled up (blurred, thin white lines, small text) and nothing shows which part a
       field changes.
       Aims: (a) a vector preview at the frame's real size and DPI, resizable, lines of 1.5 px or more, a black or white
@@ -458,6 +458,12 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       5. The same for the Multileader Style and Table Style previews (maintainer 2026-11-26: part of A14; the lead
          decides and builds without waiting for a board review; report afterwards) -> verify: their variable/setting ->
          part tables, boards, tests and screenshots as for dimensions.
+      DONE 2026-11-26 (spec .claude/scratch/a14/spec.md, boards A14* on the canvas v230): P1 Core tagged samples per
+      tab, 67 keys -> parts, measures (the Overview sample draws today's picture item for item); P2 dimension and
+      multileader previews at real size and DPI, lit by the field with callouts, magnifier, chips, ghosts and the
+      reverse hover, dialogs 960 x 660 (a keystroke redraw 2.6-4.4 ms at 150 %); P3 table style previews to scale with
+      the same links, 940 x 660. Left: live per-keystroke commit of the table boxes, tab dots in the table dialog, no
+      pan; AutoCAD's own preview look not compared on screen (the maintainer may).
 
 #### Parked follow-ups
 
