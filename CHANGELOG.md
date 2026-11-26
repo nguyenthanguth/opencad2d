@@ -2,19 +2,36 @@
 
 ## Unreleased
 
+- **NEW.** The previews of the Modify Table Style dialog are drawn to scale and linked to the settings (A14, the table half). The
+  table preview shows five columns of 25 mm, a title, a header and three rows of data, each as tall as its text with the margins
+  (a text height of 4.5 and margins of 1.5 make a row 9 high, the table 125 by 47), and the cell style preview one row of the cell
+  style picked in three columns, the words at their text height times the scale instead of 6 to 16 pixels as before (4.5 is 11
+  pixels in the table preview and 32 in the cell style one); the rows of a table that runs up are drawn with the title at the
+  bottom and the lines of each group of rows where they belong. The setting being edited or hovered lights what it sets in the
+  accent and fades the rest: the words (Alignment with a dot in each cell at its point, Format, the margins, the text style,
+  height and colour), the fill (a dashed ghost and the chip Suppressed where there is none), the lines the Borders tab's buttons
+  give, the lineweight and colour of the lines of the button pressed last, every row for the table direction, with a chip that
+  names it. The margins and the text height are measured in place (`Horizontal margin = 1.5`, `Text height = 4.5`), the small
+  ones with a magnifier. Hovering a border button lights the lines it would give, dashed for No Border; pointing at a row of the
+  table lights it with a tooltip (`Header · cell style`) and a click picks that cell style; pointing at the words, a line or the
+  fill in the cell style preview lights them and the settings that set them (an accent bar on the row) and a click goes to the first
+  of the tab shown, else the first in tab order, switching the tab and focusing the box. The dialog is 940 by 660 (was 840 by 640)
+  and can be resized. New public members: `TableStylePreviewViewModel`, `TableStyleModifyViewModel.Preview` and `ActiveSetting`,
+  `TableStylePreview.Model` and the attached `TableStyleFieldLinks.Key` and `RowKeys`. The Table Style, Insert Table, Sheet List
+  Table and Purge dialogs draw the table to scale too.
 - **NEW.** The previews of the dimension and multileader style dialogs are readable and linked to the fields (A14, the presenter
   half). They are drawn at the real size of their frame and the real scale of the display, sharp at 150 %, every line at least 1.5
   pixels wide, with a black or a white ground, a wheel zoom about the pointer and Fit. The field being edited or hovered lights its
   part of a sample made for its tab (a baseline pair for Lines, a radius, centre mark, arc length, jogged radius and leader for
   Symbols and arrows, a narrow dimension for Fit, 28.375 and an angle for the units tabs) in the accent with the rest faded, a
   callout of the distance it sets (DIMEXE = 1.25), a magnifier for a small one, a chip for a field that has no part
-  (Every part Â· DIMSCALE = 1) or formats the words (DIMDEC = 0.00 Â· 28,38), and a dashed ghost with Suppressed for a part the
+  (Every part · DIMSCALE = 1) or formats the words (DIMDEC = 0.00 · 28,38), and a dashed ghost with Suppressed for a part the
   style leaves out. Pointing at a part of the preview lights its fields (an accent bar on the row, a dot on the tabs that hold
   others) with a tooltip, and a click goes to the first one. The New, Modify and Override Dimension Style dialogs and the Modify
   Multileader Style dialog are 960 by 660 (were 800 by 640) and can be resized. New public members: StylePreviewViewModel,
   StylePreviewGround, StylePreviewView, StylePreviewPanel, CadStylePreview.PartAt, PreviewModel on the four style view
   models, and ActiveField, PreviewKey, IsActive, IsLit and HasLitField on the dialogs, fields and tabs; Preview stays
-  an image. The table style previews follow.
+  an image.
 - **CHANGED.** A multileader style that does not include the landing is previewed without it, as AutoCAD draws it: the leader line
   runs on to the words. The DIMLDRBLK field of the dimension style dialogs lights the line of the leader as well as
   its arrowhead.

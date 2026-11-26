@@ -2,12 +2,14 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Modify Table Style dialog (and New Table Style), dark as the window's other dialogs, its General, Text and
-    /// Borders tabs for each cell style. Its logic is <see cref="TableStyleModifyViewModel"/>.
+    /// Borders tabs for each cell style, and its two previews to scale, which light the part of the table the setting being edited or
+    /// hovered sets. Its logic is <see cref="TableStyleModifyViewModel"/>.
     /// </summary>
     public partial class TableStyleModifyWindow : Window
     {
@@ -18,6 +20,12 @@ namespace OpenCAD2D.Wpf
             Model = model ?? throw new ArgumentNullException(nameof(model));
             InitializeComponent();
             DataContext = model;
+            TableStyleFieldLinks.Attach(Root, model.SetHovered, model.SetFocused);
+            var shade = new SolidColorBrush(Color.FromArgb(0x73, 0x1F, 0x4E, 0x79));
+            shade.Freeze();
+            var rows = TableStyleFieldLinks.Rows(Root, (Brush)FindResource("GhAccent"), shade);
+            model.LightsChanged += (s, e) => TableStyleFieldLinks.Light(rows, model.LitSettings);
+            model.FocusRequested += (s, key) => TableStyleFieldLinks.Focus(Root, key);
             model.CloseRequested += (s, ok) =>
             {
                 if (IsLoaded)

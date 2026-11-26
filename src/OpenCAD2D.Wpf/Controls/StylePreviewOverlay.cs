@@ -208,6 +208,19 @@ namespace OpenCAD2D.Wpf
             string magnification,
             StylePreviewGround ground,
             double pixelsPerDip
+        ) => Inset(dc, frame, c => c.DrawImage(picture, frame), magnification, ground, pixelsPerDip);
+
+        /// <summary>
+        /// Draws the magnifier's inset with what it shows drawn by a method, for a preview that is vectors: the frame is clipped to the
+        /// inset and the method draws in the preview's own coordinates.
+        /// </summary>
+        internal static void Inset(
+            DrawingContext dc,
+            Rect frame,
+            Action<DrawingContext> draw,
+            string magnification,
+            StylePreviewGround ground,
+            double pixelsPerDip
         )
         {
             var pen = new Pen(Solid(Lit(ground)), 1.0);
@@ -215,7 +228,7 @@ namespace OpenCAD2D.Wpf
             Brush floor = Solid(ground == StylePreviewGround.White ? Colors.White : Colors.Black);
             dc.DrawRoundedRectangle(floor, null, frame, 4.0, 4.0);
             dc.PushClip(new RectangleGeometry(frame, 4.0, 4.0));
-            dc.DrawImage(picture, frame);
+            draw(dc);
             dc.Pop();
             dc.DrawRoundedRectangle(null, pen, frame, 4.0, 4.0);
             var chip = new FormattedText(
@@ -233,11 +246,22 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>Draws the tooltip of the part under the pointer: its words on a dark box, below and to the right of the pointer, kept inside the preview.</summary>
-        internal static void Tooltip(DrawingContext dc, string text, Point pointer, Rect within, double pixelsPerDip)
+        internal static void Tooltip(
+            DrawingContext dc,
+            string text,
+            Point pointer,
+            Rect within,
+            double pixelsPerDip,
+            string click = "edit"
+        )
         {
             var formatted = new FormattedText(
-                text.Replace(" · click to edit", string.Empty)
-                    + (text.EndsWith("click to edit", StringComparison.Ordinal) ? "\nClick to edit" : string.Empty),
+                text.Replace(" · click to " + click, string.Empty)
+                    + (
+                        text.EndsWith("click to " + click, StringComparison.Ordinal)
+                            ? "\nClick to " + click
+                            : string.Empty
+                    ),
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 Mono,

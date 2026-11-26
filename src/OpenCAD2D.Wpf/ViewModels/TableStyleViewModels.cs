@@ -613,6 +613,9 @@ namespace OpenCAD2D.Wpf
         private string _borderWeight = "ByBlock";
         private TableFillChoice _borderColor = Colors[0];
         private string _message = string.Empty;
+        private string _hovered;
+        private string _focused;
+        private TableStylePreviewViewModel _preview;
 
         /// <summary>Makes the dialog over a style.</summary>
         /// <param name="document">The document.</param>
@@ -636,6 +639,12 @@ namespace OpenCAD2D.Wpf
         /// <summary>Raised when the dialog is to close: true for OK.</summary>
         public event EventHandler<bool> CloseRequested;
 
+        /// <summary>Raised when a click on a part of the preview chose a field: the window shows its tab and puts the focus in it; the argument is the field's key.</summary>
+        internal event EventHandler<string> FocusRequested;
+
+        /// <summary>Raised when the fields to light changed: the one active, and those that set the part under the pointer.</summary>
+        internal event EventHandler LightsChanged;
+
         /// <summary>Gets the title: Modify Table Style: OC_SCHEDULE, or New Table Style: and the name.</summary>
         public string Title { get; }
 
@@ -644,6 +653,97 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>Gets a number that grows with each change of the settings, so that the previews draw them anew.</summary>
         public int Version { get; private set; }
+
+        /// <summary>
+        /// Gets what the two previews show of the field being edited or hovered: the parts of the rows it sets lit, the callout of
+        /// the margin or the height, and the part under the pointer with the fields that set it.
+        /// </summary>
+        public TableStylePreviewViewModel Preview
+        {
+            get
+            {
+                if (_preview == null)
+                {
+                    _preview = new TableStylePreviewViewModel(this);
+                    _preview.FieldRequested += (s, key) => ChooseField(key);
+                    _preview.PropertyChanged += (s, e) =>
+                    {
+                        if (e.PropertyName == nameof(TableStylePreviewViewModel.HasLit))
+                        {
+                            LightsChanged?.Invoke(this, EventArgs.Empty);
+                        }
+                    };
+                }
+
+                return _preview;
+            }
+        }
+
+        /// <summary>Gets the setting the previews show: the one under the pointer, else the one with the keyboard focus; null for none. A key is a property of this view model (<c>HorizontalMargin</c>) or a border button (<c>Border:Outside</c>).</summary>
+        public string ActiveSetting => _hovered ?? _focused;
+
+        /// <summary>Gets the keys of the settings to light in the dialog: the one active, and those that set the part under the pointer.</summary>
+        internal IReadOnlyList<string> LitSettings =>
+            new[] { ActiveSetting }.Concat(Preview.HoverKeys).Where(k => k != null).Distinct().ToList();
+
+        /// <summary>Gets the border button last pressed, which the lineweight and colour boxes light the lines of; null before any.</summary>
+        internal string LastBorder { get; private set; }
+
+        /// <summary>Tells the dialog the keyboard focus entered the control of a setting or left it, as the window sees it.</summary>
+        /// <param name="key">The setting's key.</param>
+        /// <param name="focused">True where the focus is in it now.</param>
+        internal void SetFocused(string key, bool focused)
+        {
+            if (focused)
+            {
+                _focused = key;
+            }
+            else if (string.Equals(_focused, key, StringComparison.Ordinal))
+            {
+                _focused = null;
+            }
+
+            UpdateLinks();
+        }
+
+        /// <summary>Tells the dialog the pointer entered the control of a setting or left it, as the window sees it.</summary>
+        /// <param name="key">The setting's key.</param>
+        /// <param name="hovered">True where the pointer is over it now.</param>
+        internal void SetHovered(string key, bool hovered)
+        {
+            if (hovered)
+            {
+                _hovered = key;
+            }
+            else if (string.Equals(_hovered, key, StringComparison.Ordinal))
+            {
+                _hovered = null;
+            }
+
+            UpdateLinks();
+        }
+
+        private void UpdateLinks()
+        {
+            Preview.SetActiveKey(ActiveSetting);
+            Raise(nameof(ActiveSetting));
+            LightsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>A click on a part of the preview chose a field: its tab shown, and the window asked to focus it.</summary>
+        private void ChooseField(string key)
+        {
+            string tab = TableStylePreviewViewModel.TabOf(key);
+
+            if (tab != null)
+            {
+                Tab = tab;
+            }
+
+            _focused = key;
+            UpdateLinks();
+            FocusRequested?.Invoke(this, key);
+        }
 
         /// <summary>Gets the table directions: Down, Up.</summary>
         public IReadOnlyList<string> Directions { get; } = new[] { "Down", "Up" };
@@ -685,6 +785,9 @@ namespace OpenCAD2D.Wpf
                     {
                         Raise(name);
                     }
+
+                    _preview?.Invalidate();
+                    LightsChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
@@ -937,6 +1040,7 @@ namespace OpenCAD2D.Wpf
             }
 
             DxfLineWeight weight = Weights[Math.Max(0, LineWeights.ToList().IndexOf(_borderWeight))];
+            LastBorder = name;
 
             foreach (int line in lines)
             {
@@ -976,6 +1080,7 @@ namespace OpenCAD2D.Wpf
             Raise(property);
             Version++;
             Raise(nameof(Version));
+            _preview?.Invalidate();
         }
 
         private static TableFillChoice Choice(IReadOnlyList<TableFillChoice> choices, DxfColor color)

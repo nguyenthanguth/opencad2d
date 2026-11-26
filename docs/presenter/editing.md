@@ -3554,14 +3554,34 @@ parts it sets are drawn in the accent (#3D9BFF on black, #0A6BD6 on white) and t
 is measured on the sample as a callout 18 pixels off the part: DIMEXE reads DIMEXE = 1.25 along the first extension line, and
 where the callout is under 16 pixels long a magnifier (x4, x8 under 6 pixels) shows the region drawn again at that zoom in the
 corner with least drawn under it. A field that sets no part (DIMSCALE, Annotative, DIMUPT, the break size) says so in a chip, as
-Every part Â· DIMSCALE = 1; a formatting field of the units and tolerance tabs puts a chip over the words it sets with the value
-and the result (DIMDEC = 0.00 Â· 28,38); a part the style leaves out (DIMSE1 on, no fill, no landing) is drawn as a dashed ghost
+Every part · DIMSCALE = 1; a formatting field of the units and tolerance tabs puts a chip over the words it sets with the value
+and the result (DIMDEC = 0.00 · 28,38); a part the style leaves out (DIMSE1 on, no fill, no landing) is drawn as a dashed ghost
 of where it would be with the chip Suppressed. The multileader's callouts are labelled in the field's own words (Landing gap = 2).
 It works the other way too: the part under the pointer (within 6 pixels) lights with a halo and a tooltip names it and the
-variables that set it (Arrowhead 2 Â· DIMBLK2, DIMASZ, DIMCLRD, DIMLWD, DIMATFIT Â· click to edit, those of the tab shown first),
+variables that set it (Arrowhead 2 · DIMBLK2, DIMASZ, DIMCLRD, DIMLWD, DIMATFIT · click to edit, those of the tab shown first),
 the rows of the tab that set it get an accent bar and a ground, and a tab that holds others shows a dot on its chip; a click goes
 to the first of them on the tab shown, else the first in tab order, switching the tab, focusing the box and scrolling it into
 view. In the Managers the tooltip names the part and nothing else.
+
+The Modify Table Style dialog (940 by 660, resizable) has the same links, in its own two previews, both WPF vectors on white
+paper and drawn to scale ([`TableStylePreview`](xref:OpenCAD2D.Wpf.TableStylePreview)): the table, five columns of 25 mm, a title, a
+header and three rows of data as tall as their text with the margins (4.5 high words and margins of 1.5 make a row 9 high, the
+table 125 by 47, 2.5 pixels to a millimetre in 330 by 240), and, under the Cell styles box, one row of the cell style picked in
+three columns (7.2 pixels to a millimetre in 560 by 120). The words are drawn at their text height times that scale, 11 pixels
+for 4.5 in the table and 32 in the cell style preview, not clamped. The setting under the pointer, else the one with the focus,
+lights what it sets in the rows of the cell style picked and fades the rest: the words for Alignment (with a dot in each cell at
+its point), Format, the margins and the text settings, the fill for Fill color (a dashed ghost and the chip Suppressed where there
+is none), the lines for the lineweight and colour (those of the border button pressed last, else all) and, while the pointer rests
+on a border button, the lines it would give (dashed for No Border), and every row for the table direction with a chip naming it.
+The two margins and the text height are measured in place, `Horizontal margin = 1.5` from the cell's left edge (its right edge
+for words set right, with the chip "words centred" for centred ones), `Vertical margin = 1.5` from its top (bottom) edge and `Text
+height = 4.5` beside the words, the label in a chip under the table; a margin under 16 pixels long in the table preview also gets
+the magnifier (x4, x8 under 6 pixels). The pointer works the other way: over a row of the table it lights the row and a tooltip
+names its cell style (`Header · cell style`), and a click picks it in the Cell styles box; over the words, a line or the fill in
+the cell style preview it lights that part, the rows of the settings that set it get an accent bar and ground, and a click goes to
+the first of the tab shown, else the first in tab order (Alignment on General, Text style on Text, Lineweight on Borders),
+switching the tab and focusing the box. The table preview is always white, as paper prints, with no ground to switch. The boxes of
+the margins and the height are committed when they lose the focus, so their previews follow a value once it is entered.
 TEXTALIGN (TA) keeps AutoCAD's settings: "Current settings: Align = Left, Spacing Mode = Current Vertical" and "Select text
 objects to align [alIgnment/Options]:". alIgnment asks "Select alignment direction [Left/Center/Right/TL/TC/TR/ML/MC/MR/BL/BC/BR]
 <Left>:", Options "Enter an option [Distribute/Set spacing/current Vertical/current Horizontal] <current Vertical>:" (Set spacing

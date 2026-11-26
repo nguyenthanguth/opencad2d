@@ -4,10 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Modify Table Style"
-    Width="840"
-    Height="640"
+    Width="940"
+    Height="660"
+    MinWidth="940"
+    MinHeight="660"
     WindowStyle="None"
-    ResizeMode="NoResize"
+    ResizeMode="CanResizeWithGrip"
     ShowInTaskbar="False"
     WindowStartupLocation="CenterOwner"
     Background="#262B33"
@@ -145,22 +147,31 @@
                             <TextBlock Style="{StaticResource StyleLabel}" Text="Select table to start from:" />
                         </DockPanel>
                         <TextBlock Style="{StaticResource StyleGroup}" Text="General" />
-                        <DockPanel Margin="0,0,0,12">
-                            <TextBlock Style="{StaticResource StyleLabel}" Text="Table direction:" Width="100" />
-                            <ComboBox
-                                Style="{StaticResource GhComboBox}"
-                                ItemsSource="{Binding Directions}"
-                                SelectedItem="{Binding Direction, Mode=TwoWay}"
-                            />
-                        </DockPanel>
+                        <Grid Margin="0,0,0,12" local:TableStyleFieldLinks.RowKeys="Direction">
+                            <DockPanel>
+                                <TextBlock Style="{StaticResource StyleLabel}" Text="Table direction:" Width="100" />
+                                <ComboBox
+                                    Style="{StaticResource GhComboBox}"
+                                    ItemsSource="{Binding Directions}"
+                                    SelectedItem="{Binding Direction, Mode=TwoWay}"
+                                />
+                            </DockPanel>
+                        </Grid>
+                        <TextBlock Style="{StaticResource StyleLabel}" Text="Preview, to scale" Margin="0,0,0,4" />
                     </StackPanel>
                     <Border
+                        Height="240"
+                        VerticalAlignment="Top"
                         BorderBrush="{StaticResource GhBorder}"
                         BorderThickness="1"
                         CornerRadius="4"
                         ClipToBounds="True"
                     >
-                        <local:TableStylePreview Settings="{Binding Settings}" Version="{Binding Version}" />
+                        <local:TableStylePreview
+                            Settings="{Binding Settings}"
+                            Version="{Binding Version}"
+                            Model="{Binding Preview}"
+                        />
                     </Border>
                 </DockPanel>
 
@@ -168,49 +179,51 @@
                 <DockPanel Grid.Column="2">
                     <StackPanel DockPanel.Dock="Top">
                         <TextBlock Style="{StaticResource StyleGroup}" Text="Cell styles" />
-                        <DockPanel Margin="0,0,0,8">
-                            <Button
-                                DockPanel.Dock="Right"
-                                Style="{StaticResource StyleSideButton}"
-                                Width="30"
-                                IsEnabled="False"
-                                Margin="6,0,0,0"
-                                ToolTip="Manage cell styles: a DXF of R2000 to R2018 holds the title, the header and the data alone"
-                                ToolTipService.ShowOnDisabled="True"
-                            >
-                                <Path
-                                    Data="M4 6h16M4 12h16M4 18h10"
-                                    Stroke="#5B6573"
-                                    StrokeThickness="1.8"
-                                    Width="14"
-                                    Height="14"
-                                    Stretch="Uniform"
+                        <Grid Margin="0,0,0,8" local:TableStyleFieldLinks.RowKeys="CellStyle">
+                            <DockPanel>
+                                <Button
+                                    DockPanel.Dock="Right"
+                                    Style="{StaticResource StyleSideButton}"
+                                    Width="30"
+                                    IsEnabled="False"
+                                    Margin="6,0,0,0"
+                                    ToolTip="Manage cell styles: a DXF of R2000 to R2018 holds the title, the header and the data alone"
+                                    ToolTipService.ShowOnDisabled="True"
+                                >
+                                    <Path
+                                        Data="M4 6h16M4 12h16M4 18h10"
+                                        Stroke="#5B6573"
+                                        StrokeThickness="1.8"
+                                        Width="14"
+                                        Height="14"
+                                        Stretch="Uniform"
+                                    />
+                                </Button>
+                                <Button
+                                    DockPanel.Dock="Right"
+                                    Style="{StaticResource StyleSideButton}"
+                                    Width="30"
+                                    IsEnabled="False"
+                                    Margin="6,0,0,0"
+                                    ToolTip="Create a new cell style: a DXF of R2000 to R2018 holds the title, the header and the data alone"
+                                    ToolTipService.ShowOnDisabled="True"
+                                >
+                                    <Path
+                                        Data="M4 4h16v16H4zM12 8v8M8 12h8"
+                                        Stroke="#5B6573"
+                                        StrokeThickness="1.8"
+                                        Width="14"
+                                        Height="14"
+                                        Stretch="Uniform"
+                                    />
+                                </Button>
+                                <ComboBox
+                                    Style="{StaticResource GhComboBox}"
+                                    ItemsSource="{Binding CellStyles}"
+                                    SelectedItem="{Binding CellStyle, Mode=TwoWay}"
                                 />
-                            </Button>
-                            <Button
-                                DockPanel.Dock="Right"
-                                Style="{StaticResource StyleSideButton}"
-                                Width="30"
-                                IsEnabled="False"
-                                Margin="6,0,0,0"
-                                ToolTip="Create a new cell style: a DXF of R2000 to R2018 holds the title, the header and the data alone"
-                                ToolTipService.ShowOnDisabled="True"
-                            >
-                                <Path
-                                    Data="M4 4h16v16H4zM12 8v8M8 12h8"
-                                    Stroke="#5B6573"
-                                    StrokeThickness="1.8"
-                                    Width="14"
-                                    Height="14"
-                                    Stretch="Uniform"
-                                />
-                            </Button>
-                            <ComboBox
-                                Style="{StaticResource GhComboBox}"
-                                ItemsSource="{Binding CellStyles}"
-                                SelectedItem="{Binding CellStyle, Mode=TwoWay}"
-                            />
-                        </DockPanel>
+                            </DockPanel>
+                        </Grid>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <RadioButton
                                 Style="{StaticResource StyleTab}"
@@ -236,7 +249,10 @@
                         </StackPanel>
 
                         <!-- General: fill, alignment, format and type (greyed), the margins, and merging (greyed). -->
-                        <Grid Visibility="{Binding IsGeneral, Converter={StaticResource Shown}}">
+                        <Grid
+                            Visibility="{Binding IsGeneral, Converter={StaticResource Shown}}"
+                            local:TableStyleFieldLinks.RowKeys="Fill,Alignment,Format,,,HorizontalMargin,VerticalMargin"
+                        >
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="*" />
@@ -350,7 +366,10 @@
                         </Grid>
 
                         <!-- Text: the text style and its dialog, the height, the colour, and the angle (greyed). -->
-                        <Grid Visibility="{Binding IsText, Converter={StaticResource Shown}}">
+                        <Grid
+                            Visibility="{Binding IsText, Converter={StaticResource Shown}}"
+                            local:TableStyleFieldLinks.RowKeys="TextStyle,TextHeight,TextColor"
+                        >
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="*" />
@@ -415,7 +434,7 @@
 
                         <!-- Borders: the lineweight and colour the buttons give, linetype and double lines greyed, then the buttons. -->
                         <StackPanel Visibility="{Binding IsBorders, Converter={StaticResource Shown}}">
-                            <Grid>
+                            <Grid local:TableStyleFieldLinks.RowKeys="BorderWeight,,BorderColor">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="100" />
                                     <ColumnDefinition Width="*" />
@@ -486,6 +505,7 @@
                                     Style="{StaticResource BorderButton}"
                                     Command="{Binding BorderCommand}"
                                     CommandParameter="All"
+                                    local:TableStyleFieldLinks.Key="Border:All"
                                     ToolTip="All borders"
                                 >
                                     <Grid Width="18" Height="18">
@@ -501,6 +521,7 @@
                                     Style="{StaticResource BorderButton}"
                                     Command="{Binding BorderCommand}"
                                     CommandParameter="Outside"
+                                    local:TableStyleFieldLinks.Key="Border:Outside"
                                     ToolTip="Outside borders"
                                 >
                                     <Grid Width="18" Height="18">
@@ -516,6 +537,7 @@
                                     Style="{StaticResource BorderButton}"
                                     Command="{Binding BorderCommand}"
                                     CommandParameter="Inside"
+                                    local:TableStyleFieldLinks.Key="Border:Inside"
                                     ToolTip="Inside borders"
                                 >
                                     <Canvas Width="18" Height="18">
@@ -526,6 +548,7 @@
                                     Style="{StaticResource BorderButton}"
                                     Command="{Binding BorderCommand}"
                                     CommandParameter="Bottom"
+                                    local:TableStyleFieldLinks.Key="Border:Bottom"
                                     ToolTip="Bottom border"
                                 >
                                     <Canvas Width="18" Height="18">
@@ -536,6 +559,7 @@
                                     Style="{StaticResource BorderButton}"
                                     Command="{Binding BorderCommand}"
                                     CommandParameter="Left"
+                                    local:TableStyleFieldLinks.Key="Border:Left"
                                     ToolTip="Left border"
                                 >
                                     <Canvas Width="18" Height="18">
@@ -546,6 +570,7 @@
                                     Style="{StaticResource BorderButton}"
                                     Command="{Binding BorderCommand}"
                                     CommandParameter="Top"
+                                    local:TableStyleFieldLinks.Key="Border:Top"
                                     ToolTip="Top border"
                                 >
                                     <Canvas Width="18" Height="18">
@@ -556,6 +581,7 @@
                                     Style="{StaticResource BorderButton}"
                                     Command="{Binding BorderCommand}"
                                     CommandParameter="Right"
+                                    local:TableStyleFieldLinks.Key="Border:Right"
                                     ToolTip="Right border"
                                 >
                                     <Canvas Width="18" Height="18">
@@ -566,6 +592,7 @@
                                     Style="{StaticResource BorderButton}"
                                     Command="{Binding BorderCommand}"
                                     CommandParameter="None"
+                                    local:TableStyleFieldLinks.Key="Border:None"
                                     ToolTip="No borders"
                                 >
                                     <Canvas Width="18" Height="18">
@@ -581,25 +608,28 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <TextBlock
-                        DockPanel.Dock="Top"
-                        Style="{StaticResource StyleLabel}"
-                        Text="Cell style preview"
-                        Margin="0,10,0,4"
-                    />
                     <Border
+                        DockPanel.Dock="Bottom"
+                        Height="120"
                         BorderBrush="{StaticResource GhBorder}"
                         BorderThickness="1"
                         CornerRadius="4"
-                        MinHeight="60"
                         ClipToBounds="True"
                     >
                         <local:TableStylePreview
                             Settings="{Binding Settings}"
                             Version="{Binding Version}"
                             CellStyle="{Binding CellStyle}"
+                            Model="{Binding Preview}"
                         />
                     </Border>
+                    <TextBlock
+                        DockPanel.Dock="Bottom"
+                        Style="{StaticResource StyleLabel}"
+                        Text="Cell style preview"
+                        Margin="0,10,0,4"
+                    />
+                    <StackPanel />
                 </DockPanel>
             </Grid>
         </DockPanel>
