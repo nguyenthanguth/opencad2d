@@ -11,9 +11,12 @@
   Each writing call is one undo step. `--read-only` refuses every tool that writes, and `run_command`, which types free
   command or AutoLISP text, is refused unless the server was started with `--allow-scripts`; only `save` writes a file. It is a
   project of its own, `src/OpenCAD2D.Mcp` on .NET 8, with the official C# SDK `ModelContextProtocol.Core` 2.4.0 (Apache-2.0),
-  which stays out of `OpenCAD2D.Core`, its NuGet package and the Python wheel. Attached, `render_png` draws the saved file of
-  the app's drawing and says to `save` first where it has unsaved changes. See
+  which stays out of `OpenCAD2D.Core`, its NuGet package and the Python wheel. `add_layer` makes a layer with a look. Attached,
+  `render_png` draws the app's drawing as it is now, unsaved changes included, and never writes its file. See
   [Letting an AI agent drive OpenCAD2D](docs/presenter/mcp.md).
+- **NEW.** `CadRemoteDocument.GetDatabase()` gives a copy of the whole drawing of a running app as it is now, unsaved changes included
+  (header, tables, blocks, layouts with their viewports, every object), read from the DXF text the app writes of its database: the new
+  request `database` of the channel. The app's file is not written. 10 000 entities, 1 070 KB of text: about 20 ms.
 - **FIXED.** On a drawing file with no app, a layer switched off or frozen by Python (`drawing.layers["Steel"].is_on = False`, then
   `commit()`) left the drawing's display list as it was, so what the display list feeds (`entity.bounds`, `drawing.bounds()`,
   `drawing.overlaps()`, picks) still counted the layer's objects: the commit wrote the layer but told the document nothing for a

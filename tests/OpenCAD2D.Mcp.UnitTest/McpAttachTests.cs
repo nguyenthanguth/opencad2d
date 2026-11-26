@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using ModelContextProtocol.Protocol;
+using SkiaSharp;
 using Xunit;
 
 namespace OpenCAD2D.Mcp.UnitTest
@@ -168,26 +169,101 @@ namespace OpenCAD2D.Mcp.UnitTest
             Assert.Equal(7, (int)(await harness.CallAsync("info"))["entityCount"]);
         }
 
+        /// <summary>The number of pixels of a PNG that are red (the colour of the lines the tests add, ACI 1).</summary>
+        private static int RedPixels(CallToolResult result)
+        {
+            byte[] png = Assert.Single(result.Content.OfType<ImageContentBlock>()).DecodedData.ToArray();
+
+            using (SKBitmap bitmap = SKBitmap.Decode(png))
+            {
+                int red = 0;
+
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    for (int x = 0; x < bitmap.Width; x++)
+                    {
+                        SKColor c = bitmap.GetPixel(x, y);
+
+                        if (c.Red > c.Green + 60 && c.Red > c.Blue + 60)
+                        {
+                            red++;
+                        }
+                    }
+                }
+
+                return red;
+            }
+        }
+
         [Fact]
-        public async Task Attached_a_picture_is_of_the_saved_file_and_the_server_says_why_when_there_are_unsaved_changes()
+        public async Task Attached_a_picture_shows_what_the_app_has_not_saved_and_the_file_is_never_written()
         {
             using TestApp app = TestApp.Start();
             string path = Drawings.Plate(TestFolder.Make("attachrender"));
+            DateTime before = File.GetLastWriteTimeUtc(path);
+            byte[] bytes = File.ReadAllBytes(path);
             await using McpHarness harness = await Attach(app);
             await harness.CallAsync("open_drawing", ("path", path));
 
             CallToolResult first = await harness.CallRawAsync("render_png", ("width", 300), ("height", 200));
             Assert.True(first.IsError != true);
-            Assert.Single(first.Content.OfType<ImageContentBlock>());
+            Assert.Equal(0, RedPixels(first));
 
-            await harness.CallAsync("add_circle", ("center", new[] { 5.0, 5.0 }), ("radius", 3.0));
-            string refused = await harness.FailAsync("render_png");
-            Assert.Contains("has changes the app has not saved", refused);
-            Assert.Contains("call save", refused);
+            await harness.CallAsync(
+                "add_line",
+                ("start", new[] { 0.0, 0.0 }),
+                ("end", new[] { 200.0, 100.0 }),
+                ("color", 1)
+            );
+            Assert.True((bool)(await harness.CallAsync("info"))["modified"]);
 
-            await harness.CallAsync("save");
             CallToolResult again = await harness.CallRawAsync("render_png", ("width", 300), ("height", 200));
             Assert.True(again.IsError != true);
+            Assert.True(RedPixels(again) > 100, "The unsaved red line is not in the picture.");
+            Assert.Equal(before, File.GetLastWriteTimeUtc(path));
+            Assert.Equal(bytes, File.ReadAllBytes(path));
+        }
+
+        [Fact]
+        public async Task Attached_a_drawing_with_no_file_yet_can_be_drawn()
+        {
+            using TestApp app = TestApp.Start();
+            await using McpHarness harness = await Attach(app);
+            await harness.CallAsync("new_drawing");
+            await harness.CallAsync("add_circle", ("center", new[] { 0.0, 0.0 }), ("radius", 10.0), ("color", 1));
+
+            CallToolResult picture = await harness.CallRawAsync("render_png", ("width", 200));
+
+            Assert.True(RedPixels(picture) > 50);
+        }
+
+        [Fact]
+        public async Task Attached_add_layer_makes_a_layer_in_the_app_and_undo_takes_it_back()
+        {
+            using TestApp app = TestApp.Start();
+            string path = Drawings.Plate(TestFolder.Make("attachlayer"));
+            await using McpHarness harness = await Attach(app);
+            await harness.CallAsync("open_drawing", ("path", path));
+
+            JsonNode made = await harness.CallAsync(
+                "add_layer",
+                ("name", "Steel"),
+                ("color", 3),
+                ("lineweight", 50),
+                ("locked", true)
+            );
+
+            Assert.Equal("Steel", (string)made["name"]);
+            JsonNode layers = await harness.CallAsync("list_layers");
+            JsonNode steel = layers.AsArray().Single(l => (string)l["name"] == "Steel");
+            Assert.Equal(3, (int)steel["color"]);
+            Assert.Equal(50, (int)steel["lineWeight"]);
+            Assert.True((bool)steel["locked"]);
+            Assert.Contains("already exists", await harness.FailAsync("add_layer", ("name", "STEEL")));
+
+            await harness.CallAsync("undo");
+            JsonNode after = await harness.CallAsync("list_layers");
+            Assert.DoesNotContain(after.AsArray(), l => (string)l["name"] == "Steel");
         }
 
         [Fact]

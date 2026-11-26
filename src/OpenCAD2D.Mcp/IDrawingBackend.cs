@@ -129,6 +129,9 @@ namespace OpenCAD2D.Mcp
 
         IReadOnlyList<DxfBlockTableRecord> Blocks();
 
+        /// <summary>The names of the linetypes of the drawing.</summary>
+        IReadOnlyList<string> Linetypes();
+
         /// <summary>The value of a system variable, such as <c>INSUNITS</c>.</summary>
         object Variable(string name);
 
@@ -146,6 +149,9 @@ namespace OpenCAD2D.Mcp
 
         /// <summary>Adds the entities to a layout as one undo step and gives their handles, in order.</summary>
         IReadOnlyList<string> Add(IReadOnlyList<DxfEntity> entities, string layout);
+
+        /// <summary>Adds a layer with the look given, as one undo step; refused for a name the drawing has or a name or look it does not take.</summary>
+        void AddLayer(LayerRow layer);
 
         void Move(IReadOnlyList<string> handles, double dx, double dy);
 

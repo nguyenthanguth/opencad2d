@@ -108,6 +108,121 @@ namespace OpenCAD2D.Mcp
                 drawing.SetProperties(list, layer, color, linetype);
             });
 
+        /// <summary>The lineweights AutoCAD has, in hundredths of a millimetre.</summary>
+        private static readonly int[] LineWeights =
+        {
+            0,
+            5,
+            9,
+            13,
+            15,
+            18,
+            20,
+            25,
+            30,
+            35,
+            40,
+            50,
+            53,
+            60,
+            70,
+            80,
+            90,
+            100,
+            106,
+            120,
+            140,
+            158,
+            200,
+            211,
+        };
+
+        [McpServerTool(
+            Name = "add_layer",
+            ReadOnly = false,
+            Destructive = false,
+            Idempotent = false,
+            OpenWorld = false
+        )]
+        [Description(
+            "Adds a layer with the look given, as the Layer manager's New layer does. Refused when the drawing has the name (either case), when the name has a character AutoCAD refuses (< > / \\ \" : ; ? * | = `), or when the linetype is not in the drawing. One undo step."
+        )]
+        public LayerInfo AddLayer(
+            [Description("The layer's name.")] string name,
+            [Description("AutoCAD colour index 1 to 255; 7 (white or black by the ground) where left out.")]
+                int color = 7,
+            [Description("A linetype of the drawing; Continuous where left out.")] string linetype = "Continuous",
+            [Description(
+                "Lineweight in hundredths of a millimetre, one of AutoCAD's: 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211; the default weight (-3) where left out."
+            )]
+                int? lineweight = null,
+            [Description("False to make the layer off.")] bool on = true,
+            [Description("True to make the layer frozen.")] bool frozen = false,
+            [Description("True to make the layer locked.")] bool locked = false
+        ) => _session.Run("add_layer", true, drawing =>
+            {
+                string trimmed = name?.Trim();
+
+                if (string.IsNullOrEmpty(trimmed))
+                {
+                    throw new ArgumentException("A layer needs a name.");
+                }
+
+                if (color < 1 || color > 255)
+                {
+                    throw new ArgumentException("A layer's colour index is 1 to 255.");
+                }
+
+                if (lineweight.HasValue && !LineWeights.Contains(lineweight.Value))
+                {
+                    throw new ArgumentException(
+                        "The lineweight "
+                            + lineweight.Value
+                            + " is none of AutoCAD's: "
+                            + string.Join(", ", LineWeights)
+                            + "."
+                    );
+                }
+
+                string type = string.IsNullOrWhiteSpace(linetype) ? "Continuous" : linetype.Trim();
+
+                if (!drawing.Linetypes().Any(l => string.Equals(l, type, StringComparison.OrdinalIgnoreCase)))
+                {
+                    throw new ArgumentException("The drawing has no linetype " + type + ".");
+                }
+
+                if (drawing.Layers().Any(l => string.Equals(l.Name, trimmed, StringComparison.OrdinalIgnoreCase)))
+                {
+                    throw new ArgumentException("Layer \"" + trimmed + "\" already exists.");
+                }
+
+                var row = new LayerRow
+                {
+                    Name = trimmed,
+                    Color = color,
+                    Linetype = type,
+                    LineWeight = lineweight ?? -3,
+                    IsOn = on,
+                    IsFrozen = frozen,
+                    IsLocked = locked,
+                    IsPlottable = true,
+                    Description = string.Empty,
+                };
+                drawing.AddLayer(row);
+                return new LayerInfo
+                {
+                    Name = row.Name,
+                    Color = row.Color,
+                    Linetype = row.Linetype,
+                    LineWeight = row.LineWeight,
+                    On = row.IsOn,
+                    Frozen = row.IsFrozen,
+                    Locked = row.IsLocked,
+                    Plottable = true,
+                    Description = string.Empty,
+                };
+            });
+
         private ChangedResult Change(string tool, string[] handles, Action<IDrawingBackend, List<string>> work) =>
             _session.Run(tool, true, drawing =>
             {

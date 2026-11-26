@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryHelper.Dxf;
 
 namespace OpenCAD2D.Remote
 {
@@ -83,6 +84,16 @@ namespace OpenCAD2D.Remote
                 NumbersOf(answer.GetArray("boxes"))
             );
         }
+
+        /// <summary>
+        /// Gets a copy of the whole drawing as the app has it now, changes not saved included: the header, tables, blocks, layouts
+        /// with their viewports and every object, read from the DXF text the app writes of its database. The file of the drawing
+        /// is not touched. A program that draws or checks the drawing in its own process opens it with
+        /// <c>CadDocument.From(database)</c>. The copy is a snapshot: later changes in the app are not in it.
+        /// </summary>
+        /// <returns>The drawing's database.</returns>
+        /// <exception cref="CadRemoteException">Thrown when the drawing is closed.</exception>
+        public DxfDatabase GetDatabase() => DxfDatabase.Parse(Ask(RemoteOps.Database).GetString("text"));
 
         private static CadRemoteBounds BoundsOf(JsonObject answer) =>
             new CadRemoteBounds(StringsOf(answer.GetArray("handles")), NumbersOf(answer.GetArray("boxes")));

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
@@ -83,6 +82,8 @@ namespace OpenCAD2D.Mcp
 
         public IReadOnlyList<DxfBlockTableRecord> Blocks() => Document.Blocks;
 
+        public IReadOnlyList<string> Linetypes() => Document.Linetypes;
+
         public object Variable(string name) => Document.GetVariable(name);
 
         public BoxRows Bounds(string layout)
@@ -117,6 +118,22 @@ namespace OpenCAD2D.Mcp
             }
 
             return Document.CommitChanges();
+        }
+
+        public void AddLayer(LayerRow layer)
+        {
+            Document.AddLayer(
+                new CadRemoteLayer(layer.Name)
+                {
+                    Color = DxfColor.FromColorIndex(DxfColorMethod.ByAci, (short)layer.Color),
+                    Linetype = layer.Linetype,
+                    LineWeight = (DxfLineWeight)layer.LineWeight,
+                    IsOn = layer.IsOn,
+                    IsFrozen = layer.IsFrozen,
+                    IsLocked = layer.IsLocked,
+                }
+            );
+            Document.CommitChanges();
         }
 
         private List<DxfEntity> Found(IReadOnlyList<string> handles)
@@ -196,30 +213,10 @@ namespace OpenCAD2D.Mcp
 
         public byte[] RenderPng(RenderRequest request)
         {
-            string file = Path;
-
-            if (file == null || !File.Exists(file))
-            {
-                throw new InvalidOperationException(
-                    "The drawing "
-                        + Name
-                        + " has no file yet, and the app gives a client no way to draw it in this process: call save with a path first."
-                );
-            }
-
-            if (Document.IsModified)
-            {
-                throw new InvalidOperationException(
-                    "The drawing "
-                        + Name
-                        + " has changes the app has not saved, and the app gives a client no way to draw what it shows in this process: call save, then render_png draws the saved file."
-                );
-            }
-
-            using (var local = LocalBackend.Open(file))
-            {
-                return local.RenderPng(request);
-            }
+            // The app's drawing as it stands (changes not saved included) is read into a document of this process and drawn here;
+            // the app's file is never written.
+            LocalBackend local = new LocalBackend(CadDocument.From(Document.GetDatabase(), Name));
+            return local.RenderPng(request);
         }
 
         public string RunCommand(string text)

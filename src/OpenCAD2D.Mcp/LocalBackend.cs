@@ -113,6 +113,8 @@ namespace OpenCAD2D.Mcp
         public IReadOnlyList<DxfBlockTableRecord> Blocks() =>
             Document.Database.BlockTable.Where(b => !b.IsLayout && !b.IsAnonymous && !b.Name.StartsWith("*")).ToList();
 
+        public IReadOnlyList<string> Linetypes() => Document.Database.LinetypeTable.Select(l => l.Name).ToList();
+
         public object Variable(string name) => Session.Editor.GetVariable(name);
 
         public BoxRows Bounds(string layout)
@@ -287,6 +289,49 @@ namespace OpenCAD2D.Mcp
             foreach (string layer in missing)
             {
                 scope.Record(new CadEditRecord(CadEditRecordKind.TableChanged, null, "Layer", null, layer));
+            }
+        }
+
+        public void AddLayer(LayerRow layer)
+        {
+            Document.BeginGroup("MCP");
+
+            try
+            {
+                Check(CadLayerEditor.Add(Document, layer.Name));
+                Check(CadLayerEditor.SetLinetype(Document, layer.Name, layer.Linetype));
+                Check(CadLayerEditor.SetLineWeight(Document, layer.Name, (DxfLineWeight)layer.LineWeight));
+                Check(CadLayerEditor.SetColor(Document, layer.Name, layer.Color));
+
+                if (!layer.IsOn)
+                {
+                    Check(CadLayerEditor.SetOn(Document, layer.Name, false));
+                }
+
+                if (layer.IsFrozen)
+                {
+                    Check(CadLayerEditor.SetFrozen(Document, layer.Name, true));
+                }
+
+                if (layer.IsLocked)
+                {
+                    Check(CadLayerEditor.SetLocked(Document, layer.Name, true));
+                }
+            }
+            catch
+            {
+                Document.CancelGroup();
+                throw;
+            }
+
+            Document.EndGroup();
+        }
+
+        private static void Check(CadEditResult result)
+        {
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(result.Message);
             }
         }
 

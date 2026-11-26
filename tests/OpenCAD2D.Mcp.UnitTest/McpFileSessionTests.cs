@@ -38,6 +38,7 @@ namespace OpenCAD2D.Mcp.UnitTest
                 "add_diameter_dim",
                 "add_hatch",
                 "add_insert",
+                "add_layer",
                 "add_line",
                 "add_linear_dim",
                 "add_mtext",

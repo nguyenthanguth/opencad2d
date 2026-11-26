@@ -455,6 +455,54 @@ namespace OpenCAD2D.Mcp.UnitTest
         }
 
         [Fact]
+        public async Task Add_layer_makes_a_layer_with_the_look_given_in_one_undo_step()
+        {
+            await using McpHarness harness = await Plate("addlayer");
+
+            JsonNode made = await harness.CallAsync(
+                "add_layer",
+                ("name", "Steel"),
+                ("color", 1),
+                ("lineweight", 35),
+                ("frozen", true),
+                ("locked", true)
+            );
+
+            Assert.Equal("Steel", (string)made["name"]);
+            JsonNode steel = (await harness.CallAsync("list_layers"))
+                .AsArray()
+                .Single(l => (string)l["name"] == "Steel");
+            Assert.Equal(1, (int)steel["color"]);
+            Assert.Equal("Continuous", (string)steel["linetype"]);
+            Assert.Equal(35, (int)steel["lineWeight"]);
+            Assert.True((bool)steel["frozen"]);
+            Assert.True((bool)steel["locked"]);
+            Assert.True((bool)steel["on"]);
+
+            await harness.CallAsync("undo");
+            Assert.DoesNotContain((await harness.CallAsync("list_layers")).AsArray(), l =>
+                (string)l["name"] == "Steel"
+            );
+        }
+
+        [Fact]
+        public async Task Add_layer_refuses_a_name_the_drawing_has_a_bad_name_and_a_look_it_does_not_take()
+        {
+            await using McpHarness harness = await Plate("addlayerrefused");
+
+            Assert.Contains("already exists", await harness.FailAsync("add_layer", ("name", "plate")));
+            Assert.Contains("invalid layer name", await harness.FailAsync("add_layer", ("name", "a/b")));
+            Assert.Contains("needs a name", await harness.FailAsync("add_layer", ("name", " ")));
+            Assert.Contains(
+                "no linetype DASHED",
+                await harness.FailAsync("add_layer", ("name", "X"), ("linetype", "DASHED"))
+            );
+            Assert.Contains("none of AutoCAD", await harness.FailAsync("add_layer", ("name", "X"), ("lineweight", 33)));
+            Assert.Contains("1 to 255", await harness.FailAsync("add_layer", ("name", "X"), ("color", 0)));
+            Assert.Equal(4, (await harness.CallAsync("list_layers")).AsArray().Count);
+        }
+
+        [Fact]
         public async Task Nothing_reaches_a_file_before_save()
         {
             string folder = TestFolder.Make("nosave");
@@ -502,6 +550,7 @@ namespace OpenCAD2D.Mcp.UnitTest
             {
                 ("add_line", new (string, object)[] { ("start", point), ("end", point) }),
                 ("add_circle", new (string, object)[] { ("center", point), ("radius", 1.0) }),
+                ("add_layer", new (string, object)[] { ("name", "Steel") }),
                 ("add_text", new (string, object)[] { ("text", "x"), ("at", point), ("height", 1.0) }),
                 ("move", new (string, object)[] { ("handles", handles), ("delta", point) }),
                 ("rotate", new (string, object)[] { ("handles", handles), ("base_point", point), ("angle", 1.0) }),

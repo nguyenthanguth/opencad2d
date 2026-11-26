@@ -57,7 +57,7 @@ opened stops it with exit code 1. `OpenCAD2D.Mcp.exe --help` lists the options a
 | What it works on | a DXF or DWG file, opened in the server's own process by the engine itself (the way the Python `open_file` does) | the drawing of a running OpenCAD2D, through its [Remote](remote.md) channel (the way a program outside the app does) |
 | The app | not needed; nothing is shown | must be running with "Allow other programs to connect" on ([the setting](remote.md#the-setting)); the changes appear in its window |
 | Undo | the file's own undo steps, one for each call | the app's: `undo` types `U` into the app, which also takes back what the user drew last |
-| `render_png` | draws the drawing as it is now, changes not saved included | draws the **saved file** of the drawing: the app gives a client no way to hand over what its window shows, so with unsaved changes it refuses and says to call `save` first |
+| `render_png` | draws the drawing as it is now, changes not saved included | draws the drawing as the app has it now, **unsaved changes included**: the server asks the app for a copy of its whole drawing (the request `database` of [Remote](remote.md#the-drawing-as-the-app-has-it)), reads it into memory and draws it there; the app's file is never written |
 | Nothing written | until `save` | until `save`; the app's own autosave still runs |
 
 With neither, no drawing is open: the agent calls `open_drawing` with a path, or `new_drawing`. With `--attach` the drawing
@@ -69,7 +69,7 @@ server may be started before the app is.
 
 | Flag | Effect |
 |---|---|
-| `--read-only` | every tool that writes is refused with a message that names the flag: the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `save` and `run_command`. Opening and rendering still work |
+| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `save` and `run_command`. Opening and rendering still work |
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
 - Only `save` writes a file: to the drawing's own file, which is in the folder it was opened from, or to the path the agent
@@ -78,7 +78,7 @@ server may be started before the app is.
   `discard: true`.
 - The server listens on no port. It speaks only on its standard input and output, and writes nothing else on standard output.
 - A text or INSERT that names a text style, linetype or block the drawing has not is refused with the names it has; a layer
-  the drawing has not is made, as DXF does it, so check `list_layers` for a name you mean to reuse.
+  the drawing has not is made with the default look, as DXF does it, so make it first with `add_layer` for a look of your own.
 
 `--allow-scripts` hands the agent everything the command line can do, a file written anywhere the app can write included.
 Give it only to an agent you would give the keyboard to.
@@ -100,6 +100,7 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 | `bounds(handles=, layout=)` | the box each entity takes as it is drawn: the letters of a text and not its insertion point, a dimension's picture, a block however deep |
 | `overlaps(kinds=, over=, of=, layout=, tolerance=)` | the words (TEXT, MTEXT, dimension text, multileader text) that overlap a line, an arc, a polyline, a hatch edge, a filled area or another word, with the box of each meeting |
 | `render_png(box=, layout=, width=, height=, dpi=)` | the layout, or a part of it, as a picture the agent sees (an MCP image) |
+| `add_layer(name, color=, linetype=, lineweight=, on=, frozen=, locked=)` | a layer with the look given (a colour index, a linetype of the drawing, a lineweight in hundredths of a millimetre such as 25); refused for a name the drawing has (either case), a name AutoCAD refuses, or a look it does not take |
 | `add_line`, `add_polyline`, `add_circle`, `add_arc` | geometry; `layer`, `color` (a colour index) and `linetype` for each |
 | `add_text`, `add_mtext` | words, with a `text_style` of the drawing |
 | `add_linear_dim`, `add_aligned_dim`, `add_radial_dim`, `add_diameter_dim`, `add_angular_dim` | dimensions made as DIMLINEAR, DIMALIGNED, DIMRADIUS, DIMDIAMETER and DIMANGULAR make them, in a `dim_style` of the drawing (the current one by default); the picture is drawn by the engine |
@@ -138,4 +139,6 @@ save path "C:\plans\plate.dxf"          -> { "name": "plate.dxf", "modified": fa
   API ([Driving the app from another program](remote.md), [Python](../python.md)).
 - Attached, a `run_command` that is still asking something after 10 seconds is left waiting in the app; the next
   `run_command` answers it, or Esc in the app ends it.
-- `render_png` of an app's drawing with unsaved changes is refused ([above](#two-ways-to-get-a-drawing)).
+- Attached, `render_png` draws a copy of the app's drawing taken at the call: the header, tables, blocks, layouts and objects as the
+  app has them (a 10 000-entity drawing is 1 MB of text and the request takes about 20 ms); what the app shows beyond the drawing
+  (its grid, grips, selection) is not in the picture, as on a file.
