@@ -307,6 +307,14 @@ class _RemoteBackend:
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]:
         return self._pairs(self._document.SelectCrossingWindow(first, second))
 
+    # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
+
+    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
+        """The JSON text of the drawing or of its graph, as the app writes it; there is no .NET graph on this side."""
+        if what == "graph":
+            return str(self._document.ExportGraph(layout, tolerance)), None
+        return str(self._document.ExportJson(layout)), None
+
 
 class App:
     """A running OpenCAD2D, to use as ``with connect() as app``: ``documents``, ``active_drawing``, ``open``,

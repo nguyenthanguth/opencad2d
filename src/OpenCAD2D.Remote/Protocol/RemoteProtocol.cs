@@ -73,6 +73,9 @@ namespace OpenCAD2D.Remote
         /// <summary>Reads or sets the current dimension style of a drawing.</summary>
         public const string CurrentDimStyle = "currentDimStyle";
 
+        /// <summary>The drawing as JSON, or as a graph, in millimetres, block references walked down to what they draw.</summary>
+        public const string Export = "export";
+
         /// <summary>Closes a drawing without saving; refused where it has changes not saved, unless told to discard them.</summary>
         public const string Close = "close";
 

@@ -18,6 +18,10 @@
         <EmbeddedResource Include="Text\english-words.txt.gz" LogicalName="OpenCAD2D.english-words.txt.gz" />
         <EmbeddedResource Include="Fonts\opencad2d.glyphs.txt" LogicalName="OpenCAD2D.opencad2d.glyphs.txt" />
         <None Remove="Fonts\opencad2d.glyphs.txt" />
+        <EmbeddedResource
+            Include="..\..\docs\schemas\opencad2d-drawing-v1.schema.json"
+            LogicalName="OpenCAD2D.opencad2d-drawing-v1.schema.json"
+        />
     </ItemGroup>
 
     <!--

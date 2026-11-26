@@ -629,6 +629,19 @@ class _LocalBackend:
         except _net.ArgumentException as error:
             raise _refused(error) from None
 
+    # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
+
+    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
+        """The JSON text of the drawing (``what`` is ``"json"``) or of its graph (``"graph"``, with the ``CadDrawingGraph``
+        too, whose edge array is copied in one piece); the core does the work."""
+        try:
+            if what == "graph":
+                graph = _cad.CadDrawingGraph.Build(self.document, layout, tolerance)
+                return str(graph.ToJson()), graph
+            return str(_cad.CadDrawingJson.Write(self.document, layout)), None
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
 
 def active_drawing() -> Drawing:
     """The drawing the command of the tool was typed in (not the one shown later): ``active_drawing().add_line((0, 0), (10, 0))``.

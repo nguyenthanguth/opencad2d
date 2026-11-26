@@ -14,11 +14,13 @@ from __future__ import annotations
 
 import builtins
 import importlib
+import json
 import math
 import os
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Protocol, TypeVar, cast, overload
+
 
 if TYPE_CHECKING:
     import typing_extensions
@@ -223,6 +225,7 @@ class Backend(Protocol):
     def select_all(self) -> list[tuple[str, Any, Any]]: ...
     def select_window(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
+    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]: ...
 
 
 def dxf_type_of(net: Any) -> str:
@@ -2210,8 +2213,112 @@ class Drawing:
         self._discard()
         self._backend.close(discard)
 
+    # ---- the export for AI pipelines: flatten, JSON, graph (PW6.3) ------------------------------------------------
+
+    def flatten(self, layout: str | None = None) -> list[dict[str, Any]]:
+        """The drawing's objects with every block reference replaced by what it draws, nested blocks and arrays of references
+        (MINSERT) included, in world coordinates and millimetres, as a ``list`` of ``dict``, read and not changed. Each has
+        ``handle`` (that of the reference in the space, for a piece of a block), ``kind``, ``layer``, ``color``, ``linetype``,
+        ``layout``, ``box`` ([min x, min y, max x, max y]), ``path`` (the names of the blocks it came out of, outermost first),
+        and for a piece of a block ``indexPath`` and ``matrix`` (4 by 4, block coordinates to world millimetres), then its
+        geometry and words. A piece on layer 0 or ByBlock has the look of the reference it is in, as BURST gives it, and a
+        circle under a scale unlike along its axes comes out an ellipse, as EXPLODE gives it. ``layout`` is one layout's name
+        (``"Model"``), or None for model space and every layout. Not committed: what is queued is not in it.
+
+        Example:
+            flat = drawing.flatten()                                  # a block BOLT of a circle and a line, inserted twice, gives 4
+            [(e["kind"], e["path"]) for e in flat]                    # [('CIRCLE', ['BOLT']), ('LINE', ['BOLT']), ('CIRCLE', ['BOLT']), ...]
+            flat[0]["matrix"][0]                                      # [1.0, 0.0, 0.0, 100.0]: the first INSERT at (100, 100), not turned
+        """
+        entities: list[dict[str, Any]] = self.to_dict(layout)["entities"]
+        return entities
+
+    def to_json(self, layout: str | None = None) -> str:
+        """The drawing as one JSON document of schema ``opencad2d.drawing``, version 1 (``docs/schemas``), in world millimetres:
+        ``units``, ``layouts``, ``layers``, ``textStyles``, ``dimStyles``, ``linetypes``, ``blocks``, ``report`` and ``entities``
+        (those of ``flatten``). The same drawing gives the same text on every run and on every backend: entities in the order
+        of their handles as numbers, tables by name, numbers rounded to a nanometre. A drawing of no unit (INSUNITS 0) is left
+        as it is and ``units.normalised`` says so. Not committed: what is queued is not in it.
+
+        Example:
+            text = drawing.to_json()                                  # a str, 3 MB for 10 000 entities
+            json.loads(text)["units"]                                 # {'insunits': 'Inches', ..., 'toMillimetres': 25.4, 'normalised': True}
+            drawing.to_json("Layout1")                                # the entities of that layout alone
+        """
+        text, _ = self._backend.export("json", layout, 0.0)
+        return text
+
+    def to_dict(self, layout: str | None = None) -> dict[str, Any]:
+        """``to_json`` read: the document as a ``dict``, its entities a ``list`` of ``dict``.
+
+        Example:
+            document = drawing.to_dict()
+            document["entities"][0]["kind"]                           # 'LINE'
+            document["units"]["toMillimetres"]                        # 1.0 for a drawing of millimetres
+        """
+        return _export_document(self.to_json(layout))
+
+    def to_graph(self, layout: str | None = None, tolerance: float = 0.001) -> dict[str, Any]:
+        """The drawing as a graph for a network to read: a node for each entity of ``flatten`` (``nodes``, numbered as
+        ``flatten`` lists them) and an edge for each way two are related (``edges``: ``source``, ``target``, ``kind`` and ``at``):
+        ``touches`` (two curves that come within ``tolerance`` millimetres of each other: ends that meet, an end on the other, a crossing), ``contains`` (a closed curve that
+        holds the other inside it), ``dimensions`` (a dimension and what its association or its points tie it to) and
+        ``annotates`` (a leader and what its arrow points at). With numpy installed the dict also holds ``edge_index`` (an array
+        of shape (2, E), int64) and ``edge_kind`` (E, int64; an index into ``["touches", "contains", "dimensions",
+        "annotates"]``).  The graph is found with a grid over the boxes: 10 000 entities take about 0.25 s.
+
+        Example:
+            graph = drawing.to_graph()                                # a plate with a circle in it and a line from its corner
+            [(e["source"], e["target"], e["kind"]) for e in graph["edges"]]   # [(0, 2, 'touches'), (2, 3, 'contains'), ...]
+            graph["edge_index"].shape                                 # (2, 5): with numpy
+        """
+        if not (0.0 < tolerance < math.inf):
+            raise ValueError("The tolerance is a number of millimetres above nought.")
+        text, native = self._backend.export("graph", layout, tolerance)
+        return _export_graph(text, native)
+
     def __repr__(self) -> str:
         return f"<Drawing {self.name}>"
+
+
+# ---- what the export for AI pipelines reads (PW6.3) ------------------------------------------------------------------------
+
+_EDGE_KINDS: tuple[str, ...] = ("touches", "contains", "dimensions", "annotates")
+"""The kinds of edge of a graph, in the order of their numbers: ``edge_kind`` of ``to_graph`` holds an index into this."""
+
+
+def _export_document(text: str) -> dict[str, Any]:
+    """The JSON document of a drawing (``to_json``), read."""
+    return json.loads(text)  # pyright: ignore[reportAny]
+
+
+def _export_edges(graph: dict[str, Any], native: Any) -> Any:
+    """The edges of a graph as an array of shape (E, 3) of float64: source, target and kind of each, or None without numpy.
+
+    A graph made in this process (``native`` is the ``CadDrawingGraph``) hands its edge array over with one copy through
+    ``opencad2d.arrays``; one that came as text from the app is built from its edge list.
+    """
+    try:
+        import numpy as np
+    except ImportError:
+        return None
+    if native is not None:
+        from .. import arrays
+
+        return arrays.to_numpy(native.EdgeArray()).reshape(-1, 3)
+    edges: list[dict[str, Any]] = graph["edges"]
+    flat = [number for edge in edges for number in (edge["source"], edge["target"], _EDGE_KINDS.index(edge["kind"]))]
+    return np.asarray(flat, dtype=np.float64).reshape(-1, 3)
+
+
+def _export_graph(text: str, native: Any) -> dict[str, Any]:
+    """A graph as a dict: ``tolerance``, ``nodes``, ``edges`` and, with numpy, ``edge_index`` (2, E) int64 and ``edge_kind`` (E,) int64."""
+    result = _export_document(text)
+    numbers = _export_edges(result, native)
+    if numbers is not None:
+        result["edge_index"] = numbers[:, :2].T.astype("int64")
+        result["edge_kind"] = numbers[:, 2].astype("int64")
+    return result
 
 
 class Documents:

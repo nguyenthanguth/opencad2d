@@ -109,6 +109,26 @@ dimension style new dimensions are drawn in (one undo step, `DIMSTYLE`, at once)
 `dimension_styles.add`, `linetypes.load` and `blocks.add` ([the Drawing API](../python.md#styles-linetypes-dimensions-hatches-and-blocks))
 are made of these calls from outside the app.
 
+## The drawing as JSON and as a graph
+
+A program that learns from drawings (a model that lays them out, a dataset of real projects) reads them better with the blocks opened
+and the units one. `drawing.ExportJson(layout)` gives the drawing as one JSON text, `drawing.ExportGraph(layout, tolerance)` as a
+graph; `layout` is the name of a layout (`"Model"`) or null for model space and every layout, `tolerance` the millimetres two ends may
+be apart to touch (0.001 is the library's own):
+
+```csharp
+string json = drawing.ExportJson(null);               // schema opencad2d.drawing, version 1
+string graph = drawing.ExportGraph(null, 0.001);      // schema opencad2d.graph, version 1
+```
+
+The app writes them with the core's own `CadFlatten.Walk` (block references, nested ones and arrays of them included, walked down to
+the shapes they draw, in world coordinates, with the path of blocks and the transformation of each), `CadDrawingJson.Write` and
+`CadDrawingGraph.Build`; a program that holds a `CadDocument` calls them directly. The request is `export`, and a layout the drawing
+lacks, or a tolerance that is not above nought, is refused in words. The JSON is described by
+[`docs/schemas/opencad2d-drawing-v1.schema.json`](https://github.com/nguyenthanguth/OpenCAD2D/blob/main/docs/schemas/opencad2d-drawing-v1.schema.json),
+and Python's `drawing.flatten()`, `to_json()`, `to_dict()` and `to_graph()` ([the guide](../python.md#preparing-real-drawings-for-ai-flatten-json-and-graph))
+read the same text on a file, in the app and from outside it.
+
 ## Layers and layouts
 
 `drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)
