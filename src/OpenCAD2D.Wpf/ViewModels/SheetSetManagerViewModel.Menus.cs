@@ -202,7 +202,7 @@ namespace OpenCAD2D.Wpf
                         ),
                     }
                 ),
-                Item("eTransmit…", () => NotBuilt("eTransmit", "5b")),
+                Item("eTransmit…", () => _main.TransmitSheetSet(_current, Components(new[] { node }))),
                 CadMenuItemViewModel.Separator(),
                 Item("Insert Sheet List Table…", () => NotBuilt("Insert Sheet List Table", "4e"), table),
                 Item("Manage Page Setups…", () => _main.StartCommand("PAGESETUP")),
@@ -261,7 +261,7 @@ namespace OpenCAD2D.Wpf
                         ),
                     }
                 ),
-                Item("eTransmit…", () => NotBuilt("eTransmit", "5b")),
+                Item("eTransmit…", () => _main.TransmitSheetSet(_current, Components(new[] { node }))),
                 CadMenuItemViewModel.Separator(),
                 Item("Properties…", () => Ask(SheetSetDialog.Properties, node, "Subset Properties")),
             };
@@ -309,7 +309,7 @@ namespace OpenCAD2D.Wpf
                         Item("Publish Dialog Box…", () => _main.PublishSheetSetDialog(_current, Components(chosen))),
                     }
                 ),
-                Item("eTransmit…", () => NotBuilt("eTransmit", "5b")),
+                Item("eTransmit…", () => _main.TransmitSheetSet(_current, Components(chosen))),
                 CadMenuItemViewModel.Separator(),
                 Item("Insert Sheet List Table…", () => NotBuilt("Insert Sheet List Table", "4e"), table),
                 CadMenuItemViewModel.Separator(),

@@ -120,6 +120,31 @@ Location, Prompt for name and Multi-sheet file in the .dst; Include hyperlinks, 
 the session. While it runs a small window shows "Sheet 4 of 9: A-103 Roof Plan"; Cancel stops at the next sheet, and a
 PDF of several sheets that was not finished is not written. Publish to Plotter runs with no progress window.
 
+## eTransmit
+
+eTransmit… on the set, a subset or a sheet in the Sheet List sends the sheets under it as one zip. It opens Create
+Transmittal. The Sheets tab shows the set, its subsets and its sheets with a box each; the ones you right-clicked are
+ticked, and a sheet whose drawing is not found is red and cannot be ticked. The Files Table lists everything the ticked
+sheets need, with where each file goes in the zip and its size; untick a file to leave it out. A file that was not found
+is red and unchecked, and the report names it. Notes typed in the box go into the report. The Zip file box starts at
+`Transmittals\<set name>.zip` beside the .dst; an existing zip is replaced after asking. View Report… shows
+`transmittal.txt` as it would be written.
+
+The zip holds the .dst, the drawing of each ticked sheet, the external references those drawings attach (and theirs),
+their images, PDF underlays and data-link files, the sheet creation templates, the page setup overrides file, the plot
+style tables the sheets' layouts name, font files found beside the drawings, and `transmittal.txt`. The folder of the
+.dst is the root of the zip. A file under it keeps its place, so that a drawing in `Architectural` with an external
+reference `..\Model\Tower model.dwg` finds it after the zip is unpacked. A file outside it, a photograph on another
+drive for example, goes in `Files`, and a path to it that would no longer be right is written again, relative, in the
+copy of the drawing (an external reference, an image, a PDF underlay) or of the .dst (the drawing of each sheet, the
+templates, the overrides file). Your own files are never changed.
+
+With Update fields in the copies first on, a drawing that holds fields is opened and saved again, and its fields are
+evaluated as its FIELDEVAL says; a drawing the DWG writer would have to leave something out of is copied as it is, and
+the report says so. The fonts Windows has and the ones OpenCAD2D carries are not sent, nor is a plot style table that is
+one of OpenCAD2D's own (`acad.ctb`, `monochrome.ctb` and so on). Two runs over the same files give the same zip, byte
+for byte, unless a drawing had to be saved again.
+
 ## What the operations do to the drawings
 
 - **New Sheet** makes a drawing from the layout of the sheet creation template (the subset's, else the set's): every other layout

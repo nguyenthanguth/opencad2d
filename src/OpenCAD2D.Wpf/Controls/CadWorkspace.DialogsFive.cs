@@ -42,6 +42,7 @@ namespace OpenCAD2D.Wpf
                 SheetSetPublishOptionsWindow.AskPdfFile(Window.GetWindow(this), path);
             model.RunSheetSetPublish = (list, printers) =>
                 SheetSetPublishProgressWindow.Run(Window.GetWindow(this), list, printers);
+            model.ShowTransmittal = dialog => TransmittalWindow.Show(Window.GetWindow(this), dialog);
         }
 
         /// <summary>EXPORTPDF's Open in viewer when done: the PDF opened by the program Windows gives its type; a failure is logged.</summary>

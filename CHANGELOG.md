@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **NEW.** eTransmit of a sheet set (A12): the eTransmit item of the Sheet List's set, subset and sheet menus opens
+  Create Transmittal, the reduced dialog of AutoCAD's. Its Sheets tab ticks the sheets to send, its Files Table lists
+  what they need (the .dst, the drawings, their external references, images, PDF underlays and data-link files, the
+  sheet creation templates, the page setup overrides file, the plot style tables of the layouts, and font files found
+  beside the drawings), and OK writes one zip, `<set folder>\Transmittals\<set name>.zip` unless changed, with a
+  `transmittal.txt` report. The zip keeps the folders of the set; a file outside the set's folder goes in `Files`, and a
+  path that would then be wrong is written again in the copy (the original is never touched). Unzipped elsewhere, the
+  set opens and every sheet and external reference is found. New public members: `CadTransmittal`,
+  `CadTransmittalFile`, `CadTransmittalFileKind`, `CadTransmittalResult`.
 - **FIXED.** The fields of the attributes of a title block were lost when a layout was brought in with a template whose chosen layout
   is not the first (LAYOUT Template, New Sheet and Import of a sheet set, Save As template): the layout was copied without the FIELD
   behind each attribute, so the words stayed as they were and a `\AcVar` or `\AcSm` field never updated again. The copy keeps the
