@@ -207,6 +207,9 @@ namespace OpenCAD2D.Remote
 
         /// <summary>The lines LIST writes for entities (<c>handles</c>), run in a command session of its own: <c>lines</c>.</summary>
         public const string List = "list";
+
+        /// <summary>The layouts of a drawing made and set up (<c>action</c>: <c>list</c>, <c>add</c>, <c>setup</c>, <c>viewport</c>, with the arguments of each): <c>layouts</c>, <c>layout</c> or <c>handle</c>.</summary>
+        public const string Sheets = "sheets";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

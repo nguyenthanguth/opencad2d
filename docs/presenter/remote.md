@@ -163,6 +163,16 @@ The requests are `properties`, `selectGeometry` and `list`: new words of protoco
 one point, a polygon of two) or a layout that is not there is a `CadRemoteException`. The MCP tools `get_entity`, `select`,
 `id_point` and `list_properties` ([MCP](mcp.md)) are made of them.
 
+## Layouts, page setups and viewports
+
+`drawing.GetLayoutSetups()` gives how every layout is set up as JSON text (an array of objects: `name`, `model`, `paper`, `width` and
+`height` in millimetres, `landscape`, `units`, `area`, `scale` as `1:50` or null where fitted, `plotStyle`, `viewports`);
+`drawing.AddLayout(name, paper, landscape)` adds a layout on a sheet, `drawing.SetPageSetup(layout, paper, orientation, area, scale,
+plotStyle)` changes only what is not null, and `drawing.AddViewport(layout, frame, scale, center, frozenLayers)` puts a viewport on a
+layout at a scale and gives its handle. They are the request `sheets` (`action`: `list`, `add`, `setup`, `viewport`) and the calls of
+[`CadLayouts`](xref:OpenCAD2D.CadLayouts), each write one undo step of the app, refused with the command's name while a command runs in
+the drawing; a name, sheet, scale or layer the app refuses is a `CadRemoteException` with its words. Python's `drawing.layouts` gives them.
+
 ## The drawing as JSON and as a graph
 
 A program that learns from drawings (a model that lays them out, a dataset of real projects) reads them better with the blocks opened

@@ -303,7 +303,7 @@ namespace OpenCAD2D
         }
 
         /// <summary>A layout of the name, with the viewport that shows its sheet.</summary>
-        private static DxfLayout AddLayout(DxfDatabase database, string name)
+        internal static DxfLayout AddLayout(DxfDatabase database, string name)
         {
             var layout = new DxfLayout { LayoutName = name };
             layout.AddToLayoutDictionary(database, null);

@@ -311,7 +311,7 @@ namespace OpenCAD2D
             && space.Layout.PlotPaperSize.Y > 0.0;
 
         /// <summary>Whether a space has a sheet of paper in its plot settings: a layout's, or model space's in the layout of its name.</summary>
-        private static bool HasSheet(CadDocument document, CadSpace space)
+        internal static bool HasSheet(CadDocument document, CadSpace space)
         {
             DxfLayout layout = CadPlotSettings.LayoutOf(document, space);
             return layout != null && layout.PlotPaperSize.X > 0.0 && layout.PlotPaperSize.Y > 0.0;

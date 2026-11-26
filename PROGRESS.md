@@ -103,8 +103,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          headless on a file, or `--attach` to a running app through Remote; the official .NET MCP SDK; stdio only,
          `--read-only`, no free LISP/Python unless a flag allows it; every installed copy has it without Python.
          -> verify: `tests/OpenCAD2D.Mcp.UnitTest`, a scripted MCP client session in both modes.
-      6. Compare two drawings (added, removed, moved). 7. Sheets from code (layout, title block, viewport at scale,
-         PDF). 8. Parallel workers with deterministic results (seeded). 9. A synthetic drawing generator for data.
+      6. DONE 2026-11-26 (41f292c0). Compare two drawings (added, removed, moved). 7. DONE 2026-11-26 (41f292c0).
+         Sheets from code (layout, title block, viewport at scale, PDF). 8. Parallel workers with deterministic results (seeded). 9. A synthetic drawing generator for data.
       Most valuable: 1, 2 and 5.
       10. MCP phase 2 (the maintainer 2026-11-26: "MCP còn cần thêm tool nào nữa"): the tools an AutoCAD-like MCP
          server is expected to have, from five public CAD MCP servers compared (Autodesk's AutoCAD MCP, autocad-mcp,

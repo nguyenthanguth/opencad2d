@@ -280,6 +280,8 @@ namespace OpenCAD2D
                     return SelectGeometry(Find(request), request);
                 case RemoteOps.List:
                     return ListOf(Find(request), request);
+                case RemoteOps.Sheets:
+                    return Sheets(Find(request), request);
                 default:
                     return OtherRequest(op, request);
             }

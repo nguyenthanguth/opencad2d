@@ -13,6 +13,7 @@ the app applies as one undo step; what a script leaves queued when it ends is lo
 from __future__ import annotations
 
 import importlib
+import json
 from types import TracebackType
 from typing import Any
 
@@ -373,6 +374,57 @@ class _RemoteBackend:
     def release(self, snapshot: Any) -> None:
         """Tells the app to forget the snapshot."""
         self._document.Release(snapshot)
+
+    # ---- comparing, sheets and plots (PW7.6, PW7.7) -------------------------------------------------------------------
+
+    def _copy(self) -> Any:
+        """The drawing as the app has it now, changes not saved included, read into a ``_LocalBackend`` of this process."""
+        from ._local import _LocalBackend  # pyright: ignore[reportPrivateUsage]
+
+        return _LocalBackend(_cad.CadDocument.From(self._document.GetDatabase(), self.name))
+
+    def as_drawn(self) -> Any:
+        """The app's drawing as a ``CadDocument`` read here, set up as the app sets one up."""
+        return self._copy().as_drawn()
+
+    def layout_list(self) -> list[dict[str, Any]]:
+        return list(json.loads(str(self._document.GetLayoutSetups())))
+
+    def layout_add(self, name: str, paper: str | None, landscape: bool) -> dict[str, Any]:
+        return dict(json.loads(str(self._document.AddLayout(name, paper, landscape))))
+
+    def layout_setup(
+        self,
+        layout: str,
+        paper: str | None,
+        orientation: str | None,
+        area: str | None,
+        scale: str | None,
+        plot_style: str | None,
+    ) -> dict[str, Any]:
+        return dict(json.loads(str(self._document.SetPageSetup(layout, paper, orientation, area, scale, plot_style))))
+
+    def layout_viewport(
+        self,
+        layout: str,
+        frame: tuple[float, float, float, float],
+        scale: str,
+        center: tuple[float, float] | None,
+        frozen: list[str],
+    ) -> str:
+        return str(
+            self._document.AddViewport(
+                layout,
+                _net.Array[_net.Double](list(frame)),
+                scale,
+                None if center is None else _net.Array[_net.Double](list(center)),
+                _net.Array[_net.String](frozen),
+            )
+        )
+
+    def plot_pdf(self, layout: str, path: str, paper: str | None, scale: str | None, fit: bool) -> Any:
+        """Plots the app's drawing as it stands, in this process, from a copy of its database, as ``render`` does."""
+        return self._copy().plot_pdf(layout, path, paper, scale, fit)
 
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 

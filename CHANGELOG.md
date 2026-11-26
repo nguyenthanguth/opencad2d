@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- **NEW.** Two drawings compared from Python (PW7.6). `drawing.compare(other)` takes a `Drawing` of any backend (a file, the app, a running
+  app, read as a copy of its database as the renders read it) or the path of a DXF or DWG file, and gives a `Diff`: the objects `other` has
+  and the drawing has not (`added`), those only the drawing has (`removed`), and those both have that differ (`changed`, each with the
+  names of what differs and, where the box kept its size and moved, `moved_by`, listed also as `moved`), with the boxes as NumPy arrays
+  (`added_boxes`, `removed_boxes`, `before_boxes`, `after_boxes`, `moved_by`). A drawing put back by `reset` compares the same as the copy
+  saved before the episode. Two drawings of 10 000 objects are compared in about 0.4 s. It runs the core's `CadDrawingDiff.Compare` in
+  the Python process, so the app needs no new request.
+- **NEW.** Sheets from code (PW7.7). `drawing.layouts` is now a table like `layers` (iterable of `Layout`, `len`, `[index]`/`[name]`, `in`,
+  `add(name, paper="ISO_A3", units="mm")`, `current`); a `Layout` is its name as a `str`, so `drawing.layouts[1]` still goes where a layout
+  name does. A layout reads and sets its page setup (`paper`, `landscape`, `plot_area`, `scale` as `"1:50"` or `0.02`, `plot_style`),
+  `add_viewport(frame, scale, center, frozen_layers)` puts a viewport on it at a scale, and `plot_pdf(path, paper=, scale=, fit=)` plots it
+  through the plot pipeline, the text of an SHX font also written so that a reader's search and a program that reads the PDF back find the
+  words. `add_insert` takes `layout=` and `attributes=` (the words of a title block by tag, the rest at the defaults of the block's
+  definitions). On a file, in the app and from outside it (the new request `sheets`; the PDF of an app's drawing is plotted in the Python
+  process from a copy). `examples/library/sheet_from_code.py` makes a plate, an A3 layout in millimetres with a filled title block and two
+  viewports at 1:10 and 1:5, and a PDF whose words read back are the title block's. In C#: `CadLayouts` (`List`, `Add`, `SetPageSetup`,
+  `AddViewport`, `ParseScale`, `ScaleText`, `Paper`) in the core, `CadPlot.WritePdf` in the rendering library (the plot the MCP `plot_pdf`
+  does, now callable by name), and `CadRemoteDocument.GetLayoutSetups`, `AddLayout`, `SetPageSetup`, `AddViewport`.
 - **NEW.** The MCP server reads and queries a drawing in depth, and an agent can try a layout and roll it back (MCP phase 2, group A:
   25 tools). `get_entity` gives one entity in full (its values by kind, its drawn
   box and the rows of the Properties palette), `count_entities` and `aggregate` count and add up lengths and areas by kind, layer,
