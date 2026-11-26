@@ -50,8 +50,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 
 ## Python
 
-- [ ] PW5. The maintainer's Python review (.reports/python-opencad2d.md, 2026-11-26), on v2.0.0. Done in branch
-      `feat/pw5-python` (d763efbd, e60467df), waiting for its merge and full check:
+- [x] PW5. The maintainer's Python review (.reports/python-opencad2d.md, 2026-11-26), on v2.0.0. DONE 2026-11-26,
+      merged a7b08dd1 (branch d763efbd, e60467df):
       1. FIXED: drawing.add() of a DxfDBText/DxfMText/DxfDimension using a custom text or dimension style failed at
          commit() ("The text style X is not in the file's text style table"): the batch database lacked the styles.
          -> verify: a test per kind (text, mtext, dimension with a custom style; a linetype) red then green, one undo
@@ -70,8 +70,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       bulk results as NumPy arrays through opencad2d.arrays (decided 2026-11-26).
       1. Headless render from Python: drawing.render_png(path, box=, dpi=), render_svg, render_pdf, no window. Spec and
          rulings in `.claude/scratch/pw6/render-spec.md`, in four parts:
-         P1 (running) the `OpenCAD2D.Rendering` netstandard2.0 assembly, the nine Skia/PDF files moved, types forwarded
-         from `OpenCAD2D.Wpf`; P2 the `CadRender` facade (PNG, SVG, PDF) and `--screenshot --canvas`; P3 Python (after
+         P1 (done, 2ce58ef5) the `OpenCAD2D.Rendering` netstandard2.0 assembly, the nine Skia/PDF files moved, types forwarded
+         from `OpenCAD2D.Wpf`; P2 (running) the `CadRender` facade (PNG, SVG, PDF) and `--screenshot --canvas`; P3 Python (after
          PW5's merge); P4 docs and example.
          -> verify: the same pixels as the app's --screenshot for 10 drawings; SVG and PDF read back; time per page.
       2. Spatial queries: entity.bounds as drawn (SHX/TTF words, dimension and block pictures, MTEXT columns), and
@@ -95,8 +95,12 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          -> verify: reset time for a 10 000-entity drawing; state equal after reset.
       4. Labelled renders: the world-to-pixel matrix, class masks (words, dimensions, lines, hatches), COCO boxes.
          -> verify: a box drawn back from the matrix covers the entity's pixels.
-      5. An MCP server over the Remote API so an LLM agent drives OpenCAD2D (open, read, place, render, check).
-         -> verify: a scripted MCP client session.
+      5. An MCP server so an LLM agent drives OpenCAD2D (open, read, place, render, check), in C# (decided
+         2026-11-26): a project of its own, `src/OpenCAD2D.Mcp`, a net8.0 console exe `OpenCAD2D.Mcp.exe` installed
+         beside the app (the SDK's packages stay out of Core, its NuGet and the wheel; no WPF loaded, no window);
+         headless on a file, or `--attach` to a running app through Remote; the official .NET MCP SDK; stdio only,
+         `--read-only`, no free LISP/Python unless a flag allows it; every installed copy has it without Python.
+         -> verify: `tests/OpenCAD2D.Mcp.UnitTest`, a scripted MCP client session in both modes.
       6. Compare two drawings (added, removed, moved). 7. Sheets from code (layout, title block, viewport at scale,
          PDF). 8. Parallel workers with deterministic results (seeded). 9. A synthetic drawing generator for data.
       Most valuable: 1, 2 and 5.

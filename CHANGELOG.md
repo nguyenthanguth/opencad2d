@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **CHANGED.** The canvas renderer and the PDF and raster writers moved from `OpenCAD2D.Wpf.dll` into a new
+  `OpenCAD2D.Rendering.dll` (netstandard2.0, no WPF), so they can draw without a window. Their namespace stays
+  `OpenCAD2D.Wpf` and `OpenCAD2D.Wpf.dll` forwards the five public types (`CanvasOptions`, `SkiaCanvasRenderer`,
+  `CadPdfWriter`, `CadPdfBookmark`, `CadRasterWriter`), so no plugin, built or given as source, breaks.
 - **FIXED.** `drawing.add(entity)` of a text, an MTEXT or a line that names a text style or a linetype the drawing has failed at
   `commit()` (`The text style NOTE is not in the file's text style table.`, `The linetype DASHED is not in the file's linetype
   table`), on a file, in the app and from outside: the commit appended the copy to a small drawing that had none of the

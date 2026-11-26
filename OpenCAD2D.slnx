@@ -2,6 +2,7 @@
     <Folder Name="/src/">
         <Project Path="src/OpenCAD2D.App/OpenCAD2D.App.csproj" />
         <Project Path="src/OpenCAD2D.Remote/OpenCAD2D.Remote.csproj" />
+        <Project Path="src/OpenCAD2D.Rendering/OpenCAD2D.Rendering.csproj" />
         <Project Path="src/OpenCAD2D.Wpf/OpenCAD2D.Wpf.csproj" />
         <Project Path="src/OpenCAD2D.Core/OpenCAD2D.Core.csproj" />
     </Folder>
