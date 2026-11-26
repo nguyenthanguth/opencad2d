@@ -1,7 +1,7 @@
 """E0: no example without a row, a page section and a test, and every example in the shape D1002 gives (P5 D1001,
 D1002, D1007, D1008).
 
-The set of ``.py`` files under ``src/python/examples`` is the fifteen of D1002, PW3 and PW6 (the thirteen, the tool ``circle_marks`` and ``render_views.py``), three folders; a Python tool of
+The set of ``.py`` files under ``src/python/examples`` is the sixteen of D1002, PW3, PW6 and PW7.4 (the thirteen, the tool ``circle_marks``, ``render_views.py`` and ``coco_dataset.py``), three folders; a Python tool of
 ``tools`` is a folder (a ``requirements.txt``, an ``__init__.py`` and a ``plugin.json``), the example being its
 ``__init__.py``. The set equals the examples the README of the folder names in its table, equals the files the guide page
 ``python-examples.md`` includes with ``[!code-python[...](...)]``, and each example's name is in at least one test file.
@@ -22,6 +22,7 @@ CSHARP_TESTS = ROOT / "tests" / "OpenCAD2D.Wpf.UnitTest" / "PythonToolExampleTes
 EXPECTED = {
     "library": [
         "batch_folder.py",
+        "coco_dataset.py",
         "convert.py",
         "coordinates_numpy.py",
         "list_layers.py",

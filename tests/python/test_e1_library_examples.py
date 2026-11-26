@@ -13,6 +13,7 @@ the files, never from the library, and the first line of the error of a file tha
 
 import csv
 import hashlib
+import json
 import re
 import struct
 import subprocess
@@ -569,6 +570,36 @@ def test_render_views_of_a_drawing_with_nothing_in_model_space_says_so_and_exits
     assert not (tmp_path / "views").exists()
 
 
+# ---- coco_dataset.py ---------------------------------------------------------------------------------------------
+
+
+def test_coco_dataset_writes_three_pictures_their_masks_and_one_coco_file(tmp_path: Path, work: Path) -> None:
+    out = tmp_path / "dataset"
+
+    process = _run("coco_dataset.py", out, cwd=work)
+
+    assert process.returncode == 0, process.stderr
+    lines = process.stdout.splitlines()
+    assert len(lines) == 4
+    assert [line.split(",")[0].split(" ")[0] for line in lines[:3]] == ["drawing1.png", "drawing2.png", "drawing3.png"]
+    assert all(re.fullmatch(r"drawing\d\.png 1200 by \d+ pixels, \d+ objects", line) for line in lines[:3]), lines
+    assert sorted(p.name for p in out.iterdir()) == ["annotations.json", "images", "masks"]
+    for folder in ("images", "masks"):
+        assert sorted(p.name for p in (out / folder).iterdir()) == ["drawing1.png", "drawing2.png", "drawing3.png"]
+    coco = json.loads((out / "annotations.json").read_text(encoding="utf-8"))
+    assert sorted(coco) == ["annotations", "categories", "images"]
+    assert [image["file_name"] for image in coco["images"]] == ["drawing1.png", "drawing2.png", "drawing3.png"]
+    assert [c["name"] for c in coco["categories"]] == ["words", "dimensions", "lines", "hatches", "blocks"]
+    ids = [a["id"] for a in coco["annotations"]]
+    assert len(ids) == len(set(ids)) and lines[3] == f"3 pictures and {len(ids)} objects written to dataset"
+    for image in coco["images"]:
+        data = (out / "images" / image["file_name"]).read_bytes()
+        mask = (out / "masks" / image["file_name"]).read_bytes()
+        assert struct.unpack(">II", data[16:24]) == struct.unpack(">II", mask[16:24]) == (image["width"], image["height"])
+        assert mask[24:26] == b"\x08\x00"  # 8 bits, grey
+    assert list(work.iterdir()) == []
+
+
 # ---- wrong arguments ---------------------------------------------------------------------------------------------
 
 
@@ -585,6 +616,8 @@ def test_render_views_of_a_drawing_with_nothing_in_model_space_says_so_and_exits
         ("render_views.py", ["one.dxf"]),
         ("render_views.py", ["one.txt", "folder"]),
         ("render_views.py", ["one.dxf", "folder", "extra"]),
+        ("coco_dataset.py", []),
+        ("coco_dataset.py", ["one", "two"]),
         ("batch_folder.py", []),
         ("batch_folder.py", ["folder"]),
         ("batch_folder.py", ["folder", "report.csv", "extra"]),

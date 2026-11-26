@@ -630,7 +630,8 @@ class _LocalBackend:
 
     def render(self, kind: str, path: str | None, options: RenderOptions) -> Any:
         """Draws the drawing with no window through ``CadRender``: ``png``, ``svg`` and ``pdf`` write ``path`` and give nothing;
-        ``image`` gives the ``CadRenderImage``. A refusal of the options is a ``ValueError``."""
+        ``image`` gives the ``CadRenderImage``, ``transform`` the nine numbers of the matrix and ``masks`` and ``to_coco`` the
+        ``CadRenderLabels``. A refusal of the options is a ``ValueError``."""
         facade = _render.load()
         document = self.document
         if kind == "pdf":
@@ -648,6 +649,11 @@ class _LocalBackend:
         shown.Dpi = options.dpi
         shown.Background = options.background
         try:
+            if kind == "transform":
+                return facade.CadRender.Transform(document, shown)
+            if kind in ("masks", "to_coco"):
+                classes = None if options.classes is None else _net.Array[_net.Int32](list(options.classes))
+                return facade.CadRender.DrawLabels(document, shown, classes)
             if kind == "image":
                 return facade.CadRender.Draw(document, shown)
             (facade.CadRender.WritePng if kind == "png" else facade.CadRender.WriteSvg)(path, document, shown)

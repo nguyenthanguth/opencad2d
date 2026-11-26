@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- **NEW.** Labelled renders for training vision models on drawings (PW7.4). `drawing.render_transform(...)` is the 3 by 3 matrix, a
+  numpy array, from the drawing to the pixels of the picture `render_png` and `render_image` make: the view the renderer draws by,
+  taken from the same code path, so a point of a line maps to a pixel the line coloured (a drawing 400 by 300 at 1 600 by 1 200 pixels:
+  `[[3.6, 0, 80], [0, -3.6, 1140], [0, 0, 1]]`). `drawing.render_masks(classes=..., instances=False, ...)` gives a `RenderMasks`: the
+  class of every pixel (`words` 1, `dimensions` 2, `lines` 3, `hatches` 4, `blocks` 5, 0 the ground; a `uint8` array of the picture's
+  shape) and with `instances=True` the object that draws it (an `int32` array, `handles` naming the objects), drawn by the canvas's own
+  renderer in flat ids with no antialiasing and in the order the drawing draws, so what is on top in the picture is on top in the
+  masks. `drawing.to_coco(image_path, classes=..., segmentation=False, ...)` writes the picture and gives its objects as a COCO
+  detection `dict` (images, annotations with `bbox` in pixels from the objects' bounds through the matrix and widened to hold every
+  pixel of the object, `area`, `iscrowd` 0 and optionally the turned frames of the words, and the five fixed categories). A 10 000
+  object drawing at 1 600 by 1 200 pixels: the masks in 0.08 s and the COCO file with its PNG in 0.2 s on .NET 8 and on .NET
+  Framework. In C#: `CadRender.Transform`, `CadRender.DrawLabels`, `CadRenderLabels` and `CadLabelClass` in `OpenCAD2D.Rendering`.
+  On a drawing of a file; a drawing of the app raises `RuntimeError`, as the render calls do. The example `coco_dataset.py` writes
+  pictures, class masks and one COCO file of three drawings built in code.
+- **CHANGED.** The renderer of the canvas has an internal id mode (`CanvasOptions.IdOf`) the labelled renders use; it is off by
+  default and no picture of the app, the PNG, the SVG or the PDF changes by a byte.
 - **NEW.** Real drawings read for AI pipelines (PW6.3). `drawing.flatten()` walks every block reference of a drawing, nested ones and
   arrays of them (MINSERT) included, to the objects it draws, in world coordinates and millimetres, each with its handle, the path of
   block names it came out of, the 4 by 4 matrix that placed it, and the layer, colour and linetype it is drawn with (what is on layer 0

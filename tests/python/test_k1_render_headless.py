@@ -449,7 +449,7 @@ def test_the_code_of_the_guide_section_runs_and_gives_the_values_its_comments_gi
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     text = GUIDE.read_text(encoding="utf-8")
-    section = text[text.index("## Rendering without a window") : text.index("## Inside OpenCAD2D")]
+    section = text[text.index("## Rendering without a window") : text.index("## Labelled renders for training vision models")]
     blocks = re.findall(r"```python\n(.*?)```", section, flags=re.DOTALL)
     monkeypatch.chdir(tmp_path)
     namespace: dict[str, Any] = {}

@@ -310,8 +310,9 @@ class _RemoteBackend:
     def render(self, kind: str, path: str | None, options: RenderOptions) -> Any:
         """Refuses: the drawing is in the app, and the Python process holds no ``CadDocument`` to draw. Save it
         (``save_as``) and render ``open_file`` of the copy."""
+        name = kind if kind == "to_coco" else f"render_{kind}"
         raise RuntimeError(
-            f"render_{kind} works on a drawing of a file: this drawing is in the app. Call save_as(path) and "
+            f"{name} works on a drawing of a file: this drawing is in the app. Call save_as(path) and "
             "render open_file(path) instead."
         )
 

@@ -12,7 +12,7 @@ import pytest
 
 GUIDE = Path(__file__).resolve().parents[2] / "docs" / "python.md"
 FIRST = "### Where things are drawn: bounds and overlaps"
-LAST = "## Inside OpenCAD2D"
+LAST = "### Preparing real drawings for AI: flatten, JSON and graph"
 
 
 def _blocks() -> list[str]:

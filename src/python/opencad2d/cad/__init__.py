@@ -485,8 +485,10 @@ from ._drawing import (  # noqa: E402
     Drawing as Drawing,
     Entity as Entity,
     Layer as Layer,
+    LABEL_CLASSES as LABEL_CLASSES,
     Linetypes as Linetypes,
     OverlapTable as OverlapTable,
+    RenderMasks as RenderMasks,
     TextStyles as TextStyles,
 )
 from ._local import (  # noqa: E402
