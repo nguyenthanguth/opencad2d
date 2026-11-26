@@ -56,7 +56,7 @@ namespace OpenCAD2D.Mcp
 
         public IReadOnlyList<string> Layouts => Spaces().Select(s => s.Name).ToList();
 
-        private CadCommandSession Session => _session ?? (_session = new CadCommandSession(Document));
+        internal CadCommandSession Session => _session ?? (_session = new CadCommandSession(Document));
 
         private IEnumerable<CadSpace> Spaces() => Document.Spaces.Where(s => !s.IsBlockEditor);
 
@@ -555,6 +555,7 @@ namespace OpenCAD2D.Mcp
 
         public byte[] RenderPng(RenderRequest request)
         {
+            request.Box = request.Box ?? McpViews.Get(Document, request.Layout);
             string file = System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(),
                 "opencad2d-mcp-" + Guid.NewGuid().ToString("N") + ".png"

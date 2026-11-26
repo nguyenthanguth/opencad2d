@@ -14,6 +14,7 @@ namespace OpenCAD2D.Mcp
     internal sealed class McpSession : IDisposable
     {
         private readonly object _gate = new object();
+        private readonly McpFailures _failures = new McpFailures();
         private IDrawingBackend _file;
         private CadApplication _app;
         private CadRemoteDocument _chosen;
@@ -58,7 +59,7 @@ namespace OpenCAD2D.Mcp
                     );
                 }
 
-                return Guarded(() => work(Backend));
+                return Guarded(tool, () => work(Backend));
             }
         }
 
@@ -71,11 +72,11 @@ namespace OpenCAD2D.Mcp
         {
             lock (_gate)
             {
-                return Guarded(work);
+                return Guarded(null, work);
             }
         }
 
-        private static T Guarded<T>(Func<T> work)
+        private T Guarded<T>(string tool, Func<T> work)
         {
             try
             {
@@ -88,18 +89,32 @@ namespace OpenCAD2D.Mcp
             catch (Exception exception)
             {
                 // A refusal the agent can act on is its answer; anything else is also written for whoever runs the server.
-                if (
-                    !(exception is ArgumentException)
-                    && !(exception is InvalidOperationException)
-                    && !(exception is CadRemoteException)
-                )
+                bool refusal =
+                    exception is ArgumentException
+                    || exception is InvalidOperationException
+                    || exception is CadRemoteException;
+
+                if (!refusal)
                 {
                     Console.Error.WriteLine(exception);
                 }
 
+                _failures.Add(tool, exception, refusal);
                 throw new McpException(exception.Message, exception);
             }
         }
+
+        /// <summary>
+        /// Gets the app of an attached server, found and connected to on first use, for a tool that asks the app about itself and not
+        /// about a drawing; null for a server that works on a file.
+        /// </summary>
+        /// <exception cref="McpException">Thrown when the app is not there.</exception>
+        public CadApplication Application => Options.Attach ? App() : null;
+
+        /// <summary>Gets the tool calls this server could not do, the newest first, as <c>last_errors</c> tells them.</summary>
+        /// <param name="count">How many to give.</param>
+        /// <returns>The failures.</returns>
+        public IReadOnlyList<McpFailure> Failures(int count) => _failures.Newest(count);
 
         /// <summary>Refuses a tool that types free command, LISP or script text unless the server was started with <c>--allow-scripts</c>.</summary>
         /// <param name="tool">The name of the tool.</param>

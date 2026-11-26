@@ -421,6 +421,30 @@
   plan of the world puts them. A viewport looking straight down is drawn as before, item for item. Such a viewport is
   still not entered (MSPACE says so on the command line) and nothing is snapped through it. New public members:
   `CadViewports.HasPlanView` and `CadViewports.ToView(DxfViewport, GeoPoint3)`.
+- **NEW.** The MCP server prints, files and checks: `plot_pdf` (a layout or model space to a one-page PDF with the layout's own
+  sheet and scale, or `paper`, `scale` or `fit` for that plot only; the words of an SHX style are searchable in it), `export_svg`,
+  `save_as` (a copy of the drawing as a DXF or DWG of a version; the open drawing keeps its file and its unsaved changes),
+  `purge` (the kinds nothing uses, through -PURGE with fixed input), `audit` (the errors counted by kind; `fix` fixes them as one undo
+  step) and `zoom_extents`, `zoom_window` and `zoom_object` (the app's window attached; the view `render_png` and `export_svg` use
+  on a file). A file that is there is refused unless `overwrite`. All but the check of `audit` and the zooms on a file are refused with
+  `--read-only`.
+- **NEW.** The MCP server helps debug the app you are working in (`OpenCAD2D.Mcp.exe --attach --read-only`): `app_screenshot`
+  (the app's canvas as it last drew it, with its size and the part of the drawing it shows, so `render_png` draws the same part to compare
+  the two), `command_history` (the last lines of the command line), `last_errors` (the app's crash log and the requests it could not
+  answer, and the server's own failed calls), `dump_drawing` (the drawing as it is now, unsaved changes included, as a DXF in
+  `%TEMP%\OpenCAD2D\mcp-debug`; the only writer allowed read-only), `compare_drawings` (added, removed and changed objects between two
+  states, by handle) and `timings` (milliseconds of a regen, a render and an open). The guide has a section, "Debugging with MCP".
+- **NEW.** Remote reads what the app is doing and what went wrong in it, with no window or dialog shown: `app.GetScreenshot(maxSide)`
+  (the PNG of the drawing canvas as the window last drew it, its size and the part of the drawing it shows), `drawing.GetHistory(count)`
+  (the last lines of the drawing's command line, whether a command runs and its prompt) and `app.GetErrors(count)` (the entries of
+  `crash.log` and the requests the app could not answer). A host that is not the app's window implements the new
+  `ICadRemoteDiagnostics` to answer the first and the last; `ICadRemoteHost` is not changed and the protocol stays at version 1.
+- **NEW.** `CadDrawingDiff.Compare(before, after, tolerance)` compares two states of a drawing by handle through the walk and the JSON
+  of the AI export: the objects added, removed and changed, with the names of the properties that differ, the box before and after
+  and how far it moved (a line that moved 10 mm in x is `box` and `start` and `end` and `[10, 0]`). The MCP's `compare_drawings`
+  uses it, and it is a class of the core so that Python's drawing comparison (PW7.6) can use it later.
+- **NEW.** `CadCrashLogReader.Read(path, count)` reads the newest entries of the app's crash log (and of `crash.old.log` where the log
+  holds fewer): when, where caught, the last command, whether fatal and the head of the exception.
 
 ## 2.0.0 (2026-11-26)
 

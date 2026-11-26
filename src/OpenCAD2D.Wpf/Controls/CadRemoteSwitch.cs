@@ -21,8 +21,13 @@ namespace OpenCAD2D.Wpf
         private CadRemoteServer _server;
 
         /// <summary>Makes the switch for the app's window; nothing runs until <see cref="Apply"/>.</summary>
-        public CadRemoteSwitch(MainViewModel model, Func<string> title, Dispatcher dispatcher)
-            : this(model, new CadAppRemoteHost(model, title, dispatcher)) { }
+        public CadRemoteSwitch(
+            MainViewModel model,
+            Func<string> title,
+            Dispatcher dispatcher,
+            Func<CadCanvas> canvas = null
+        )
+            : this(model, new CadAppRemoteHost(model, title, dispatcher, canvas)) { }
 
         private CadRemoteSwitch(MainViewModel model, CadAppRemoteHost host)
             : this(model, host, host, null, null) { }
