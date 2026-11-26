@@ -297,7 +297,10 @@ The presenter opens a DWG of AutoCAD 2000 to 2018 as it opens a DXF, read by the
   QSAVE offer it as a DWG first. Of the presenter's own template (Open with no Template - Metric, what QNEW starts where no
   default template is set) it has the layer 0 and no other, as AutoCAD's Open with no Template - Metric has; a drawing's
   layers come from its template, not from a list in Global settings (there is none), so put the layers you want in a `.dwt`
-  in the `DrawingTemplates` folder. The current layer is 0, and a drawing opened from a file is left as it is. A new
+  in the `DrawingTemplates` folder. Its Layout1 is a sheet of ISO A3 on its side, 420 by 297 mm, with the paper in
+  millimetres, as AutoCAD's acadiso.dwt has it (the library's own new drawing has the paper in inches and no sheet, which
+  reads as 25.4 millimetres to the unit); the imperial template's layouts stay in inches. Python's `new_file()` makes its
+  layout the same way. The current layer is 0, and a drawing opened from a file is left as it is. A new
   drawing of a template file has what the template has instead (see [Drawing templates](#drawing-templates)).
 
 ### Drawing templates

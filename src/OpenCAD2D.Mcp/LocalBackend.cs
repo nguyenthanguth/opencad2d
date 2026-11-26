@@ -31,8 +31,13 @@ namespace OpenCAD2D.Mcp
         public static LocalBackend Open(string path) =>
             new LocalBackend(CadDocument.Open(System.IO.Path.GetFullPath(path)));
 
-        /// <summary>Makes a blank drawing (AutoCAD 2013, layer 0 only) with no file.</summary>
-        public static LocalBackend New() => new LocalBackend(CadDocument.From(new DxfDatabase("AC1027")));
+        /// <summary>Makes a blank drawing (AutoCAD 2013, layer 0 only, Layout1 an A3 sheet in millimetres) with no file.</summary>
+        public static LocalBackend New()
+        {
+            var database = new DxfDatabase("AC1027");
+            CadTemplate.UseMillimetreSheet(database);
+            return new LocalBackend(CadDocument.From(database));
+        }
 
         public string Mode => "file";
 

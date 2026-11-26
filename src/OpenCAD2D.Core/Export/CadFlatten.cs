@@ -172,12 +172,21 @@ namespace OpenCAD2D
     /// <summary>A drawing walked down to its shapes: every entity of its spaces, block references replaced by what they draw.</summary>
     public sealed class CadFlatDrawing
     {
+        private readonly CadDocument _document;
+
+        // The display list of each layout the boxes are read from, by the layout's name: looked up only, never enumerated.
+        private readonly Dictionary<string, CadSpatialIndex> _drawn = new Dictionary<string, CadSpatialIndex>(
+            StringComparer.OrdinalIgnoreCase
+        );
+
         internal CadFlatDrawing(
+            CadDocument document,
             IReadOnlyList<CadFlatEntity> entities,
             IReadOnlyList<CadFlatLayout> layouts,
             CadFlatReport report
         )
         {
+            _document = document;
             Entities = entities;
             Layouts = layouts;
             Report = report;
@@ -191,6 +200,68 @@ namespace OpenCAD2D
 
         /// <summary>Gets what the walk left alone.</summary>
         public CadFlatReport Report { get; }
+
+        /// <summary>
+        /// The box of an entity in millimetres, as <see cref="CadDrawingJson"/> and <see cref="CadDrawingGraph"/> write it: the
+        /// box it is drawn in (the letters of a word, the picture of a dimension, the width of a polyline; the box
+        /// <see cref="CadSpatial.Bounds(CadDocument, CadSpace)"/> gives) for an entity that stood in a space, else the library's
+        /// extents. That is so for a piece of a block, which is a copy the display list holds no box of (it holds the
+        /// reference's whole box under the reference's handle), and for an entity the space draws nothing of (on a frozen layer).
+        /// Null where the entity has no box at all.
+        /// </summary>
+        internal double[] BoxOf(CadFlatEntity entity)
+        {
+            if (entity.IndexPath.Count == 0)
+            {
+                CadSpatialIndex index = DrawnIn(entity.Layout);
+                int slot = index?.Find(entity.Handle) ?? -1;
+
+                if (slot >= 0)
+                {
+                    double[] box = index.HandleBox;
+                    double[] scaled =
+                    {
+                        box[4 * slot] * entity.Scale,
+                        box[4 * slot + 1] * entity.Scale,
+                        box[4 * slot + 2] * entity.Scale,
+                        box[4 * slot + 3] * entity.Scale,
+                    };
+
+                    if (
+                        Guard.IsFinite(scaled[0])
+                        && Guard.IsFinite(scaled[1])
+                        && Guard.IsFinite(scaled[2])
+                        && Guard.IsFinite(scaled[3])
+                        && scaled[0] <= scaled[2]
+                        && scaled[1] <= scaled[3]
+                    )
+                    {
+                        return scaled;
+                    }
+                }
+            }
+
+            return CadDrawingJson.ExtentsBoxOf(entity.Entity, entity.Scale);
+        }
+
+        private CadSpatialIndex DrawnIn(string layout)
+        {
+            if (_document == null)
+            {
+                return null;
+            }
+
+            if (!_drawn.TryGetValue(layout, out CadSpatialIndex index))
+            {
+                CadSpace space = _document.Spaces.FirstOrDefault(s =>
+                    !s.IsBlockEditor && string.Equals(s.Name, layout, StringComparison.OrdinalIgnoreCase)
+                );
+                index = space == null ? null : CadSpatialIndex.Of(_document.GetDisplay(space));
+                _drawn.Add(layout, index);
+            }
+
+            return index;
+        }
     }
 
     /// <summary>
@@ -275,7 +346,7 @@ namespace OpenCAD2D
             }
 
             found.Sort(CompareEntities);
-            return new CadFlatDrawing(found.AsReadOnly(), layouts.AsReadOnly(), report);
+            return new CadFlatDrawing(document, found.AsReadOnly(), layouts.AsReadOnly(), report);
         }
 
         /// <summary>The hexadecimal number of a handle; the largest where it is not one, so that such a handle sorts last.</summary>

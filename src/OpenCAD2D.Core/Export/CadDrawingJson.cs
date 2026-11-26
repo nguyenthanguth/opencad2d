@@ -138,7 +138,7 @@ namespace OpenCAD2D
 
             foreach (CadFlatEntity entity in flat.Entities)
             {
-                WriteEntity(json, entity);
+                WriteEntity(json, flat, entity);
             }
 
             json.EndArray();
@@ -308,8 +308,8 @@ namespace OpenCAD2D
             return color.IsForeground ? "Foreground" : "None";
         }
 
-        /// <summary>The box of an entity's extents in millimetres, or null where it has none.</summary>
-        internal static double[] BoxOf(DxfEntity entity, double scale)
+        /// <summary>The box of an entity's extents in the library's reckoning, in millimetres, or null where it has none.</summary>
+        internal static double[] ExtentsBoxOf(DxfEntity entity, double scale)
         {
             try
             {
@@ -339,7 +339,7 @@ namespace OpenCAD2D
             }
         }
 
-        private static void WriteEntity(CadJsonWriter json, CadFlatEntity flat)
+        private static void WriteEntity(CadJsonWriter json, CadFlatDrawing walk, CadFlatEntity flat)
         {
             DxfEntity entity = flat.Entity;
             double s = flat.Scale;
@@ -350,7 +350,7 @@ namespace OpenCAD2D
             json.Name("color").Value(ColorText(flat.Color));
             json.Name("linetype").Value(flat.Linetype);
             json.Name("layout").Value(flat.Layout);
-            double[] box = BoxOf(entity, s);
+            double[] box = walk.BoxOf(flat);
 
             if (box == null)
             {

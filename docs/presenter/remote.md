@@ -141,12 +141,23 @@ be apart to touch (0.001 is the library's own):
 ```csharp
 string json = drawing.ExportJson(null);               // schema opencad2d.drawing, version 1
 string graph = drawing.ExportGraph(null, 0.001);      // schema opencad2d.graph, version 1
+string first = drawing.ExportGraph(null, 0.001, 500); // the first 500 edges of the graph, or all of them if fewer
 ```
+
+A drawing of thousands of lines that cross each other has an edge for each crossing. `ExportGraph(layout, tolerance, maxEdges)` keeps
+the first `maxEdges` edges of the whole graph in its order (kind, source, target), stops looking once it has found more, and writes
+`"truncated": true` and `"edgesFound"`, the edges found when it stopped (at least `maxEdges + 1`); a graph that was not cut says
+`"truncated": false` and `"edgesFound"` its number of edges. The request member is `maxEdges`, a whole number above nought (`export`
+without it has no cap, and one below 1 is refused in words). The same drawing and cap give the same text on every run.
+
+The `box` of an entity in the JSON is the box it is drawn in, the one `CadSpatial.Bounds` gives (the letters of a word, the picture of
+a dimension, the width of a polyline); a piece of a block, which the display list holds no box of, and an entity a space draws nothing
+of keep the library's extents.
 
 The app writes them with the core's own `CadFlatten.Walk` (block references, nested ones and arrays of them included, walked down to
 the shapes they draw, in world coordinates, with the path of blocks and the transformation of each), `CadDrawingJson.Write` and
 `CadDrawingGraph.Build`; a program that holds a `CadDocument` calls them directly. The request is `export`, and a layout the drawing
-lacks, or a tolerance that is not above nought, is refused in words. The JSON is described by
+lacks, or a tolerance or a cap that is not above nought, is refused in words. The JSON is described by
 [`docs/schemas/opencad2d-drawing-v1.schema.json`](https://github.com/nguyenthanguth/OpenCAD2D/blob/main/docs/schemas/opencad2d-drawing-v1.schema.json),
 and Python's `drawing.flatten()`, `to_json()`, `to_dict()` and `to_graph()` ([the guide](../python.md#preparing-real-drawings-for-ai-flatten-json-and-graph))
 read the same text on a file, in the app and from outside it.

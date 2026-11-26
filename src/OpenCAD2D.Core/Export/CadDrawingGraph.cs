@@ -79,11 +79,19 @@ namespace OpenCAD2D
         private const int Chords = 48;
         private const int ArcChords = 12;
 
-        private CadDrawingGraph(CadFlatDrawing flat, IReadOnlyList<CadGraphEdge> edges, double tolerance)
+        private CadDrawingGraph(
+            CadFlatDrawing flat,
+            IReadOnlyList<CadGraphEdge> edges,
+            double tolerance,
+            bool truncated,
+            int edgesFound
+        )
         {
             Flat = flat;
             Edges = edges;
             Tolerance = tolerance;
+            Truncated = truncated;
+            EdgesFound = edgesFound;
         }
 
         /// <summary>Gets the walked drawing: its entities are the nodes, in this order.</summary>
@@ -94,6 +102,20 @@ namespace OpenCAD2D
 
         /// <summary>Gets the edges, sorted by kind, then source, then target.</summary>
         public IReadOnlyList<CadGraphEdge> Edges { get; }
+
+        /// <summary>
+        /// Gets whether the graph was cut at the cap it was built with: there are edges beyond those of <see cref="Edges"/>. The
+        /// edges kept are the first of the whole graph in its order (kind, source, target), so the same drawing and cap give the
+        /// same graph.
+        /// </summary>
+        public bool Truncated { get; }
+
+        /// <summary>
+        /// Gets how many edges had been found when the search stopped: the number of <see cref="Edges"/> for a graph that was not
+        /// cut, and for one that was, at least one more than the cap (the search finishes the node it stops at, so the whole
+        /// drawing has this many edges or more).
+        /// </summary>
+        public int EdgesFound { get; }
 
         /// <summary>Gets the tolerance in millimetres the touches were found to.</summary>
         public double Tolerance { get; }
@@ -121,7 +143,8 @@ namespace OpenCAD2D
         /// Writes the graph as JSON: <c>schema</c> <c>opencad2d.graph</c>, <c>version</c> 1, <c>tolerance</c>, <c>nodes</c> (each
         /// with its <c>id</c>, handle, kind, layer, colour, linetype, layout, box in millimetres, block path and words) and
         /// <c>edges</c> (<c>source</c>, <c>target</c>, <c>kind</c> as <c>touches</c>, <c>contains</c>, <c>dimensions</c> or
-        /// <c>annotates</c>, and <c>at</c>, the place in millimetres or null).
+        /// <c>annotates</c>, and <c>at</c>, the place in millimetres or null), then <c>truncated</c> and <c>edgesFound</c>
+        /// (<see cref="Truncated"/>, <see cref="EdgesFound"/>).
         /// </summary>
         /// <returns>The JSON text.</returns>
         public string ToJson()
@@ -144,7 +167,7 @@ namespace OpenCAD2D
                 json.Name("color").Value(CadDrawingJson.ColorText(flat.Color));
                 json.Name("linetype").Value(flat.Linetype);
                 json.Name("layout").Value(flat.Layout);
-                double[] box = CadDrawingJson.BoxOf(flat.Entity, flat.Scale);
+                double[] box = Flat.BoxOf(flat);
 
                 if (box == null)
                 {
@@ -191,6 +214,8 @@ namespace OpenCAD2D
             }
 
             json.EndArray();
+            json.Name("truncated").Value(Truncated);
+            json.Name("edgesFound").Value(EdgesFound);
             json.End();
             return json.ToString();
         }
@@ -246,7 +271,25 @@ namespace OpenCAD2D
         /// <exception cref="ArgumentException">Thrown when the drawing has no layout of that name, or the tolerance is not a
         /// finite number above nought.</exception>
         public static CadDrawingGraph Build(CadDocument document, string layout, double tolerance) =>
-            Build(CadFlatten.Walk(document, layout), tolerance);
+            Build(CadFlatten.Walk(document, layout), tolerance, int.MaxValue);
+
+        /// <summary>
+        /// Builds the graph of a drawing, stopping when it has more than <paramref name="maxEdges"/> edges, so that a dense
+        /// drawing (thousands of lines that cross each other) does not cost as many edges as it has crossings: the graph keeps
+        /// the first <paramref name="maxEdges"/> edges of the whole one in its order (kind, source, target) and says so with
+        /// <see cref="Truncated"/> and <see cref="EdgesFound"/>. A drawing of 600 lines across 600 others, whose 360 000 crossings
+        /// are the touches, built with a cap of 50, keeps the 50 edges of its first line and has <c>EdgesFound</c> 600.
+        /// </summary>
+        /// <param name="document">The drawing.</param>
+        /// <param name="layout">The layout to take, or null for model space and every layout.</param>
+        /// <param name="tolerance">How near two ends must be to touch, in millimetres: 0.001 is the library's own.</param>
+        /// <param name="maxEdges">The most edges to keep; above nought.</param>
+        /// <returns>The graph.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the drawing is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the drawing has no layout of that name, the tolerance is not a
+        /// finite number above nought, or the cap is not above nought.</exception>
+        public static CadDrawingGraph Build(CadDocument document, string layout, double tolerance, int maxEdges) =>
+            Build(CadFlatten.Walk(document, layout), tolerance, maxEdges);
 
         /// <summary>Builds the graph of a drawing already walked.</summary>
         /// <param name="flat">The walk.</param>
@@ -254,7 +297,17 @@ namespace OpenCAD2D
         /// <returns>The graph.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the walk is null.</exception>
         /// <exception cref="ArgumentException">Thrown when the tolerance is not a finite number above nought.</exception>
-        public static CadDrawingGraph Build(CadFlatDrawing flat, double tolerance)
+        public static CadDrawingGraph Build(CadFlatDrawing flat, double tolerance) =>
+            Build(flat, tolerance, int.MaxValue);
+
+        /// <summary>Builds the graph of a drawing already walked, with a cap on its edges (see <see cref="Build(CadDocument, string, double, int)"/>).</summary>
+        /// <param name="flat">The walk.</param>
+        /// <param name="tolerance">How near two ends must be to touch, in millimetres.</param>
+        /// <param name="maxEdges">The most edges to keep; above nought.</param>
+        /// <returns>The graph.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the walk is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the tolerance is not a finite number above nought, or the cap is not above nought.</exception>
+        public static CadDrawingGraph Build(CadFlatDrawing flat, double tolerance, int maxEdges)
         {
             if (flat == null)
             {
@@ -266,6 +319,7 @@ namespace OpenCAD2D
                 nameof(tolerance),
                 "The tolerance is a number of millimetres above nought."
             );
+            Guard.Argument(maxEdges > 0, nameof(maxEdges), "The cap is a number of edges above nought.");
             var edges = new Dictionary<long, CadGraphEdge>[4];
 
             for (int k = 0; k < edges.Length; k++)
@@ -281,13 +335,37 @@ namespace OpenCAD2D
             }
 
             // One layout at a time, in the order the walk gives them: a node of a sheet is never related to one of model space.
+            var builderOf = new Builder[items.Length];
+
             foreach (
                 IGrouping<string, int> group in Enumerable.Range(0, items.Length).GroupBy(i => flat.Entities[i].Layout)
             )
             {
                 var layoutItems = group.ToList();
                 double tolerance2 = tolerance / flat.Entities[layoutItems[0]].Scale;
-                new Builder(items, layoutItems, tolerance2, edges).Run();
+                var builder = new Builder(items, layoutItems, tolerance2, edges);
+                builder.Fill();
+
+                foreach (int i in layoutItems)
+                {
+                    builderOf[i] = builder;
+                }
+            }
+
+            // Kind by kind and, within a kind, node by node in the order of the walk across the layouts: a node's row is every edge
+            // it is the source of. So every edge not yet found comes after every edge found, in the order the edges are given
+            // in, and a graph with more than the cap can stop at the end of a row holding the first of its edges.
+            bool truncated = false;
+            int found = 0;
+
+            for (int kind = 0; kind < edges.Length && !truncated; kind++)
+            {
+                for (int i = 0; i < items.Length && !truncated; i++)
+                {
+                    builderOf[i].Row((CadGraphEdgeKind)kind, i);
+                    found = edges[0].Count + edges[1].Count + edges[2].Count + edges[3].Count;
+                    truncated = found > maxEdges;
+                }
             }
 
             var sorted = new List<CadGraphEdge>();
@@ -297,7 +375,12 @@ namespace OpenCAD2D
                 sorted.AddRange(ofKind.Values.OrderBy(e => e.Source).ThenBy(e => e.Target));
             }
 
-            return new CadDrawingGraph(flat, sorted.AsReadOnly(), tolerance);
+            if (truncated)
+            {
+                sorted.RemoveRange(maxEdges, sorted.Count - maxEdges);
+            }
+
+            return new CadDrawingGraph(flat, sorted.AsReadOnly(), tolerance, truncated, found);
         }
 
         /// <summary>The key of an edge within its kind: the source as the high half of a long, the target as the low.</summary>
@@ -480,6 +563,8 @@ namespace OpenCAD2D
             private readonly Dictionary<long, CadGraphEdge>[] _edges;
             private readonly Dictionary<long, List<int>> _cells = new Dictionary<long, List<int>>(new KeyComparer());
             private readonly List<int> _large = new List<int>();
+            private readonly HashSet<int> _seen = new HashSet<int>();
+            private Dictionary<string, List<int>> _byHandle;
             private double _cell;
 
             public Builder(Item[] items, List<int> members, double tolerance, Dictionary<long, CadGraphEdge>[] edges)
@@ -490,13 +575,24 @@ namespace OpenCAD2D
                 _edges = edges;
             }
 
-            public void Run()
+            /// <summary>Finds the edges of one kind that node <paramref name="i"/> is the source of.</summary>
+            public void Row(CadGraphEdgeKind kind, int i)
             {
-                Fill();
-                Touches();
-                Contains();
-                Dimensions();
-                Annotations();
+                switch (kind)
+                {
+                    case CadGraphEdgeKind.Touches:
+                        Touches(i);
+                        break;
+                    case CadGraphEdgeKind.Contains:
+                        Contains(i);
+                        break;
+                    case CadGraphEdgeKind.Dimensions:
+                        Dimensions(i);
+                        break;
+                    default:
+                        Annotations(i);
+                        break;
+                }
             }
 
             // ---- the grid ------------------------------------------------------------------------------------------
@@ -507,7 +603,7 @@ namespace OpenCAD2D
                 (int)Math.Max(Math.Min(Math.Floor(v / _cell), int.MaxValue / 2), int.MinValue / 2);
 
             /// <summary>Puts every node with a box in the cells it covers; one covering more than 32 by 32 cells goes in a list of its own.</summary>
-            private void Fill()
+            public void Fill()
             {
                 var sizes = new List<double>();
                 double minX = double.MaxValue,
@@ -659,32 +755,27 @@ namespace OpenCAD2D
 
             // ---- touches -------------------------------------------------------------------------------------------
 
-            private void Touches()
+            private void Touches(int i)
             {
-                var seen = new HashSet<int>();
+                Item a = _items[i];
 
-                foreach (int i in _members)
+                if (a.Curve == null)
                 {
-                    Item a = _items[i];
+                    return;
+                }
 
-                    if (a.Curve == null)
+                foreach (int j in Near(a.MinX, a.MinY, a.MaxX, a.MaxY, _seen))
+                {
+                    Item b = _items[j];
+
+                    if (j <= i || b.Curve == null || !BoxesMeet(a, b, _tolerance))
                     {
                         continue;
                     }
 
-                    foreach (int j in Near(a.MinX, a.MinY, a.MaxX, a.MaxY, seen))
+                    if (Meet(a, b, out double x, out double y))
                     {
-                        Item b = _items[j];
-
-                        if (j <= i || b.Curve == null || !BoxesMeet(a, b, _tolerance))
-                        {
-                            continue;
-                        }
-
-                        if (Meet(a, b, out double x, out double y))
-                        {
-                            Add(CadGraphEdgeKind.Touches, i, j, x, y);
-                        }
+                        Add(CadGraphEdgeKind.Touches, i, j, x, y);
                     }
                 }
             }
@@ -854,51 +945,46 @@ namespace OpenCAD2D
                 return Math.Sqrt(ex * ex + ey * ey);
             }
 
-            private void Contains()
+            private void Contains(int i)
             {
-                var seen = new HashSet<int>();
+                Item region = _items[i];
 
-                foreach (int i in _members)
+                if (region.Outline == null)
                 {
-                    Item region = _items[i];
+                    return;
+                }
 
-                    if (region.Outline == null)
+                foreach (int j in Near(region.MinX, region.MinY, region.MaxX, region.MaxY, _seen))
+                {
+                    Item inner = _items[j];
+
+                    if (
+                        j == i
+                        || !inner.HasBox
+                        || inner.MinX < region.MinX - _tolerance
+                        || inner.MinY < region.MinY - _tolerance
+                        || inner.MaxX > region.MaxX + _tolerance
+                        || inner.MaxY > region.MaxY + _tolerance
+                        || inner.Area >= region.Area - _tolerance * _tolerance
+                    )
                     {
                         continue;
                     }
 
-                    foreach (int j in Near(region.MinX, region.MinY, region.MaxX, region.MaxY, seen))
+                    if (
+                        Inside(region.Outline, inner.MinX, inner.MinY, false)
+                        && Inside(region.Outline, inner.MaxX, inner.MinY, false)
+                        && Inside(region.Outline, inner.MaxX, inner.MaxY, false)
+                        && Inside(region.Outline, inner.MinX, inner.MaxY, false)
+                        && Inside(
+                            region.Outline,
+                            (inner.MinX + inner.MaxX) / 2.0,
+                            (inner.MinY + inner.MaxY) / 2.0,
+                            true
+                        )
+                    )
                     {
-                        Item inner = _items[j];
-
-                        if (
-                            j == i
-                            || !inner.HasBox
-                            || inner.MinX < region.MinX - _tolerance
-                            || inner.MinY < region.MinY - _tolerance
-                            || inner.MaxX > region.MaxX + _tolerance
-                            || inner.MaxY > region.MaxY + _tolerance
-                            || inner.Area >= region.Area - _tolerance * _tolerance
-                        )
-                        {
-                            continue;
-                        }
-
-                        if (
-                            Inside(region.Outline, inner.MinX, inner.MinY, false)
-                            && Inside(region.Outline, inner.MaxX, inner.MinY, false)
-                            && Inside(region.Outline, inner.MaxX, inner.MaxY, false)
-                            && Inside(region.Outline, inner.MinX, inner.MaxY, false)
-                            && Inside(
-                                region.Outline,
-                                (inner.MinX + inner.MaxX) / 2.0,
-                                (inner.MinY + inner.MaxY) / 2.0,
-                                true
-                            )
-                        )
-                        {
-                            Add(CadGraphEdgeKind.Contains, i, j, double.NaN, double.NaN);
-                        }
+                        Add(CadGraphEdgeKind.Contains, i, j, double.NaN, double.NaN);
                     }
                 }
             }
@@ -939,82 +1025,80 @@ namespace OpenCAD2D
                 }
             }
 
-            private void Dimensions()
+            /// <summary>The nodes of the layout by handle (a block reference's pieces share one), made on the first dimension.</summary>
+            private Dictionary<string, List<int>> ByHandle()
             {
-                var byHandle = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
-
-                foreach (int i in _members)
+                if (_byHandle == null)
                 {
-                    string handle = _items[i].Flat.Handle;
+                    _byHandle = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
 
-                    if (!byHandle.TryGetValue(handle ?? string.Empty, out List<int> list))
+                    foreach (int i in _members)
                     {
-                        list = new List<int>(1);
-                        byHandle.Add(handle ?? string.Empty, list);
-                    }
+                        string handle = _items[i].Flat.Handle;
 
-                    list.Add(i);
+                        if (!_byHandle.TryGetValue(handle ?? string.Empty, out List<int> list))
+                        {
+                            list = new List<int>(1);
+                            _byHandle.Add(handle ?? string.Empty, list);
+                        }
+
+                        list.Add(i);
+                    }
                 }
 
-                var seen = new HashSet<int>();
+                return _byHandle;
+            }
 
-                foreach (int i in _members)
+            private void Dimensions(int i)
+            {
+                if (!(_items[i].Flat.Entity is DxfDimension dimension))
                 {
-                    if (!(_items[i].Flat.Entity is DxfDimension dimension))
+                    return;
+                }
+
+                bool tied = false;
+
+                try
+                {
+                    DxfDimAssoc assoc = dimension.DimAssoc;
+
+                    if (assoc != null)
                     {
-                        continue;
-                    }
-
-                    bool tied = false;
-
-                    try
-                    {
-                        DxfDimAssoc assoc = dimension.DimAssoc;
-
-                        if (assoc != null)
+                        foreach (DxfOsnapPointRef reference in assoc.PointReferences)
                         {
-                            foreach (DxfOsnapPointRef reference in assoc.PointReferences)
+                            if (
+                                reference.ObjectHandle != null
+                                && ByHandle().TryGetValue(reference.ObjectHandle, out List<int> targets)
+                            )
                             {
-                                if (
-                                    reference.ObjectHandle != null
-                                    && byHandle.TryGetValue(reference.ObjectHandle, out List<int> targets)
-                                )
+                                foreach (int target in targets.Where(t => t != i))
                                 {
-                                    foreach (int target in targets.Where(t => t != i))
-                                    {
-                                        Add(
-                                            CadGraphEdgeKind.Dimensions,
-                                            i,
-                                            target,
-                                            reference.Point.X,
-                                            reference.Point.Y
-                                        );
-                                        tied = true;
-                                    }
+                                    Add(CadGraphEdgeKind.Dimensions, i, target, reference.Point.X, reference.Point.Y);
+                                    tied = true;
                                 }
                             }
                         }
                     }
-                    catch (Exception exception)
-                        when (exception is InvalidOperationException
-                            || exception is ArgumentException
-                            || exception is NotSupportedException
-                        )
-                    {
-                        // A dimension whose association cannot be read is taken by its points.
-                    }
+                }
+                catch (Exception exception)
+                    when (exception is InvalidOperationException
+                        || exception is ArgumentException
+                        || exception is NotSupportedException
+                    )
+                {
+                    // A dimension whose association cannot be read is taken by its points.
+                }
 
-                    if (tied)
-                    {
-                        continue;
-                    }
+                if (tied)
+                {
+                    return;
+                }
 
-                    foreach (GeoPoint3 point in MeasuredPoints(dimension))
+                foreach (GeoPoint3 point in MeasuredPoints(dimension))
+                {
+                    foreach (int j in CurvesAt(point.X, point.Y, _seen, i))
                     {
-                        foreach (int j in CurvesAt(point.X, point.Y, seen, i))
-                        {
-                            Add(CadGraphEdgeKind.Dimensions, i, j, point.X, point.Y);
-                        }
+                        Add(CadGraphEdgeKind.Dimensions, i, j, point.X, point.Y);
                     }
                 }
             }
@@ -1040,74 +1124,69 @@ namespace OpenCAD2D
 
             // ---- annotates -----------------------------------------------------------------------------------------
 
-            private void Annotations()
+            private void Annotations(int i)
             {
-                var seen = new HashSet<int>();
+                DxfEntity entity = _items[i].Flat.Entity;
+                var tips = new List<GeoPoint3>();
 
-                foreach (int i in _members)
+                try
                 {
-                    DxfEntity entity = _items[i].Flat.Entity;
-                    var tips = new List<GeoPoint3>();
-
-                    try
+                    if (entity is DxfLeader leader && leader.HasArrowHead && leader.NumVertices > 0)
                     {
-                        if (entity is DxfLeader leader && leader.HasArrowHead && leader.NumVertices > 0)
-                        {
-                            tips.Add(leader.FirstVertex);
-                        }
-                        else if (entity is DxfMLeader mleader)
-                        {
-                            GeoPoint3 text = mleader.TextLocation;
+                        tips.Add(leader.FirstVertex);
+                    }
+                    else if (entity is DxfMLeader mleader)
+                    {
+                        GeoPoint3 text = mleader.TextLocation;
 
-                            foreach (object shape in mleader.GetGeometry())
+                        foreach (object shape in mleader.GetGeometry())
+                        {
+                            IReadOnlyList<GeoPoint3> vertices =
+                                shape is GeoPolyline3 polyline ? polyline.Vertices
+                                : shape is GeoLine3 line ? new[] { line.StartPoint, line.EndPoint }
+                                : null;
+
+                            if (vertices == null || vertices.Count < 2)
                             {
-                                IReadOnlyList<GeoPoint3> vertices =
-                                    shape is GeoPolyline3 polyline ? polyline.Vertices
-                                    : shape is GeoLine3 line ? new[] { line.StartPoint, line.EndPoint }
-                                    : null;
-
-                                if (vertices == null || vertices.Count < 2)
-                                {
-                                    continue;
-                                }
-
-                                // The arrow is at the end of the line farthest from the words.
-                                GeoPoint3 first = vertices[0];
-                                GeoPoint3 last = vertices[vertices.Count - 1];
-                                tips.Add(
-                                    (first.X - text.X) * (first.X - text.X) + (first.Y - text.Y) * (first.Y - text.Y)
-                                    >= (last.X - text.X) * (last.X - text.X) + (last.Y - text.Y) * (last.Y - text.Y)
-                                        ? first
-                                        : last
-                                );
+                                continue;
                             }
+
+                            // The arrow is at the end of the line farthest from the words.
+                            GeoPoint3 first = vertices[0];
+                            GeoPoint3 last = vertices[vertices.Count - 1];
+                            tips.Add(
+                                (first.X - text.X) * (first.X - text.X) + (first.Y - text.Y) * (first.Y - text.Y)
+                                >= (last.X - text.X) * (last.X - text.X) + (last.Y - text.Y) * (last.Y - text.Y)
+                                    ? first
+                                    : last
+                            );
                         }
                     }
-                    catch (Exception exception)
-                        when (exception is InvalidOperationException
-                            || exception is ArgumentException
-                            || exception is NotSupportedException
-                        )
-                    {
-                        continue;
-                    }
+                }
+                catch (Exception exception)
+                    when (exception is InvalidOperationException
+                        || exception is ArgumentException
+                        || exception is NotSupportedException
+                    )
+                {
+                    return;
+                }
 
-                    foreach (GeoPoint3 tip in tips)
+                foreach (GeoPoint3 tip in tips)
+                {
+                    foreach (int j in Near(tip.X, tip.Y, tip.X, tip.Y, _seen).ToList().OrderBy(k => k))
                     {
-                        foreach (int j in Near(tip.X, tip.Y, tip.X, tip.Y, seen).ToList().OrderBy(k => k))
+                        Item item = _items[j];
+                        bool onIt =
+                            j != i
+                            && (
+                                item.Curve != null && OnCurve(item.Curve, new GeoPoint2(tip.X, tip.Y), out _, out _)
+                                || item.Flat.Entity is DxfHatch && item.HasBox && Within(item, tip.X, tip.Y)
+                            );
+
+                        if (onIt)
                         {
-                            Item item = _items[j];
-                            bool onIt =
-                                j != i
-                                && (
-                                    item.Curve != null && OnCurve(item.Curve, new GeoPoint2(tip.X, tip.Y), out _, out _)
-                                    || item.Flat.Entity is DxfHatch && item.HasBox && Within(item, tip.X, tip.Y)
-                                );
-
-                            if (onIt)
-                            {
-                                Add(CadGraphEdgeKind.Annotates, i, j, tip.X, tip.Y);
-                            }
+                            Add(CadGraphEdgeKind.Annotates, i, j, tip.X, tip.Y);
                         }
                     }
                 }

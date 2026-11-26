@@ -768,6 +768,10 @@ layer off, no words) has no row. One box is not the list's: a TEXT in a TrueType
 (0.6 of the height a letter), and its box is measured by the letters of the font file instead, as an MTEXT run is: "iiiiiiiiii"
 10 high in Arial is 31 wide and "WWWWWWWWWW" 132, where the guess is 60 for both.
 
+The `box` of an entity in the [JSON export](remote.md#the-drawing-as-json-and-as-a-graph) is this box, in millimetres, for an entity
+that stands in a space; a piece of a block reference, which the display list holds no box of apart from its reference's, and an entity
+the space draws nothing of keep the library's extents.
+
 ```csharp
 var options = new CadOverlapOptions
 {

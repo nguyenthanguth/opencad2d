@@ -362,10 +362,14 @@ class _RemoteBackend:
 
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 
-    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
+    def export(
+        self, what: str, layout: str | None, tolerance: float, max_edges: int | None = None
+    ) -> tuple[str, Any]:
         """The JSON text of the drawing or of its graph, as the app writes it; there is no .NET graph on this side."""
         if what == "graph":
-            return str(self._document.ExportGraph(layout, tolerance)), None
+            if max_edges is None:
+                return str(self._document.ExportGraph(layout, tolerance)), None
+            return str(self._document.ExportGraph(layout, tolerance, max_edges)), None
         return str(self._document.ExportJson(layout)), None
 
     # ---- measuring before placing (PW7.1) -----------------------------------------------------------------------------

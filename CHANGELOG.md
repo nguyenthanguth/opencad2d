@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- **CHANGED.** The layouts of a new drawing are in millimetres on a real sheet. The library's own new drawing has Layout1 with the paper
+  in inches and a sheet of 0 by 0, which the export (`toMillimetres` 25.4), the standards checker (text heights on paper 25.4 times
+  too large) and the renders read as inches. The app's NEW (the presenter's metric template, `CadTemplate.CreateMetric`), Python's `new_file()`
+  and the MCP server's new drawing now give Layout1 as AutoCAD's acadiso.dwt has it: ISO A3 on its side, 420 by 297 mm, in
+  millimetres, plot area the layout, through the new `CadTemplate.UseMillimetreSheet`; a text 4 high on it is 4 on paper and its
+  `toMillimetres` is 1. The imperial template and every drawing read from a file keep their layouts as they are, and a space with
+  no sheet (model space, a layout of a drawing made in code) is still fitted to the page in a PDF.
+- **CHANGED.** The `box` of an entity in the JSON export (`to_json`, `to_dict`, `flatten`, the nodes of `to_graph`, and
+  `CadDrawingJson`, `CadDrawingGraph`) is the box the entity is drawn in, the one `entity.bounds` and `CadSpatial.Bounds` give: a
+  word by its letters, a dimension by its picture, a polyline by its width, to 1e-6. A piece of a block reference, which the display
+  list holds no box of apart from its reference's, and an entity its space draws nothing of (on a frozen layer) keep the library's
+  extents. The schema stays version 1 (the shape is unchanged; the description of `box` says what it is).
+- **NEW.** `to_graph(max_edges=None)` caps the edges of the graph, so a dense drawing does not take as many edges as it has crossings
+  (600 lines across 600 others: 360 000 touches in 0.7 s, or the first 50 edges in 1 ms). The graph keeps the first `max_edges`
+  edges of the whole one in its order (kind, source, target), stops once it has found more, and says so: `truncated` and
+  `edgesFound` (the edges found when it stopped) are in every graph, `False` and the number of edges where it was not cut. The same
+  on a file, in the app and from outside. In C#: `CadDrawingGraph.Build(document, layout, tolerance, maxEdges)` and
+  `Build(flat, tolerance, maxEdges)` with `Truncated` and `EdgesFound`, the request member `maxEdges` of `export`, and
+  `CadRemoteDocument.ExportGraph(layout, tolerance, maxEdges)`.
 - **FIXED.** What Python measures of words on a drawing of a file no longer depends on whether a picture was drawn first in the
   process. `measure_text`, `measure_mtext`, `measure_dimension`, `measure_leader`, `free_space`, `fits`, `bounds`, `entity.bounds`,
   `overlaps` and `check` read a drawing that had not been set up as the app sets one up on opening it (the

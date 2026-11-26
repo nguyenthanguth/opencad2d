@@ -39,5 +39,25 @@ namespace OpenCAD2D.Remote
                     request.Set("tolerance", tolerance);
                 })
                 .GetString("text");
+
+        /// <summary>
+        /// Gets the graph of the drawing as <see cref="ExportGraph(string, double)"/> does, cut at a number of edges: the first
+        /// <paramref name="maxEdges"/> edges of the whole graph in its order (kind, source, target), with <c>truncated</c> true and
+        /// <c>edgesFound</c> in the text where there were more.
+        /// </summary>
+        /// <param name="layout">The layout to take (<c>Model</c> for model space), or null for model space and every layout.</param>
+        /// <param name="tolerance">How near two ends must be to touch, in millimetres; above nought.</param>
+        /// <param name="maxEdges">The most edges to keep; above nought.</param>
+        /// <returns>The JSON text.</returns>
+        /// <exception cref="CadRemoteException">Thrown when the drawing is closed, has no layout of that name, or the tolerance or the cap is not above nought.</exception>
+        public string ExportGraph(string layout, double tolerance, int maxEdges) =>
+            Ask(RemoteOps.Export, request =>
+                {
+                    request.Set("what", "graph");
+                    request.Set("layout", layout);
+                    request.Set("tolerance", tolerance);
+                    request.Set("maxEdges", (long)maxEdges);
+                })
+                .GetString("text");
     }
 }
