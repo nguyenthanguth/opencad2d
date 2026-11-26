@@ -20,7 +20,6 @@ import pytest
 from numpy.typing import NDArray
 
 from opencad2d.cad import LABEL_CLASSES, Drawing, RenderMasks, new_file
-from opencad2d.cad._remote import _RemoteBackend  # pyright: ignore[reportPrivateUsage]
 
 
 def _plan() -> Drawing:
@@ -294,19 +293,6 @@ def test_a_labelled_render_that_cannot_be_drawn_raises_value_error_naming_why(
 ) -> None:
     with pytest.raises(ValueError, match=message):
         new_file().render_masks(**arguments)
-
-
-def test_a_drawing_of_the_app_refuses_all_three_in_the_words_of_the_render_calls(tmp_path: Path) -> None:
-    drawing = Drawing(_RemoteBackend(None, None))
-
-    for call, name in (
-        (lambda: drawing.render_transform(), "render_transform"),
-        (lambda: drawing.render_masks(), "render_masks"),
-        (lambda: drawing.to_coco(str(tmp_path / "a.png")), "to_coco"),
-    ):
-        with pytest.raises(RuntimeError, match=f"{name} works on a drawing of a file"):
-            call()
-    assert list(tmp_path.iterdir()) == []
 
 
 # ---- COCO ------------------------------------------------------------------------------------------------------------

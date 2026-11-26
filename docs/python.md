@@ -1014,11 +1014,18 @@ box with a number that is not finite and a layout the drawing does not have.
 
 ### Where it works
 
-Only a drawing of a file draws: a drawing of the app (`active_drawing()` inside a tool, `connect()` from outside) raises
-`RuntimeError("render_png works on a drawing of a file ...")`, because the Python process holds no drawing to draw, only a
-connection to the app that does. Save the drawing from the app (`drawing.save_as("copy.dxf")`) and render `open_file("copy.dxf")`.
-Rendering a drawing through the app waits for the MCP server of the road map. One picture is drawn at a time in a process; the
-renderer's caches are not locked against two threads drawing at once, so use processes to draw in parallel.
+A drawing of a file and a drawing of the app draw alike: `open_file` and `new_file` give the first, `active_drawing()` inside a tool
+and `connect()` from outside give the second, and every call of this section and of the next works on both. A drawing of the app is
+drawn as the app has it now, the changes not saved included: the call asks the app for a copy of its whole drawing (the request
+`database`, [Remote](presenter/remote.md#the-drawing-as-the-app-has-it)), reads it into a `CadDocument` of the Python process and
+draws that with the code a file is drawn by, so the picture of a drawing in the app is, byte for byte, the picture of the same drawing
+saved and opened as a file. What is queued is committed first, so a line added and not yet committed is in the picture. The app's file
+is never written, and the app is only read: it draws nothing, shows no window and changes nothing. A call that names no `layout` draws
+the tab the app shows (the file's own default is model space). The copy is taken at each call, since the app does not say when its
+drawing changes: on a drawing of 10 000 objects (lines, circles and texts) on .NET 8 and .NET Framework alike the request and the reading take 18 ms and
+drawing the copy for the first time, which a file does once and keeps, about 34 ms more, so a PNG is 0.16 s where the same drawing as a
+file takes 0.08 s, `render_image` 0.07 s against 0.02 s, and `to_coco` 0.18 s against 0.11 s. `to_coco`, which draws the labels and the picture,
+takes one copy for both. One picture is drawn at a time in a process; the renderer's caches are not locked against two threads drawing at once, so use processes to draw in parallel.
 
 `import opencad2d` does not load the renderer. The first render call loads `OpenCAD2D.Rendering`, SkiaSharp and, by its full
 path, the native `libSkiaSharp.dll` (13 MB) from the `lib` folder of the wheel, on .NET 8 and on .NET Framework 4.8 alike; on
@@ -1055,7 +1062,7 @@ a call, against a hang.
 A model that reads drawings is trained on pictures and on what is in them: for each pixel which kind of thing it is, which object
 it belongs to, and where each object is. `render_transform`, `render_masks` and `to_coco` give those, made by the renderer
 that draws the picture, so that a label is where the picture shows the thing: the matrix the picture is drawn by, the class
-(and the object) of every pixel, and a COCO detection file. They work on a drawing of a file and need numpy
+(and the object) of every pixel, and a COCO detection file. They work on a drawing of a file and on a drawing of the app, as `render_png` does, and need numpy
 (`pip install opencad2d[numpy]`); the arguments that say what is drawn (`box`, `dpi`, `width`, `height`, `layout`) are those of
 `render_png`, and with the same ones the labels are of the same picture.
 

@@ -2602,8 +2602,9 @@ class Drawing:
         at ``dpi`` pixels to the inch (A3, 420 by 297 mm, is 1 587 by 1 123 at 96) and model space is 1 600 pixels along its longer
         side. A picture over 16 384 pixels a side or 100 000 000 pixels in all raises ``ValueError``. ``ground`` is the colour of
         model space (the paper of a layout is white), on which white draws colour 7 black. ``layout`` is a layout's name or
-        ``"Model"``; None draws the space the drawing was left in. It works on a drawing of a file (``open_file``, ``new_file``);
-        a drawing of the app raises ``RuntimeError``. One picture at a time per process.
+        ``"Model"``; None draws the space the drawing was left in. It works on a drawing of a file (``open_file``, ``new_file``) and on
+        a drawing of the app: the app's drawing as it is now, changes not saved included, is read into this process and drawn here,
+        and its file is never written. One picture at a time per process.
 
         Example:
             drawing = new_file()
@@ -2642,7 +2643,7 @@ class Drawing:
         scale and plot style), lines at the lineweights of the plot, text as text, and for model space the extents. What is queued
         is committed first. An A3 sheet on its side is 1 190.55 by 841.89 points. A space that was never given a sheet (a drawing
         made in code) is fitted to ISO A3. ``layout`` is as in ``render_png``. A space with nothing to plot raises the .NET
-        ``InvalidOperationException``; a drawing of the app raises ``RuntimeError``.
+        ``InvalidOperationException``. A drawing of the app is read into this process and plotted here, as in ``render_png``.
 
         Example:
             drawing.render_pdf("plan.pdf")                # one A3 page of the line and circle, fitted to the sheet
@@ -2723,7 +2724,7 @@ class Drawing:
         a block's pieces are classed by what they are. A pixel of a class not asked for is 0, as is the ground. A text under 3
         pixels high, as in the picture, is left out; the paper of a layout, the frame of a viewport and raster images are not
         labelled. Letters are drawn by the font's monochrome rasteriser, so a letter's pixels can sit a pixel off the antialiased
-        picture's. The result is a ``RenderMasks``. Needs numpy; a drawing of the app raises ``RuntimeError``; the other
+        picture's. The result is a ``RenderMasks``. Needs numpy; it works on a drawing of the app as ``render_png`` does; the other
         refusals are those of ``render_png``, and an empty ``classes`` or a name that is none of the five a ``ValueError``.
 
         Example:
@@ -2766,7 +2767,7 @@ class Drawing:
         counted from 1 (an id is the same in every call and unique in one image, so renumber when files are joined). The
         annotations are in the order of those numbers. With ``segmentation`` a words object gets the frames of its words, turned as
         they are drawn, each as the 8 numbers of its corners in pixels, and any other object the four corners of its box. The other
-        arguments are those of ``render_png`` and ``render_masks``. Needs numpy; a drawing of the app raises ``RuntimeError``.
+        arguments are those of ``render_png`` and ``render_masks``. Needs numpy; it works on a drawing of the app as ``render_png`` does, the labels and the picture of one moment.
 
         Example:
             drawing = new_file()

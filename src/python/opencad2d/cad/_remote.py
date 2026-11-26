@@ -22,6 +22,7 @@ _net: Any = importlib.import_module("System")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
 _geo: Any = importlib.import_module("GeometryHelper.Geometry")
 _remote: Any = importlib.import_module("OpenCAD2D.Remote")
+_cad: Any = importlib.import_module("OpenCAD2D")
 
 
 def _layer_of(look: Look) -> Any:
@@ -44,6 +45,7 @@ class _RemoteBackend:
     def __init__(self, app: Any, document: Any) -> None:
         self._app = app
         self._document = document
+        self._snapshot: Any = None
 
     def _refresh(self) -> None:
         """Reads the list of drawings, which updates which is shown and which has changes."""
@@ -308,13 +310,24 @@ class _RemoteBackend:
         return self._pairs(self._document.SelectCrossingWindow(first, second))
 
     def render(self, kind: str, path: str | None, options: RenderOptions) -> Any:
-        """Refuses: the drawing is in the app, and the Python process holds no ``CadDocument`` to draw. Save it
-        (``save_as``) and render ``open_file`` of the copy."""
-        name = kind if kind == "to_coco" else f"render_{kind}"
-        raise RuntimeError(
-            f"{name} works on a drawing of a file: this drawing is in the app. Call save_as(path) and "
-            "render open_file(path) instead."
-        )
+        """Draws the drawing as the app has it now, changes not saved included, in this process: the app's database is asked for
+        (the ``database`` request), read into a ``CadDocument`` here and drawn by the code a drawing of a file is drawn by. The
+        app's file is never written and the app is only read. ``to_coco`` asks twice (the labels, then the picture): the document
+        the labels were drawn from is kept for the picture that follows, so the two are of one moment. A call that names no layout
+        draws the tab the app shows."""
+        from ._local import _LocalBackend  # pyright: ignore[reportPrivateUsage]
+
+        local, self._snapshot = self._snapshot, None
+        if local is None or kind != "png":
+            local = _LocalBackend(_cad.CadDocument.From(self._document.GetDatabase(), self.name))
+            # The database does not say which tab the app shows; the picture is of that space where no layout is named.
+            shown = self.current_layout
+            if shown != local.current_layout:
+                local.current_layout = shown
+        result = local.render(kind, path, options)
+        if kind == "to_coco":
+            self._snapshot = local
+        return result
 
     # ---- where things are drawn (PW6.2) -----------------------------------------------------------------------------
 
