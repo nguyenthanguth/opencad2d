@@ -324,11 +324,21 @@
     "…" of the Text Style dialog after it; a group's title instead for a header. Greyed where the field means nothing.
     -->
     <DataTemplate x:Key="DimFieldTemplate" DataType="{x:Type local:DimFieldViewModel}">
-        <Grid x:Name="Row" Margin="0,2">
+        <Grid x:Name="Row" Margin="0,2" Background="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="168" />
             </Grid.ColumnDefinitions>
+            <!-- The mark of the row the preview shows (the field active) or the row of a field that sets the part under the pointer: an accent bar and a ground. -->
+            <Rectangle
+                x:Name="Bar"
+                Grid.ColumnSpan="2"
+                Width="3"
+                HorizontalAlignment="Left"
+                Margin="-6,0,0,0"
+                Fill="{StaticResource GhAccent}"
+                Visibility="Collapsed"
+            />
             <TextBlock
                 x:Name="Title"
                 Grid.ColumnSpan="2"
@@ -407,6 +417,14 @@
             </DockPanel>
         </Grid>
         <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                <Setter TargetName="Row" Property="Background" Value="#731F4E79" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsLit}" Value="True">
+                <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                <Setter TargetName="Row" Property="Background" Value="#731F4E79" />
+            </DataTrigger>
             <DataTrigger Binding="{Binding HasTextStyleButton}" Value="True">
                 <Setter TargetName="More" Property="Visibility" Value="Visible" />
             </DataTrigger>

@@ -46,7 +46,7 @@ namespace OpenCAD2D
             // Symbols and arrows
             new PartRow("DIMBLK1", A1),
             new PartRow("DIMBLK2", A2),
-            new PartRow("DIMLDRBLK", CadStylePart.LeaderArrow),
+            new PartRow("DIMLDRBLK", CadStylePart.LeaderArrow, CadStylePart.LeaderLine),
             new PartRow("DIMASZ", A1, A2, CadStylePart.LeaderArrow),
             new PartRow("DIMCEN", CadStylePart.CentreMark),
             new PartRow("DIMCEN#", CadStylePart.CentreMark),

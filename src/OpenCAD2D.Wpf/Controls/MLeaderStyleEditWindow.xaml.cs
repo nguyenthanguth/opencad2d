@@ -18,6 +18,10 @@ namespace OpenCAD2D.Wpf
             Model = model ?? throw new ArgumentNullException(nameof(model));
             InitializeComponent();
             DataContext = model;
+            StyleFieldLinks.Attach<MLeaderFieldViewModel>(FieldsList, model.SetHovered, model.SetFocused, f =>
+                f.Kind != MLeaderFieldKind.Header
+            );
+            model.FocusRequested += (s, field) => StyleFieldLinks.Focus(FieldsList, field);
             model.CloseRequested += (s, ok) =>
             {
                 if (IsLoaded)

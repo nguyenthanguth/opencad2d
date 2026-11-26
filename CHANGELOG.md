@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- **NEW.** The previews of the dimension and multileader style dialogs are readable and linked to the fields (A14, the presenter
+  half). They are drawn at the real size of their frame and the real scale of the display, sharp at 150 %, every line at least 1.5
+  pixels wide, with a black or a white ground, a wheel zoom about the pointer and Fit. The field being edited or hovered lights its
+  part of a sample made for its tab (a baseline pair for Lines, a radius, centre mark, arc length, jogged radius and leader for
+  Symbols and arrows, a narrow dimension for Fit, 28.375 and an angle for the units tabs) in the accent with the rest faded, a
+  callout of the distance it sets (DIMEXE = 1.25), a magnifier for a small one, a chip for a field that has no part
+  (Every part Â· DIMSCALE = 1) or formats the words (DIMDEC = 0.00 Â· 28,38), and a dashed ghost with Suppressed for a part the
+  style leaves out. Pointing at a part of the preview lights its fields (an accent bar on the row, a dot on the tabs that hold
+  others) with a tooltip, and a click goes to the first one. The New, Modify and Override Dimension Style dialogs and the Modify
+  Multileader Style dialog are 960 by 660 (were 800 by 640) and can be resized. New public members: StylePreviewViewModel,
+  StylePreviewGround, StylePreviewView, StylePreviewPanel, CadStylePreview.PartAt, PreviewModel on the four style view
+  models, and ActiveField, PreviewKey, IsActive, IsLit and HasLitField on the dialogs, fields and tabs; Preview stays
+  an image. The table style previews follow.
+- **CHANGED.** A multileader style that does not include the landing is previewed without it, as AutoCAD draws it: the leader line
+  runs on to the words. The DIMLDRBLK field of the dimension style dialogs lights the line of the leader as well as
+  its arrowhead.
 - **NEW.** The samples of the style previews, with their parts told apart (A14, the core half; the previews themselves follow):
   `CadDimStyleEditor.Sample` draws the sample of one tab of the dimension style dialogs (`CadDimSampleKind`: the Overview of the
   Manager, Lines with a baseline pair, Symbols and arrows with a radius, centre mark, arc length, jogged radius and leader, Text,

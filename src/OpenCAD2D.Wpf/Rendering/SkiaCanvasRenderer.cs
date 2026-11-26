@@ -38,6 +38,21 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets or sets the handles of the selected entities, drawn in the selection colour and at least 2 pixels wide; may be null.</summary>
         public IReadOnlyCollection<string> Selected { get; set; }
 
+        /// <summary>Gets or sets the least width of a line in device pixels, whatever its lineweight: 1 by default. The style previews set it to 1.5 device-independent pixels at the display's scale.</summary>
+        internal float MinimumLineWidth { get; set; } = 1f;
+
+        /// <summary>Gets or sets the width in device pixels a selected or hovered line is drawn at least: 2 by default.</summary>
+        internal float SelectedLineWidth { get; set; } = 2f;
+
+        /// <summary>Gets or sets the opacity (0 to 255) a selected area is filled with: 140 by default, as the canvas shows a selected hatch through; the style previews light an arrowhead solid at 255.</summary>
+        internal byte SelectedFillAlpha { get; set; } = 140;
+
+        /// <summary>
+        /// Gets or sets how far every item that is not selected is drawn towards the background, from 0 (its own colour, the
+        /// default) to 1 (the background): the style previews fade the rest of the sample while a part is lit.
+        /// </summary>
+        internal double Fade { get; set; }
+
         /// <summary>
         /// Gets or sets the handle of the entity under the cursor, drawn at least 2 pixels wide in its colour taken halfway to
         /// the selection colour, so that a white line under the cursor turns a light blue; may be null.
@@ -1141,6 +1156,15 @@ namespace OpenCAD2D.Wpf
                 : underlay != null ? underlay.Apply(item.Style.Rgb, background)
                 : Visible(item.Style.Rgb, background, options.VisibleLineColor);
 
+            if (options.Fade > 0.0 && !isSelected && !isHover)
+            {
+                int f = (int)Math.Round(options.Fade * 256.0);
+                rgb =
+                    (((((rgb >> 16) & 0xFF) * (256 - f) + ((background >> 16) & 0xFF) * f) >> 8) << 16)
+                    | (((((rgb >> 8) & 0xFF) * (256 - f) + ((background >> 8) & 0xFF) * f) >> 8) << 8)
+                    | (((rgb & 0xFF) * (256 - f) + (background & 0xFF) * f) >> 8);
+            }
+
             if (isHover && !isSelected)
             {
                 int s = options.SelectionColor;
@@ -1224,8 +1248,14 @@ namespace OpenCAD2D.Wpf
                 : options.ShowLineWeights
                     ? (float)Math.Max(1.0, item.Style.LineWeight * 96.0 / 25.4 * options.LineweightScale)
                 : 1f;
+
+            if (_plot == null)
+            {
+                width = Math.Max(width, options.MinimumLineWidth);
+            }
+
             stroke.Color = color;
-            stroke.StrokeWidth = isSelected || isHover ? Math.Max(width, 2f) : width;
+            stroke.StrokeWidth = isSelected || isHover ? Math.Max(width, options.SelectedLineWidth) : width;
             stroke.PathEffect = null;
             double[] dashes = item.Style.Dashes;
 
@@ -1926,7 +1956,7 @@ namespace OpenCAD2D.Wpf
         {
             fill.Color = area.IsMask
                 ? Color(options.Paper == 0 ? background : background, 255)
-                : (isSelected ? new SKColor(color.Red, color.Green, color.Blue, 140) : color);
+                : (isSelected ? new SKColor(color.Red, color.Green, color.Blue, options.SelectedFillAlpha) : color);
             using (SKPath path = RingsPath(area.Rings, m))
                 canvas.DrawPath(path, fill);
         }

@@ -4,10 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Dimension Style"
-    Width="800"
-    Height="640"
+    Width="960"
+    Height="660"
+    MinWidth="960"
+    MinHeight="660"
     WindowStyle="None"
-    ResizeMode="NoResize"
+    ResizeMode="CanResizeWithGrip"
     ShowInTaskbar="False"
     WindowStartupLocation="CenterOwner"
     Background="#262B33"
@@ -94,7 +96,32 @@
                                 Style="{StaticResource StyleTab}"
                                 Content="{Binding Name}"
                                 IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                            />
+                            >
+                                <RadioButton.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding}" />
+                                            <!-- The accent dot: a field of this tab sets the part of the preview under the pointer. -->
+                                            <Ellipse
+                                                x:Name="Dot"
+                                                Width="6"
+                                                Height="6"
+                                                Margin="6,0,0,0"
+                                                Fill="{StaticResource GhAccent}"
+                                                Visibility="Collapsed"
+                                            />
+                                        </StackPanel>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding DataContext.HasLitField, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                Value="True"
+                                            >
+                                                <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </RadioButton.ContentTemplate>
+                            </RadioButton>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -102,33 +129,41 @@
 
             <Grid Margin="16,10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="1.2*" MinWidth="470" />
                     <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="270" />
+                    <ColumnDefinition Width="*" MinWidth="432" />
                 </Grid.ColumnDefinitions>
 
-                <!-- The fields of the tab shown, by groups. -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <!-- The fields of the tab shown, by groups; a row marks itself while the preview shows it. -->
+                <ScrollViewer x:Name="FieldsScroll" VerticalScrollBarVisibility="Auto">
                     <ItemsControl
+                        x:Name="FieldsList"
+                        Margin="6,0,0,0"
                         ItemsSource="{Binding Fields}"
                         ItemTemplate="{StaticResource DimFieldTemplate}"
                         Focusable="False"
                     />
                 </ScrollViewer>
 
-                <!-- The preview, the description of the tab and what OK does. -->
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="{Binding PreviewTitle}" FontSize="13" FontWeight="SemiBold" Margin="0,7,0,8" />
-                    <Border Style="{StaticResource StylePreview}" Height="190" Margin="0,0,0,8">
-                        <Image Source="{Binding Preview}" Stretch="None" />
-                    </Border>
-                    <Border Style="{StaticResource StyleFrame}" Margin="0,0,0,8">
+                <!-- The preview over its toolbar, the description of the tab and what OK does. -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" MinHeight="372" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <local:StylePreviewPanel
+                        Title="{Binding PreviewTitle}"
+                        Model="{Binding PreviewModel}"
+                        Margin="0,0,0,6"
+                    />
+                    <Border Grid.Row="1" Style="{StaticResource StyleFrame}" Margin="0,0,0,8">
                         <StackPanel>
                             <TextBlock Text="Description" Foreground="{StaticResource GhTextMuted}" />
                             <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource StyleFrame}">
+                    <Border Grid.Row="2" Style="{StaticResource StyleFrame}">
                         <DockPanel>
                             <Ellipse
                                 DockPanel.Dock="Left"
@@ -145,7 +180,7 @@
                             />
                         </DockPanel>
                     </Border>
-                </StackPanel>
+                </Grid>
             </Grid>
         </DockPanel>
     </Border>

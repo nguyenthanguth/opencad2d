@@ -218,7 +218,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
-        public void EveryPartOfEverySample_ListsAKeyThatSetsIt_ButDefinitionPointsAndTheDimensionsLeaderLine()
+        public void EveryPartOfEverySample_ListsAKeyThatSetsIt_ButDefinitionPoints()
         {
             CadDocument document = Blank();
             SortedDictionary<string, object> values = Values(document);
@@ -231,9 +231,9 @@ namespace OpenCAD2D.UnitTest
 
                 foreach (CadStyleSamplePart part in sample.Parts)
                 {
-                    if (part.Part == CadStylePart.DefinitionPoint || part.Part == CadStylePart.LeaderLine)
+                    if (part.Part == CadStylePart.DefinitionPoint)
                     {
-                        // A point nothing draws, and the line of the leader that shows DIMLDRBLK: no variable sets them.
+                        // A point nothing draws: no variable sets it.
                         continue;
                     }
 
@@ -1020,6 +1020,27 @@ namespace OpenCAD2D.UnitTest
                 Entity(bare, bare.Parts.Single(p => p.Part == CadStylePart.Arrow).Handles.Single())
             );
             Assert.Empty(bare.Untagged);
+        }
+
+        [Fact]
+        public void AMultileaderStyleThatLeavesTheLandingOut_DrawsNoLanding_AsAutoCadDoesNot()
+        {
+            CadDocument document = Blank();
+            CadMLeaderStyleSettings off = Settings();
+            off.IncludeLanding = false;
+
+            CadStyleSample sample = CadMLeaderStyleEditor.PreviewSample(document.Database, off);
+
+            Assert.Equal(
+                new[] { CadStylePart.Text, CadStylePart.LeaderLine, CadStylePart.Arrow },
+                PartsInOrder(sample)
+            );
+            Assert.Empty(Entities(sample).OfType<DxfLine>());
+            Assert.Empty(CadMLeaderStyleEditor.Measures(sample, off, "LandingDistance"));
+            Assert.Equal(
+                new[] { CadStylePart.Text, CadStylePart.Landing, CadStylePart.LeaderLine, CadStylePart.Arrow },
+                PartsInOrder(CadMLeaderStyleEditor.PreviewSample(document.Database, Settings()))
+            );
         }
 
         [Fact]

@@ -84,6 +84,8 @@ namespace OpenCAD2D.Wpf
         private readonly Action _changed;
         private readonly Func<bool> _enabled;
         private string _text;
+        private bool _isActive;
+        private bool _isLit;
 
         internal DimFieldViewModel(
             DimFieldKind kind,
@@ -101,6 +103,7 @@ namespace OpenCAD2D.Wpf
             Label = label;
             Variable = variable;
             VariableText = shown ?? variable;
+            PreviewKey = kind == DimFieldKind.Header ? string.Empty : variable;
             _get = get;
             _set = set;
             _changed = changed;
@@ -126,6 +129,40 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>Gets whether the "…" of the Text style field is shown, which opens the Text Style dialog.</summary>
         public bool HasTextStyleButton => Variable == "DIMTXSTY";
+
+        /// <summary>
+        /// Gets the key the preview knows the field by, as <see cref="CadDimStyleEditor.PartsOf"/> takes it: the variable, but for the
+        /// second field of one variable (the centre mark's size <c>DIMCEN#</c>, the frame round the text <c>DIMGAP#</c>) and the
+        /// placement of the alternate units (<c>DIMPOST\X</c>); empty for a group's title.
+        /// </summary>
+        public string PreviewKey { get; private set; } = string.Empty;
+
+        /// <summary>Gets whether the field is the one the preview shows: the one under the pointer, else the one with the keyboard focus.</summary>
+        public bool IsActive
+        {
+            get => _isActive;
+            internal set => Set(ref _isActive, value);
+        }
+
+        /// <summary>Gets whether the field sets the part of the preview under the pointer, so that the form marks its row.</summary>
+        public bool IsLit
+        {
+            get => _isLit;
+            internal set => Set(ref _isLit, value);
+        }
+
+        /// <summary>Gets the value as the field shows it: the item of a list, <c>on</c> or <c>off</c> for a box, the text of the others.</summary>
+        internal string ValueText =>
+            Kind == DimFieldKind.Choice ? SelectedChoice?.Label ?? string.Empty
+            : Kind == DimFieldKind.Flag ? (IsChecked ? "on" : "off")
+            : _text;
+
+        /// <summary>Gives the field a key of its own for the preview where its variable is another field's too.</summary>
+        internal DimFieldViewModel WithKey(string key)
+        {
+            PreviewKey = key;
+            return this;
+        }
 
         /// <summary>
         /// Gets the swatch of a colour field as 0xRRGGBB: the colour chosen, white for ByBlock and ByLayer as the design draws

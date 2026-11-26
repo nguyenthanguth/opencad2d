@@ -58,6 +58,9 @@ namespace OpenCAD2D.Wpf
         private string _refused = string.Empty;
         private ImageSource _preview;
         private DxfDatabase _copy;
+        private StylePreviewViewModel _previewModel;
+        private DimFieldViewModel _hovered;
+        private DimFieldViewModel _focused;
 
         /// <summary>Makes the dialog's view model.</summary>
         /// <param name="document">The document.</param>
@@ -110,6 +113,9 @@ namespace OpenCAD2D.Wpf
         /// <summary>Raised when the dialog is to close: true after OK, false after Cancel.</summary>
         public event EventHandler<bool> CloseRequested;
 
+        /// <summary>Raised when a click on a part of the preview chooses a field: the view focuses its control and scrolls it into view (the tab is already shown).</summary>
+        public event EventHandler<DimFieldViewModel> FocusRequested;
+
         /// <summary>Gets or sets what shows the Text Style dialog, as the "…" beside Text style does. Set by the window.</summary>
         public Action ShowTextStyles { get; set; }
 
@@ -151,13 +157,134 @@ namespace OpenCAD2D.Wpf
                 {
                     Raise(nameof(Fields));
                     Raise(nameof(Description));
-
-                    foreach (DimTabViewModel chip in TabChips)
-                    {
-                        chip.Refresh();
-                    }
+                    _previewModel?.Invalidate();
+                    UpdateLinks();
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets what the preview view shows: the sample of the tab shown (made again as a value changes or the tab does), the parts the
+        /// field active lights, the callouts and chips, and the part under the pointer with the fields that set it.
+        /// </summary>
+        public StylePreviewViewModel PreviewModel
+        {
+            get
+            {
+                if (_previewModel == null)
+                {
+                    _previewModel = new StylePreviewViewModel(
+                        new DimPreviewSource(
+                            _document.Database,
+                            () => _values,
+                            () => SampleOf(_tab),
+                            key => AllFields().FirstOrDefault(f => f.PreviewKey == key)?.ValueText
+                        ),
+                        _document.Fonts
+                    )
+                    {
+                        InCurrentTab = key => Fields.Any(f => f.PreviewKey == key),
+                    };
+                    _previewModel.PropertyChanged += (s, e) =>
+                    {
+                        if (e.PropertyName == nameof(StylePreviewViewModel.HoverPart))
+                        {
+                            UpdateLinks();
+                        }
+                    };
+                    _previewModel.FieldRequested += (s, key) => ChooseField(key);
+                }
+
+                return _previewModel;
+            }
+        }
+
+        /// <summary>Gets the field the preview shows: the one under the pointer, else the one with the keyboard focus; null for none.</summary>
+        public DimFieldViewModel ActiveField => _hovered ?? _focused;
+
+        /// <summary>Tells the dialog the keyboard focus entered a field's row or left it, as the window sees it.</summary>
+        /// <param name="field">The field.</param>
+        /// <param name="focused">True where the focus is in it now.</param>
+        internal void SetFocused(DimFieldViewModel field, bool focused)
+        {
+            if (focused)
+            {
+                _focused = field;
+            }
+            else if (ReferenceEquals(_focused, field))
+            {
+                _focused = null;
+            }
+
+            UpdateLinks();
+        }
+
+        /// <summary>Tells the dialog the pointer entered a field's row or left it, as the window sees it.</summary>
+        /// <param name="field">The field.</param>
+        /// <param name="hovered">True where the pointer is over it now.</param>
+        internal void SetHovered(DimFieldViewModel field, bool hovered)
+        {
+            if (hovered)
+            {
+                _hovered = field;
+            }
+            else if (ReferenceEquals(_hovered, field))
+            {
+                _hovered = null;
+            }
+
+            UpdateLinks();
+        }
+
+        private IEnumerable<DimFieldViewModel> AllFields() => TabNames.SelectMany(t => _tabs[t]);
+
+        private static CadDimSampleKind SampleOf(string tab) =>
+            tab == "Lines" ? CadDimSampleKind.Lines
+            : tab == "Symbols and arrows" ? CadDimSampleKind.SymbolsAndArrows
+            : tab == "Text" ? CadDimSampleKind.Text
+            : tab == "Fit" ? CadDimSampleKind.Fit
+            : tab == "Primary units" ? CadDimSampleKind.PrimaryUnits
+            : tab == "Alternate units" ? CadDimSampleKind.AlternateUnits
+            : CadDimSampleKind.Tolerances;
+
+        /// <summary>The preview told which field is active, the fields that set the part under the pointer lit, the tabs that hold some marked.</summary>
+        private void UpdateLinks()
+        {
+            DimFieldViewModel active = _hovered ?? _focused;
+            string key = active == null || active.Kind == DimFieldKind.Header ? null : active.PreviewKey;
+            PreviewModel.SetActiveKey(key);
+            IReadOnlyList<string> keys = PreviewModel.HoverKeys;
+
+            foreach (DimFieldViewModel field in AllFields())
+            {
+                field.IsActive = ReferenceEquals(field, active) && key != null;
+                field.IsLit = field.Kind != DimFieldKind.Header && keys.Contains(field.PreviewKey);
+            }
+
+            foreach (DimTabViewModel chip in TabChips)
+            {
+                chip.Refresh(chip.Name != _tab && _tabs[chip.Name].Any(f => f.IsLit));
+            }
+
+            Raise(nameof(ActiveField));
+        }
+
+        /// <summary>A click on a part of the preview chose a field by its key: the first of the tab shown, else the first in tab order; its tab shown and the window asked to focus it.</summary>
+        private void ChooseField(string key)
+        {
+            DimFieldViewModel field = Fields.FirstOrDefault(f => f.PreviewKey == key)
+                ?? AllFields().FirstOrDefault(f => f.PreviewKey == key);
+
+            if (field == null)
+            {
+                return;
+            }
+
+            string tab = TabNames.First(t => _tabs[t].Contains(field));
+            Tab = tab;
+            _focused = field;
+            UpdateLinks();
+            FocusRequested?.Invoke(this, field);
         }
 
         /// <summary>Gets the chips of the tabs, the one shown checked.</summary>
@@ -280,6 +407,8 @@ namespace OpenCAD2D.Wpf
             }
 
             _preview = null;
+            _previewModel?.Invalidate();
+            UpdateLinks();
             Raise(nameof(Preview));
             Raise(nameof(Description));
         }
@@ -595,14 +724,15 @@ namespace OpenCAD2D.Wpf
                     C("None", "None", "Mark", "Mark", "Line", "Line")
                 ),
                 Field(
-                    DimFieldKind.Number,
-                    "Size",
-                    "DIMCEN",
-                    () => Math.Abs(Real("Dimcen")),
-                    v => Put("Dimcen", Real("Dimcen") < 0.0 ? -(double)v : (double)v),
-                    null,
-                    () => Real("Dimcen") != 0.0
-                ),
+                        DimFieldKind.Number,
+                        "Size",
+                        "DIMCEN",
+                        () => Math.Abs(Real("Dimcen")),
+                        v => Put("Dimcen", Real("Dimcen") < 0.0 ? -(double)v : (double)v),
+                        null,
+                        () => Real("Dimcen") != 0.0
+                    )
+                    .WithKey("DIMCEN#"),
                 Header("Arc length symbol"),
                 Plain(
                     DimFieldKind.Choice,
@@ -649,15 +779,16 @@ namespace OpenCAD2D.Wpf
                 Plain(DimFieldKind.Number, "Text height", "Dimtxt"),
                 Plain(DimFieldKind.Number, "Fraction height scale", "Dimtfac", null, () => Fractions),
                 Field(
-                    DimFieldKind.Flag,
-                    "Draw frame around text",
-                    "DIMGAP",
-                    () => Real("Dimgap") < 0.0,
-                    v => Put("Dimgap", (bool)v ? -Math.Abs(Real("Dimgap")) : Math.Abs(Real("Dimgap"))),
-                    null,
-                    null,
-                    "DIMGAP<0"
-                ),
+                        DimFieldKind.Flag,
+                        "Draw frame around text",
+                        "DIMGAP",
+                        () => Real("Dimgap") < 0.0,
+                        v => Put("Dimgap", (bool)v ? -Math.Abs(Real("Dimgap")) : Math.Abs(Real("Dimgap"))),
+                        null,
+                        null,
+                        "DIMGAP<0"
+                    )
+                    .WithKey("DIMGAP#"),
                 Header("Text placement"),
                 Plain(
                     DimFieldKind.Choice,
@@ -799,19 +930,20 @@ namespace OpenCAD2D.Wpf
                 Zeros("Dimaltz", false, alternate),
                 Header("Placement"),
                 Field(
-                    DimFieldKind.Choice,
-                    "Alternate units shown",
-                    "DIMPOST",
-                    () => Words("Dimpost").EndsWith(Below, StringComparison.Ordinal) ? "Below" : "After",
-                    v =>
-                    {
-                        string post = Unmarked(Words("Dimpost"));
-                        Put("Dimpost", (string)v == "Below" ? post + Below : post);
-                    },
-                    C("After primary value", "After", "Below primary value", "Below"),
-                    alternate,
-                    "DIMPOST \\X"
-                ),
+                        DimFieldKind.Choice,
+                        "Alternate units shown",
+                        "DIMPOST",
+                        () => Words("Dimpost").EndsWith(Below, StringComparison.Ordinal) ? "Below" : "After",
+                        v =>
+                        {
+                            string post = Unmarked(Words("Dimpost"));
+                            Put("Dimpost", (string)v == "Below" ? post + Below : post);
+                        },
+                        C("After primary value", "After", "Below primary value", "Below"),
+                        alternate,
+                        "DIMPOST \\X"
+                    )
+                    .WithKey("DIMPOST\\X"),
             };
 
             Func<bool> tolerance = () => Method != "None";
@@ -1100,7 +1232,15 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        internal void Refresh() => Raise(nameof(IsSelected));
+        /// <summary>Gets whether a field of the tab sets the part of the preview under the pointer, so that the chip shows an accent dot.</summary>
+        public bool HasLitField { get; private set; }
+
+        internal void Refresh(bool lit)
+        {
+            HasLitField = lit;
+            Raise(nameof(HasLitField));
+            Raise(nameof(IsSelected));
+        }
     }
 
     /// <summary>The notices of the dimension style dialogs.</summary>

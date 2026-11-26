@@ -3539,6 +3539,29 @@ multileader is broken into the entities it draws as, in the order the library gi
 leader line and its arrowhead), and `PartsOf`, `KeysOf` and `Measures` say what each setting sets: ArrowSize 2.5, LandingDistance 8
 and LandingGap 2 at the default style, the words from x 25 past a landing from (15, 10) to (23, 10).
 
+The previews of the dimension style dialogs (New, Modify and Override, one window), of the Dimension Style Manager and of the
+multileader style dialogs are drawn at the real size of their frame and the real scale of the display, so that they stay sharp at
+150 %: the canvas's own renderer draws the sample into a picture of as many device pixels as the frame has, every line at least
+1.5 device-independent pixels wide, and draws it again as the dialog is resized or the screen's scale changes. The New, Modify and
+Override dialogs and the Modify Multileader Style dialog are 960 by 660 (they were 800 by 640), can be resized from the grip at the
+corner, and never get smaller; their preview is 432 wide and about 340 high (300 for the multileader's) at that size and grows with
+the window. A toolbar in the preview's title row has Fit (a double click on the preview does the same), the zoom in percent of Fit
+and two swatches for the ground, black or white (kept until the app closes); the wheel zooms about the pointer by 1.2 a notch, and
+a change of a value keeps the zoom you chose unless what the sample draws grows or shrinks by more than a fifth, or the tab changes.
+
+The preview is linked to the fields. The field under the pointer, else the one with the keyboard focus, is the field active: the
+parts it sets are drawn in the accent (#3D9BFF on black, #0A6BD6 on white) and the rest faded to a third, and a distance it sets
+is measured on the sample as a callout 18 pixels off the part: DIMEXE reads DIMEXE = 1.25 along the first extension line, and
+where the callout is under 16 pixels long a magnifier (x4, x8 under 6 pixels) shows the region drawn again at that zoom in the
+corner with least drawn under it. A field that sets no part (DIMSCALE, Annotative, DIMUPT, the break size) says so in a chip, as
+Every part Â· DIMSCALE = 1; a formatting field of the units and tolerance tabs puts a chip over the words it sets with the value
+and the result (DIMDEC = 0.00 Â· 28,38); a part the style leaves out (DIMSE1 on, no fill, no landing) is drawn as a dashed ghost
+of where it would be with the chip Suppressed. The multileader's callouts are labelled in the field's own words (Landing gap = 2).
+It works the other way too: the part under the pointer (within 6 pixels) lights with a halo and a tooltip names it and the
+variables that set it (Arrowhead 2 Â· DIMBLK2, DIMASZ, DIMCLRD, DIMLWD, DIMATFIT Â· click to edit, those of the tab shown first),
+the rows of the tab that set it get an accent bar and a ground, and a tab that holds others shows a dot on its chip; a click goes
+to the first of them on the tab shown, else the first in tab order, switching the tab, focusing the box and scrolling it into
+view. In the Managers the tooltip names the part and nothing else.
 TEXTALIGN (TA) keeps AutoCAD's settings: "Current settings: Align = Left, Spacing Mode = Current Vertical" and "Select text
 objects to align [alIgnment/Options]:". alIgnment asks "Select alignment direction [Left/Center/Right/TL/TC/TR/ML/MC/MR/BL/BC/BR]
 <Left>:", Options "Enter an option [Distribute/Set spacing/current Vertical/current Horizontal] <current Vertical>:" (Set spacing

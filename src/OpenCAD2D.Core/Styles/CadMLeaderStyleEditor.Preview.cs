@@ -194,7 +194,8 @@ namespace OpenCAD2D
         /// Measures what a setting sets on the sample, as a callout: the arrowhead's size along the leader from its tip
         /// (<c>ArrowSize</c>), the landing's length (<c>LandingDistance</c>), the gap from its end to the words
         /// (<c>LandingGap</c>), the height of the words (<c>TextHeight</c>) and the angle the first segment is held to
-        /// (<c>FirstSegmentAngle</c>, an arc from the x axis). The points are in the drawing coordinates of the sample, so the lengths
+        /// (<c>FirstSegmentAngle</c>, an arc from the x axis), and, of a style that leaves the landing out, the ghost of the dogleg it would
+        /// have (<c>IncludeLanding</c>). The points are in the drawing coordinates of the sample, so the lengths
         /// are the values times the style's scale; the label has the value as the dialog shows it.
         /// </summary>
         /// <param name="sample">The sample, as <see cref="PreviewSample"/> made it.</param>
@@ -288,6 +289,20 @@ namespace OpenCAD2D
                                 ),
                                 null,
                                 settings.TextHeight
+                            ),
+                        };
+                case "INCLUDELANDING":
+                    // Of a style that leaves the landing out, the ghost of the dogleg it would have: from where the leader would end.
+                    return settings.IncludeLanding || leader.Length <= 1E-12
+                        ? none
+                        : new[]
+                        {
+                            new CadStyleMeasure(
+                                "IncludeLanding",
+                                shape.LandStart,
+                                shape.LandStart + new GeoVector2(1.0, 0.0) * (settings.LandingDistance * scale),
+                                null,
+                                "IncludeLanding = off"
                             ),
                         };
                 case "FIRSTSEGMENTANGLE":
