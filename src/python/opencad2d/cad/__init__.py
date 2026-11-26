@@ -477,11 +477,15 @@ def set_setting(name: str, value: float | int | bool | str | None) -> None:
 
 # The Drawing API (D1655 to D1658).
 from ._drawing import (  # noqa: E402
+    Blocks as Blocks,
     Box as Box,
+    DimensionStyles as DimensionStyles,
     Documents as Documents,
     Drawing as Drawing,
     Entity as Entity,
     Layer as Layer,
+    Linetypes as Linetypes,
+    TextStyles as TextStyles,
 )
 from ._local import (  # noqa: E402
     active_drawing as active_drawing,

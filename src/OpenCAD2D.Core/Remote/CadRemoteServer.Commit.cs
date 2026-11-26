@@ -20,6 +20,7 @@ namespace OpenCAD2D
             Delete,
             AddLayer,
             ModifyLayer,
+            Records,
         }
 
         private sealed class Step
@@ -29,6 +30,7 @@ namespace OpenCAD2D
             public DxfEntity Entity;
             public CadSpace Space;
             public JsonObject Layer;
+            public JsonObject Tables;
         }
 
         private JsonObject Commit(CadDocument document, JsonObject request, CadRemoteToolRun run = null)
@@ -84,6 +86,7 @@ namespace OpenCAD2D
             var planned = new List<CadEditRecord>();
             var edits = new List<EditStep>();
             var layersAdded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> linetypesAdded = LinetypesAdded(request);
 
             foreach (object item in request.GetArray("operations"))
             {
@@ -94,10 +97,13 @@ namespace OpenCAD2D
                 switch (kind)
                 {
                     case "addLayer":
-                        steps.Add(PlanNewLayer(document, operation.GetObject("layer"), layersAdded));
+                        steps.Add(PlanNewLayer(document, operation.GetObject("layer"), layersAdded, linetypesAdded));
                         break;
                     case "modifyLayer":
-                        steps.Add(PlanLayerLook(document, operation.GetObject("layer"), planned));
+                        steps.Add(PlanLayerLook(document, operation.GetObject("layer"), planned, linetypesAdded));
+                        break;
+                    case "records":
+                        steps.Add(PlanRecords(fragment, operation.GetObject("tables")));
                         break;
                     case "insert":
                         DxfEntity added = Sent(byReference, operation);
@@ -158,11 +164,14 @@ namespace OpenCAD2D
                 }
             }
 
+            var records = steps.Where(s => s.Kind == StepKind.Records).ToList();
             var layers = steps.Where(s => s.Kind == StepKind.AddLayer || s.Kind == StepKind.ModifyLayer).ToList();
-            steps.RemoveAll(s => s.Kind == StepKind.AddLayer || s.Kind == StepKind.ModifyLayer);
+            steps.RemoveAll(s =>
+                s.Kind == StepKind.Records || s.Kind == StepKind.AddLayer || s.Kind == StepKind.ModifyLayer
+            );
             var inserted = new JsonArray();
             CadEditResult result = document.ApplyEdit(StepName, planned, scope =>
-                Apply(document, scope, layers, steps, fragment, inserted, edits)
+                Apply(document, scope, records, layers, steps, fragment, inserted, edits)
             );
 
             if (!result.Succeeded)
@@ -388,6 +397,7 @@ namespace OpenCAD2D
         private void Apply(
             CadDocument document,
             CadEditScope scope,
+            List<Step> records,
             List<Step> layers,
             List<Step> steps,
             DxfDatabase fragment,
@@ -395,6 +405,12 @@ namespace OpenCAD2D
             List<EditStep> edits
         )
         {
+            // The records the commit adds come before the layers and the objects, which can name them.
+            foreach (Step step in records)
+            {
+                WriteRecords(document, scope, fragment, step.Tables);
+            }
+
             // The layers are made first, so that the objects of the commit can be on them.
             foreach (Step layer in layers)
             {

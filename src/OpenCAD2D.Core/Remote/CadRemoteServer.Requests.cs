@@ -217,6 +217,10 @@ namespace OpenCAD2D
                     return Layers(Find(request));
                 case RemoteOps.CurrentLayer:
                     return CurrentLayer(Find(request), request.GetString("name"));
+                case RemoteOps.Linetypes:
+                    return Linetypes(Find(request));
+                case RemoteOps.CurrentDimStyle:
+                    return CurrentDimStyle(Find(request), request.GetString("name"));
                 case RemoteOps.Layouts:
                     return Layouts(Find(request));
                 case RemoteOps.CurrentLayout:

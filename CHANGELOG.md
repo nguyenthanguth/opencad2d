@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+- **FIXED.** `drawing.add(entity)` of a text, an MTEXT or a line that names a text style or a linetype the drawing has failed at
+  `commit()` (`The text style NOTE is not in the file's text style table.`, `The linetype DASHED is not in the file's linetype
+  table`), on a file, in the app and from outside: the commit appended the copy to a small drawing that had none of the
+  drawing's records. The small drawing is now given a record of each name the object brings and the drawing has (or the commit
+  adds), and the drawing keeps its own record of the name when the copy goes in: a text in NOTE (romans.shx, 0.8 wide) is in NOTE
+  after the commit, the style unchanged and the table still of two styles. The client library of a running app (`CadRemoteDocument.Insert`)
+  did the same and does it no more. An object that names a style or linetype nobody has is a `ValueError` naming the call that adds
+  it, the same on every backend. (A dimension in a dimension style the drawing has did not fail on this code.)
+- **NEW.** Python makes styles, linetypes, dimensions, hatches and blocks with the Drawing API, queued with the objects that use them and
+  applied as one undo step on a file, in the app and from outside: `text_styles.add(name, font, x_scale, height)`,
+  `dimension_styles.add(name, text_style, scale, text_height, arrow_size, **variables)` (it starts from ISO-25's variables; `Dimdec=1`
+  or any other variable by its library name sets one more), `linetypes.load(name, file)` (the built-in set, in the units of the
+  drawing, or a `.lin` file), `blocks.add(name, entities, base_point)`, `current_text_style`, `current_dim_style`,
+  `add_text` and `add_mtext` with `text_style`, `add_linear_dim`, `add_aligned_dim`, `add_radial_dim`, `add_diameter_dim`,
+  `add_angular_dim` (the `*D` picture is drawn as DIM draws it), `add_hatch(boundary, pattern, scale, angle)` and `add_insert`. A commit of
+  the records, the block and the objects that use them is one `U`. A guide section ("Styles, linetypes, dimensions, hatches and
+  blocks") with code that is run as a test, and how to write below the calls inside the undo step (`CadDocument.ApplyEdit`).
+- **CHANGED.** `drawing.text_styles`, `dimension_styles` and `blocks` are tables with `add` (`blocks.add`, `text_styles.add`...), not
+  lists: they iterate, take `len`, `in` and `[index]` or `[name]` (ignoring case) as before, but are no longer a `list` (`.sort()`, `+`).
+- **NEW.** The client library of a running app writes table records in a commit: `CadRemoteDocument.AddRecords(database)` queues the
+  text styles, linetypes, blocks and dimension styles of a drawing of yours, written before the layers and the objects, and
+  `Linetypes` and `CurrentDimensionStyle` read the linetypes and read and set the current dimension style. The core has
+  `CadTableRecords.Add`, which brings named records of one `DxfDatabase` into another without the defaults a new one is made
+  with, and `CadDimStyleEditor.Write` is public: it writes a dimension style's variables by their names.
+
 - **NEW.** The Edit Reference panel of AutoCAD 2021's REFEDIT tab: while a reference is open for editing the ribbon shows it at
   the right end of whichever tab is shown (Home, Insert, any), four large buttons under a green title, Save Changes and Discard
   Changes (REFCLOSE Save, REFCLOSE Discard), a line, Add to Working Set and Remove from Working Set (REFSET Add, REFSET Remove),

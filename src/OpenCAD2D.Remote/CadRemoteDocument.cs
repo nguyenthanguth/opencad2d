@@ -56,6 +56,7 @@ namespace OpenCAD2D.Remote
             public string Layout;
             public string Ticket;
             public CadRemoteLayer Layer;
+            public JsonObject Tables;
         }
 
         // What each object read is the copy of: the drawing it came from, its handle there and the small drawing it lives in.
@@ -175,13 +176,15 @@ namespace OpenCAD2D.Remote
         /// objects (<c>new DxfBlockReference(point, record)</c> with <c>record</c> in a <c>DxfDatabase</c> of yours); a block the
         /// drawing has already is the drawing's own, whatever yours holds. An INSERT of a block that is neither in the
         /// drawing nor defined with objects is refused at the commit. A dimension made in code is drawn by the app, with the
-        /// drawing's current dimension style unless it names one.
+        /// drawing's current dimension style unless it names one. A text or MTEXT that names a text style, or any object that
+        /// names a linetype, is one the drawing has (the app's own record is kept) or <see cref="AddRecords"/> adds in the same
+        /// commit; one nobody has is refused at once, as the library refuses an object that names a style its drawing has not.
         /// </summary>
         /// <param name="entity">The object.</param>
         /// <param name="layout">The name of the layout to put it in; null for model space.</param>
         /// <returns>A ticket for the object, such as <c>~1</c>, which stands for its handle once <see cref="CommitChanges"/> is done.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the entity is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when the entity is in a drawing of the caller's own, not made in code or read from the app.</exception>
+        /// <exception cref="ArgumentException">Thrown when the entity is in a drawing of the caller's own, not made in code or read from the app, or names a text style or a linetype that neither the drawing nor <see cref="AddRecords"/> has.</exception>
         public string Insert(DxfEntity entity, string layout = null)
         {
             DxfEntity copy = Copy(entity);
@@ -301,6 +304,7 @@ namespace OpenCAD2D.Remote
                 }
             }
 
+            Provide(copy);
             batch.ModelSpace.AppendEntity(copy);
             return copy;
         }
@@ -421,6 +425,11 @@ namespace OpenCAD2D.Remote
                     operation.Set("layer", item.Layer.ToJson());
                 }
 
+                if (item.Tables != null)
+                {
+                    operation.Set("tables", item.Tables);
+                }
+
                 operations.Add(operation);
             }
 
@@ -433,6 +442,7 @@ namespace OpenCAD2D.Remote
             List<Pending> sent = new List<Pending>(_queue);
             _queue.Clear();
             _batch = null;
+            _appHas.Clear();
             JsonObject answer = Ask(RemoteOps.Commit, request =>
                 request.Set("fragment", fragment).Set("operations", operations)
             );
