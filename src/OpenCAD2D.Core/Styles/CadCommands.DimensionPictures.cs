@@ -116,7 +116,7 @@ namespace OpenCAD2D
 
                 for (int i = 0; i < 4; i++)
                 {
-                    picture[index + 1 + i] = Lined(sides[i], style.Dimclrd, style.Dimlwd);
+                    picture[index + 1 + i] = Tag(Lined(sides[i], style.Dimclrd, style.Dimlwd), CadStylePart.TextFrame);
                 }
             }
 

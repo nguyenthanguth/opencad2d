@@ -24,6 +24,102 @@ namespace OpenCAD2D
         private static readonly ConditionalWeakTable<DxfMText, StrongBox<GeoPoint3>> WordsStarts =
             new ConditionalWeakTable<DxfMText, StrongBox<GeoPoint3>>();
 
+        /// <summary>
+        /// The parts of a sample dimension's picture each of its entities is (<see cref="CadStyleSample"/>), kept with the entity
+        /// while <see cref="Tagging"/> is on, which only the builder of the style previews' samples turns on: the DIM commands
+        /// tag nothing and pay for no table.
+        /// </summary>
+        private static readonly ConditionalWeakTable<DxfEntity, StrongBox<CadStylePart[]>> PartTags =
+            new ConditionalWeakTable<DxfEntity, StrongBox<CadStylePart[]>>();
+
+        [ThreadStatic]
+        private static bool _tagging;
+
+        /// <summary>Gets or sets whether the builders of a picture tag the entities they make with their parts on this thread (see <see cref="PartsOfEntity"/>).</summary>
+        internal static bool Tagging
+        {
+            get => _tagging;
+            set => _tagging = value;
+        }
+
+        /// <summary>Gives an entity of a picture a part, besides those it has, while <see cref="Tagging"/> is on; the entity itself.</summary>
+        private static T Tag<T>(T entity, CadStylePart part)
+            where T : DxfEntity
+        {
+            if (!_tagging)
+            {
+                return entity;
+            }
+
+            if (!PartTags.TryGetValue(entity, out StrongBox<CadStylePart[]> box))
+            {
+                PartTags.Add(entity, new StrongBox<CadStylePart[]>(new[] { part }));
+            }
+            else if (Array.IndexOf(box.Value, part) < 0)
+            {
+                var more = new CadStylePart[box.Value.Length + 1];
+                box.Value.CopyTo(more, 0);
+                more[more.Length - 1] = part;
+                box.Value = more;
+            }
+
+            return entity;
+        }
+
+        /// <summary>Gives an entity of a picture each of the parts, as <see cref="Tag{T}(T, CadStylePart)"/> gives one; null for none.</summary>
+        private static T Tag<T>(T entity, CadStylePart[] parts)
+            where T : DxfEntity
+        {
+            if (_tagging && parts != null)
+            {
+                foreach (CadStylePart part in parts)
+                {
+                    Tag(entity, part);
+                }
+            }
+
+            return entity;
+        }
+
+        /// <summary>The parts of an entity of a picture, in the order they were given; none for an entity no builder tagged.</summary>
+        internal static CadStylePart[] PartsOfEntity(DxfEntity entity) =>
+            PartTags.TryGetValue(entity, out StrongBox<CadStylePart[]> box) ? box.Value : Array.Empty<CadStylePart>();
+
+        /// <summary>
+        /// Which halves of a dimension line a segment is part of, for the entities of a sample, the line running
+        /// <paramref name="length"/> from <paramref name="start"/> along <paramref name="way"/>: the first half before its middle,
+        /// the second after it, both for a segment that spans the middle; a segment off the line (the leader and the landing words
+        /// are put out on) is <see cref="CadStylePart.TextLeader"/>. Null where nothing is tagged.
+        /// </summary>
+        private static CadStylePart[] LineParts(
+            GeoPoint2 a,
+            GeoPoint2 b,
+            GeoPoint2 start,
+            GeoVector2 way,
+            double length
+        )
+        {
+            if (!_tagging)
+            {
+                return null;
+            }
+
+            double eps = 1E-9 * Math.Max(1.0, length);
+            double off = Math.Max(Math.Abs(Cross(way, a - start)), Math.Abs(Cross(way, b - start)));
+
+            if (off > eps)
+            {
+                return new[] { CadStylePart.TextLeader };
+            }
+
+            double ta = Dot(a - start, way);
+            double tb = Dot(b - start, way);
+            double middle = length / 2.0;
+            return Math.Max(ta, tb) <= middle + eps ? new[] { CadStylePart.DimensionLine1 }
+                : Math.Min(ta, tb) >= middle - eps ? new[] { CadStylePart.DimensionLine2 }
+                : new[] { CadStylePart.DimensionLine1, CadStylePart.DimensionLine2 };
+        }
+
         /// <summary>Keeps the point a dimension records its words by (group 11), for <see cref="Recorded"/>, where it is not their middle.</summary>
         private static void RecordWordsBy(DxfMText words, GeoPoint2 point)
         {
@@ -1329,10 +1425,13 @@ namespace OpenCAD2D
                     GeoVector2 unit = length > 1E-12 ? up / length : other;
                     double longer = layout.OverExtension == side + 1 ? layout.Longer : 0.0;
                     picture.Add(
-                        Lined(
-                            new DxfLine(P3(pair.Key + unit * start), P3(pair.Value + unit * (beyond + longer))),
-                            style.Dimclre,
-                            style.Dimlwe
+                        Tag(
+                            Lined(
+                                new DxfLine(P3(pair.Key + unit * start), P3(pair.Value + unit * (beyond + longer))),
+                                style.Dimclre,
+                                style.Dimlwe
+                            ),
+                            side == 0 ? CadStylePart.ExtensionLine1 : CadStylePart.ExtensionLine2
                         )
                     );
                 }
@@ -1359,10 +1458,14 @@ namespace OpenCAD2D
                 segments = Broken(segments, layout.Middle, along, layout.Break);
             }
 
+            int jogFrom = segments.Count;
+            int jogTo = segments.Count;
+
             if (jog.HasValue && jogHeight > 0.0)
             {
                 GeoPoint2 at = Foot(jog.Value, q1, along, 0.0);
                 segments = Broken(segments, at, along, jogHeight / 2.0);
+                jogFrom = segments.Count;
                 var square = new GeoVector2(-along.Y, along.X);
 
                 // AutoCAD 2021's jog: a jog 3.75 high about x = 25 runs 23.125, 24.375 up 1.875, 25.625 down 1.875, 26.875.
@@ -1378,6 +1481,8 @@ namespace OpenCAD2D
                 {
                     segments.Add(new KeyValuePair<GeoPoint2, GeoPoint2>(zigzag[i], zigzag[i + 1]));
                 }
+
+                jogTo = segments.Count;
             }
 
             // An arrowhead flipped (Flip Arrow of the grip menu, groups 74 and 75) stands on the other side of its extension line,
@@ -1433,9 +1538,17 @@ namespace OpenCAD2D
                 segments.Add(segment);
             }
 
-            foreach (KeyValuePair<GeoPoint2, GeoPoint2> segment in segments)
+            for (int i = 0; i < segments.Count; i++)
             {
-                picture.Add(Lined(new DxfLine(P3(segment.Key), P3(segment.Value)), style.Dimclrd, style.Dimlwd));
+                KeyValuePair<GeoPoint2, GeoPoint2> segment = segments[i];
+                picture.Add(
+                    Tag(
+                        Lined(new DxfLine(P3(segment.Key), P3(segment.Value)), style.Dimclrd, style.Dimlwd),
+                        i >= jogFrom && i < jogTo
+                            ? new[] { CadStylePart.Jog }
+                            : LineParts(segment.Key, segment.Value, q1, along, (q2 - q1).Length)
+                    )
+                );
             }
 
             if (!layout.ArrowsSuppressed)
@@ -2558,16 +2671,17 @@ namespace OpenCAD2D
         )
         {
             string name = ArrowOf(style, which);
+            CadStylePart end = which == DxfDimArrowFlag.FirstArrow ? CadStylePart.Arrow1 : CadStylePart.Arrow2;
 
             if (name.Length == 0)
             {
-                picture.Add(Arrowhead(tip, way, size));
+                picture.Add(Tag(Arrowhead(tip, way, size), end));
                 return;
             }
 
             foreach (DxfEntity part in CadArrowheads.Shape(name, tip, way, size))
             {
-                picture.Add(Lined(part, style.Dimclrd, style.Dimlwd));
+                picture.Add(Tag(Lined(part, style.Dimclrd, style.Dimlwd), end));
             }
         }
 
@@ -2693,7 +2807,7 @@ namespace OpenCAD2D
                 text.Color = color;
             }
 
-            return text;
+            return Tag(text, CadStylePart.Text);
         }
 
         /// <summary>
@@ -2728,6 +2842,7 @@ namespace OpenCAD2D
 
                 words.BackgroundFill = true;
                 words.BackgroundScaleFactor = 1.25;
+                Tag(words, CadStylePart.TextFill);
 
                 if (fill == 1)
                 {
@@ -2786,7 +2901,8 @@ namespace OpenCAD2D
             return null;
         }
 
-        private static DxfEntity Definition(GeoPoint2 at) => new DxfDBPoint(P3(at)) { Layer = "Defpoints" };
+        private static DxfEntity Definition(GeoPoint2 at) =>
+            Tag(new DxfDBPoint(P3(at)) { Layer = "Defpoints" }, CadStylePart.DefinitionPoint);
 
         private static T Picture<T>(T entity)
             where T : DxfEntity

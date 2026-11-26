@@ -3516,6 +3516,29 @@ dialog's preview of a style) are drawn as many times bigger as the style's overa
 taken for 1: the part is 32 by 20 at DIMSCALE 1 and 800 by 500 at DIMSCALE 25, its words reading `800` and `R300`, so that a
 style of scale 25 with words and arrowheads 2.5 looks as it does at scale 1, not as huge words over a small part.
 
+Each tab of the dimension style dialogs has a sample of its own for the preview (`CadDimStyleEditor.Sample` with a
+`CadDimSampleKind`), and each sample is made of entities, not of dimensions: its dimensions are drawn by the builders the DIM
+commands use, the entities of each dimension's block are copied into model space with a handle of their own, and the dimension is
+erased, so that the display list names the part an item belongs to (`CadStyleSample.PartOf`). The Overview (the Manager's and
+Purge's) is the picture `Samples` draws, item for item. Lines shows a baseline pair across the part, 20 and 32 long, the second
+line DIMDLI above the first (3.75 at DIMSCALE 1, 93.75 at 25); Symbols and arrows a linear 32, a circle of 10 with its radius and
+centre mark, an arc of 90 degrees with its arc length dimension, a jogged radius and a leader drawn with DIMLDRBLK's arrowhead
+(the radius is drawn without DIMTOFL's line through the circle, so that the centre mark of DIMCEN shows); Text a linear 32 and a
+vertical 20 on the left of the part; Fit a wide dimension, a narrow one (5, over a slot, its arrowheads outside) and a 32 whose words
+were put by hand to the right of its line; the units tabs 28.375 and an angle of 37.5 degrees. The dimension line of a dimension is
+drawn as two parts, the half from the first extension line to the middle and the half from the middle to the second, and a line that
+runs whole across the middle is both. The extension line a style leaves out is not in the sample (it is given by `Measures` as the
+ghost of where it would be), and the words of a style that fills behind them are the parts `Text` and `TextFill`, one entity.
+`CadDimStyleEditor.PartsOf(key)` names the parts a field sets by the variable the dialog shows beside it (`DIMEXE` sets both
+extension lines, `DIMASZ` the arrowheads, `DIMSCALE`, Annotative and `DIMUPT` none), `KeysOf(part)` the keys that set a part, in the
+order of the dialog, and `Measures(sample, values, key)` the distance a field sets as a callout on the sample's own points: DIMEXE
+is 1.25 from the dimension line along the first extension line (31.25 at DIMSCALE 25), DIMEXO 0.625 from the origin, DIMASZ 2.5
+along the second arrowhead from its tip, DIMGAP 0.625 from the dimension line to the words (Text tab), the label `DIMEXE = 1.25`
+being the value as the field shows it. The multileader's preview is made the same way (`CadMLeaderStyleEditor.PreviewSample`): the
+multileader is broken into the entities it draws as, in the order the library gives them (the words or the block, the landing, each
+leader line and its arrowhead), and `PartsOf`, `KeysOf` and `Measures` say what each setting sets: ArrowSize 2.5, LandingDistance 8
+and LandingGap 2 at the default style, the words from x 25 past a landing from (15, 10) to (23, 10).
+
 TEXTALIGN (TA) keeps AutoCAD's settings: "Current settings: Align = Left, Spacing Mode = Current Vertical" and "Select text
 objects to align [alIgnment/Options]:". alIgnment asks "Select alignment direction [Left/Center/Right/TL/TC/TR/ML/MC/MR/BL/BC/BR]
 <Left>:", Options "Enter an option [Distribute/Set spacing/current Vertical/current Horizontal] <current Vertical>:" (Set spacing

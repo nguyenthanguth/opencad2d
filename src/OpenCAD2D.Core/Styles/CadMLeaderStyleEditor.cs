@@ -234,7 +234,7 @@ namespace OpenCAD2D
     /// step through <see cref="CadDocument.ApplyEdit"/>, refused where AutoCAD refuses it. A style changed gives its values to
     /// every multileader of it, but those a multileader has of its own.
     /// </summary>
-    public static class CadMLeaderStyleEditor
+    public static partial class CadMLeaderStyleEditor
     {
         /// <summary>
         /// Gets the multileader styles of a drawing, by name, letters of either case alike first: the entries of its dictionary

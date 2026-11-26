@@ -522,7 +522,13 @@ namespace OpenCAD2D
             {
                 if ((line.Value - line.Key).Length > 1E-9)
                 {
-                    picture.Add(Lined(new DxfLine(P3(line.Key), P3(line.Value)), style.Dimclrd, style.Dimlwd));
+                    bool isJog = Tagging && (line.Key - front).Length <= 1E-9 && (line.Value - back).Length <= 1E-9;
+                    picture.Add(
+                        Tag(
+                            Lined(new DxfLine(P3(line.Key), P3(line.Value)), style.Dimclrd, style.Dimlwd),
+                            isJog ? CadStylePart.Jog : CadStylePart.DimensionLine1
+                        )
+                    );
                 }
             }
 

@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- **NEW.** The samples of the style previews, with their parts told apart (A14, the core half; the previews themselves follow):
+  `CadDimStyleEditor.Sample` draws the sample of one tab of the dimension style dialogs (`CadDimSampleKind`: the Overview of the
+  Manager, Lines with a baseline pair, Symbols and arrows with a radius, centre mark, arc length, jogged radius and leader, Text,
+  Fit with a narrow dimension and one whose words were moved by hand, and the units tabs with 28.375 and an angle of 37.5), made by
+  the builders the DIM commands use, each part of each dimension an entity of its own with its own handle (extension line 1 or 2,
+  dimension line 1 or 2, arrowhead 1 or 2, the words, their frame and fill, the centre mark, the arc symbol, the jog, a leader's
+  arrowhead). The dimension line of a dimension is both halves where one line spans its middle. The Overview sample draws what
+  `Samples` draws, item for item, so that nothing drawn changes; the samples copy the linetypes of DIMLTYPE, DIMLTEX1 and DIMLTEX2
+  into the drawing, which `Samples` leaves out, so that a dashed dimension line shows. `CadDimStyleEditor.PartsOf` and `KeysOf` say
+  which parts each of the 68 fields of the four dimension style dialogs sets (and the reverse, in the dialog's order), and `Measures`
+  measures what a field sets on the sample as a callout: with DIMSCALE 1 DIMEXE is 1.25 along the first extension line past the
+  dimension line, DIMEXO 0.625, DIMASZ 2.5, DIMGAP 0.625 (Text tab), DIMDLI 3.75 (Lines tab), at DIMSCALE 25 each 25 times as long,
+  its label still `DIMEXE = 1.25`; a part the style leaves out (DIMSE1, DIMSD2, no centre mark) comes as a ghost measure of where it
+  would be. `CadMLeaderStyleEditor.PreviewSample`, `PartsOf`, `KeysOf` and `Measures` do the same for the Modify Multileader Style
+  dialog: the pieces of the multileader (words or block, landing, leader line, arrowhead) are entities of their own, with
+  ArrowSize 2.5, LandingDistance 8 and LandingGap 2 as callouts. New public members: `CadStylePart`, `CadDimSampleKind`,
+  `CadStyleSample`, `CadStyleSamplePart`, `CadStyleMeasure`, `CadDimStyleEditor.Sample`, `PartsOf`, `KeysOf`, `Measures`, and the
+  same four on `CadMLeaderStyleEditor` (`PreviewSample` for `Sample`); `CadDimStyleEditor` and `CadMLeaderStyleEditor` are now
+  `partial`.
+
 ## 2.0.0 (2026-11-26)
 
 - **NEW.** eTransmit of a sheet set (A12): the eTransmit item of the Sheet List's set, subset and sheet menus opens
