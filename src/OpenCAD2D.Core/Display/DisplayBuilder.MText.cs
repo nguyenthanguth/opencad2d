@@ -124,34 +124,44 @@ namespace OpenCAD2D
                                 : FrameFactor
                         ) - 1.0
                     ) * text.TextHeight;
-                double[] box = layout.TextBox;
-                double x0 = (box[0] - grow) * flip;
-                double x1 = (box[2] + grow) * flip;
-                double y0 = (box[1] - grow) * scale;
-                double y1 = (box[3] + grow) * scale;
-                var ring = new[]
+
+                double[] Ring(double[] box)
                 {
-                    ox + (x0 * cos) - (y0 * sin),
-                    oy + (x0 * sin) + (y0 * cos),
-                    ox + (x1 * cos) - (y0 * sin),
-                    oy + (x1 * sin) + (y0 * cos),
-                    ox + (x1 * cos) - (y1 * sin),
-                    oy + (x1 * sin) + (y1 * cos),
-                    ox + (x0 * cos) - (y1 * sin),
-                    oy + (x0 * sin) + (y1 * cos),
-                };
+                    double x0 = (box[0] - grow) * flip;
+                    double x1 = (box[2] + grow) * flip;
+                    double y0 = (box[1] - grow) * scale;
+                    double y1 = (box[3] + grow) * scale;
+                    return new[]
+                    {
+                        ox + (x0 * cos) - (y0 * sin),
+                        oy + (x0 * sin) + (y0 * cos),
+                        ox + (x1 * cos) - (y0 * sin),
+                        oy + (x1 * sin) + (y0 * cos),
+                        ox + (x1 * cos) - (y1 * sin),
+                        oy + (x1 * sin) + (y1 * cos),
+                        ox + (x0 * cos) - (y1 * sin),
+                        oy + (x0 * sin) + (y1 * cos),
+                    };
+                }
 
                 if (text.BackgroundFill)
                 {
                     DisplayStyle mask = text.UseBackgroundColor
                         ? plain
                         : PlainStyleOf(SafeRgb(text.BackgroundFillColor), style.LineWeight);
-                    parts.Add(new DisplayFill2(new[] { ring }, text.UseBackgroundColor, mask, handle, layerName));
+
+                    // A fill of its own for each column: the rings of one fill would cancel where two columns' masks overlap.
+                    foreach (double[] box in layout.MaskBoxes)
+                    {
+                        parts.Add(
+                            new DisplayFill2(new[] { Ring(box) }, text.UseBackgroundColor, mask, handle, layerName)
+                        );
+                    }
                 }
 
                 if (text.ShowBorders)
                 {
-                    parts.Add(new DisplayPolyline2(ring, true, plain, handle, layerName));
+                    parts.Add(new DisplayPolyline2(Ring(layout.TextBox), true, plain, handle, layerName));
                 }
             }
 

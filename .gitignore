@@ -128,3 +128,6 @@ src/python/dist/
 __pycache__/
 .pytest_cache/
 *.egg-info/
+
+# Review reports from the maintainer, kept on this machine only
+.reports/
