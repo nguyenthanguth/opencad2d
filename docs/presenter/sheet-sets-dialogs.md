@@ -113,8 +113,8 @@ layout checked at the end of the subset, with no number, and writes the sheet se
 
 ## For the program that opens them
 
-[`SheetSetDialogs`](xref:OpenCAD2D.Wpf.SheetSetDialogs) has one static method for each dialog. Each takes the window to show
-over, the sheet set's file, the part of the set and a [`SheetSetDialogOptions`](xref:OpenCAD2D.Wpf.SheetSetDialogOptions):
+`SheetSetDialogs` (in `OpenCAD2D.Wpf`) has one static method for each dialog. Each takes the window to show
+over, the sheet set's file, the part of the set and a `SheetSetDialogOptions`:
 
 - `ReadOnlyReason`, a sentence, where the set is locked;
 - `Changer`, how a change is made: the palette gives its own, which saves and closes the open drawings a change rewrites
