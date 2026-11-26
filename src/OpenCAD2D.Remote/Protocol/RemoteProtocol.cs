@@ -168,6 +168,18 @@ namespace OpenCAD2D.Remote
 
         /// <summary>The whole drawing as the app has it now, with changes not saved: <c>text</c>, the DXF text of its database.</summary>
         public const string Database = "database";
+
+        /// <summary>The box and word frames of an object (<c>fragment</c>, a small drawing holding it) as it would be drawn once added, without adding it: <c>box</c> and <c>frames</c>.</summary>
+        public const string Measure = "measure";
+
+        /// <summary>The same for a multileader of words (<c>style</c>, <c>arrow</c>, <c>landing</c>, <c>words</c>, <c>scale</c>).</summary>
+        public const string MeasureLeader = "measureLeader";
+
+        /// <summary>The empty rectangles of a frame (<c>layout</c>, <c>frame</c>, <c>kinds</c>, <c>margin</c>, <c>minWidth</c>, <c>minHeight</c>, <c>tolerance</c>): <c>boxes</c>, four numbers a rectangle.</summary>
+        public const string FreeSpace = "freeSpace";
+
+        /// <summary>Whether a candidate place is free (<c>layout</c>, <c>candidate</c>, <c>kinds</c>, <c>margin</c>, <c>tolerance</c>): <c>fits</c>.</summary>
+        public const string Fits = "fits";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

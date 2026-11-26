@@ -33,6 +33,7 @@ _net: Any = importlib.import_module("System")
 _cad: Any = importlib.import_module("OpenCAD2D")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
 _geometry: Any = importlib.import_module("GeometryHelper")
+_geo: Any = importlib.import_module("GeometryHelper.Geometry")
 
 
 _KINDS = ("STYLE", "LTYPE", "BLOCK", "DIMSTYLE")
@@ -717,6 +718,102 @@ class _LocalBackend:
                 graph = _cad.CadDrawingGraph.Build(self.document, layout, tolerance)
                 return str(graph.ToJson()), graph
             return str(_cad.CadDrawingJson.Write(self.document, layout)), None
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
+    # ---- measuring before placing (PW7.1) -----------------------------------------------------------------------------
+
+    @staticmethod
+    def _measurement(measured: Any) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]:
+        box = measured.Box
+        frames = [
+            (float(f.X), float(f.Y), float(f.Width), float(f.Height), float(f.Rotation)) for f in measured.Frames
+        ]
+        return (
+            None if box.IsEmpty else (float(box.MinX), float(box.MinY), float(box.MaxX), float(box.MaxY)),
+            frames,
+        )
+
+    def measure(self, entity: Any) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]:
+        try:
+            return self._measurement(_cad.CadMeasure.Of(self.document, entity))
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
+    def measure_leader(
+        self,
+        style: str | None,
+        arrow: tuple[float, float],
+        landing: tuple[float, float],
+        words: str,
+        scale: float | None,
+    ) -> tuple[tuple[float, ...] | None, list[tuple[float, ...]]]:
+        try:
+            return self._measurement(
+                _cad.CadMeasure.Leader(
+                    self.document,
+                    style,
+                    _geo.GeoPoint2(arrow[0], arrow[1]),
+                    _geo.GeoPoint2(landing[0], landing[1]),
+                    words,
+                    None if scale is None else _net.Nullable[_net.Double](scale),
+                )
+            )
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
+    @staticmethod
+    def _space_options(kinds: list[str] | None, margin: float) -> Any:
+        options = _cad.CadFreeSpaceOptions()
+        if kinds is not None:
+            options.Kinds = _net.Array[_net.String](kinds)
+        options.Margin = margin
+        return options
+
+    def free_space(
+        self,
+        layout: str | None,
+        frame: tuple[float, float, float, float],
+        kinds: list[str] | None,
+        margin: float,
+        min_width: float,
+        min_height: float,
+        tolerance: float,
+    ) -> list[tuple[float, float, float, float]]:
+        options = self._space_options(kinds, margin)
+        options.MinWidth = min_width
+        options.MinHeight = min_height
+        try:
+            table = _cad.CadSpatial.FreeSpace(
+                self.document,
+                self._space(layout),
+                _cad.DisplayBox(frame[0], frame[1], frame[2], frame[3]),
+                options,
+                _geometry.Tolerance(tolerance, 1e-5),
+            )
+        except (_net.ArgumentException, _net.InvalidOperationException) as error:
+            raise _refused(error) from None
+        numbers = [float(n) for n in table.Boxes]
+        return [(numbers[i], numbers[i + 1], numbers[i + 2], numbers[i + 3]) for i in range(0, len(numbers), 4)]
+
+    def fits(
+        self,
+        layout: str | None,
+        candidate: tuple[float, float, float, float, float],
+        kinds: list[str] | None,
+        margin: float,
+        tolerance: float,
+    ) -> bool:
+        try:
+            return bool(
+                _cad.CadSpatial.Fits(
+                    self.document,
+                    self._space(layout),
+                    _cad.CadFrame(*candidate),
+                    self._space_options(kinds, margin),
+                    _geometry.Tolerance(tolerance, 1e-5),
+                )
+            )
         except _net.ArgumentException as error:
             raise _refused(error) from None
 

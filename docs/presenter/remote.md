@@ -149,6 +149,19 @@ checks the drawing in its own process opens the copy with `CadDocument.From(data
 renders an attached app's drawing so. The copy is a snapshot; a change made in the app afterwards is not in it. A drawing of 10 000
 entities (1 070 KB of text) is asked in about 20 ms and read into a document in about 5 to 25 ms.
 
+## Measuring before placing
+
+`drawing.Measure(entity)` asks the app what an object would take once added, without adding it, as a `CadRemoteMeasurement`: `Box`
+(four numbers, none where nothing is drawn) and `Frames` (five numbers a word: its first corner, width, height and angle). The
+object travels as a small drawing, as an insert does, and is drawn by the app's own code in the app's own styles and fonts; a
+dimension names the style it is drawn in, and a style the app has not is a `CadRemoteException`. `drawing.MeasureLeader(style, arrowX,
+arrowY, landingX, landingY, words, scale)` is the same for the multileader of words MLEADER would make. `drawing.GetFreeSpace(layout,
+minX, minY, maxX, maxY, kinds, margin, minWidth, minHeight, tolerance)` gives the empty rectangles of a frame, the largest first, as
+a `CadRemoteFreeSpace` (`Boxes`, four numbers a rectangle), and `drawing.Fits(layout, x, y, width, height, rotation, kinds, margin,
+tolerance)` says whether one candidate place is free. They are the requests `measure`, `measureLeader`, `freeSpace` and `fits` and the
+answers of [`CadMeasure` and `CadSpatial`](display.md#measuring-before-placing) in the app. Python has them as
+`drawing.measure_text`, `measure_mtext`, `measure_dimension`, `measure_leader`, `free_space` and `fits`.
+
 ## Layers and layouts
 
 `drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)

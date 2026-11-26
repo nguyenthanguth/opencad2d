@@ -13,7 +13,7 @@ namespace OpenCAD2D
     /// answers in a fraction of a second after the list is made, and again after an edit at the cost of the entities the edit
     /// changed.
     /// </summary>
-    public static class CadSpatial
+    public static partial class CadSpatial
     {
         private static readonly string[] DefaultWords = { "TEXT", "MTEXT", "DIMENSION", "MULTILEADER" };
 
@@ -287,7 +287,7 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                MeetCurve(frame, margin, index.LeafItem[under], ref meeting);
+                MeetCurve(frame, margin, Math.Max(margin, 1E-6), index.LeafItem[under], ref meeting);
 
                 if (meeting.Any)
                 {
@@ -296,7 +296,13 @@ namespace OpenCAD2D
             }
         }
 
-        private static void MeetCurve(in CadTextFrame frame, double margin, DisplayItem2 item, ref CadMeeting meeting)
+        private static void MeetCurve(
+            in CadTextFrame frame,
+            double margin,
+            double flatness,
+            DisplayItem2 item,
+            ref CadMeeting meeting
+        )
         {
             switch (item)
             {
@@ -346,7 +352,7 @@ namespace OpenCAD2D
 
                     break;
                 case DisplayArc2 arc:
-                    double[] flat = arc.Flatten(Math.Max(margin, 1E-6));
+                    double[] flat = arc.Flatten(flatness);
                     CadSpatialShapes.ClipChain(frame, margin, flat, flat.Length / 2, false, ref meeting);
                     break;
                 case DisplayFill2 fill:

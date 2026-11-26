@@ -18,6 +18,9 @@ namespace OpenCAD2D
         internal const byte ArcLeaf = 3;
         internal const byte FillLeaf = 4;
 
+        // The handle the one entity of a loose list is given: no drawing has a handle that is not a hex number.
+        private const string LooseHandle = "~";
+
         private static readonly ConditionalWeakTable<DisplayList2, CadSpatialIndex> Kept =
             new ConditionalWeakTable<DisplayList2, CadSpatialIndex>();
 
@@ -43,11 +46,15 @@ namespace OpenCAD2D
         /// <summary>Gets the index of a list, made on the first call.</summary>
         public static CadSpatialIndex Of(DisplayList2 list) => Kept.GetValue(list, made => new CadSpatialIndex(made));
 
-        private CadSpatialIndex(DisplayList2 list)
-        {
-            IReadOnlyList<DisplayItem2> items = list.Items;
-            int count = list.Count;
+        /// <summary>Makes the index of the items an entity not yet in a space is drawn as, which have no handle: all are the one entity, number 0.</summary>
+        public static CadSpatialIndex OfLoose(IReadOnlyList<DisplayItem2> items) =>
+            new CadSpatialIndex(items, items.Count, true);
 
+        private CadSpatialIndex(DisplayList2 list)
+            : this(list.Items, list.Count, false) { }
+
+        private CadSpatialIndex(IReadOnlyList<DisplayItem2> items, int count, bool loose)
+        {
             for (int i = 0; i < count; i++)
             {
                 DisplayItem2 item = items[i];
@@ -55,7 +62,12 @@ namespace OpenCAD2D
 
                 if (string.IsNullOrEmpty(handle))
                 {
-                    continue;
+                    if (!loose)
+                    {
+                        continue;
+                    }
+
+                    handle = LooseHandle;
                 }
 
                 int slot = SlotOf(handle);

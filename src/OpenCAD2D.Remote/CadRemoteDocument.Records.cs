@@ -135,9 +135,10 @@ namespace OpenCAD2D.Remote
         /// that name alone, so that the app keeps its own record when the object is copied in. A name neither has is left, and
         /// the library refuses the object as it refuses any that names a style its drawing has not.
         /// </summary>
-        private void Provide(DxfEntity entity)
+        private void Provide(DxfEntity entity) => Provide(entity, Batch);
+
+        private void Provide(DxfEntity entity, DxfDatabase batch)
         {
-            DxfDatabase batch = Batch;
             string linetype = entity.Linetype;
 
             if (

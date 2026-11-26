@@ -801,6 +801,57 @@ each change pays for the entities the edit drew again. A drawing of 100 000 obje
 overlaps in 0.3 to 0.6 s on .NET Framework 4.8 and 0.25 to 0.35 s on .NET 10, and the pairs one entity stands in in a millisecond;
 `handles` makes the question of one entity cheap, since its answer is not cut from the whole one.
 
+## Measuring before placing
+
+A program that lays a drawing out wants to know what a label would take before it adds it, and where a label would fit.
+[`CadMeasure`](xref:OpenCAD2D.CadMeasure) draws a thing that is not in the drawing by the code that draws it once it is, and measures
+it by the code of [`CadSpatial.Bounds`](xref:OpenCAD2D.CadSpatial), so the box is the one the thing has after it is added, to the last
+digit, and nothing is added: no handle taken, no undo step, no display list made stale.
+
+```csharp
+CadMeasurement word = CadMeasure.Of(document, new DxfDBText { TextString = "Plate A-12", Position = at, Height = 5.0 });
+word.Box;                                          // a DisplayBox: the letters and the frame they stand in; empty for no words
+word.Frames;                                       // a CadFrame for each word: first corner, width, height, rotation in radians
+CadMeasurement leader = CadMeasure.Leader(document, null, arrow, landing, "B-12", null);   // as MLEADER makes it
+```
+
+`Of` takes any entity (a copy is drawn; the entity is not changed). A TEXT or an MTEXT is drawn by the document's own builder in its
+own text styles and fonts (`CadDocument.BuildLoose`, the builder the command previews use), a TrueType word measured by its font's
+letters and an MTEXT by its lines. A dimension's picture is made as DIM makes it, by `CadDimensionPicture.Redraw`, which needs the
+dimension in a drawing that has its dimension style, so it is drawn in a scratch drawing that holds the text style, the dimension
+style (every variable, its arrow blocks and linetypes) and the layer the entity names, and the document's fonts. A multileader is
+made in a scratch that holds its style as `MLEADER` makes it (`Make`, `SetFromStyle`, `LandWords`). A style the document has not
+is an `ArgumentException`, as the commit refuses it; so is a multileader style of a block, of no content or annotative.
+
+```csharp
+CadFreeSpace places = CadSpatial.FreeSpace(
+    document, document.ModelSpace, new DisplayBox(0, 0, 420, 297),
+    new CadFreeSpaceOptions { Kinds = null, Margin = 2.0, MinWidth = 30.0, MinHeight = 6.0 }, new Tolerance(1E-3, 1E-5));
+places.BoxOf(0);                                   // the largest empty rectangle; the rest follow, smaller
+bool free = CadSpatial.Fits(document, document.ModelSpace, word.Frames[0], options, tolerance);
+```
+
+`FreeSpace` gives the maximal empty rectangles of a frame: every rectangle, not turned, that no line or word of the kinds runs
+through or comes within the margin of, and that cannot be made larger, the largest first. They overlap; a box fits in the frame
+exactly when it lies in one of them, which a partition into pieces would not give. The list is the free-rectangle list of the
+MaxRects bin packer (Jukka Jylanki, *A Thousand Ways to Pack the Bin*, 2010), made from the leaves of the display list's index: each
+obstacle, taken in the order of its box, cuts every rectangle it enters into the pieces on its sides, and a piece in another
+rectangle is dropped, so the answer is the same whatever the order the entities were added in. A word is the box of its turned frame
+(cut along its length into pieces when it is turned off the axes), a segment its own box, a slanted one cut into pieces at most a
+thirty-second of the frame's shorter side across so that a diagonal does not take the square it spans, an arc the chain it is
+drawn as, a fill its box; the margin grows each by that much along the axes. `MinWidth` and `MinHeight` drop the rectangles that are
+too small as the list is made (a piece only shrinks, so the rest are the same), which is what makes a crowded frame answerable: a frame so
+crowded that listing every rectangle would take some seconds is an `InvalidOperationException`.
+
+`Fits` tests one candidate, a `CadFrame` (`CadFrame.FromBox` for a box that is not turned), on the real shapes as `Overlaps` tests a
+word: a line, an arc or the edge of a fill that enters the frame, the frame of another word it shares an area with, a corner of the
+frame in a fill. The frame is drawn out by the margin and in by the tolerance, so a thing touching it fits and one inside the
+margin does not; a diagonal that passes a corner at a distance fits, where its box would not.
+
+On a drawing of 100 000 objects (25 000 texts, 50 000 lines, 15 000 circles and 10 000 inserts at random over 3 000 by 3 000), on
+.NET Framework 4.8: `Fits` 0.2 ms a call, `Of` a TEXT 0.6 ms and a dimension 2.3 ms, `FreeSpace` of a 300 by 300 frame 0.4 s (4 900
+rectangles), and of the whole drawing with a least size of 20 by 20 1.0 s (34 rectangles).
+
 ## The view
 
 [`CadView`](xref:OpenCAD2D.CadView) is what part of a space the canvas shows and at what zoom: the point of

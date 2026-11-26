@@ -766,6 +766,104 @@ objects of one layout.
 From outside the app, and in a tool of the app, the same three calls ask the app for the text (`CadRemoteDocument.ExportJson` and
 `ExportGraph`), and C# gets it from `CadDrawingJson.Write`, `CadFlatten.Walk` and `CadDrawingGraph.Build` of the core.
 
+### Measuring before placing: measure, free space and fits
+
+A program that lays labels out asks the question before it adds one: how big will this text be, and is there room for it there?
+`measure_text`, `measure_mtext`, `measure_dimension` and `measure_leader` give the box a thing would take, and the frame of
+each of its words, without adding it; `free_space` gives the empty places of a frame and `fits` says whether one candidate place
+is free. The thing is drawn by the code that draws it once it is added, in the drawing's own text styles, fonts and dimension
+styles, and measured by the code that measures it there, so the box is the one `entity.bounds` gives for the thing added, to 1e-6,
+and nothing is queued, added, numbered or undone. The style a thing names is one the drawing has already committed (a
+`ValueError` names one it has not).
+
+```python
+from opencad2d.cad import Box, Frame, new_file
+
+drawing = new_file()
+drawing.text_styles.add("NOTE", font="romans.shx")
+drawing.commit()
+word = drawing.measure_text("Plate A-12", (10, 20), 5.0, style="NOTE")
+tuple(word.box)                                      # (10.0, 20.0, 40.0, 25.0)
+len(word.frames)                                     # 1
+(word.frames[0].width, word.frames[0].height)        # (30.0, 5.0)
+text = drawing.add_text("Plate A-12", (10, 20), 5.0, text_style="NOTE")
+drawing.commit()
+tuple(text.bounds)                                   # (10.0, 20.0, 40.0, 25.0)
+```
+
+`measure_text(text, at, height, style=None, rotation=0.0, justify=None)` is a TEXT, `measure_mtext(text, at, height, width=0.0,
+style=None, rotation=0.0, justify=None)` an MTEXT wrapped at `width`, `measure_dimension(kind, points, dim_style=None, text=None,
+angle=None)` a dimension (`"linear"`, `"aligned"`, `"radial"`, `"diameter"` or `"angular"`, with the points of the matching `add_*_dim`;
+for the two circles the points are the centre, a point of the circle and the location) and `measure_leader(arrow, landing, text,
+style=None, scale=None)` the multileader of words MLEADER would make, its leader line, arrowhead, landing and words laid out as the
+command lays them (in the current multileader style, or Standard as MLEADER makes it in a drawing with none). The answer is a `Measurement`: `box`, a `Box` (`None` where nothing is drawn, a text of no words), and `frames`, a
+`Frame` for each word in the order they are drawn (one for a TEXT, one for each run of a line of an MTEXT, those of a dimension's
+words). A `Frame` is a rectangle that may be turned: `x`, `y` its first corner, `width` along the line of words, `height` across
+it and `rotation` in radians, with `corners` and `box`. A word turned a quarter turn has a frame turned a quarter turn, which is
+what `fits` and `overlaps` look at. `justify` is `"left"`, `"center"`, `"right"` or `"middle"` for a TEXT, and for either an
+AutoCAD code, `"TL"`, `"TC"`, `"TR"`, `"ML"`, `"MC"`, `"MR"`, `"BL"`, `"BC"` or `"BR"`; a style of the multileader of a block,
+of no content or annotative is refused.
+
+```python
+lines = drawing.measure_mtext("Plate PL10\\PGrade S355", (10, 60), 5.0, width=60, style="NOTE")
+len(lines.frames)                                    # 2
+dim = drawing.measure_dimension("linear", [(0, 0), (100, 0), (50, 20)])
+dim.box.max_y > 20.0                                 # True
+turned = drawing.measure_text("Plate A-12", (10, 60), 5.0, style="NOTE", rotation=1.5707963267948966)
+round(turned.frames[0].box.max_y - turned.frames[0].box.min_y, 6)   # 30.0
+```
+
+`drawing.free_space(box, kinds=None, margin=0.0, min_width=0.0, min_height=0.0, layout=None, tolerance=0.001)` gives the empty
+places of a frame as a list of `Box`: every rectangle, not turned, inside `box` that no line or word of the `kinds` (DXF names such
+as `"TEXT"`, `"LINE"` or `"INSERT"`; every kind where `None`) runs through or comes within `margin` of, and that cannot be made
+larger. They overlap one another, as the empty places of a page do (a frame with one short line in the middle has four: the
+two halves and the strips above and below it), and they are the largest first, equal areas by `min_y`, `min_x`, `max_y`, `max_x`,
+the same on every run. They are the maximal empty rectangles because a box lies in some free place exactly when a box of that
+size could stand there, which a partition into pieces would not say. They are found by the free-rectangle list of the MaxRects
+bin packer (Jukka Jylanki, "A Thousand Ways to Pack the Bin", 2010): the list starts as the frame, and each obstacle cuts every
+rectangle it enters into the largest pieces on its sides, a piece lying in another dropped. A word is taken by the box of its turned
+frame (cut into pieces when it is turned off the axes), a line by the boxes of its segments, a slanted one cut into pieces of at
+most a thirty-second of the frame's shorter side so that a diagonal does not take the whole square it spans, an arc as the
+chain it is drawn as, a hatch by its box; `margin` is a gap measured along the axes. A frame crowded with small things has
+thousands of places: `min_width` and `min_height`, the size of the thing to place, drop those it could not stand in as the list
+is made, which is exact and far faster. A frame so crowded that listing every rectangle would take some seconds is a `ValueError`.
+
+`drawing.fits(candidate, kinds=None, margin=0.0, layout=None, tolerance=0.001)` is the question for one place, and exact: the
+candidate is a `Box` (or four numbers), a `Frame` (turned as a word is) or a `Measurement` (its box), and it fits when nothing of
+the `kinds` runs through it or comes within `margin` of it, tested on the real lines, arcs, fills and word frames as `overlaps`
+tests a word, not on their boxes: a diagonal that passes a corner at a distance fits. A place in a free rectangle fits, and a
+place that fits is in one. What only touches it within `tolerance` does not count.
+
+```python
+drawing.add_line((0, 40), (100, 40))
+drawing.commit()
+places = drawing.free_space((0, 0, 100, 80), kinds=["LINE"])
+[tuple(place) for place in places]                   # [(0.0, 0.0, 100.0, 40.0), (0.0, 40.0, 100.0, 80.0)]
+drawing.fits((10, 45, 40, 55))                       # True
+drawing.fits((10, 35, 40, 45))                       # False: the line runs through it
+drawing.fits((10, 45, 40, 55), kinds=["LINE"], margin=6.0)   # False: the line is 5 below it
+drawing.fits(drawing.measure_text("Plate A-12", (10, 45), 5.0, style="NOTE"))   # True
+```
+
+A layout agent measures, looks for a place and takes it:
+
+```python
+size = drawing.measure_text("Plate A-12", (0, 0), 5.0, style="NOTE").box
+width, height = size.max_x - size.min_x, size.max_y - size.min_y
+for place in drawing.free_space((0, 0, 100, 80), margin=1.0, min_width=width, min_height=height):
+    where = (place.min_x, place.min_y)
+    if drawing.fits(drawing.measure_text("Plate A-12", where, 5.0, style="NOTE"), margin=1.0):
+        drawing.add_text("Plate A-12", where, 5.0, text_style="NOTE")
+        break
+drawing.commit()
+```
+
+The calls are the same on a file, in the app and from outside it (`measure` takes the thing to the app as a small drawing and the
+numbers come back as JSON). A drawing of 100 000 objects (25 000 texts, 50 000 lines, 15 000 circles and 10 000 inserts at random
+over 3 000 by 3 000) answers `fits` in 0.2 ms a call, a TEXT in 0.6 ms and a dimension in 2.3 ms, the empty places of a 300 by 300
+frame (4 900 of them) in 0.4 s, and those at least 20 by 20 of the whole drawing (34) in 1 s, on .NET Framework 4.8. The C# calls are
+[`CadMeasure`, `CadSpatial.FreeSpace` and `CadSpatial.Fits`](presenter/display.md#measuring-before-placing).
+
 ## Rendering without a window
 
 A drawing of a file, from `open_file` or `new_file`, can be drawn to a picture with no app and no window: a PNG, an SVG, a PDF

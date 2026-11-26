@@ -86,7 +86,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 
 - [ ] PW7. More for AI drawing layout (proposed by the lead 2026-11-26, the maintainer: "kế hoạch em đưa ra tốt đó";
       after PW6; heavy work in C#, Python wraps it):
-      1. (running) Measure before placing: measure_text, measure_dimension, measure_leader (the box a thing would take, not
+      1. DONE 2026-11-26 (8e049b3e). Measure before placing: measure_text, measure_dimension, measure_leader (the box a thing would take, not
          added), and free_space(box) (the empty regions of a frame). -> verify: equal to the box once added.
       2. A standards checker as reward terms: words on paper at the plotted scale, minimum gaps between words and
          lines, dimension chains in line, layers/linetypes/styles per a company standard file; a score per rule and
