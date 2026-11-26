@@ -187,7 +187,14 @@ namespace OpenCAD2D
         /// <summary>Gets how many INSERTs of the block the drawing holds, in its spaces, layouts and other blocks.</summary>
         public int FoundInDrawing { get; internal set; }
 
-        /// <summary>Gets how many of them stand in model space.</summary>
+        /// <summary>
+        /// Gets how many of them stand in the current space, as AutoCAD counts them: those of model space on the Model tab, those
+        /// of the layout on a layout's tab (a block of 3 inserts, 2 in model space and 1 in Layout1, gives 2 and 1).
+        /// </summary>
+        public int FoundInCurrentSpace { get; internal set; }
+
+        /// <summary>Gets how many of them stand in model space, whatever the current space (the count this request gave before it
+        /// counted the current space; see <see cref="FoundInCurrentSpace"/>).</summary>
         public int FoundInModelSpace { get; internal set; }
 
         /// <summary>Gets or sets what the window's dialog was closed with: OK, Cancel or Select block; Cancel until set.</summary>

@@ -104,6 +104,30 @@ namespace OpenCAD2D.Wpf.UnitTest
             model.Document.Database.BlockTable[block].OfType<DxfAttributeDefinition>().ToList();
 
         [Fact]
+        public void OnALayoutsTab_TheManagerCountsTheInsertsOfThatLayout_UnderAutoCadsWordsForIt()
+        {
+            using (var folder = new TestFolder())
+            {
+                MainViewModel model = Open(folder);
+                model.Document.CurrentSpace = model.Document.Spaces.First(s => !s.IsModel);
+                bool reached = false;
+                model.ShowBlockAttributeManager = manager =>
+                {
+                    Assert.Equal("1", manager.FoundInDrawing);
+                    Assert.Equal("Found in current layout: ", manager.FoundInCurrentSpaceLabel);
+                    Assert.Equal("0", manager.FoundInCurrentSpace);
+                    reached = true;
+                    manager.Close(CadDialogAction.Cancel);
+                    return true;
+                };
+
+                model.Execute("BATTMAN");
+
+                Assert.True(reached);
+            }
+        }
+
+        [Fact]
         public void TheManagerGreysMoveUpOnTheFirstRow_DrawsTagsGivenTwiceInRed_AndEditThenSyncReachTheBlockAndItsInserts()
         {
             using (var folder = new TestFolder())
@@ -115,6 +139,8 @@ namespace OpenCAD2D.Wpf.UnitTest
                     Assert.Equal(new[] { "GB", "TB" }, manager.Blocks);
                     Assert.Equal("GB", manager.Block);
                     Assert.Equal("1", manager.FoundInDrawing);
+                    Assert.Equal("Found in model space: ", manager.FoundInCurrentSpaceLabel);
+                    Assert.Equal("1", manager.FoundInCurrentSpace);
                     Assert.Equal(new[] { "Tag", "Prompt", "Default", "Modes" }, manager.Columns.Select(c => c.Name));
                     Assert.Equal(new[] { true, false, true }, manager.Rows.Select(r => r.IsDuplicate));
                     Assert.Same(manager.Rows[0], manager.Selected);

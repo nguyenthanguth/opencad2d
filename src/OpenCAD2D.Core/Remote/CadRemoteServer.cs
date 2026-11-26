@@ -17,7 +17,7 @@ namespace OpenCAD2D
     /// <remarks>
     /// <para>
     /// The pipe is <c>OpenCAD2D.&lt;process id&gt;</c>, open to the current Windows user alone (see
-    /// <see cref="CadRemotePipe"/>). The file <c>%LocalAppData%\OpenCAD2D.Core\Remote\&lt;process id&gt;.json</c> holds the
+    /// <see cref="CadRemotePipe"/>). The file <c>%LocalAppData%\OpenCAD2D\Remote\&lt;process id&gt;.json</c> holds the
     /// process id, the window's title and the time the app was last activated; it is deleted when the server stops, and a
     /// file left by a process that died is ignored and removed by the next client that finds it.
     /// </para>

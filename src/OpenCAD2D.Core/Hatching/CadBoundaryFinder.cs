@@ -49,6 +49,9 @@ namespace OpenCAD2D
         /// <summary>Gets how deep the loop lies: nought the outer loop, 1 an island in it, 2 an island in an island.</summary>
         public int Depth { get; internal set; }
 
+        /// <summary>The flags a hatch gives the loop where its depth alone does not say them (copies of a shape drawn over each other); null for the flags of its depth.</summary>
+        internal DxfHatchLoopTypes? Flags { get; set; }
+
         /// <summary>The point picked that found the loop, which a hatch keeps as a seed point; null for a loop of an object selected.</summary>
         internal GeoPoint2? Seed { get; set; }
 

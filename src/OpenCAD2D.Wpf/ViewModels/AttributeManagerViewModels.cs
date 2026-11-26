@@ -135,8 +135,12 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets "Found in drawing: 14" for the block shown.</summary>
         public string FoundInDrawing => Request.FoundInDrawing.ToString(CultureInfo.InvariantCulture);
 
-        /// <summary>Gets "Found in model space: 12" for the block shown.</summary>
-        public string FoundInModelSpace => Request.FoundInModelSpace.ToString(CultureInfo.InvariantCulture);
+        /// <summary>Gets the words before the count of the current space, as AutoCAD's own: "Found in model space: " on the Model tab, "Found in current layout: " on a layout's.</summary>
+        public string FoundInCurrentSpaceLabel =>
+            Request.Document.CurrentSpace.IsModel ? "Found in model space: " : "Found in current layout: ";
+
+        /// <summary>Gets the count of "Found in model space: 12" or "Found in current layout: 3" for the block shown.</summary>
+        public string FoundInCurrentSpace => Request.FoundInCurrentSpace.ToString(CultureInfo.InvariantCulture);
 
         /// <summary>Gets the columns shown, as the settings say.</summary>
         public IReadOnlyList<AttributeColumnViewModel> Columns => _columns;
@@ -343,7 +347,7 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(Selected));
             Raise(nameof(Block));
             Raise(nameof(FoundInDrawing));
-            Raise(nameof(FoundInModelSpace));
+            Raise(nameof(FoundInCurrentSpace));
             RaiseButtons();
         }
 

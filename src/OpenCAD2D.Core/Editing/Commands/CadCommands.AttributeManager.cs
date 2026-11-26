@@ -127,6 +127,10 @@ namespace OpenCAD2D
 
             List<KeyValuePair<DxfBlockTableRecord, DxfBlockReference>> inserts = InsertsOf(c.Database, record.Name);
             request.FoundInDrawing = inserts.Count;
+            string space = c.Document.CurrentSpace.Block.Name;
+            request.FoundInCurrentSpace = inserts.Count(p =>
+                string.Equals(p.Key.Name, space, StringComparison.OrdinalIgnoreCase)
+            );
             request.FoundInModelSpace = inserts.Count(p =>
                 string.Equals(p.Key.Name, DxfBlockTableRecord.ModelSpace, StringComparison.OrdinalIgnoreCase)
             );

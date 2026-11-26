@@ -314,14 +314,16 @@ namespace OpenCAD2D
         }
 
         /// <summary>
-        /// The object of the block a reference chain edits that a point reaches: the one whose box, put where the reference draws
-        /// it, holds the point within the aperture, the smallest where several do, the first of the block on a tie; null for none.
-        /// This is how REFEDIT's "Prompt to select nested objects" takes an object, as the block's objects are not picked in the
-        /// drawing.
+        /// The object of the block a reference chain edits that a point reaches, as REFEDIT's "Prompt to select nested objects"
+        /// takes one, the block's objects not being picked in the drawing: the one whose own line lies nearest the point, where it
+        /// is within the aperture of it (a line, arc, circle, polyline or spline, put where the reference draws it, by its distance
+        /// to the point, so that a point in the middle of a circle or in the box of a slanting line reaches neither); an object of
+        /// no line of its own (a text, a hatch, a reference) by its box, put where the reference draws it, as near as the point is
+        /// to the box. A tie goes to the object whose box is the smaller, and then to the first of the block; null for none.
         /// </summary>
         /// <param name="chain">The handles of the references, outermost first, as <see cref="CadRefEditLevel.Chain"/> has them.</param>
         /// <param name="at">The point, in the drawing.</param>
-        /// <param name="aperture">How far from an object's box the point still reaches it.</param>
+        /// <param name="aperture">How far from an object the point still reaches it.</param>
         /// <returns>The handle of the object of the block, or null.</returns>
         public string FindRefEditObject(IReadOnlyList<string> chain, GeoPoint2 at, double aperture)
         {
@@ -333,12 +335,15 @@ namespace OpenCAD2D
             GeoTransform3 placing = ChainTransform(levels);
             string found = null;
             double least = double.MaxValue;
+            double smallest = double.MaxValue;
+            double within = Tolerance.Default.EqualPoint;
 
             foreach (DxfEntity entity in Candidates(levels[levels.Count - 1].Content, RefEditAttributeDefinitions))
             {
                 try
                 {
-                    GeoAabb3 box = entity.GetTransformedCopy(placing).GeometricExtents;
+                    DxfEntity placed = entity.GetTransformedCopy(placing);
+                    GeoAabb3 box = placed.GeometricExtents;
 
                     if (
                         box.IsEmpty
@@ -351,11 +356,28 @@ namespace OpenCAD2D
                         continue;
                     }
 
+                    double distance = DistanceToBox(box, at);
+
+                    if (placed is DxfCurve curve)
+                    {
+                        GeoPoint3 near = curve.GetClosestPointTo(
+                            new GeoPoint3(at.X, at.Y, (box.Min.Z + box.Max.Z) / 2.0),
+                            false
+                        );
+                        distance = Math.Sqrt((near.X - at.X) * (near.X - at.X) + (near.Y - at.Y) * (near.Y - at.Y));
+
+                        if (distance > aperture)
+                        {
+                            continue;
+                        }
+                    }
+
                     double area = (box.Max.X - box.Min.X) * (box.Max.Y - box.Min.Y);
 
-                    if (area < least)
+                    if (distance < least - within || (distance <= least + within && area < smallest))
                     {
-                        least = area;
+                        least = distance;
+                        smallest = area;
                         found = entity.Handle;
                     }
                 }
@@ -366,6 +388,76 @@ namespace OpenCAD2D
                     )
                 {
                     // An object that cannot be placed is not one the pick can reach.
+                }
+            }
+
+            return found;
+        }
+
+        /// <summary>How far a point is from a box, in the plane: nought inside it or on it.</summary>
+        private static double DistanceToBox(GeoAabb3 box, GeoPoint2 at)
+        {
+            double dx = Math.Max(Math.Max(box.Min.X - at.X, at.X - box.Max.X), 0.0);
+            double dy = Math.Max(Math.Max(box.Min.Y - at.Y, at.Y - box.Max.Y), 0.0);
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        /// <summary>
+        /// The objects of the block a reference chain edits that a window or a crossing takes, as REFEDIT's "Prompt to select
+        /// nested objects" takes them when the point picked reaches no object and a second corner is given: the corners drawn from
+        /// left to right make a window, taking the objects whose box, put where the reference draws it, lies wholly inside; from
+        /// right to left a crossing, taking those whose box meets it.
+        /// </summary>
+        /// <param name="chain">The handles of the references, outermost first, as <see cref="CadRefEditLevel.Chain"/> has them.</param>
+        /// <param name="first">The first corner, in the drawing.</param>
+        /// <param name="opposite">The opposite corner, in the drawing.</param>
+        /// <returns>The handles of the objects, in the order of the block; none for a chain that does not name a reference.</returns>
+        public IReadOnlyList<string> FindRefEditObjects(
+            IReadOnlyList<string> chain,
+            GeoPoint2 first,
+            GeoPoint2 opposite
+        )
+        {
+            var found = new List<string>();
+
+            if (!ResolveChain(chain, out List<RefLevel> levels, out _) || levels[levels.Count - 1].Content == null)
+            {
+                return found;
+            }
+
+            GeoTransform3 placing = ChainTransform(levels);
+            bool window = opposite.X >= first.X;
+            double minX = Math.Min(first.X, opposite.X);
+            double maxX = Math.Max(first.X, opposite.X);
+            double minY = Math.Min(first.Y, opposite.Y);
+            double maxY = Math.Max(first.Y, opposite.Y);
+
+            foreach (DxfEntity entity in Candidates(levels[levels.Count - 1].Content, RefEditAttributeDefinitions))
+            {
+                try
+                {
+                    GeoAabb3 box = entity.GetTransformedCopy(placing).GeometricExtents;
+
+                    if (box.IsEmpty)
+                    {
+                        continue;
+                    }
+
+                    bool inside = box.Min.X >= minX && box.Max.X <= maxX && box.Min.Y >= minY && box.Max.Y <= maxY;
+                    bool meets = box.Max.X >= minX && box.Min.X <= maxX && box.Max.Y >= minY && box.Min.Y <= maxY;
+
+                    if (window ? inside : meets)
+                    {
+                        found.Add(entity.Handle);
+                    }
+                }
+                catch (Exception exception)
+                    when (exception is ArgumentException
+                        || exception is InvalidOperationException
+                        || exception is NotSupportedException
+                    )
+                {
+                    // An object that cannot be placed is not one the box can take.
                 }
             }
 

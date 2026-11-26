@@ -362,6 +362,7 @@ namespace OpenCAD2D
                 loop.Depth = loops.Count(o => Nested(loop, o, tolerance));
             }
 
+            FlagCopies(loops.Where(l => !run.Open.Contains(l)).ToList(), tolerance);
             run.Drawn.AddRange(loops);
 
             if (retain)
@@ -387,6 +388,66 @@ namespace OpenCAD2D
             }
 
             c.Document.HatchSettings = settings.Clone();
+        }
+
+        /// <summary>
+        /// Flags the copies of a shape drawn over each other as AutoCAD 2021 flags them, which is not by their depth alone: of 2
+        /// copies each is flagged Outermost besides what its depth gives it (squares of 60 drawn twice are both External and
+        /// Outermost, 17; inside a square of 100 both Outermost, 16); of 3 or more, only the second and the third in the order
+        /// drawn are, and the rest have no flag at all, the first of three squares of 60 included (0, 17, 17). A copy deeper
+        /// than 1 has none in either case. The loops are those closed; each of them counts as a loop round what lies inside it.
+        /// </summary>
+        private static void FlagCopies(List<CadBoundaryLoop> loops, double tolerance)
+        {
+            var seen = new HashSet<CadBoundaryLoop>();
+
+            foreach (CadBoundaryLoop first in loops)
+            {
+                if (seen.Contains(first))
+                {
+                    continue;
+                }
+
+                List<CadBoundaryLoop> copies = loops.Where(o => Copies(first, o, tolerance)).ToList();
+                seen.UnionWith(copies);
+
+                if (copies.Count < 2)
+                {
+                    continue;
+                }
+
+                DxfHatchLoopTypes given =
+                    first.Depth == 0 ? DxfHatchLoopTypes.External | DxfHatchLoopTypes.Outermost
+                    : first.Depth == 1 ? DxfHatchLoopTypes.Outermost
+                    : DxfHatchLoopTypes.Default;
+
+                for (int i = 0; i < copies.Count; i++)
+                {
+                    copies[i].Flags = copies.Count == 2 || i == 1 || i == 2 ? given : DxfHatchLoopTypes.Default;
+                }
+            }
+        }
+
+        /// <summary>Whether two loops are one shape drawn twice: the same corners, each with a corner of the other where it stands, and the same area.</summary>
+        private static bool Copies(CadBoundaryLoop a, CadBoundaryLoop b, double tolerance)
+        {
+            if (
+                a.Vertices.Count != b.Vertices.Count
+                || Math.Abs(a.Area - b.Area) > tolerance * tolerance + tolerance * Math.Sqrt(Math.Abs(a.Area))
+            )
+            {
+                return false;
+            }
+
+            foreach (GeoPoint2 corner in a.Vertices)
+            {
+                if (!b.Vertices.Any(v => (v - corner).Length <= tolerance))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>

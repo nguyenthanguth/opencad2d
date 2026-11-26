@@ -126,8 +126,8 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextBlock Text="Found in drawing: " Foreground="{StaticResource GhTextMuted}" />
                     <TextBlock Text="{Binding FoundInDrawing}" Margin="0,0,10,0" />
-                    <TextBlock Text="Found in model space: " Foreground="{StaticResource GhTextMuted}" />
-                    <TextBlock Text="{Binding FoundInModelSpace}" />
+                    <TextBlock Text="{Binding FoundInCurrentSpaceLabel}" Foreground="{StaticResource GhTextMuted}" />
+                    <TextBlock Text="{Binding FoundInCurrentSpace}" />
                 </StackPanel>
             </DockPanel>
 

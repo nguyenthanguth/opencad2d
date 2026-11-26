@@ -458,7 +458,7 @@ The presenter's own assemblies (`GeometryHelper`, `OpenCAD2D` and the controls) 
 plugin's folder, on either runtime. The manager's files are `plugins.json`, the startup list and the trusted folders; the
 app keeps them in a folder of its own, OpenCAD2D in `%AppData%\OpenCAD2D`; the `Plugins` folder is not
 there but beside the app, so that every user of an install has the same plugins. A plugin that earlier versions installed
-into `%AppData%\OpenCAD2D.Core\Plugins` is not loaded now: move its folder to `Plugins` beside the app.
+into `%AppData%\OpenCAD2D\Plugins` is not loaded now: move its folder to `Plugins` beside the app.
 
 ## The sample plugin
 

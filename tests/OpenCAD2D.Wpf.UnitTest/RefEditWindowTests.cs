@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
@@ -43,6 +45,35 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             Assert.NotNull(model.Document.RefEdit);
             Assert.Equal("BOX", model.Document.RefEdit.Name);
+        }
+
+        [Fact]
+        public void TheSaveOfTheWindow_WhileAnEditIsOpen_IsRefusedAsQsaveIs_AndWritesNothing()
+        {
+            using (var folder = new TestFolder())
+            {
+                DxfDatabase database = CadTemplate.CreateMetric();
+                var box = new DxfBlockTableRecord { Name = "BOX", Origin = new GeoPoint3(0, 0, 0) };
+                database.BlockTable.Add(box);
+                box.AppendEntity(new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(100, 0, 0)));
+                var reference = new DxfBlockReference(new GeoPoint3(1000, 0, 0), box);
+                database.ModelSpace.AppendEntity(reference);
+                string path = folder.Write("box.dxf", database);
+                var model = new MainViewModel();
+                Assert.True(model.Open(path));
+                Assert.True(model.Document.OpenRefEdit(new[] { reference.Handle }, null).Succeeded);
+                DateTime written = File.GetLastWriteTimeUtc(path);
+                byte[] before = File.ReadAllBytes(path);
+
+                Assert.False(model.Save());
+                Assert.False(model.SaveAs(Path.Combine(folder.FullPath, "other.dxf")));
+
+                Assert.Equal("** Drawing save not allowed during reference editing **", model.History.Last());
+                Assert.Equal(before, File.ReadAllBytes(path));
+                Assert.Equal(written, File.GetLastWriteTimeUtc(path));
+                Assert.False(File.Exists(Path.Combine(folder.FullPath, "other.dxf")));
+                Assert.NotNull(model.Document.RefEdit);
+            }
         }
 
         [Fact]

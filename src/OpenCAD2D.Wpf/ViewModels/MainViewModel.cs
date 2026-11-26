@@ -1411,6 +1411,14 @@ namespace OpenCAD2D.Wpf
         /// <summary>Saves the drawing to a file, as a template where <paramref name="template"/> gives its options.</summary>
         private bool SaveAs(string path, string fileType, CadTemplateOptionsRequest template)
         {
+            // The working set stands in the drawing among its own objects while a reference is edited in place: a file written
+            // now would hold the copies, so the Save button, Ctrl+S and the Save As dialog are refused as QSAVE and SAVEAS are.
+            if (_current.Document.RefEdit != null)
+            {
+                Say(_current.Document.RefEdit.NotAllowedFor("QSAVE"));
+                return false;
+            }
+
             // A save the tool of a run asks for goes on under the run's command, which Esc would end.
             if (!_current.Session.SavingForRun)
             {

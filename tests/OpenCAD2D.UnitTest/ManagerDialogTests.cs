@@ -124,7 +124,27 @@ namespace OpenCAD2D.UnitTest
             Assert.Equal("IV", shown.Rows[1].Modes.Replace("L", string.Empty));
             Assert.StartsWith("C", shown.Rows[2].Modes, StringComparison.Ordinal);
             Assert.Equal(3, shown.FoundInDrawing);
-            Assert.Equal(2, shown.FoundInModelSpace);
+            Assert.Equal(2, shown.FoundInCurrentSpace);
+        }
+
+        [Fact]
+        public void BattmanCountsTheInsertsOfTheCurrentSpace_NotOfModelSpaceAlone()
+        {
+            CadDocument document = Bubbles();
+            CadSpace layout = document.Spaces.First(s => !s.IsModel);
+            Place(layout.Block, document.Database.BlockTable["GB"], new GeoPoint3(10, 10, 0), "E", "L5");
+            document.CurrentSpace = layout;
+            CadAttributeManagerRequest shown = null;
+            CadCommandSession session = Answering(document, "BATTMAN", e =>
+            {
+                shown = (CadAttributeManagerRequest)e.Payload;
+                return true;
+            });
+
+            Run(session, "BATTMAN");
+
+            Assert.Equal(4, shown.FoundInDrawing);
+            Assert.Equal(1, shown.FoundInCurrentSpace);
         }
 
         [Fact]
