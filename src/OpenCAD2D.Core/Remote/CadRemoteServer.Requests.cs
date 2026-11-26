@@ -263,6 +263,10 @@ namespace OpenCAD2D
                     return Fits(Find(request), request);
                 case RemoteOps.CheckStandard:
                     return CheckStandard(Find(request), request);
+                case RemoteOps.Make:
+                    return Make(Find(request), request);
+                case RemoteOps.FeedSelection:
+                    return FeedSelection(Find(request), request);
                 default:
                     throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }
@@ -461,6 +465,12 @@ namespace OpenCAD2D
             CadCommandSession session = null;
             int before = 0;
 
+            // A client that has the command's whole script (the MCP server) asks for no line to be typed once the command has ended:
+            // a word typed with no command running starts one.
+            bool strict = request.GetBool("strict");
+            bool continuing = request.GetBool("continuing");
+            int skipped = 0;
+
             Dispatch(() =>
             {
                 CadDocument document = Find(request);
@@ -473,9 +483,27 @@ namespace OpenCAD2D
                 session = _host.SessionOf(document);
                 before = session.History.Count;
 
+                int index = 0;
+
                 foreach (string line in Lines(text))
                 {
-                    _host.Type(document, line);
+                    bool starts = index++ == 0 && !continuing;
+
+                    if (strict && !starts && !session.IsRunning && line != EscapeLine)
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    // The Esc key, as a line of its own, ends the command running.
+                    if (line == EscapeLine)
+                    {
+                        session.Escape();
+                    }
+                    else
+                    {
+                        _host.Type(document, line);
+                    }
                 }
 
                 return 0;
@@ -507,7 +535,8 @@ namespace OpenCAD2D
 
                 return 0;
             });
-            return new JsonObject().Set("completed", !running).Set("output", output);
+            JsonObject answer = new JsonObject().Set("completed", !running).Set("output", output);
+            return skipped == 0 ? answer : answer.Set("skipped", (long)skipped);
         }
 
         /// <summary>The lines of the text to type: parted at line feeds, the last one dropped where the text ends with one.</summary>

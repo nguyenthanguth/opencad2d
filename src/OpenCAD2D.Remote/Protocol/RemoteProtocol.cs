@@ -183,6 +183,12 @@ namespace OpenCAD2D.Remote
 
         /// <summary>A drawing checked against a drawing standard (<c>standard</c>, its JSON text; <c>modelScale</c>, <c>tolerance</c>): <c>name</c>, <c>total</c>, <c>rules</c> and <c>violations</c>.</summary>
         public const string CheckStandard = "check";
+
+        /// <summary>An edit the core makes in one call (<c>what</c> and <c>args</c>, as <c>CadMake</c> takes them): <c>results</c>, the texts it gives back.</summary>
+        public const string Make = "make";
+
+        /// <summary>Answers the object prompt of the command that is running with objects of the drawing (<c>handles</c>), as a pick does: <c>taken</c>, <c>completed</c> and <c>output</c>.</summary>
+        public const string FeedSelection = "feedSelection";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

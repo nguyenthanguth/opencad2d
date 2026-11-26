@@ -69,7 +69,7 @@ server may be started before the app is.
 
 | Flag | Effect |
 |---|---|
-| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `save` and `run_command`. Opening and rendering still work |
+| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `redo`, `save`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts. Opening and rendering still work |
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
 - Only `save` writes a file: to the drawing's own file, which is in the folder it was opened from, or to the path the agent
@@ -105,9 +105,56 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 | `add_text`, `add_mtext` | words, with a `text_style` of the drawing |
 | `add_linear_dim`, `add_aligned_dim`, `add_radial_dim`, `add_diameter_dim`, `add_angular_dim` | dimensions made as DIMLINEAR, DIMALIGNED, DIMRADIUS, DIMDIAMETER and DIMANGULAR make them, in a `dim_style` of the drawing (the current one by default); the picture is drawn by the engine |
 | `add_hatch`, `add_insert` | a hatch of a closed outline with a pattern of the built-in set, or a block of the drawing placed |
-| `move`, `rotate`, `scale`, `erase`, `set_properties` | change entities by handle (refused on a locked layer); `set_properties` sets `layer`, `color`, `linetype` |
-| `undo` | takes back the last step |
+| `move`, `rotate`, `scale`, `erase`, `set_properties` | change entities by handle (refused on a locked layer); `set_properties` sets `layer`, `color`, `linetype`, `linetype_scale`, `lineweight` (hundredths of a millimetre) and `transparency` (per cent) |
+| `undo`, `redo` | take back the last step, or do the step taken back again |
 | `run_command(text)` | types on the command line; only with `--allow-scripts` |
+
+### Create
+
+| Tool | What it does |
+|---|---|
+| `add_rectangle(corner1, corner2, fillet=, chamfer=)` | one closed polyline, as RECTANG; `fillet` rounds the corners with arcs, `chamfer` cuts them |
+| `add_polygon(center, radius, sides, inscribed=, rotation=)` | a regular polygon as one closed polyline, as POLYGON (inscribed: the radius is to the corners) |
+| `add_ellipse(center, major_axis_end, ratio, start_angle=, end_angle=)` | an ellipse or an elliptical arc |
+| `add_spline(fit_points= or control_points=, degree=, closed=)` | a spline through points, or shaped by a control polygon (a closed spline takes fit points) |
+| `add_point`, `add_donut(center, inner_diameter, outer_diameter)`, `add_xline(through, angle)`, `add_ray(start, angle)`, `add_leader(points)` | the objects of POINT, DONUT, XLINE, RAY and LEADER (no annotation) |
+| `add_mleader(arrow, landing, text, style=, scale=)` | a multileader note, as MLEADER; `scale` multiplies the style's text height and arrow (10 for a sheet plotted at 1:10) |
+| `add_table(at, columns, rows, cells=, column_width=, row_lines=, style=)` | a table, as TABLE: a title row, a header row and `rows` data rows; `cells` are the words by row from the top left cell |
+| `add_text_style(name, font=, width_factor=, height=)`, `add_dimension_style(name, text_style=, scale=, text_height=, arrow_size=, variables=)`, `load_linetype(name)` | a text style, a dimension style (from ISO-25, any other variable by its library name such as `Dimdec`) and a linetype of the built-in set; refused for a name the drawing has |
+| `add_attribute_definition(tag, at, height, ...)`, `define_block(name, base_point, handles, source=)`, `insert_block_with_attributes(name, at, values=)`, `set_attribute(handle, tag, value)` | a block with attributes: define the ATTDEF and the shapes as a block (`source`: `keep`, `convert` to one insert, or `delete`), insert it with `values` by tag, change an attribute later |
+
+### Modify
+
+Each of these types the command on the drawing's own command line with the numbers, handles and names the tool has checked
+(never text of the caller's, except the words of a note, an attribute or a layout name, which are one answer to a prompt for
+words), picking objects by handle, so the result is what the command makes. They work in the current layout
+(`set_current_layout`). The answer is `created` (handles made), `erased`, `changed` (given objects whose box moved) and the last
+lines the command line wrote; a command that changed nothing is refused with those lines.
+
+| Tool | What it does |
+|---|---|
+| `copy(handles, displacements)`, `mirror(handles, line_start, line_end, keep_source=)`, `offset(handle, side, distance=, erase_source=)` | COPY, MIRROR and OFFSET (by a distance, or through the point `side`) |
+| `array_rectangular(handles, rows, columns, row_distance, column_distance)`, `array_polar(handles, center, count, angle=, rotate_items=)` | -ARRAY Rectangular and Polar |
+| `explode(handles)`, `join(handles)`, `break_at(handle, point, second_point=)` | EXPLODE, JOIN and BREAK |
+| `trim(pick_points, edges=)`, `extend(pick_points, boundaries=)` | TRIM and EXTEND: each pick point is on the object, with the cutting edges or boundaries given (every object where left out) |
+| `fillet(first, radius, second=)`, `chamfer(first, second, distance1, distance2=)`, `stretch(window, displacement)`, `lengthen(handle, mode, value, end_point)` | FILLET (every corner of one polyline with no `second`), CHAMFER, STRETCH with a crossing window, LENGTHEN by `delta`, `total` or `percent` |
+| `set_draw_order(handles, where, reference=)` | DRAWORDER: `front`, `back`, `above` or `under` a reference |
+| `edit_text(handle, contents=, height=, rotation=, style=, justify=)`, `edit_dimension(handle, text=, style=, overrides=)` | change a text, an MTEXT or a dimension as the Properties palette does (`overrides` by the palette's row names such as `Text height`) |
+| `match_properties(source, targets, which=)` | the `layer`, `color`, `linetype`, `linetype_scale` and `lineweight` of one object set on others |
+
+### Layers and layouts
+
+| Tool | What it does |
+|---|---|
+| `set_current_layer(name)`, `set_layer(name, on=, frozen=, locked=, color=, linetype=, lineweight=, plot=)` | the current layer, and the look of a layer as the Layer manager sets it |
+| `rename_layer(name, new_name)`, `delete_layer(name, move_to=)` | rename a layer (its objects follow); delete one, refused while objects are on it unless `move_to` names the layer they go to |
+| `create_layout(name, paper=, landscape=)`, `set_current_layout(name)` | a layout with a sheet of `ISO A0` to `ISO A4`, `ANSI A` to `ANSI E` or a size such as `420x297`, in millimetres, plotted at 1:1; show a tab |
+| `add_viewport(layout, frame, scale, center=, freeze_layers=)`, `set_viewport_scale(handle, scale, center=)`, `lock_viewport(handle, locked=)` | a viewport on a sheet at `1:scale` (`frame` in millimetres of the sheet, `center` a point of model space), with layers frozen in it alone; its scale changed; its display locked |
+
+A drawing from nothing to a sheet: `new_drawing`, `add_layer`, `add_text_style`, `add_dimension_style`, the shapes and the
+modify tools, `define_block` and `insert_block_with_attributes` for a title block, `create_layout` with `add_viewport` at 1:10 and
+1:5, then `render_png` of the layout and `save` as DWG. The test `McpPlateSessionTests` runs exactly that in a drawing file and in
+a drawing app, in 47 calls; `OPENCAD2D_MCP_PICTURES=<folder>` keeps the picture of the sheet it renders.
 
 `kinds` are DXF names, either case: `LINE`, `CIRCLE`, `ARC`, `LWPOLYLINE`, `TEXT`, `MTEXT`, `DIMENSION`, `INSERT`, `HATCH`.
 
@@ -137,6 +184,17 @@ save path "C:\plans\plate.dxf"          -> { "name": "plate.dxf", "modified": fa
 - One drawing at a time: the tools work on the one `open_drawing`, `new_drawing`, `--file` or the app's active drawing names.
 - `query_entities` gives a handful of numbers a kind, not every property: read one entity in full with the Python or C#
   API ([Driving the app from another program](remote.md), [Python](../python.md)).
+- Attached, the modify tools send their command, with the objects picked by handle, to the app and end it with Esc where it is still
+  asking. A tool of several steps (a table and its cells, a viewport and its scale) is one undo step, made with `UNDO Begin` and
+  `UNDO End`; a failure between the steps leaves the steps made (undo takes them back), where in a drawing file the whole call is
+  taken back.
+- The words of a note, an attribute value or a layout name are typed as one line at the prompt for words, which the app takes whole;
+  the name of a block, a layer, a style or a tag has no space. `add_mleader` and `add_table` draw in the drawing's current styles,
+  whose sizes are those of a drawing plotted at 1:1: give a note a `scale`.
+- Not covered by the tools: the plot style of an object (`set_properties` has no `plot_style`), a closed spline of control points, an
+  array along a path, a revision cloud and a wipeout (use `run_command` with `--allow-scripts`).
+- Attached, `query_entities` cannot read a viewport or another object the app cannot copy into a small drawing; `add_viewport`
+  gives the viewport's handle all the same.
 - Attached, a `run_command` that is still asking something after 10 seconds is left waiting in the app; the next
   `run_command` answers it, or Esc in the app ends it.
 - Attached, `render_png` draws a copy of the app's drawing taken at the call: the header, tables, blocks, layouts and objects as the

@@ -11,7 +11,7 @@ namespace OpenCAD2D.Mcp
     /// A drawing of a running OpenCAD2D worked on through its Remote API, the way a Python script outside the app does
     /// (<c>_remote.py</c>): the app does the work and keeps its own undo steps, and what is drawn is what its window shows.
     /// </summary>
-    internal sealed class RemoteBackend : IDrawingBackend
+    internal sealed partial class RemoteBackend : IDrawingBackend, IDrawingEditing
     {
         /// <summary>How long run_command waits for a command to end, in seconds, before it says the command is still waiting.</summary>
         private const int CommandSeconds = 10;

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- **NEW.** MCP phase 2, the tools to draw (groups B, C and D of PW7.10): `OpenCAD2D.Mcp.exe` serves 46 more tools, in a drawing file and
+  attached to the app, so that an agent can take a drawing from nothing to a sheet with no command typed. Create: `add_rectangle`
+  (with a fillet or a chamfer), `add_polygon`, `add_ellipse`, `add_spline`, `add_point`, `add_donut`, `add_xline`, `add_ray`,
+  `add_leader`, `add_mleader` (with a `scale`), `add_table` (with its cells), `add_text_style`, `add_dimension_style`,
+  `load_linetype`, `add_attribute_definition`, `define_block` (keeping, converting or deleting the objects),
+  `insert_block_with_attributes` and `set_attribute`. Modify: `copy`, `mirror`, `offset`, `array_rectangular`, `array_polar`,
+  `explode`, `join`, `break_at`, `trim`, `extend`, `fillet`, `chamfer`, `stretch`, `lengthen`, `set_draw_order`, `edit_text`,
+  `edit_dimension`, `match_properties` and `redo`; `set_properties` also sets `linetype_scale`, `lineweight` and `transparency`.
+  Layers and layouts: `set_current_layer`, `set_layer`, `rename_layer`, `delete_layer` (with `move_to`), `create_layout` (a sheet in
+  millimetres), `set_current_layout`, `add_viewport` (at 1:n, with its centre and layers frozen in it), `set_viewport_scale` and
+  `lock_viewport`. A modify tool types the command on the drawing's own command line with the numbers, handles and names it has
+  checked, and answers with the handles it made, took away and changed; every writing tool is one undo step and is refused under
+  `--read-only`. For the app the Remote channel has two new requests, `make` (an edit of the core in one call, `CadMake`) and
+  `feedSelection` (answers the object prompt of a command by handle), and a line of Esc sent by `command` ends the command running.
+  One scripted session draws a plate 1 000 by 600 mm (an offset, a notch with a fillet and its mirror, six holes in a polar array, a
+  hatch, a block with attributes inserted twice, dimensions, a multileader, a table), then an A3 sheet with a title block and two
+  viewports at 1:10 and 1:5, a picture and a DWG, in 47 calls in both modes. See
+  [Letting an AI agent drive OpenCAD2D](docs/presenter/mcp.md).
 - **FIXED.** What Python measures of words on a drawing of a file no longer depends on whether a picture was drawn first in the
   process. `measure_text`, `measure_mtext`, `measure_dimension`, `measure_leader`, `free_space`, `fits`, `bounds`, `entity.bounds`,
   `overlaps` and `check` read a drawing that had not been set up as the app sets one up on opening it (the
