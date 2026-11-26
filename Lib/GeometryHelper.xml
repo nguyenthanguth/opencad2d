@@ -56226,7 +56226,8 @@
             of the annotation not among those given back; copied alone within this drawing, it points to none
             (<see cref="P:GeometryHelper.Dxf.DxfLeader.AnnoType"/> <see cref="F:GeometryHelper.Dxf.DxfAnnotationType.NoAnnotation"/>). A handle of extended data (1005)
             naming an entity copied with it names that entity's copy; one naming anything else is null (0) in a copy into
-            another drawing, in its place, as AutoCAD keeps it. No GROUP is copied, as AutoCAD 2021's WblockCloneObjects copies
+            another drawing, in its place, as AutoCAD keeps it. The field of a text's words (<see cref="M:GeometryHelper.Dxf.DxfDBObject.GetField"/>),
+            and of each attribute of an INSERT copied, is copied with it and listed in the drawing's list of fields. No GROUP is copied, as AutoCAD 2021's WblockCloneObjects copies
             none: <see cref="M:GeometryHelper.Dxf.DxfDatabase.Insert(GeometryHelper.Geometry.GeoTransform3,GeometryHelper.Dxf.DxfDatabase,System.Boolean)"/> copies them.
             </para>
             <para>
@@ -56282,6 +56283,13 @@
             Copies entities together as <see cref="M:GeometryHelper.Dxf.DxfDatabase.WblockCloneObjects(System.Collections.Generic.IEnumerable{GeometryHelper.Dxf.DxfEntity},GeometryHelper.Dxf.DxfBlockTableRecord)"/> does; with <paramref name="groups"/>, as
             <see cref="M:GeometryHelper.Dxf.DxfDatabase.Insert(GeometryHelper.Geometry.GeoTransform3,GeometryHelper.Dxf.DxfDatabase,System.Boolean)"/> copies a drawing, every GROUP of this drawing all of whose
             entities are copied into model space or a layout comes too, as <see cref="M:GeometryHelper.Dxf.DxfDatabase.CopyGroups(GeometryHelper.Dxf.DxfFile,System.Collections.Generic.Dictionary{GeometryHelper.Dxf.DxfItem,GeometryHelper.Dxf.DxfEntity},System.Boolean)"/> says.
+            </summary>
+        </member>
+        <member name="M:GeometryHelper.Dxf.DxfDatabase.CopyFields(GeometryHelper.Dxf.DxfEntity,GeometryHelper.Dxf.DxfEntity)">
+            <summary>
+            Gives the copy of an entity a copy of the field of its words (the property TEXT of its extension dictionary), as AutoCAD's
+            deep clone copies the extension dictionary with the objects it owns, and the copy of each attribute of an INSERT the
+            field of the attribute it copies.
             </summary>
         </member>
         <member name="M:GeometryHelper.Dxf.DxfDatabase.MapDataHandles(GeometryHelper.Dxf.DxfEntity,GeometryHelper.Dxf.DxfEntity,System.Collections.Generic.Dictionary{GeometryHelper.Dxf.DxfItem,GeometryHelper.Dxf.DxfEntity})">
@@ -62003,7 +62011,8 @@
             <summary>
             Writes a copy of a field of the file into a dictionary of fields under a name, with its children, as AutoCAD copies
             one: every group of its own part kept, its children copied after it and named by the copies' handles. The FIELD of
-            the name, where there is one, is erased with its children first.
+            the name, where there is one, is erased with its children first. The copies are listed in the drawing's list of
+            fields (ACAD_FIELDLIST) as <see cref="M:GeometryHelper.Dxf.DxfField.Write(GeometryHelper.Dxf.DxfDBDictionary,System.String,GeometryHelper.Dxf.DxfFieldDraft)"/> lists them.
             </summary>
         </member>
         <member name="M:GeometryHelper.Dxf.DxfField.EraseChildren(GeometryHelper.Dxf.DxfField)">

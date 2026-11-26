@@ -3687,7 +3687,12 @@ saved the fields of a DXF and a DWG of R2004, R2007 and R2018 as the same groups
 fields of the TEXTs and MTEXTs selected again, `2 field(s) found. 2 field(s) updated.`, one undo step: an area changes after the
 circle does only then, or where FIELDEVAL says. FIELDEVAL (31 at the start, kept in the drawing as a variable of its dictionary) is the
 bits that update fields on their own: 1 when the drawing is opened, 2 when it is saved, 4 when it is plotted, 8 for eTransmit, 16 on
-REGEN; a field made in the dialog is evaluated in every one of them, the date too. FIELDDISPLAY (1) draws the box of a text with a
+REGEN; a field made in the dialog is evaluated in every one of them, the date too. The fields and formulas of the cells of tables
+are evaluated with the others, whether or not the drawing's list of fields names them (a drawing written before they were listed,
+or one AutoCAD saved, where a cell's field is owned by a text of the table's block): the tables of the spaces are looked through.
+A field travels with the text or attribute it belongs to when that is copied, pasted, or brought in with a layout (LAYOUT Template,
+New Sheet of a sheet set): the title block's `\AcVar` and `\AcSm` attributes of a layout that is not the first of its template keep
+their fields and update with the others. FIELDDISPLAY (1) draws the box of a text with a
 field on a light grey ground that is never plotted; 0 draws none. The Contents of Properties are plain words: set there, they take
 the field out. Convert Field To Text is `ConvertFieldToText()` of the library. A drawing older than AutoCAD 2004 holds no field: the
 words the field comes to are written.

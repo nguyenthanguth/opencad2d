@@ -641,6 +641,38 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void MinusLayout_Template_KeepsTheFieldsOfTheAttributesOfTheSheet()
+        {
+            DxfDatabase template = CadTemplate.CreateMetric();
+            var layout = new DxfLayout { LayoutName = "Title" };
+            layout.AddToLayoutDictionary(template, null);
+            layout.Initialize();
+            var block = new DxfBlockTableRecord { Name = "TITLEBLOCK" };
+            template.BlockTable.Add(block);
+            var definition = new DxfAttributeDefinition(new GeoPoint3(0, 0, 0), "x", "AUTHOR", "Author", null);
+            block.AppendEntity(definition);
+            var insert = new DxfBlockReference(new GeoPoint3(0, 0, 0), block);
+            layout.BlockTableRecord.AppendEntity(insert);
+            var attribute = new DxfAttributeReference();
+            attribute.SetAttributeFromBlock(definition, insert.BlockTransform);
+            insert.AttributeCollection.AppendAttribute(attribute);
+            attribute.SetField(new DxfField("By %<\\AcVar Login>%", true));
+            string file = Path.Combine(_folder, "fields.dxf");
+            template.Save(file);
+            CadDocument document = Sheets();
+
+            Run(Start(document, "-LAYOUT", "T", file, "Title"), "-LAYOUT");
+
+            DxfAttributeReference made = document
+                .Spaces.Single(sp => sp.Name == "Title")
+                .Block.OfType<DxfBlockReference>()
+                .Single()
+                .AttributeCollection.Single();
+            Assert.True(CadFields.Has(made));
+            Assert.Equal("By %<\\AcVar Login>%", CadFields.CodesOf(made));
+        }
+
+        [Fact]
         public void MinusLayout_Template_NamesALayoutTheDrawingHasLayoutNDashName_AndTakesWildCardsAndCommas()
         {
             string file = TemplateFile("tpl1.dxf");
