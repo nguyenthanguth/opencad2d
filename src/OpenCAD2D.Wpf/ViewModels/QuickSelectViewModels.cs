@@ -65,16 +65,25 @@ namespace OpenCAD2D.Wpf
             {
                 if (Set(ref _applyTo, value))
                 {
-                    _quick = new CadQuickSelect(
-                        _document,
-                        null,
-                        value == "Current selection" ? _document.Selection.Handles : null
-                    );
-                    ObjectTypes = _quick.ObjectTypes;
-                    Raise(nameof(ObjectTypes));
+                    Rescope();
                     ObjectType = ObjectTypes.FirstOrDefault();
                 }
             }
+        }
+
+        /// <summary>
+        /// Makes the objects looked among again: those of the current selection where Apply to says so and Append is not ticked,
+        /// every object of the space otherwise, as a selection appended to can only grow by objects it does not hold already.
+        /// </summary>
+        private void Rescope()
+        {
+            _quick = new CadQuickSelect(
+                _document,
+                null,
+                _applyTo == "Current selection" && !_append ? _document.Selection.Handles : null
+            );
+            ObjectTypes = _quick.ObjectTypes;
+            Raise(nameof(ObjectTypes));
         }
 
         /// <summary>Gets the object types in scope, Multiple first.</summary>
@@ -193,6 +202,16 @@ namespace OpenCAD2D.Wpf
                 if (Set(ref _append, value))
                 {
                     Raise(nameof(CanSelectObjects));
+
+                    // Appended, the matches are looked for in the whole space where Apply to is the current selection, and in the
+                    // selection again once Append is off; the type stays where it is still among those in scope.
+                    if (_applyTo == "Current selection")
+                    {
+                        string kept = _objectType;
+                        Rescope();
+                        _objectType = null;
+                        ObjectType = ObjectTypes.Contains(kept) ? kept : ObjectTypes.FirstOrDefault();
+                    }
                 }
             }
         }

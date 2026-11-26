@@ -11,7 +11,7 @@ using GeometryHelper;
 namespace OpenCAD2D.Wpf
 {
     /// <summary>
-    /// The crash log of the apps: what an exception nobody caught leaves in <c>%AppData%\OpenCAD2D.Core\crash.log</c>,
+    /// The crash log of the apps: what an exception nobody caught leaves in <c>%AppData%\OpenCAD2D\crash.log</c>,
     /// and the handlers that write it. An exception of the window's thread is written, shown in a message box and marked
     /// handled, so the app and its drawings stay; an exception of another thread, or one nobody observed in a task, is written
     /// and left to run its course. Out of memory and the faults of native code (an access violation) are written too but
@@ -25,7 +25,7 @@ namespace OpenCAD2D.Wpf
 
         private static readonly object Gate = new object();
 
-        /// <summary>Gets the file the log is kept in: %AppData%\OpenCAD2D.Core\crash.log.</summary>
+        /// <summary>Gets the file the log is kept in: %AppData%\OpenCAD2D\crash.log.</summary>
         internal static string DefaultPath =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

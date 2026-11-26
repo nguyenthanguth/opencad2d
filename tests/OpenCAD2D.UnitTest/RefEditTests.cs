@@ -561,6 +561,80 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void PromptingForNestedObjects_APointOnNoObject_StartsAWindow_TakingWhatLiesWhollyInside()
+        {
+            CadDocument document = Boxes();
+            CadCommandSession session = Start(document, "REFEDIT", P(1050, 0), "N", P(990, -20));
+
+            // The first corner reaches nothing: the other corner is asked, as "Select objects:" asks it.
+            Assert.Equal("Specify opposite corner:", session.PromptText);
+            Run(session, P(1110, 45));
+            Assert.Contains("2 found", session.History);
+            Run(session, Enter);
+
+            Assert.Contains("2 Added to working set", session.History);
+            Assert.Single(All<DxfCircle>(document.ModelSpace));
+            Assert.Single(All<DxfLine>(document.ModelSpace), l => l.StartPoint.Y < 100.0);
+        }
+
+        [Fact]
+        public void PromptingForNestedObjects_ACornerToTheLeftOfTheFirst_IsACrossing_TakingWhatItMeets()
+        {
+            CadDocument document = Boxes();
+            CadCommandSession session = Start(document, "REFEDIT", P(1050, 0), "N", P(1110, 45), P(1055, 15));
+
+            // The circle (1 040 to 1 060 by 20 to 40) is met, the line along y = 0 is not.
+            Assert.Contains("1 found", session.History);
+            Run(session, Enter);
+            Assert.Contains("1 Added to working set", session.History);
+            Assert.Single(All<DxfCircle>(document.ModelSpace));
+
+            // The same corners the other way round are a window, which holds neither: nothing is found, and Enter ends it.
+            CadDocument other = Boxes();
+            CadCommandSession window = Start(other, "REFEDIT", P(1050, 0), "N", P(1055, 15), P(1110, 45));
+            Assert.Contains("0 found", window.History);
+        }
+
+        /// <summary>The block DIAG, a line from (0, 0) to (100, 100), placed at (1 000, 0).</summary>
+        private static CadDocument Diagonal()
+        {
+            DxfDatabase database = CadTemplate.CreateMetric();
+            var diag = new DxfBlockTableRecord { Name = "DIAG", Origin = new GeoPoint3(0, 0, 0) };
+            database.BlockTable.Add(diag);
+            diag.AppendEntity(new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(100, 100, 0)));
+            database.ModelSpace.AppendEntity(new DxfBlockReference(new GeoPoint3(1000, 0, 0), diag));
+            return CadDocument.From(database, "diag.dxf");
+        }
+
+        [Fact]
+        public void PromptingForNestedObjects_APointInTheBoxOfALineButFarFromIt_ReachesNothing()
+        {
+            // (20, 80) of the block is inside the box of the slanting line and 42.4 from it; (50, 49) is 0.7 from it (the aperture is 1).
+            CadDocument document = Diagonal();
+            CadCommandSession session = Start(document, "REFEDIT", P(1050, 50), "N", P(1020, 80));
+
+            Assert.DoesNotContain("1 found", session.History);
+            Assert.Equal("Specify opposite corner:", session.PromptText);
+            Run(session, Enter);
+            Assert.Contains("0 found", session.History);
+
+            CadDocument near = Diagonal();
+            CadCommandSession pick = Start(near, "REFEDIT", P(1050, 50), "N", P(1050, 49));
+            Assert.Contains("1 found", pick.History);
+        }
+
+        [Fact]
+        public void PromptingForNestedObjects_APointInTheMiddleOfACircle_ReachesItOnlyOnTheCircle()
+        {
+            CadDocument document = Boxes();
+            CadCommandSession session = Start(document, "REFEDIT", P(1050, 0), "N", P(1050, 30));
+
+            // The middle of the circle of 10 is 10 from the circle: not reached, so the point starts a window.
+            Assert.DoesNotContain("1 found", session.History);
+            Assert.Equal("Specify opposite corner:", session.PromptText);
+        }
+
+        [Fact]
         public void PromptingForNestedObjects_NothingPicked_OpensNothing()
         {
             CadDocument document = Boxes();

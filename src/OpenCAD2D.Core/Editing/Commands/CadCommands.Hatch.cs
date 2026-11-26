@@ -515,10 +515,12 @@ namespace OpenCAD2D
         {
             foreach (CadBoundaryLoop loop in loops)
             {
-                DxfHatchLoopTypes type =
-                    loop.Depth == 0 ? DxfHatchLoopTypes.External
-                    : loop.Depth == 1 ? DxfHatchLoopTypes.Outermost
-                    : DxfHatchLoopTypes.Default;
+                DxfHatchLoopTypes type = loop.Flags
+                    ?? (
+                        loop.Depth == 0 ? DxfHatchLoopTypes.External
+                        : loop.Depth == 1 ? DxfHatchLoopTypes.Outermost
+                        : DxfHatchLoopTypes.Default
+                    );
 
                 if (run != null && run.Drawn.Contains(loop))
                 {

@@ -85,6 +85,42 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void Append_LooksAmongEveryObjectOfTheDrawing_EvenWhereApplyToIsTheCurrentSelection()
+        {
+            using (var folder = new TestFolder())
+            {
+                MainViewModel model = Open(folder);
+                string doors = model.Document.ModelSpace.Block.OfType<DxfLine>().Single(l => l.Layer == "DOORS").Handle;
+                model.Document.Selection.Set(new[] { doors });
+                model.ShowQuickSelect = dialog =>
+                {
+                    Assert.Equal("Current selection", dialog.ApplyTo);
+                    Assert.Equal(new[] { "Multiple", "Line" }, dialog.ObjectTypes);
+
+                    dialog.Append = true;
+                    Assert.Equal("Current selection", dialog.ApplyTo);
+                    Assert.Equal(new[] { "Multiple", "Line", "MText", "Text" }, dialog.ObjectTypes);
+                    dialog.ObjectType = "Line";
+                    dialog.Value = "WALLS";
+
+                    // Appended is not looking among the selection only: Append off again, the selection is where it looks.
+                    dialog.Append = false;
+                    Assert.Equal(new[] { "Multiple", "Line" }, dialog.ObjectTypes);
+                    dialog.Append = true;
+                    dialog.ObjectType = "Line";
+                    dialog.Value = "WALLS";
+                    return true;
+                };
+
+                model.Execute("QSELECT");
+
+                Assert.Equal("2 item(s) selected.", model.History.Last());
+                Assert.Equal(3, model.Document.Selection.Count);
+                Assert.Contains(doors, model.Document.Selection.Handles);
+            }
+        }
+
+        [Fact]
         public void SelectObjects_HidesQuickSelectWhileObjectsArePicked_AndItComesBackToLookAmongThemOnly()
         {
             using (var folder = new TestFolder())

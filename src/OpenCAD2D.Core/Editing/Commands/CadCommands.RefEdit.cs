@@ -61,7 +61,8 @@ namespace OpenCAD2D
         /// REFEDIT and -REFEDIT: "Select reference:" (the reference selected before taken instead), then where the point picked
         /// reaches nested references "Reference: A" and "Enter nested reference choice [Ok/Next] &lt;Ok&gt;:", then "Enter object
         /// selection method [Automatic/Prompt/Settings] &lt;Automatic&gt;:": Automatic takes every object of the block, Prompt asks
-        /// "Select nested objects or [All]:" for points, Settings asks whether to display the attribute definitions and whether to
+        /// "Select nested objects or [All]:" for points (a point on an object takes it, one on none starts a window or a crossing),
+        /// Settings asks whether to display the attribute definitions and whether to
         /// lock the objects outside the working set.
         /// </summary>
         private static IEnumerable<CadPrompt> RefEditCommand(CadCommandContext c)
@@ -206,18 +207,37 @@ namespace OpenCAD2D
                         break;
                     }
 
-                    string found = document.FindRefEditObject(
-                        levels[level].Chain,
-                        c.Input.Point,
-                        c.Session.PickAperture
-                    );
+                    GeoPoint2 first = c.Input.Point;
+                    string found = document.FindRefEditObject(levels[level].Chain, first, c.Session.PickAperture);
 
-                    if (found != null && !objects.Contains(found))
+                    if (found != null)
                     {
-                        objects.Add(found);
+                        if (!objects.Contains(found))
+                        {
+                            objects.Add(found);
+                        }
+
+                        c.Write("1 found");
+                        continue;
                     }
 
-                    c.Write(found == null ? "0 found" : "1 found");
+                    // A point that reaches no object is the first corner of a window, or of a crossing where the other corner is to its
+                    // left, as the points of "Select objects:" are; Enter in place of the other corner ends the selection.
+                    yield return CadPrompt.ForPoint("Specify opposite corner", first);
+
+                    if (!c.Input.IsPoint)
+                    {
+                        c.Write("0 found");
+                        break;
+                    }
+
+                    IReadOnlyList<string> taken = document.FindRefEditObjects(
+                        levels[level].Chain,
+                        first,
+                        c.Input.Point
+                    );
+                    objects.AddRange(taken.Where(h => !objects.Contains(h)));
+                    c.Write(taken.Count.ToString(CultureInfo.InvariantCulture) + " found");
                 }
 
                 if (objects != null && objects.Count == 0)

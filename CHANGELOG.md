@@ -11,6 +11,28 @@
   uninstaller removes the folder with the `__pycache__` folders Python writes in it.
 - **CHANGED.** The core library is GeometryHelper 13.13.0 (on nuget.org), which holds the core fixes and members
   2.0.0 shipped in Lib under 13.12.1; the NuGet packages of OpenCAD2D name it as their dependency.
+- **FIXED.** BATTMAN counted model space where AutoCAD counts the current space: "Found in model space" said the INSERTs of
+  the block in model space also on a layout's tab. The second count is now that of the current space, labelled as AutoCAD's
+  own strings have it ("Found in model space" on the Model tab, "Found in current layout" on a layout's); a block with 2
+  INSERTs in model space and 1 in Layout1 says 3 and 2 on Model, 3 and 1 on Layout1. New
+  `CadAttributeManagerRequest.FoundInCurrentSpace`; `FoundInModelSpace` keeps counting model space.
+- **FIXED.** Quick Select with "Append to current selection set" ticked and Apply to: Current selection looked among the
+  selection alone, which it can only add what it holds already to. It now looks among every object of the space, and the
+  dialog's types and values follow (back to the selection's when Append is unticked).
+- **FIXED.** While a reference was edited in place the window's Save button, Ctrl+S and the Save As dialog wrote the drawing with
+  the working set standing among its own objects; QSAVE and SAVEAS were refused already. They say `** Drawing save not allowed
+  during reference editing **` now and write nothing.
+- **FIXED.** REFEDIT's "Prompt to select nested objects" took the object whose box held the point, so a point in the middle of a
+  circle or in the box of a slanting line took it though it lay far from the line. It takes the one whose own line is nearest the
+  point within the pick aperture (a text, a hatch or a reference by its box), and a point that reaches nothing is the first corner
+  of a window (opposite corner to the right: objects wholly inside) or a crossing (to the left: objects the box meets), asking
+  `Specify opposite corner:`; `CadDocument.FindRefEditObjects` is new.
+- **FIXED.** -HATCH's draW boundary flagged copies of a shape drawn over each other by their depth alone (1 and 1 for a square
+  drawn twice); AutoCAD 2021 gives 17 and 17, and 0, 17 and 17 for three (16 16 and 1 0 16 16 for the same inside a bigger square).
+  The flags follow AutoCAD's numbers for 1 to 6 copies, alone and inside other squares.
+- **FIXED.** The documentation and XML documentation of the settings file, the tool palettes, the crash log, the plot style folder,
+  the Template folder, the plugins folder, FILTER's filter.nfl and the Remote announcement file named `%AppData%\OpenCAD2D.Core\...`
+  and `%LocalAppData%\OpenCAD2D.Core\...` where the app uses `%AppData%\OpenCAD2D` and `%LocalAppData%\OpenCAD2D` (11 files, 16 places).
 
 ## 2.0.0 (2026-11-26)
 

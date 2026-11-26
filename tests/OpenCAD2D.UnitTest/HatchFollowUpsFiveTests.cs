@@ -443,5 +443,126 @@ namespace OpenCAD2D.UnitTest
         }
 
         #endregion
+
+        #region Duplicate loops
+
+        /// <summary>The flags of the loops of the only hatch, without the polyline bit, as numbers (External 1, Outermost 16).</summary>
+        private static int[] Numbers(CadDocument document) =>
+            Enumerable
+                .Range(0, OnlyHatch(document).NumberOfLoops)
+                .Select(i => (int)Kind(OnlyHatch(document), i))
+                .ToArray();
+
+        /// <summary>A hatch of -HATCH's draW boundary of squares, the sizes the lengths of their sides, all about the point (50, 50).</summary>
+        private static CadDocument DrawnCopies(params double[] sizes)
+        {
+            CadDocument document = Blank();
+            Start(
+                document,
+                Draw("N", sizes.Select(z => Square(50 - z / 2.0, 50 - z / 2.0, 50 + z / 2.0, 50 + z / 2.0)).ToArray())
+            );
+            return document;
+        }
+
+        [Fact]
+        public void DrawBoundary_TwoCopiesOfAShape_AreBothExternalAndOutermost()
+        {
+            // AutoCAD 2021: a square drawn twice makes 2 loops, flagged 17 and 17, not 1 and 1.
+            Assert.Equal(new[] { 17, 17 }, Numbers(DrawnCopies(20, 20)));
+        }
+
+        [Fact]
+        public void DrawBoundary_ThreeOrMoreCopies_FlagTheSecondAndThirdOnly_AndTheRestNothing()
+        {
+            // AutoCAD 2021, a square drawn 3, 4, 5 and 6 times: 0 17 17, 0 17 17 0, 0 17 17 0 0, 0 17 17 0 0 0.
+            Assert.Equal(new[] { 0, 17, 17 }, Numbers(DrawnCopies(20, 20, 20)));
+            Assert.Equal(new[] { 0, 17, 17, 0 }, Numbers(DrawnCopies(20, 20, 20, 20)));
+            Assert.Equal(new[] { 0, 17, 17, 0, 0, 0 }, Numbers(DrawnCopies(20, 20, 20, 20, 20, 20)));
+        }
+
+        [Fact]
+        public void DrawBoundary_CopiesInsideASquare_AreOutermost_ByTheSameCount()
+        {
+            // AutoCAD 2021, a square of 100 and then 2, 3, 4 and 5 squares of 20 over each other: 1 16 16, 1 0 16 16, 1 0 16 16 0,
+            // 1 0 16 16 0 0.
+            Assert.Equal(new[] { 1, 16, 16 }, Numbers(DrawnCopies(100, 20, 20)));
+            Assert.Equal(new[] { 1, 0, 16, 16 }, Numbers(DrawnCopies(100, 20, 20, 20)));
+            Assert.Equal(new[] { 1, 0, 16, 16, 0 }, Numbers(DrawnCopies(100, 20, 20, 20, 20)));
+            Assert.Equal(new[] { 1, 0, 16, 16, 0, 0 }, Numbers(DrawnCopies(100, 20, 20, 20, 20, 20)));
+        }
+
+        [Fact]
+        public void DrawBoundary_ACopyOfTheOuterSquare_MakesWhatLiesInsideBothDeeper()
+        {
+            // AutoCAD 2021: the square of 100 twice and one of 20 inside both is 17 17 0, the 20 two deep; the square of 20
+            // drawn between the two copies of the 100 changes nothing of their flags (17 0 17); the pair of 20 and the pair of 10
+            // inside it are 1 16 16 0 0 under a square of 100.
+            Assert.Equal(new[] { 17, 17, 0 }, Numbers(DrawnCopies(100, 100, 20)));
+            Assert.Equal(new[] { 17, 0, 17 }, Numbers(DrawnCopies(100, 20, 100)));
+            Assert.Equal(new[] { 1, 16, 16, 0, 0 }, Numbers(DrawnCopies(100, 20, 20, 10, 10)));
+        }
+
+        [Fact]
+        public void DrawBoundary_ShapesThatAreNotCopies_KeepTheFlagsOfTheirDepth()
+        {
+            Assert.Equal(new[] { 1, 16, 0 }, Numbers(DrawnCopies(100, 20, 10)));
+            Assert.Equal(new[] { 1 }, Numbers(DrawnCopies(20)));
+
+            // AutoCAD 2021: the pair of 20 drawn either side of the square of 100 is 16 1 16.
+            Assert.Equal(new[] { 16, 1, 16 }, Numbers(DrawnCopies(20, 100, 20)));
+        }
+
+        /// <summary>The loops of the hatch a pick or a selection makes of a square of 100 with circles of 10 about its middle, drawn over each other.</summary>
+        private static CadDocument SquareWithCircles(int circles)
+        {
+            CadDocument document = Blank();
+            var outer = new DxfPolyline();
+            outer.AddVertexAt(0, new GeoPoint2(0, 0), 0.0, 0.0, 0.0);
+            outer.AddVertexAt(1, new GeoPoint2(100, 0), 0.0, 0.0, 0.0);
+            outer.AddVertexAt(2, new GeoPoint2(100, 100), 0.0, 0.0, 0.0);
+            outer.AddVertexAt(3, new GeoPoint2(0, 100), 0.0, 0.0, 0.0);
+            outer.Closed = true;
+            document.Database.ModelSpace.AppendEntity(outer);
+
+            for (int i = 0; i < circles; i++)
+            {
+                document.Database.ModelSpace.AppendEntity(
+                    new DxfCircle(new GeoPoint3(50, 50, 0), new GeoVector3(0, 0, 1), 10)
+                );
+            }
+
+            return document;
+        }
+
+        [Fact]
+        public void SelectObjects_AShapeAndSixteenCopiesOfAnother_MakeSeventeenLoops()
+        {
+            // AutoCAD 2021, -HATCH Select objects of a square of 100 and 16 circles of 10 over each other: 17 loops.
+            CadDocument document = SquareWithCircles(16);
+            Start(
+                document,
+                "-HATCH",
+                "P",
+                "SOLID",
+                "S",
+                document.ModelSpace.Block.Select(e => e.Handle).ToArray(),
+                Enter,
+                Enter
+            );
+
+            Assert.Equal(17, OnlyHatch(document).NumberOfLoops);
+        }
+
+        [Fact]
+        public void APickInsideASquareWithSixteenCopiesOfACircle_FindsTheSquareAndTheCircleOnce()
+        {
+            // AutoCAD 2021, -HATCH Select internal point of the same drawing: 2 loops, the copies of the circle one island.
+            CadDocument document = SquareWithCircles(16);
+            Start(document, "-HATCH", "P", "SOLID", P(20, 20), Enter);
+
+            Assert.Equal(2, OnlyHatch(document).NumberOfLoops);
+        }
+
+        #endregion
     }
 }

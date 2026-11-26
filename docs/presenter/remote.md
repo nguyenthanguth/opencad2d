@@ -328,7 +328,7 @@ The app's host makes the channel with `CadRemoteServer.ForTools`, gives each too
 The pipe is `OpenCAD2D.<process id>`, open to the Windows user who runs the app and to nobody else, and to this computer
 only: other users on the machine and other machines cannot connect. Any program that user runs can drive the app, as any
 program can drive the user's Tekla; turn the setting off where that is not wanted. The app announces itself in
-`%LocalAppData%\OpenCAD2D.Core\Remote\<process id>.json` (process id, window title, time last activated) and deletes the file
+`%LocalAppData%\OpenCAD2D\Remote\<process id>.json` (process id, window title, time last activated) and deletes the file
 when it stops; a file left by a process that died is ignored and removed by the next client that finds it. No new package
 is used, and nothing is installed on the machine.
 

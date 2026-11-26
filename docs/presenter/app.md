@@ -8,7 +8,7 @@ settings are in the core and run in a test; autosave, closing and the window bel
 ## Global settings
 
 [`GlobalSettings`](xref:OpenCAD2D.GlobalSettings) is what applies to the whole app and every drawing on the
-machine, kept as JSON in `%AppData%\OpenCAD2D.Core\settings.json` (`GlobalSettings.DefaultPath`). Every setting has
+machine, kept as JSON in `%AppData%\OpenCAD2D\settings.json` (`GlobalSettings.DefaultPath`). Every setting has
 its default in code, so deleting the file gives the defaults back. The values a user gives the settings of plugins and Python
 tools (Settings… of [Load/Unload Applications](lisp.md#appload)) are kept in it as `pluginSettings` under `canvas`, beside
 `pluginSnaps`, one entry for each setting as `Circles/textHeight=2.5` ([the manifest](plugins.md#the-manifest) says how); a
@@ -342,7 +342,7 @@ AutoCAD's `.dwt` is a DWG with that extension; a `.dwg` or a `.dxf` is as good a
   in, where Save As › Drawing Template saves, and where a template named with no folder (typed at NEW with FILEDIA 0, or
   the default template for QNEW) is looked for. To make a template, save a drawing as `.dwt` (SAVEAS, Files of type:
   Drawing Template, or the application menu's Save As › Drawing Template) and it is there to use. The folder
-  `%AppData%\OpenCAD2D.Core\Template`, where templates were kept before, is taken in its place only while it holds a
+  `%AppData%\OpenCAD2D\Template`, where templates were kept before, is taken in its place only while it holds a
   template and `DrawingTemplates` holds none; the first template saved into `DrawingTemplates` ends that. A program folder
   you cannot write to (Program Files) cannot be saved into: name a folder of your own in Template folder. The built-in
   templates need no folder.
@@ -746,7 +746,7 @@ to ANSI38, a solid fill, a linear gradient and ten materials), **Architectural H
 AR-HBONE, AR-PARQ1, AR-RROOF, AR-RSHKE and AR-SAND, at their size in millimetres) and **ISO Hatches** (ISO02W100 to
 ISO15W100). No file, picture or icon of AutoCAD's is used, and its `.atc` files are not read.
 
-**The file.** The palettes are kept in `ToolPalettes.json` beside the settings (`%AppData%\OpenCAD2D.Core\`, the folder
+**The file.** The palettes are kept in `ToolPalettes.json` beside the settings (`%AppData%\OpenCAD2D\`, the folder
 of `MainViewModel.SettingsPath`), written after every change: UTF-8 JSON, two spaces of indent, LF. A file that is missing or does
 not read gives the starter palettes, said once in the log; a value that is not valid falls back to its default with a Warn
 naming it, and a tool of a kind this version does not know is left out. **Export Palette…** writes the same format (a `.ghtp`
@@ -989,7 +989,7 @@ association and no desktop shortcut.
 ### Crashes and the crash log
 
 An exception nobody caught does not close the app without a word. Every exception that reaches the top is written to
-`%AppData%\OpenCAD2D.Core\crash.log` (appended, UTF-8): the time, the app's name and version, the runtime and the
+`%AppData%\OpenCAD2D\crash.log` (appended, UTF-8): the time, the app's name and version, the runtime and the
 system, which handler caught it, the command run last (`PLOT`, say), and the exception in full, its type, message, stack and
 each inner exception. The file is moved to `crash.old.log` once it passes 256 KB, so the two hold 512 KB at most. The
 same text goes to `GeometryHelperLog` as a Warn. Writing the log never throws; where the file cannot be written (a read-only
