@@ -269,6 +269,12 @@ namespace OpenCAD2D
                     return ResetToSnapshot(Find(request), request);
                 case RemoteOps.ReleaseSnapshot:
                     return ReleaseSnapshot(request);
+                case RemoteOps.Properties:
+                    return PropertiesOf(Find(request), request);
+                case RemoteOps.SelectGeometry:
+                    return SelectGeometry(Find(request), request);
+                case RemoteOps.List:
+                    return ListOf(Find(request), request);
                 default:
                     throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }
