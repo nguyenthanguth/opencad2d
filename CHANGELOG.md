@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **CHANGED.** PDFs carry only the glyphs their text uses (P4), as AutoCAD's and every PDF writer's do. SkiaSharp embedded each
+  TrueType font whole, so a plot of 100 lines and one text in Arial was 543 KB (10 375 bytes now), a plan with a line in
+  Malgun Gothic 8 MB (47 KB), and one with Chinese text in Microsoft YaHei, MS Gothic or SimSun, which SkiaSharp embeds as
+  the whole .ttc, 10 to 20 MB (15 to 17 KB). The font keeps the glyphs of the text and those a composite glyph is made of, under
+  the tag of a subset in its name (`MYREES+ArialMT`); the glyphs keep their numbers, so the text is found and copied as before,
+  Vietnamese, Korean and Chinese included, and the page draws as it did (the pixels are equal). A font whose OS/2 table
+  forbids subsetting, one of CFF outlines, or one that cannot be read stays whole. The 18 pages of a publish share one subset.
+
 - **BREAKING.** A `CadApplication` (and the app of a Python `with connect()`) used after `Dispose` raises
   `ObjectDisposedException` and opens no new pipe; it once reconnected without a word. A connection the app lost is still
   opened again. Make a new `CadApplication` to work on.

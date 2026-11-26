@@ -13,8 +13,8 @@ namespace OpenCAD2D.Wpf
     /// <summary>
     /// The presenter's plotter, OpenCAD2D PDF: writes a plot as one page of a PDF through SkiaSharp's
     /// <c>SKDocument.CreatePdf</c>, in vectors, from the display list the canvas draws. Lines keep their lineweights, hatches
-    /// and solids are filled, and the text of a TrueType font is written as text with its font embedded, so that a reader
-    /// finds and copies it; the text of an SHX font is its strokes, as the canvas draws it, and is not found unless the
+    /// and solids are filled, and the text of a TrueType font is written as text with its font embedded, cut to the glyphs
+    /// used, so that a reader finds and copies it; the text of an SHX font is its strokes, as the canvas draws it, and is not found unless the
     /// settings carry PDFSHX (<see cref="CadPlotSettings.PdfShx"/>), which writes the words again over the strokes in letters
     /// no eye sees. A plot stamp the settings carry (<see cref="CadPlotSettings.PlotStamp"/>) is drawn in a corner of the sheet
     /// as text, and its line added to the stamp's log file. Several plots, as EXPORTPDF's All layouts, are written as one
@@ -414,6 +414,9 @@ namespace OpenCAD2D.Wpf
 
                     written = memory.ToArray();
                 }
+
+            // Each font cut to the glyphs the pages show, SkiaSharp having embedded it whole.
+            written = CadPdfFontSubset.Apply(written);
 
             // Each size of sheet given its exact box once; two sheets rounded alike are the same sheet.
             var done = new HashSet<string>(StringComparer.Ordinal);
