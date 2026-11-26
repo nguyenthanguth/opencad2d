@@ -688,6 +688,58 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
          right just after it starts -> verify: Remote tests.
       5. A look in VS Code with Pylance and a PyInstaller hook check (no feature) -> verify: notes of what was seen.
 
+- [ ] PW5. The maintainer's Python review (.reports/python-opencad2d.md, 2026-11-26), on v2.0.0:
+      1. FIXED: drawing.add() of a DxfDBText/DxfMText/DxfDimension using a custom text or dimension style fails at
+         commit() ("The text style X is not in the file's text style table"): _LocalBackend.commit appends the queued
+         entities to a fresh DxfDatabase("AC1027") batch before WblockCloneObjects, and the batch lacks the styles.
+         -> verify: a test per kind (text, mtext, dimension with a custom style; a linetype) red then green, one undo
+         step kept, the same on every backend (local, in the app, remote).
+      2. Drawing API: text_styles.add(name, font, x_scale, height), current_text_style; dimension_styles.add(name,
+         text_style, scale, text_height, arrow_size, ...), current_dim_style; linetypes.load(name) from the shipped
+         Linetypes (DASHED, CENTER, HIDDEN...); add_text/add_mtext(text_style=); add_linear_dim, add_aligned_dim,
+         add_radial_dim, add_diameter_dim, add_angular_dim (the *D block and the picture made); add_hatch(boundary,
+         pattern, scale, angle) from the shipped Hatches; blocks.add(...) and add_insert(...). -> verify: tests on
+         every backend, docstrings with an example each (test_g1), stubs.
+      3. Docs: a guide section on using opencad2d.cad with GeometryHelper.Dxf for styles, dimensions, hatches, blocks
+         and linetypes, and keeping direct .NET edits inside one undo step (a helper if needed) -> verify: the examples
+         in the guide run as tests.
+
+- [ ] PW6. Python for AI drawing layout (.reports/python-ai.md, the maintainer 2026-11-26; after PW5): opencad2d as the
+      core of an AI that lays out drawings (generate -> render -> evaluate -> refine; datasets; reward functions).
+      Built in C# in the core (and a netstandard rendering assembly); Python is the thin wrapper it is today, giving
+      bulk results as NumPy arrays through opencad2d.arrays (decided 2026-11-26).
+      1. Headless render from Python: drawing.render_png(path, box=, dpi=), render_svg, render_pdf, no window. The
+         Skia renderer and the PDF writer live in OpenCAD2D.Wpf (net48/net8.0-windows) today: move the drawing of a
+         display list to Skia into a netstandard2.0 assembly the package ships (SkiaSharp runs there), keep the Wpf
+         canvas on it. -> verify: the same pixels as the app's --screenshot for 10 drawings; SVG and PDF read back;
+         time per page.
+      2. Spatial queries: entity.bounds as drawn (SHX/TTF words, dimension and block pictures, MTEXT columns), and
+         overlaps (text or dimension over lines, over each other) with a spatial index, fast enough for a reward
+         function. -> verify: bounds equal the display list's within 1E-6; an overlap test of 100 000 objects timed.
+      3. Preparing real DWG data: walk nested blocks with their transforms (flattened entities in world
+         coordinates), normalise units (INSUNITS -> mm), export the drawing as JSON and as a graph (nodes = entities,
+         edges = touching/containing/dimensioning) for GNN, Transformer or LLM input. -> verify: JSON schema tests,
+         round trip of a block tree, the graph of a sample drawing.
+      4. Docs and examples for batch and AI pipelines (opencad2d.cad + GeometryHelper.Dxf + opencad2d.arrays over a
+         folder of DWG), each example run by a test.
+
+- [ ] PW7. More for AI drawing layout (proposed by the lead 2026-11-26, the maintainer: "kế hoạch em đưa ra tốt đó";
+      after PW6; heavy work in C#, Python wraps it):
+      1. Measure before placing: measure_text, measure_dimension, measure_leader (the box a thing would take, not
+         added), and free_space(box) (the empty regions of a frame). -> verify: equal to the box once added.
+      2. A standards checker as reward terms: words on paper at the plotted scale, minimum gaps between words and
+         lines, dimension chains in line, layers/linetypes/styles per a company standard file; a score per rule and
+         the violations with their places. -> verify: a rule test each; a drawing scored before/after a fix.
+      3. Fast snapshot and reset of a drawing in memory (thousands of RL episodes without reading the file again).
+         -> verify: reset time for a 10 000-entity drawing; state equal after reset.
+      4. Labelled renders: the world-to-pixel matrix, class masks (words, dimensions, lines, hatches), COCO boxes.
+         -> verify: a box drawn back from the matrix covers the entity's pixels.
+      5. An MCP server over the Remote API so an LLM agent drives OpenCAD2D (open, read, place, render, check).
+         -> verify: a scripted MCP client session.
+      6. Compare two drawings (added, removed, moved). 7. Sheets from code (layout, title block, viewport at scale,
+         PDF). 8. Parallel workers with deterministic results (seeded). 9. A synthetic drawing generator for data.
+      Most valuable: 1, 2 and 5.
+
 #### C# source plugins
 
 Asked for by the maintainer on 2026-11-23: a command plugin given as its C# source, `.cs` files, loaded as a built

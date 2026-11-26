@@ -50254,7 +50254,7 @@
             <summary>A collection of custom data: its count, then for each a name and a value.</summary>
         </member>
         <member name="M:GeometryHelper.Dwg.DwgObjectReader.ReadValue">
-            <summary>A value (20.4.99): its flags, its type, the value unless it holds nothing, its unit, format and text.</summary>
+            <summary>A value (20.4.99): its flags, its type, the value unless it holds nothing, its unit, format and text, as a field's is.</summary>
         </member>
         <member name="M:GeometryHelper.Dwg.DwgObjectReader.ReadContentFormat">
             <summary>A content format (20.4.101.3).</summary>
@@ -51089,7 +51089,8 @@
         <member name="M:GeometryHelper.Dwg.DwgObjectWriter.WriteCellValueBefore2010(System.Collections.Generic.List{System.Collections.Generic.KeyValuePair{System.Int32,System.String}},System.Int32)">
             <summary>
             The value of a cell of R2007, from <c>301 CELL_VALUE</c> to <c>304 ACVALUE_END</c>: its flags, its type, the value
-            unless the flags say it is empty (a string as UTF-16 counted in bytes), its unit, format and the text it shows.
+            unless the flags say it is empty (a string as UTF-16 counted in bytes, a date its bytes, a point its doubles), its
+            unit, format and the text it shows, written as a field's value is.
             </summary>
         </member>
         <member name="M:GeometryHelper.Dwg.DwgObjectWriter.WriteTableOverrides(System.Collections.Generic.List{System.Collections.Generic.KeyValuePair{System.Int32,System.String}},System.Int32[])">
@@ -51261,6 +51262,12 @@
             <summary>
             A value from DXF, from its flags (93) to <c>ACVALUE_END</c>; where <paramref name="old"/> is set (a TABLECONTENT
             written for R2004 or before) the type and the value alone, as the DXF of those versions holds a value.
+            </summary>
+        </member>
+        <member name="M:GeometryHelper.Dwg.DwgObjectWriter.PointOrDateOf(GeometryHelper.Dwg.DwgObjectWriter.Cursor,GeometryHelper.Dwg.DwgCellValue)">
+            <summary>
+            The data of a value of a date (8: its bytes, after their count in 92), a 2D point (16: 10 and 20) or a 3D point
+            (32: 11, 21 and 31), from its DXF.
             </summary>
         </member>
         <member name="M:GeometryHelper.Dwg.DwgObjectWriter.FormattedOf(GeometryHelper.Dwg.DwgObjectWriter.Cursor)">
@@ -77235,7 +77242,7 @@
             handle in the older form); the visual styles of R2007, R2010 and R2013, each in a
             form of its own (<c>VisualStyle</c>, with the round trip AutoCAD keeps of what the older form has no place for); and the columns of an MTEXT, in its extended data to R2013 and in an embedded object
             from R2018 (<c>Columns</c>, <c>ColumnsUp</c>). What cannot be given its form is left out or replaced, and said: a table
-            whose cells hold more than words, numbers, a general value and fields (a link to data, a date) becomes the block it is
+            whose cells hold more than words, numbers, a general value, fields, dates and points becomes the block it is
             drawn with, and a body whose records the converter does not
             place (the splines of the ACIS 4.00 text of R2000, a solid made by a sweep) is kept as it is between the versions that hold text, and
             left out going to R2013 or later (AutoCAD reads a file whose entity holds text there as no drawing) and, its data being
@@ -77940,9 +77947,9 @@
             (1) and the groups of its overrides: the cell's value (301 CELL_VALUE to 304 ACVALUE_END) and its 92 of the later form
             are left out, its 177 is its 91 less the bits the older form has not. A table that holds its TABLECONTENT (the round trip
             of its extension dictionary, ACAD_ROUNDTRIP_2008_TABLE_ENTITY) keeps it with the values in the form of R2004. A number,
-            a general value and a field are in the cell as the words they show and the field's handle (see <see cref="M:GeometryHelper.Dxf.DxfVersionConverter.CellDown(System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group},System.Boolean,System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group},System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.CellData},System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group})"/>).
-            False, the table left as it is, where a cell holds anything but those, text or a block (a link, a value of another
-            kind): the caller then draws the table as the block it is drawn with.
+            a general value, a date, a point and a field are in the cell as the words they show and the field's handle (see
+            <see cref="M:GeometryHelper.Dxf.DxfVersionConverter.CellDown(System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group},System.Boolean,System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group},System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.CellData},System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group})"/>). False, the table left as it is, where a cell holds anything but those, text or a block (a value
+            of another kind): the caller then draws the table as the block it is drawn with.
             </summary>
         </member>
         <member name="M:GeometryHelper.Dxf.DxfVersionConverter.TableUp(GeometryHelper.Dxf.DxfVersionConverter.Record)">
@@ -77960,10 +77967,10 @@
             <summary>
             Gives one cell of the new form its old form, written to <paramref name="made"/>: its head with 177 for 91, its text (1,
             empty where it has none; a block cell has none), then the groups it holds before its value and after it (the overrides,
-            the block and its attributes). A number (a whole number or a real) or a general value is written as the text it shows
-            (the 302 of its value: <c>12</c>, <c>2.500000</c>, nothing), a field (344) as its handle where the words would stand.
-            False where the cell is not made of these: a 92 of a link, a value that is none of those, or groups after the value of
-            the last cell, which may be the table's own.
+            the block and its attributes). A number (a whole number or a real), a date, a point (2D or 3D) or a general value is
+            written as the text it shows (the 302 of its value: <c>12</c>, <c>2.500000</c>, <c>11/26/2026</c>, nothing), a field (344)
+            as its handle where the words would stand. False where the cell is not made of these: a 92 of a link, a value that is
+            none of those, or groups after the value of the last cell, which may be the table's own.
             </summary>
         </member>
         <member name="M:GeometryHelper.Dxf.DxfVersionConverter.CellUp(System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group},System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group})">
@@ -77988,9 +77995,17 @@
             Reads the value of a cell, the groups from <paramref name="from"/> up to <paramref name="end"/> (the 304): its flags (93)
             and type (90), the groups of its text where it has any (the chunks of 250 characters of a longer one in 2, then the last
             part in 1), then 94, 300, the value again (the chunks in 303, the last part in 302). <paramref name="whole"/> is the
-            text in one piece. A whole number (type 1, its 91), a real (type 2, its 140) and a general value (type 512, nothing)
+            text in one piece. A whole number (type 1, its 91), a real (type 2, its 140), a date (type 8, its size in 92 and its
+            bytes in 310), a point (type 16, 10 and 20; type 32, 11, 21 and 31) and a general value (type 512, nothing)
             hold no text: <paramref name="whole"/> is the text they show (the 302) and <paramref name="kept"/> their groups from
             the flags (93) up to the 302, null for any other. False where it is of another shape.
+            </summary>
+        </member>
+        <member name="M:GeometryHelper.Dxf.DxfVersionConverter.DataEnd(System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group},System.Int32,System.Int32,System.Int32)">
+            <summary>
+            The index past the data of a value of <paramref name="type"/> that stands at <paramref name="at"/>: a whole number (1: 91),
+            a real (2: 140), a date (8: its size in 92 and its bytes in 310), a 2D point (16: 10 and 20) or a 3D point (32: 11, 21 and
+            31); <paramref name="at"/> where the value has none of those.
             </summary>
         </member>
         <member name="M:GeometryHelper.Dxf.DxfVersionConverter.Cells(GeometryHelper.Dxf.DxfVersionConverter.Record,System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group}@,System.Int32@,System.Int32@,System.Collections.Generic.List{System.Int32}@)">
@@ -78074,6 +78089,15 @@
             and has four columns: a real (the checksum), two whole numbers (the mask, and 0) and a handle (the value).
             </summary>
         </member>
+        <member name="M:GeometryHelper.Dxf.DxfVersionConverter.RecordValue(System.Collections.Generic.List{GeometryHelper.Dxf.DxfVersionConverter.Group})">
+            <summary>
+            The value of a cell as its XRECORD in the data table holds it: as the cell does, but a date has no size in 92 and its day
+            of the week set, and a 2D point has a third coordinate (30) of nought.
+            </summary>
+        </member>
+        <member name="M:GeometryHelper.Dxf.DxfVersionConverter.WithWeekday(System.String)">
+            <summary>The 16 bytes of a date in hex (a SYSTEMTIME) with its day of the week (2 bytes, the third) the date has.</summary>
+        </member>
         <member name="M:GeometryHelper.Dxf.DxfVersionConverter.ObjectAt(System.String)">
             <summary>The object of the OBJECTS section that has the handle and is still there; null where there is none.</summary>
         </member>
@@ -78101,9 +78125,30 @@
         <member name="M:GeometryHelper.Dxf.DxfVersionConverter.ContentDown(GeometryHelper.Dxf.DxfVersionConverter.Record,System.Collections.Generic.List{System.Action})">
             <summary>
             Puts the values of the table's TABLECONTENT in the form of R2004 and before, as a change to make once the whole table is
-            known to be converted: the flags (93) before each value's type are left out, and the 94, 300, 302 and ACVALUE_END after
-            its data. A value of the type 512 gets the words it shows in 1 (the 302 it leaves out). False where a value is of a
-            shape that is not known.
+            known to be converted: the flags (93) before each value's type are left out, and the 94, 300, 303 (the chunks of a long
+            text it shows), 302 and ACVALUE_END after its data. A value of the type 512 gets the words it shows in 1 (the 302 it
+            leaves out), a date its 8 bytes (the seconds since 1970) for its 16 (see <see cref="M:GeometryHelper.Dxf.DxfVersionConverter.DateDown(System.String,System.TimeZoneInfo)"/>), and the chunks of a
+            long text stay in 2 before its last part in 1. False where a value is of a shape that is not known.
+            </summary>
+        </member>
+        <member name="M:GeometryHelper.Dxf.DxfVersionConverter.ValuesDown(GeometryHelper.Dxf.DxfVersionConverter.Record,System.Collections.Generic.List{System.Action})">
+            <summary>
+            Puts the values of a record that holds some (a TABLECONTENT, or a data link with its custom data) in the form of R2004 and
+            before, as <see cref="M:GeometryHelper.Dxf.DxfVersionConverter.ContentDown(GeometryHelper.Dxf.DxfVersionConverter.Record,System.Collections.Generic.List{System.Action})"/> says.
+            </summary>
+        </member>
+        <member name="M:GeometryHelper.Dxf.DxfVersionConverter.LinkDown(GeometryHelper.Dxf.DxfVersionConverter.Record)">
+            <summary>
+            A data link's custom data and the TABLECONTENT it owns (360), in the form of R2004 and before; what is not of a shape
+            that is known is left as it is.
+            </summary>
+        </member>
+        <member name="M:GeometryHelper.Dxf.DxfVersionConverter.DateDown(System.String,System.TimeZoneInfo)">
+            <summary>
+            The bytes of a date as AutoCAD 2021 writes it before R2007 in a value (8 bytes, the seconds since 1970 in UTC as a long,
+            8AD5076B00000000 for 13:45:30 on 26 November 2026 at UTC+7) for the 16 bytes of R2007 and later (a SYSTEMTIME: year,
+            month, day of the week, day, hour, minute, second and milliseconds, 2 bytes each: EA070B0004001A000D002D001E000000), in
+            hex. AutoCAD takes the time of its own time zone; so does this, by <paramref name="zone"/>.
             </summary>
         </member>
         <member name="M:GeometryHelper.Dxf.DxfVersionConverter.ContentUp(GeometryHelper.Dxf.DxfVersionConverter.Record,System.Collections.Generic.List{System.Action})">
