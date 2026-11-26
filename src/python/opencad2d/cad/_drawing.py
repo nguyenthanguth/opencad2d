@@ -742,7 +742,7 @@ class Layer:
 
 
 class Layers:
-    """The layers of a drawing: iterable, ``len``, ``[name]`` (ignoring case, ``KeyError`` when none), ``in``, and ``add``.
+    """The layers of a drawing: iterable, ``len``, ``[index]``, ``[name]`` (ignoring case, ``KeyError`` when none), ``in``, and ``add``.
 
     Each reading asks the drawing, so a layer added shows after ``commit()``; a ``Layer`` changed and not yet committed is
     kept by the drawing and returned as it is::
@@ -782,8 +782,11 @@ class Layers:
     def __contains__(self, name: object) -> bool:
         return isinstance(name, str) and any(layer.name.upper() == name.upper() for layer in self._read())
 
-    def __getitem__(self, name: str) -> Layer:
-        for layer in self._read():
+    def __getitem__(self, name: int | str) -> Layer:
+        layers = self._read()
+        if isinstance(name, int):
+            return layers[name]
+        for layer in layers:
             if layer.name.upper() == name.upper():
                 return layer
         raise KeyError(f"The drawing {self._drawing.name} has no layer {name!r}.")

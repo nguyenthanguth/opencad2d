@@ -70,3 +70,20 @@ def test_a_line_in_a_linetype_the_drawing_has_keeps_the_drawings_own_record_of_i
     note = drawing.net.Database.TextStyleTable["NOTE"]
     assert (str(note.FileName), note.XScale) == ("romans.shx", 0.8)
     assert len(list(drawing.net.Database.TextStyleTable)) == 2
+
+
+def test_layers_and_every_table_of_a_drawing_take_an_index_and_a_name_alike() -> None:
+    drawing = new_file()
+    for table, first in (
+        (drawing.layers, "0"),
+        (drawing.text_styles, "Standard"),
+        (drawing.dimension_styles, None),
+        (drawing.linetypes, None),
+    ):
+        assert len(table) >= 1
+        item = table[0]
+        name = item if isinstance(item, str) else getattr(item, "name", None) or item.Name
+        if first is not None:
+            assert name == first
+        assert table[name] is not None or isinstance(table[name], str)
+        assert name in table
