@@ -86,6 +86,29 @@ Three rules. A block the drawing has is the drawing's own, whatever the program'
 a block by its name. An INSERT read from another drawing of the same app brings its block the same way. And an INSERT of a
 block that is neither in the drawing nor defined with at least one object is refused with the reason, nothing applied.
 
+## Styles, linetypes and blocks in a commit
+
+An object that names a text style or a linetype the drawing has (`new DxfDBText { TextStyleName = "NOTE" }`, a line with
+`Linetype = "DASHED"`) is inserted with the drawing's own record, which the commit keeps: the client asks the app for the names once for
+a commit, and an object that names one nobody has is refused by `Insert` as the library refuses it. `AddRecords(database)` queues the
+text styles, linetypes, blocks (each with its objects) and dimension styles of a `DxfDatabase` of yours whose model space is empty:
+
+```csharp
+var mine = new DxfDatabase("AC1027");
+mine.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "NOTE", FileName = "romans.shx", XScale = 0.8 });
+
+drawing.AddRecords(mine);
+drawing.Insert(new DxfDBText { TextString = "Plate", Height = 3.0, TextStyleName = "NOTE" });
+drawing.CommitChanges();     // one undo step: the text style made, then the text in it
+```
+
+The records are written before the layers and the objects, so a layer can have a linetype of the same commit and an object the style
+or block. A record of a name the drawing has is the drawing's own and the one given is left out, as `Insert` of a drawing merges it.
+`drawing.Linetypes` lists the names of the linetypes in the order of the table, and `drawing.CurrentDimensionStyle` reads and sets the
+dimension style new dimensions are drawn in (one undo step, `DIMSTYLE`, at once). Python's `drawing.text_styles.add`,
+`dimension_styles.add`, `linetypes.load` and `blocks.add` ([the Drawing API](../python.md#styles-linetypes-dimensions-hatches-and-blocks))
+are made of these calls from outside the app.
+
 ## Layers and layouts
 
 `drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)

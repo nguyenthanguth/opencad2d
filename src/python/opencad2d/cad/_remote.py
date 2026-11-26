@@ -109,6 +109,8 @@ class _RemoteBackend:
                 document.Modify(op.entity.net)
             elif op.kind == "erase":
                 document.Delete(op.handle)
+            elif op.kind == "records":
+                document.AddRecords(op.records)
             elif op.kind == "add_layer":
                 assert op.layer is not None
                 document.AddLayer(_layer_of(op.layer._look))  # pyright: ignore[reportPrivateUsage]
@@ -176,6 +178,24 @@ class _RemoteBackend:
     @current_layer.setter
     def current_layer(self, value: str) -> None:
         self._document.CurrentLayer = value
+
+    @property
+    def current_dim_style(self) -> str:
+        return str(self._document.CurrentDimensionStyle)
+
+    @current_dim_style.setter
+    def current_dim_style(self, value: str) -> None:
+        self._document.CurrentDimensionStyle = value
+
+    def names(self, kind: str) -> list[str]:
+        if kind == "LTYPE":
+            return [str(name) for name in self._document.Linetypes]
+        records: Any = {
+            "STYLE": self._document.TextStyles,
+            "DIMSTYLE": self._document.DimensionStyles,
+            "BLOCK": self._document.Blocks,
+        }[kind]
+        return [str(record.Name) for record in records]
 
     @property
     def layouts(self) -> list[str]:

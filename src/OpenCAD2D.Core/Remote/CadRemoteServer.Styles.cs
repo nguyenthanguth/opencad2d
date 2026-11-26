@@ -165,7 +165,7 @@ namespace OpenCAD2D
         }
 
         /// <summary>A block to carry: as it is in the drawing it comes from, under the name it is to have in the small drawing.</summary>
-        private sealed class CarriedBlock
+        internal sealed class CarriedBlock
         {
             internal CarriedBlock(
                 DxfBlockTableRecord block,
@@ -196,7 +196,7 @@ namespace OpenCAD2D
             internal bool Resolved { get; }
         }
 
-        private static void CarryBlocks(DxfDatabase fragment, DxfDatabase source, List<DxfBlockTableRecord> blocks) =>
+        internal static void CarryBlocks(DxfDatabase fragment, DxfDatabase source, List<DxfBlockTableRecord> blocks) =>
             CarryBlocks(
                 fragment,
                 blocks.Select(b => new CarriedBlock(b, b.Name, source, IsMarkedDependent(b), b.IsResolved)).ToList()
@@ -210,7 +210,7 @@ namespace OpenCAD2D
         /// with the objects of its own drawing, naming what they draw by as that drawing does; one whose name the small
         /// drawing cannot take is left out.
         /// </summary>
-        private static void CarryBlocks(DxfDatabase fragment, List<CarriedBlock> blocks)
+        internal static void CarryBlocks(DxfDatabase fragment, List<CarriedBlock> blocks)
         {
             var made = new List<CarriedBlock>();
 

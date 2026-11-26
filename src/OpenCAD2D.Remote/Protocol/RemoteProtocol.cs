@@ -67,6 +67,12 @@ namespace OpenCAD2D.Remote
         /// <summary>The blocks of a drawing that are no layout and not anonymous, in a fragment, with the names in order.</summary>
         public const string Blocks = "blocks";
 
+        /// <summary>The names of the linetypes of a drawing, in the order of its table.</summary>
+        public const string Linetypes = "linetypes";
+
+        /// <summary>Reads or sets the current dimension style of a drawing.</summary>
+        public const string CurrentDimStyle = "currentDimStyle";
+
         /// <summary>Closes a drawing without saving; refused where it has changes not saved, unless told to discard them.</summary>
         public const string Close = "close";
 

@@ -110,7 +110,12 @@ namespace OpenCAD2D
 
         // ---- Layers in a commit --------------------------------------------------------------------------------------
 
-        private static Step PlanNewLayer(CadDocument document, JsonObject look, HashSet<string> added)
+        private static Step PlanNewLayer(
+            CadDocument document,
+            JsonObject look,
+            HashSet<string> added,
+            HashSet<string> linetypesAdded
+        )
         {
             string name = look?.GetString("name")?.Trim();
 
@@ -124,11 +129,16 @@ namespace OpenCAD2D
                 throw new Refusal("Layer \"" + name + "\" already exists.");
             }
 
-            CheckLook(document, look);
+            CheckLook(document, look, linetypesAdded);
             return new Step { Kind = StepKind.AddLayer, Layer = look };
         }
 
-        private static Step PlanLayerLook(CadDocument document, JsonObject look, List<CadEditRecord> planned)
+        private static Step PlanLayerLook(
+            CadDocument document,
+            JsonObject look,
+            List<CadEditRecord> planned,
+            HashSet<string> linetypesAdded
+        )
         {
             string name = look?.GetString("name")?.Trim();
 
@@ -155,7 +165,7 @@ namespace OpenCAD2D
                 throw new Refusal("Cannot freeze layer \"" + layer.Name + "\".  It is the CURRENT layer.");
             }
 
-            CheckLook(document, look);
+            CheckLook(document, look, linetypesAdded);
             planned.Add(
                 new CadEditRecord(CadEditRecordKind.TableChanged, null, "Layer " + layer.Name, null, "Modified")
                 {
@@ -165,12 +175,15 @@ namespace OpenCAD2D
             return new Step { Kind = StepKind.ModifyLayer, Layer = look };
         }
 
-        /// <summary>Refuses a look the drawing cannot give a layer, in words, before anything is applied.</summary>
-        private static void CheckLook(CadDocument document, JsonObject look)
+        /// <summary>
+        /// Refuses a look the drawing cannot give a layer, in words, before anything is applied: its linetype is one the drawing has
+        /// or the same commit adds.
+        /// </summary>
+        private static void CheckLook(CadDocument document, JsonObject look, HashSet<string> linetypesAdded)
         {
             string linetype = look.GetString("linetype") ?? "Continuous";
 
-            if (!document.Database.LinetypeTable.Has(linetype))
+            if (!document.Database.LinetypeTable.Has(linetype) && !linetypesAdded.Contains(linetype))
             {
                 throw new Refusal("The linetype " + linetype + " is not in the drawing " + document.Title + ".");
             }

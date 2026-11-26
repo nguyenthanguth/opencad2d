@@ -15,11 +15,16 @@ from collections.abc import Callable
 from typing import Any
 
 from . import _tool
-from ._drawing import Box, Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color
+from ._drawing import Box, Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color, names_of, provide
 
 _net: Any = importlib.import_module("System")
 _cad: Any = importlib.import_module("OpenCAD2D")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
+
+
+_KINDS = ("STYLE", "LTYPE", "BLOCK", "DIMSTYLE")
+"""The tables a commit adds records to, in the order they are written: what a record points at comes first."""
+_WHAT = ("New text style", "New linetype", "New block", "New dimension style")
 
 
 def _inside_only(name: str) -> RuntimeError:
@@ -180,10 +185,30 @@ class _LocalBackend:
             )
         return entity
 
+    def names(self, kind: str) -> list[str]:
+        return names_of(self.document.Database, kind)
+
+    def _holds(self, records: Any) -> Callable[[str, str], bool]:
+        """Whether the drawing has a record of a name, or the commit's small drawing of new ``records`` makes one: for the
+        records an object names (its text style, its linetype) to be given to the small drawing it is added to."""
+        known: dict[str, set[str]] = {}
+
+        def has(kind: str, name: str) -> bool:
+            if kind not in known:
+                known[kind] = {n.upper() for n in self.names(kind)}
+                if records is not None:
+                    known[kind] |= {n.upper() for n in names_of(records, kind)}
+            return name.upper() in known[kind]
+
+        return has
+
     def commit(self, ops: list[Op]) -> list[str | None]:
         document = self.document
         layer_ops = [op for op in ops if op.kind in ("add_layer", "modify_layer")]
-        steps = [op for op in ops if op.kind not in ("add_layer", "modify_layer")]
+        steps = [op for op in ops if op.kind not in ("add_layer", "modify_layer", "records")]
+        made = next((op for op in ops if op.kind == "records"), None)
+        records = None if made is None else made.records
+        has = self._holds(records)
         planned: list[Any] = []
         batch: Any = None
         for op in steps:
@@ -197,6 +222,8 @@ class _LocalBackend:
                     picture.Name = "*D"
                     batch.BlockTable.Add(picture)
                     copy.DimBlock = picture
+                # The styles, linetype and block the object names are the drawing's, or the commit's own records.
+                provide(batch, op.needs, has)
                 batch.ModelSpace.AppendEntity(copy)
                 self._space_named(op.layout)
             else:
@@ -209,6 +236,9 @@ class _LocalBackend:
 
         def apply(scope: Any) -> None:
             inserted.clear()
+            if records is not None:
+                assert made is not None
+                self._write_records(scope, records, made.spec)
             for op in layer_ops:
                 assert op.layer is not None
                 self._write_layer(scope, op.layer._look, op.kind == "add_layer")  # pyright: ignore[reportPrivateUsage]
@@ -244,6 +274,16 @@ class _LocalBackend:
         if not result.Succeeded:
             raise RuntimeError(str(result.Message))
         return inserted
+
+    def _write_records(self, scope: Any, records: Any, added: dict[str, list[str]]) -> None:
+        """Brings the table records the commit made into the drawing (text styles, linetypes, blocks, dimension styles), as the
+        app does for a client: those the drawing has not, each told to the edit."""
+        have = {kind: {n.upper() for n in self.names(kind)} for kind in _KINDS}
+        new = {kind: [n for n in added[kind] if n.upper() not in have[kind]] for kind in _KINDS}
+        _cad.CadTableRecords.Add(self.document.Database, records, *(_net.Array[_net.String](new[kind]) for kind in _KINDS))
+        for kind, what in zip(_KINDS, _WHAT):
+            for name in new[kind]:
+                scope.Record(_cad.CadEditRecord(_cad.CadEditRecordKind.TableChanged, None, what, None, name))
 
     def edit(
         self, ops: list[Op], how: str, items: list[Entity], args: tuple[Any, ...]
@@ -406,6 +446,16 @@ class _LocalBackend:
             layers.Add(layer)
             scope.Record(_cad.CadEditRecord(_cad.CadEditRecordKind.TableChanged, None, "New layer", None, look.name))
         layer.Description = look.description
+
+    @property
+    def current_dim_style(self) -> str:
+        return str(_cad.CadDimStyleEditor.Current(self.document.Database))
+
+    @current_dim_style.setter
+    def current_dim_style(self, value: str) -> None:
+        result = _cad.CadDimStyleEditor.SetCurrent(self.document, value)
+        if not result.Succeeded:
+            raise RuntimeError(str(result.Message))
 
     @property
     def current_layer(self) -> str:

@@ -596,8 +596,17 @@ namespace OpenCAD2D
             }
         }
 
-        /// <summary>Writes variables into a style of a drawing, each that differs, a name of an arrowhead, text style or linetype taken to its record there.</summary>
-        internal static void Write(
+        /// <summary>
+        /// Writes variables into a style of a drawing, each that differs, by their names (<see cref="VariableNames"/>): a name of an
+        /// arrowhead, text style or linetype is taken to its record in the drawing, an arrowhead's block made where it is AutoCAD's,
+        /// and a text style or linetype the drawing has not gives the variable no record. A value is the kind the variable is (a
+        /// <see cref="double"/> for <c>Dimtxt</c>, a <see cref="bool"/> for <c>Dimtix</c>, a <see cref="string"/> for <c>Dimtxsty</c>).
+        /// </summary>
+        /// <param name="database">The drawing the style is in.</param>
+        /// <param name="style">The style, a record of that drawing.</param>
+        /// <param name="values">The variables by name; one the style has not is left out.</param>
+        /// <exception cref="ArgumentException">Thrown when the library refuses a value, as a negative <c>Dimtxt</c>.</exception>
+        public static void Write(
             DxfDatabase database,
             DxfDimStyleTableRecord style,
             IDictionary<string, object> values

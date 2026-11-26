@@ -444,6 +444,136 @@ objects a script read and give back `Entity` objects of the same class (`drawing
 `list[Entity[DxfCircle]]`), one undo step with what the script had queued; a refused edit applies nothing
 ([edits](presenter/python.md#edits-move-copy-rotate-scale-mirror-offset)).
 
+### Styles, linetypes, dimensions, hatches and blocks
+
+A sheet needs more than lines and circles: text in a style of its own, hidden lines, dimensions drawn in a dimension style, hatches and
+blocks. The `Drawing` makes all of them, queued like the layers and applied by `commit()` as one undo step, the same on a file, in the
+app and from outside. There is no need to open the `GeometryHelper.Dxf` database of `drawing.net` for them, and an edit made there
+is not in the undo step ([below](#going-below-the-calls)).
+
+Records come first. `text_styles.add(name, font, x_scale, height)` and `dimension_styles.add(name, text_style, scale, text_height,
+arrow_size, **variables)` queue a style (the dimension style starts from ISO-25's variables, as the Dimension Style Manager's New does,
+and `Dimdec=1` or any other variable of the library sets one more), and `linetypes.load(name, file=None)` queues a linetype of the
+built-in set (`OpenCAD2D.lin`: DASHED, HIDDEN, CENTER, PHANTOM, DOT, DASHDOT, DIVIDE, BORDER, each with its `2` and `X2`, GAS_LINE
+and the ISO ones) or of a `.lin` file of yours, in the units of the drawing. They are written first in the commit, so a layer or an
+object of the same commit can name them:
+
+```python
+import math
+
+from opencad2d.cad import new_file
+from GeometryHelper.Dxf import DxfCircle, DxfLine
+from GeometryHelper.Geometry import GeoPoint3
+
+drawing = new_file()
+drawing.text_styles.add("NOTE", font="romans.shx", x_scale=0.8)               # 'NOTE'
+drawing.linetypes.load("hidden")                                              # 'HIDDEN', as the set spells it
+drawing.layers.add("Hidden", color=8, linetype="HIDDEN")
+drawing.dimension_styles.add("PLAN", text_style="NOTE", scale=50, text_height=3.5, arrow_size=2.5, Dimdec=1)
+drawing.commit()
+[s.Name for s in drawing.text_styles]          # ['NOTE', 'Standard']
+[s.Name for s in drawing.dimension_styles]     # ['ISO-25', 'PLAN', 'Standard']
+list(drawing.linetypes)                        # ['ByBlock', 'ByLayer', 'Continuous', 'HIDDEN']
+```
+
+A style or linetype the drawing has already is refused at `commit()` for `add` (`RuntimeError: The text style "NOTE" already exists.`);
+`load` leaves a linetype the drawing has as it is, as LINETYPE does. A name that an object or a dimension style names and nobody has
+is a `ValueError` naming the call that adds it (`The text style "Nowhere" is not in the drawing: add it with text_styles.add
+first.`). `current_text_style` and `current_dim_style` read and set the style new text and new dimensions take; they act at once, not
+at `commit()`, so a style is current after the commit that made it.
+
+Text and lines take the style and the linetype by name; `add_text` and `add_mtext` take `text_style`, and any object takes
+`linetype=` in its props:
+
+```python
+drawing.add_text("Plate PL10", (0, -20), 5.0, text_style="NOTE")
+drawing.add_mtext("Plate PL10, grade S355", (0, -40), 5.0, width=80, text_style="NOTE")
+drawing.add_line((0, 0), (200, 0), layer="Hidden")
+drawing.add_line((0, 10), (200, 10), linetype="HIDDEN")
+len(drawing.commit())                          # 4
+```
+
+The dimension calls draw the picture as DIM does: a dimension is a `DxfDimension` with its `*D` block, which the app draws when
+`commit()` adds it, in the style named with `dim_style` or else the current one. `add_linear_dim(first, second, location, angle,
+text)` (level or upright from where `location` lies, as DIMLINEAR chooses, or `angle` in radians), `add_aligned_dim(first, second,
+location, text)`, `add_radial_dim(center, radius, location, text)`, `add_diameter_dim(center, radius, location, text)` and
+`add_angular_dim(vertex, first, second, location, text)`; `text` replaces the measurement, `"<>"` standing for it:
+
+```python
+drawing.current_dim_style = "PLAN"
+drawing.add_linear_dim((0, 0), (200, 0), (100, 30))
+drawing.add_aligned_dim((0, 0), (150, 100), (60, 120))
+drawing.add_radial_dim((300, 50), 25, (330, 80))
+drawing.add_diameter_dim((300, 50), 25, (270, 80))
+drawing.add_angular_dim((0, 0), (200, 0), (150, 100), (100, 40))
+len(drawing.commit())                          # 5
+dim = drawing.entities("DIMENSION")[0]
+dim.net.DimensionStyleName, dim.net.Measurement   # ('PLAN', 200.0)
+```
+
+`add_hatch(boundary, pattern, scale, angle)` hatches an area with a pattern of the built-in set (`OpenCAD2D.pat`: ANSI31 to ANSI38,
+BRICK, EARTH, HONEY, STEEL, ISO02W100 to ISO15W100, AR-CONC and the rest, or `"SOLID"`) at a scale and an angle in radians. The
+boundary is the corners of a closed outline, or a closed polyline or a circle (an `Entity` just added will do), or a list of them
+whose first is the outer boundary and the rest islands. The hatch holds the loops as they are; it does not follow the objects after
+that:
+
+```python
+drawing.add_hatch([(400, 0), (500, 0), (500, 60), (400, 60)], pattern="ANSI31", scale=2.0, angle=math.pi / 4)
+outer = drawing.add_polyline([(600, 0), (700, 0), (700, 100), (600, 100)], closed=True)
+hole = drawing.add_circle((650, 50), 20)
+drawing.add_hatch([outer, hole], pattern="EARTH")
+drawing.add_hatch([(800, 0), (840, 0), (820, 30)], pattern="SOLID", color=1)
+len(drawing.commit())                          # 5
+[(h.net.PatternName, round(h.net.Area, 1)) for h in drawing.entities("HATCH")]   # [('ANSI31', 6000.0), ('EARTH', 8743.4), ('SOLID', 600.0)]
+```
+
+`blocks.add(name, entities, base_point)` queues a block made of copies of the objects given (`GeometryHelper.Dxf` entities or
+`Entity` objects; they are not added to the drawing by this), and `add_insert(name, insert, scale, rotation)` places a block the
+drawing has or one made in the same commit. A commit that makes the styles, the linetype, the block and the objects that use them
+is one undo step, and one `Undo()` takes all of it back:
+
+```python
+bolt = DxfCircle()
+bolt.Center = GeoPoint3(0, 0, 0)
+bolt.Radius = 5.0
+drawing.blocks.add("BOLT", [bolt, DxfLine(GeoPoint3(-5, 0, 0), GeoPoint3(5, 0, 0))], base_point=(0, 0))
+drawing.add_insert("BOLT", (50, 50))
+drawing.add_insert("BOLT", (100, 50), scale=2.0, rotation=math.pi / 2)
+len(drawing.commit()), [b.Name for b in drawing.blocks]    # (2, ['BOLT'])
+drawing.net.Undo()                                          # True
+[b.Name for b in drawing.blocks]                            # []
+```
+
+The numbers above came from a run of the built wheel on .NET 8 and on .NET Framework 4.8; the code blocks of this section are run as
+a test, each line that ends in a comment with the value it gives checked against it (`test_k2_guide_examples.py`). Not in the calls: attributes on `add_insert`, an associative hatch, a custom `.pat` file, and a style of
+any other kind (multileader, table, multiline); for those below.
+
+#### Going below the calls
+
+`drawing.net` is the `CadDocument` for a drawing of a file and of the app, and the `GeometryHelper.Dxf` records and entities are
+there to use: `GeometryHelper.Dxf` for the objects, `OpenCAD2D` for the editing. A change made straight in
+`drawing.net.Database` is not an edit of the document: it is not in the undo list, and the canvas does not know of it. One made through
+`CadDocument.ApplyEdit` is, and so is every call above. `ApplyEdit(name, records, apply)` runs `apply(scope)` as one undo step called `name`,
+`scope.Database` is the `DxfDatabase` to write in, and an exception inside takes the step back:
+
+```python
+from System import Action, Array
+from OpenCAD2D import CadEditRecord, CadEditScope
+from GeometryHelper.Dxf import DxfTextStyleTableRecord
+
+def write(scope):
+    style = DxfTextStyleTableRecord()
+    style.Name = "TITLE"
+    style.FileName = "arial.ttf"
+    scope.Database.TextStyleTable.Add(style)       # in the undo step of this edit
+
+result = drawing.net.ApplyEdit("TITLE STYLE", Array[CadEditRecord]([]), Action[CadEditScope](write))
+result.Succeeded                                   # True
+```
+
+A drawing from `connect()` has no `Database`: `drawing.net` is a `CadRemoteDocument`, and the calls above are the way to write
+there ([Driving a running app](#driving-a-running-app); `AddRecords` is the call of the client library that carries them).
+
 ### Typed entities
 
 An `Entity` knows the class of its `net` for a type checker (`Entity[DxfCircle]`; a bare `Entity` is an `Entity[DxfEntity]`),

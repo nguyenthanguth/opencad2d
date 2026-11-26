@@ -18,11 +18,27 @@ import math
 import os
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Protocol, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Protocol, TypeVar, cast, overload
 
 if TYPE_CHECKING:
     import typing_extensions
-    from GeometryHelper.Dxf import DxfArc, DxfCircle, DxfCurve, DxfDBText, DxfEntity, DxfLine, DxfMText, DxfPolyline
+    from GeometryHelper.Dxf import (
+        DxfAlignedDimension,
+        DxfArc,
+        DxfBlockReference,
+        DxfCircle,
+        DxfCurve,
+        DxfDBText,
+        DxfDiametricDimension,
+        DxfEntity,
+        DxfHatch,
+        DxfLine,
+        DxfMText,
+        DxfPoint3AngularDimension,
+        DxfPolyline,
+        DxfRadialDimension,
+        DxfRotatedDimension,
+    )
 
     # The class of an Entity's net; a bare Entity is an Entity[DxfEntity]. The default needs typing_extensions, which only
     # the type checker reads: at run time E is a plain TypeVar and nothing is imported.
@@ -56,7 +72,9 @@ class Look:
 
 @dataclass
 class Op:
-    """One queued change: ``insert`` (a copy to add), ``modify`` or ``erase`` of an entity, ``add_layer`` or ``modify_layer``."""
+    """One queued change: ``insert`` (a copy to add), ``modify`` or ``erase`` of an entity, ``add_layer`` or ``modify_layer``,
+    ``text_style``, ``dim_style``, ``linetype`` or ``block`` (a table record to add, with its ``spec``), and ``records``, which is
+    what those four come to when the commit is sent: one small drawing (``records``) holding the new table records."""
 
     kind: str
     entity: Entity | None = None
@@ -64,6 +82,52 @@ class Op:
     layout: str | None = None
     handle: str | None = None
     layer: Layer | None = None
+    spec: Any = None
+    records: Any = None
+    needs: tuple[tuple[str, str], ...] = ()
+
+
+RECORD_KINDS = ("text_style", "dim_style", "linetype", "block")
+"""The kinds of ``Op`` that add a table record."""
+
+
+@dataclass
+class TextStyleSpec:
+    """What ``text_styles.add`` was given."""
+
+    name: str
+    font: str
+    x_scale: float
+    height: float
+
+
+@dataclass
+class DimStyleSpec:
+    """What ``dimension_styles.add`` was given."""
+
+    name: str
+    text_style: str | None
+    scale: float
+    text_height: float
+    arrow_size: float
+    variables: dict[str, Any]
+
+
+@dataclass
+class LinetypeSpec:
+    """What ``linetypes.load`` was given: the linetype as the file spells it, and the file (None for the built-in set)."""
+
+    name: str
+    file: str | None
+
+
+@dataclass
+class BlockSpec:
+    """What ``blocks.add`` was given: copies of the objects, and the base point."""
+
+    name: str
+    entities: list[Any]
+    base_point: Any
 
 
 class Box(NamedTuple):
@@ -111,7 +175,12 @@ class Backend(Protocol):
     def dimension_styles(self) -> list[Any]: ...
     @property
     def blocks(self) -> list[Any]: ...
+    @property
+    def current_dim_style(self) -> str: ...
+    @current_dim_style.setter
+    def current_dim_style(self, value: str) -> None: ...
 
+    def names(self, kind: str) -> list[str]: ...
     def read(
         self, dxf_type: str | None, layer: str | None, layout: str | None, kind: Any = None
     ) -> list[tuple[str, Any, Any]]: ...
@@ -226,6 +295,194 @@ def variable_value(name: str, value: Any) -> Any:
     raise TypeError(
         f"The variable {name} is set to an int, a float, a str or a tuple of 2 or 3 numbers, not {value!r}."
     )
+
+
+_cad: Any = importlib.import_module("OpenCAD2D")
+
+_TABLES = {"STYLE": "TextStyleTable", "LTYPE": "LinetypeTable", "DIMSTYLE": "DimStyleTable", "BLOCK": "BlockTable"}
+_WORDS = {"STYLE": "text style", "LTYPE": "linetype", "DIMSTYLE": "dimension style", "BLOCK": "block"}
+_ADDED_BY = {"STYLE": "text_styles.add", "LTYPE": "linetypes.load", "DIMSTYLE": "dimension_styles.add"}
+
+
+def names_of(database: Any, kind: str) -> list[str]:
+    """The names in a table of a ``DxfDatabase``: ``kind`` is ``"STYLE"``, ``"LTYPE"``, ``"DIMSTYLE"`` or ``"BLOCK"``, as the
+    DXF names the tables."""
+    return [str(record.Name) for record in getattr(database, _TABLES[kind])]
+
+
+_KIND_OF: dict[Any, str] = {}
+"""What each class of entity brings besides its linetype, found once: ``"text"`` (a text style), ``"dim"`` (a dimension style),
+``"block"`` (a block) or ``""``."""
+
+
+def needs(entity: Any) -> tuple[tuple[str, str], ...]:
+    """The names an entity brings that the drawing it is added to must have, as (table, name) pairs, left out where the
+    drawing always has the name: its linetype, its text style (a TEXT or MTEXT), its dimension style (a dimension) and its
+    block (an INSERT). ``()`` for the common object that names none."""
+    found: list[tuple[str, str]] = []
+    linetype = entity.Linetype
+    if linetype and str(linetype).upper() not in ("BYLAYER", "BYBLOCK", "CONTINUOUS"):
+        found.append(("LTYPE", str(linetype)))
+    cls: Any = entity.__class__
+    kind = _KIND_OF.get(cls)
+    if kind is None:
+        if issubclass(cls, (_dxf.DxfDBText, _dxf.DxfMText)):
+            kind = "text"
+        elif issubclass(cls, _dxf.DxfDimension):
+            kind = "dim"
+        elif issubclass(cls, _dxf.DxfBlockReference):
+            kind = "block"
+        else:
+            kind = ""
+        _KIND_OF[cls] = kind
+    if kind == "text":
+        style = entity.TextStyleName
+        if style and str(style) != "Standard":
+            found.append(("STYLE", str(style)))
+    elif kind == "dim":
+        found.append(("DIMSTYLE", str(entity.DimensionStyleName or "")))
+    elif kind == "block":
+        found.append(("BLOCK", str(entity.Name or "")))
+    return tuple(found)
+
+
+def provide(database: Any, wanted: tuple[tuple[str, str], ...], has: Callable[[str, str], bool]) -> None:
+    """Gives ``database`` a record of each name an entity ``needs`` that it lacks and ``has`` says the drawing it is to go to
+    has: its linetype, its text style or its block, which the library asks of a drawing an entity is added to. A record is made
+    of its name alone; the drawing the entity is then copied into keeps its own record of the name. A name ``has`` does not
+    know is left, and adding the entity refuses it in the library's words."""
+    for kind, name in wanted:
+        if kind == "DIMSTYLE" or not name:
+            continue
+        table = getattr(database, _TABLES[kind])
+        if not table.Has(name) and has(kind, name):
+            record: Any = {
+                "LTYPE": _dxf.DxfLinetypeTableRecord,
+                "STYLE": _dxf.DxfTextStyleTableRecord,
+                "BLOCK": _dxf.DxfBlockTableRecord,
+            }[kind]()
+            record.Name = name
+            table.Add(record)
+
+
+def _boxed(record: Any, name: str, value: Any) -> Any:
+    """``value`` as the .NET object the property ``name`` of ``record`` takes, which the editor sets by reflection: a Python
+    ``int`` would reach it as a ``PyInt``, which no property takes. ``TypeError`` for a property of a kind other than a number, a
+    bool, a text or an enum."""
+    kind = record.GetType().GetProperty(name).PropertyType
+    word = str(kind.Name)
+    if kind.IsEnum:
+        return _net.Enum.ToObject(kind, int(value))
+    if word == "Boolean":
+        return _net.Boolean(bool(value))
+    if word == "String":
+        return _net.String(str(value))
+    if word in ("Double", "Single"):
+        return getattr(_net, word)(float(value))
+    if word in ("Int32", "Int16", "Byte"):
+        return getattr(_net, word)(int(value))
+    raise TypeError(f"The dimension variable {name} is a {word} and is not set from Python.")
+
+
+class Staging:
+    """The new table records of one commit, made in a small drawing of their own (``database``): the text styles, linetypes,
+    dimension styles and blocks queued by ``text_styles.add``, ``linetypes.load``, ``dimension_styles.add`` and ``blocks.add``,
+    in the order queued. Each backend writes the small drawing's records into the drawing it works on: a record the drawing has
+    is refused here, in words, before anything is sent."""
+
+    def __init__(self, backend: Backend) -> None:
+        self.database: Any = _dxf.DxfDatabase("AC1027")
+        self.added: dict[str, list[str]] = {"STYLE": [], "LTYPE": [], "BLOCK": [], "DIMSTYLE": []}
+        """The names of the records the commit adds, in the order made, by table: not the defaults the small drawing is made with,
+        nor the record of a name the drawing has that is made so that another can point at it."""
+        self._backend = backend
+        self._there: dict[str, set[str]] = {}
+
+    def has(self, kind: str, name: str) -> bool:
+        """Whether the drawing has a record of the name (either case), or this commit adds one."""
+        if kind not in self._there:
+            self._there[kind] = {n.upper() for n in self._backend.names(kind)}
+        return name.upper() in self._there[kind] or getattr(self.database, _TABLES[kind]).Has(name)
+
+    def _new(self, kind: str, name: str) -> None:
+        """Refuses a name the drawing or this commit has."""
+        if self.has(kind, name):
+            raise RuntimeError(f'The {_WORDS[kind]} "{name}" already exists.')
+
+    def add(self, op: Op) -> None:
+        """Makes the record an op queued."""
+        if op.kind == "text_style":
+            self._text_style(op.spec)
+        elif op.kind == "dim_style":
+            self._dim_style(op.spec)
+        elif op.kind == "linetype":
+            self._linetype(op.spec)
+        else:
+            self._block(op.spec)
+
+    def _text_style(self, spec: TextStyleSpec) -> None:
+        self._new("STYLE", spec.name)
+        style = _dxf.DxfTextStyleTableRecord()
+        style.Name = spec.name
+        style.FileName = spec.font
+        style.XScale = spec.x_scale
+        style.TextSize = spec.height
+        self.database.TextStyleTable.Add(style)
+        self.added["STYLE"].append(spec.name)
+
+    def _text_style_named(self, name: str) -> None:
+        """Makes sure the small drawing has a text style of the name for a record to point at: one of this commit, or a stub of
+        the name for one the drawing has, whose own record is kept; ``ValueError`` where neither has it."""
+        if self.database.TextStyleTable.Has(name):
+            return
+        if not self.has("STYLE", name):
+            raise ValueError(f'The text style "{name}" is not in the drawing: add it with text_styles.add first.')
+        stub = _dxf.DxfTextStyleTableRecord()
+        stub.Name = name
+        self.database.TextStyleTable.Add(stub)
+
+    def _dim_style(self, spec: DimStyleSpec) -> None:
+        self._new("DIMSTYLE", spec.name)
+        # What a new style starts with is ISO-25's, as the Dimension Style Manager's New starts with a metric drawing's style.
+        values: Any = _cad.CadDimStyleEditor.Read(self.database.DimStyleTable["ISO-25"])
+        style = _dxf.DxfDimStyleTableRecord()
+        style.Name = spec.name
+        self.database.DimStyleTable.Add(style)
+        self.added["DIMSTYLE"].append(spec.name)
+        if spec.text_style is not None:
+            self._text_style_named(spec.text_style)
+            values["Dimtxsty"] = _net.String(spec.text_style)
+        values["Dimscale"] = _net.Double(spec.scale)
+        values["Dimtxt"] = _net.Double(spec.text_height)
+        values["Dimasz"] = _net.Double(spec.arrow_size)
+        for key, value in spec.variables.items():
+            values[key] = _boxed(style, key, value)
+        _cad.CadDimStyleEditor.Write(self.database, style, values)
+
+    def _linetype(self, spec: LinetypeSpec) -> None:
+        if self.has("LTYPE", spec.name):
+            return
+        # The units of the drawing the linetype goes into, as LINETYPE takes acad.lin or acadiso.lin by MEASUREMENT.
+        self.database.Measurement = _dxf.DxfMeasurementValue(int(self._backend.get_variable("MEASUREMENT")))
+        if spec.file is None:
+            for found in _cad.CadLinetypeFile.BuiltIn:
+                if str(found.Name).upper() == spec.name.upper():
+                    _cad.CadLinetypes.Add(self.database, found)
+                    break
+        else:
+            self.database.LoadLineTypeFile(spec.name, spec.file)
+        self.added["LTYPE"].append(spec.name)
+
+    def _block(self, spec: BlockSpec) -> None:
+        self._new("BLOCK", spec.name)
+        block = _dxf.DxfBlockTableRecord()
+        block.Name = spec.name
+        block.Origin = point3(spec.base_point)
+        self.database.BlockTable.Add(block)
+        self.added["BLOCK"].append(spec.name)
+        for entity in spec.entities:
+            provide(self.database, needs(entity), self.has)
+            block.AppendEntity(entity)
 
 
 class Entity(Generic[E]):
@@ -546,6 +803,253 @@ class Layers:
         return layer
 
 
+def _net_of(item: Any) -> Any:
+    """The ``DxfEntity`` of an ``Entity``, or the entity itself where one of ``GeometryHelper.Dxf`` is given."""
+    if isinstance(item, Entity):
+        return cast("Entity[Any]", item).net
+    return item
+
+
+class _Records:
+    """What the style, linetype and block tables of a drawing share: iterable, ``len``, ``in`` by name (ignoring case) and
+    ``[index]`` or ``[name]``, each reading the drawing when it is used."""
+
+    def __init__(self, drawing: Drawing) -> None:
+        self._drawing = drawing
+
+    def _read(self) -> list[Any]:
+        raise NotImplementedError
+
+    def _name_of(self, record: Any) -> str:
+        return str(record.Name)
+
+    def __iter__(self) -> Iterator[Any]:
+        return iter(self._read())
+
+    def __len__(self) -> int:
+        return len(self._read())
+
+    def __contains__(self, name: object) -> bool:
+        return isinstance(name, str) and any(self._name_of(record).upper() == name.upper() for record in self._read())
+
+    def __getitem__(self, key: int | str) -> Any:
+        records = self._read()
+        if isinstance(key, int):
+            return records[key]
+        for record in records:
+            if self._name_of(record).upper() == key.upper():
+                return record
+        raise KeyError(f"The drawing {self._drawing.name} has no {self._word} {key!r}.")
+
+    _word = "record"
+
+
+class TextStyles(_Records):
+    """The text styles of a drawing: iterable (copies of its ``DxfTextStyleTableRecord``, sorted by name ignoring case, then
+    ordinal), ``len``, ``[index]`` or ``[name]`` (ignoring case, ``KeyError`` when none), ``in``, and ``add``. A copy changed
+    changes nothing in the drawing; a style added shows after ``commit()``::
+
+        drawing.text_styles.add("NOTE", font="romans.shx", x_scale=0.8)
+        drawing.commit()
+        "note" in drawing.text_styles    # True
+
+    Example:
+        [s.Name for s in drawing.text_styles]         # ['Standard'] in a new drawing
+        "NOTE" in drawing.text_styles                 # False until NOTE is added and committed
+        drawing.text_styles["Standard"].FileName      # 'txt'
+    """
+
+    _word = "text style"
+
+    def _read(self) -> list[Any]:
+        return self._drawing._backend.text_styles  # pyright: ignore[reportPrivateUsage]
+
+    def add(self, name: str, font: str = "txt", x_scale: float = 1.0, height: float = 0.0) -> str:
+        """Queue a new text style, as STYLE makes one: ``font`` is the file of a font (``"romans.shx"``, ``"arial.ttf"``;
+        ``"txt"`` is the font of Standard), ``x_scale`` how wide its letters are for their height, and ``height`` the fixed
+        height of its texts (0 where each text gives its own). It exists after ``commit()``, and a style of that name already
+        there refuses the commit. Returns the name, to give ``add_text(..., text_style=)`` and ``dimension_styles.add``.
+
+        Example:
+            drawing.text_styles.add("NOTE", font="romans.shx", x_scale=0.8)   # 'NOTE', queued
+            drawing.commit()                                                  # now 2 styles: Standard and NOTE
+            drawing.add_text("Plate", (0, 0), 5.0, text_style="NOTE")         # a TEXT in NOTE, in the next commit
+        """
+        label = _record_name(name, "text style")
+        if not isinstance(font, str) or not font.strip():  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(f"The font of text style {label} is a font file such as 'romans.shx', not {font!r}.")
+        positive("The x_scale of a text style", x_scale)
+        finite("The height of a text style", height)
+        if height < 0.0:
+            raise ValueError(f"The height of a text style is nought or above, not {height!r}.")
+        spec = TextStyleSpec(label, font.strip(), float(x_scale), float(height))
+        self._drawing._queue(Op("text_style", spec=spec))  # pyright: ignore[reportPrivateUsage]
+        return label
+
+
+class DimensionStyles(_Records):
+    """The dimension styles of a drawing: iterable (copies of its ``DxfDimStyleTableRecord``, sorted as ``text_styles`` are),
+    ``len``, ``[index]`` or ``[name]``, ``in``, and ``add``::
+
+        drawing.dimension_styles.add("PLAN", text_style="NOTE", scale=50, text_height=2.5, arrow_size=2.5)
+        drawing.commit()
+
+    Example:
+        [s.Name for s in drawing.dimension_styles]    # ['ISO-25', 'Standard'] in a new drawing
+        drawing.dimension_styles["iso-25"].Dimtxt     # 2.5
+    """
+
+    _word = "dimension style"
+
+    def _read(self) -> list[Any]:
+        return self._drawing._backend.dimension_styles  # pyright: ignore[reportPrivateUsage]
+
+    def add(
+        self,
+        name: str,
+        text_style: str | None = None,
+        scale: float = 1.0,
+        text_height: float = 2.5,
+        arrow_size: float = 2.5,
+        **variables: Any,
+    ) -> str:
+        """Queue a new dimension style, as the Dimension Style Manager's New makes one from ISO-25: ``text_style`` the name of a
+        text style of the drawing (or one added in the same commit; None keeps ISO-25's), ``scale`` the overall scale
+        (DIMSCALE), ``text_height`` the height of the words (DIMTXT) and ``arrow_size`` the size of the arrowheads (DIMASZ).
+        ``variables`` set any other variable of the style by the name the library gives it (``Dimdec=2``, ``Dimtad=1``,
+        ``Dimexe=1.5``; ``ValueError`` for a name that is none). It exists after ``commit()``, and a style of that name already
+        there refuses the commit. Returns the name, to give ``add_linear_dim(..., dim_style=)`` and ``current_dim_style``.
+
+        Example:
+            drawing.dimension_styles.add("PLAN", text_style="NOTE", scale=50, text_height=2.5, Dimdec=1)   # 'PLAN', queued
+            drawing.commit()                                  # PLAN has Dimscale 50.0, Dimtxt 2.5 and Dimdec 1
+        """
+        label = _record_name(name, "dimension style")
+        if text_style is not None and not isinstance(text_style, str):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(f"The text style of {label} is the name of one, not {text_style!r}.")
+        positive("The scale of a dimension style", scale)
+        positive("The text height of a dimension style", text_height)
+        positive("The arrow size of a dimension style", arrow_size)
+        known = set(str(known) for known in _cad.CadDimStyleEditor.VariableNames)
+        for key in variables:
+            if key not in known:
+                raise ValueError(f"{key!r} is no dimension variable: give a name such as Dimdec, Dimtad or Dimexe.")
+        spec = DimStyleSpec(
+            label,
+            None if text_style is None else text_style.strip(),
+            float(scale),
+            float(text_height),
+            float(arrow_size),
+            dict(variables),
+        )
+        self._drawing._queue(Op("dim_style", spec=spec))  # pyright: ignore[reportPrivateUsage]
+        return label
+
+
+class Linetypes(_Records):
+    """The linetypes of a drawing, by name, in the order of its table: iterable, ``len``, ``in`` (ignoring case), ``[index]``, and
+    ``load`` to bring one in from the built-in set or a .lin file. ``Continuous``, ``ByBlock`` and ``ByLayer`` are in every drawing::
+
+        drawing.linetypes.load("DASHED")
+        drawing.layers.add("Hidden", linetype="DASHED")      # the same commit: the linetype is made first
+        drawing.commit()
+
+    Example:
+        list(drawing.linetypes)                       # ['ByBlock', 'ByLayer', 'Continuous'] in a new drawing
+        "dashed" in drawing.linetypes                 # False until DASHED is loaded and committed
+    """
+
+    _word = "linetype"
+
+    def _read(self) -> list[Any]:
+        return [str(name) for name in self._drawing._backend.names("LTYPE")]  # pyright: ignore[reportPrivateUsage]
+
+    def _name_of(self, record: Any) -> str:
+        return str(record)
+
+    def load(self, name: str, file: str | None = None) -> str:
+        """Queue the loading of a linetype, as LINETYPE Load does: ``name`` as the built-in set (``OpenCAD2D.lin``: BORDER,
+        CENTER, DASHDOT, DASHED, DIVIDE, DOT, HIDDEN and PHANTOM, each with its 2 and X2, GAS_LINE and the ISO ones) or the .lin
+        file ``file`` spells it, ignoring case; the lengths are those of the drawing's units (MEASUREMENT). ``ValueError`` where
+        the set or the file has none of that name. A linetype the drawing has already is left as it is, as loading leaves it. It
+        is there after ``commit()``, before the layers and objects of that commit, which can use it. Returns the name as the
+        set or file spells it.
+
+        Example:
+            drawing.linetypes.load("hidden")              # 'HIDDEN', queued; after commit() a layer can have linetype="HIDDEN"
+            drawing.linetypes.load("MINE", file="mine.lin")   # from a .lin file of your own
+        """
+        if not isinstance(name, str) or not name.strip():  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(f"A linetype needs a name, not {name!r}.")
+        if file is None:
+            found = [str(d.Name) for d in _cad.CadLinetypeFile.BuiltIn if str(d.Name).upper() == name.strip().upper()]
+            if not found:
+                raise ValueError(f"The linetype {name!r} is not in the built-in set {_cad.CadLinetypeFile.BuiltInName}.")
+            spelled, path = found[0], None
+        else:
+            path = os.path.abspath(file)
+            found = [
+                str(d.Name) for d in _cad.CadLinetypeFile.Read(path) if str(d.Name).upper() == name.strip().upper()
+            ]
+            if not found:
+                raise ValueError(f"The linetype {name!r} is not in the file {path}.")
+            spelled = found[0]
+        self._drawing._queue(Op("linetype", spec=LinetypeSpec(spelled, path)))  # pyright: ignore[reportPrivateUsage]
+        return spelled
+
+
+class Blocks(_Records):
+    """The blocks of a drawing: iterable (copies of its ``DxfBlockTableRecord`` with their objects, sorted as ``text_styles``
+    are; the blocks of the layouts and the anonymous ones left out), ``len``, ``[index]`` or ``[name]``, ``in``, and ``add``.
+    An external reference attached and loaded brings the blocks of its drawing, as AutoCAD lists them: ``grid|TAG`` for the
+    block ``TAG`` of ``grid``, its ``IsDependent`` true. They are not inserted or changed::
+
+        drawing.blocks.add("BOLT", [DxfLine(GeoPoint3(0, 0, 0), GeoPoint3(10, 0, 0))])
+        drawing.add_insert("BOLT", (100, 50))
+        drawing.commit()
+
+    Example:
+        [b.Name for b in drawing.blocks]              # [] in a new drawing: no block of its own yet
+    """
+
+    _word = "block"
+
+    def _read(self) -> list[Any]:
+        return self._drawing._backend.blocks  # pyright: ignore[reportPrivateUsage]
+
+    def add(self, name: str, entities: Sequence[Entity[Any] | Any], base_point: Any = (0, 0)) -> str:
+        """Queue a new block made of copies of ``entities`` (``Entity`` objects or ``GeometryHelper.Dxf`` entities, which may
+        be ones just added and not committed: the block takes a copy, and they stay where they are), its base point
+        ``base_point``, as BLOCK makes one. It exists after ``commit()``, before the objects of that commit, so that
+        ``add_insert`` can place it in the same one; a block of that name already there refuses the commit. Returns the name.
+
+        Example:
+            drawing.blocks.add("BOLT", [bolt_circle, bolt_line], base_point=(0, 0))  # 'BOLT': two copies, queued
+            drawing.commit()                              # [b.Name for b in drawing.blocks] is now ['BOLT']
+        """
+        label = _record_name(name, "block")
+        copies: list[Any] = []
+        for item in entities:
+            copies.append(_net_of(item).Clone())
+        if not copies:
+            raise ValueError(f"The block {label} needs at least one object.")
+        spec = BlockSpec(label, copies, point3(base_point))
+        self._drawing._queue(Op("block", spec=spec))  # pyright: ignore[reportPrivateUsage]
+        return label
+
+
+def _record_name(name: object, what: str) -> str:
+    """The name of a table record, without the spaces at its ends; ``ValueError`` for none, or one the tables do not take (a
+    name that holds one of < > / \\ " : ; ? * | , = `)."""
+    if not isinstance(name, str) or not name.strip():
+        raise ValueError(f"A {what} needs a name, not {name!r}.")
+    label = name.strip()
+    bad = [c for c in '<>/\\":;?*|,=`' if c in label]
+    if bad:
+        raise ValueError(f"The name of a {what} holds {bad[0]!r}, which a name of the drawing does not.")
+    return label
+
+
 class Drawing:
     """One drawing: read it, queue changes, and ``commit()`` them as one undo step.
 
@@ -573,6 +1077,10 @@ class Drawing:
         self._tickets = 0
         self._noted = False
         self._layers = Layers(self)
+        self._text_styles = TextStyles(self)
+        self._dimension_styles = DimensionStyles(self)
+        self._linetypes = Linetypes(self)
+        self._blocks = Blocks(self)
 
     # ---- the queue ------------------------------------------------------------------------------------------------
 
@@ -999,26 +1507,41 @@ class Drawing:
         polyline.Closed = bool(closed)
         return self.add(self._made(polyline, props))
 
-    def add_text(self, text: str, insert: Any, height: float, rotation: float = 0.0, **props: Any) -> Entity[DxfDBText]:
-        """Queue a single-line text at ``insert``, ``height`` high, turned ``rotation`` radians:
+    def add_text(
+        self,
+        text: str,
+        insert: Any,
+        height: float,
+        rotation: float = 0.0,
+        text_style: str | None = None,
+        **props: Any,
+    ) -> Entity[DxfDBText]:
+        """Queue a single-line text at ``insert``, ``height`` high, turned ``rotation`` radians, in the text style
+        ``text_style`` (a style of the drawing, or one added with ``text_styles.add`` in the same commit; None is Standard):
         ``drawing.add_text("Plate", (0, 100), 5.0)``.
 
         Example:
-            drawing.add_text("Plate", (0, 100), 5.0)      # a TEXT 5 high at (0, 100)
+            drawing.add_text("Plate", (0, 100), 5.0)      # a TEXT 5 high at (0, 100), in Standard
+            drawing.add_text("Plate", (0, 100), 5.0, text_style="NOTE")   # in NOTE, which the drawing has or a commit adds
         """
         made = _dxf.DxfDBText()
         made.TextString = str(text)
         made.Position = point3(insert)
         made.Height = float(height)
         made.Rotation = float(rotation)
+        if text_style is not None:
+            made.TextStyleName = str(text_style)
         return self.add(self._made(made, props))
 
-    def add_mtext(self, text: str, insert: Any, height: float, width: float = 0.0, **props: Any) -> Entity[DxfMText]:
-        """Queue a multi-line text at ``insert``, ``height`` high, wrapped at ``width`` (0 for no wrapping):
-        ``drawing.add_mtext("Plate PL10", (10, 20), 5.0)``.
+    def add_mtext(
+        self, text: str, insert: Any, height: float, width: float = 0.0, text_style: str | None = None, **props: Any
+    ) -> Entity[DxfMText]:
+        """Queue a multi-line text at ``insert``, ``height`` high, wrapped at ``width`` (0 for no wrapping), in the text style
+        ``text_style`` as ``add_text`` takes it: ``drawing.add_mtext("Plate PL10", (10, 20), 5.0)``.
 
         Example:
             drawing.add_mtext("Plate PL10", (10, 20), 5.0, width=60)   # an MTEXT 5 high, wrapped at 60
+            drawing.add_mtext("Plate PL10", (10, 20), 5.0, text_style="NOTE")   # in the text style NOTE
         """
         made = _dxf.DxfMText()
         made.Contents = str(text)
@@ -1026,6 +1549,239 @@ class Drawing:
         made.TextHeight = float(height)
         if width:
             made.Width = float(width)
+        if text_style is not None:
+            made.TextStyleName = str(text_style)
+        return self.add(self._made(made, props))
+
+    # ---- dimensions, hatches, inserts -----------------------------------------------------------------------------
+
+    def _dimension(self, made: K, dim_style: str | None, props: dict[str, Any]) -> K:
+        """A dimension made in code, put in the style ``dim_style`` where one is given and else the drawing's current one, as
+        DIM does, then added as ``add`` adds an object: the app draws its picture (the ``*D`` block) as DIM would, in the style it
+        names, once ``commit()`` adds it."""
+        made.DimensionStyleName = self.current_dim_style if dim_style is None else str(dim_style)  # pyright: ignore[reportAttributeAccessIssue]
+        return self._made(made, props)
+
+    def add_linear_dim(
+        self,
+        first: Any,
+        second: Any,
+        location: Any,
+        angle: float | None = None,
+        text: str | None = None,
+        dim_style: str | None = None,
+        **props: Any,
+    ) -> Entity[DxfRotatedDimension]:
+        """Queue a linear dimension of the distance between two points, as DIMLINEAR makes one: its dimension line runs
+        through ``location`` along ``angle`` (radians; None takes level where ``location`` lies above or below the two points
+        and upright where it lies to their left or right, as DIMLINEAR does from where the line is put). ``text`` is the words
+        in place of the measurement (``"<>"`` stands for the measurement), ``dim_style`` the style it is drawn in (the drawing's
+        current one where None). The picture is drawn when ``commit()`` adds it, as DIM draws it.
+
+        Example:
+            drawing.add_linear_dim((0, 0), (100, 0), (50, 20))        # a level dimension of 100 with its line at y 20
+            drawing.add_linear_dim((0, 0), (100, 0), (50, 20), text="<> TYP", dim_style="PLAN")   # its words read "100 TYP"
+        """
+        one, two, put = point2(first), point2(second), point2(location)
+        finite("A point of a dimension", one.X, one.Y, two.X, two.Y, put.X, put.Y)
+        if angle is None:
+            out_x = max(min(one.X, two.X) - put.X, put.X - max(one.X, two.X))
+            out_y = max(min(one.Y, two.Y) - put.Y, put.Y - max(one.Y, two.Y))
+            angle = math.pi / 2.0 if out_x > out_y else 0.0
+        finite("The angle of a dimension", angle)
+        along = (math.cos(angle), math.sin(angle))
+        if abs((two.X - one.X) * along[0] + (two.Y - one.Y) * along[1]) <= 1e-9:
+            raise ValueError("The two points of a linear dimension are no distance apart along its direction.")
+        foot = (two.X - put.X) * along[0] + (two.Y - put.Y) * along[1]
+        line = _geo.GeoPoint3(put.X + along[0] * foot, put.Y + along[1] * foot, 0.0)
+        made = _dxf.DxfRotatedDimension(
+            float(angle), point3(first), point3(second), line, "" if text is None else str(text), None
+        )
+        return self.add(self._dimension(made, dim_style, props))
+
+    def add_aligned_dim(
+        self, first: Any, second: Any, location: Any, text: str | None = None, dim_style: str | None = None, **props: Any
+    ) -> Entity[DxfAlignedDimension]:
+        """Queue an aligned dimension of the distance between two points, as DIMALIGNED makes one: its dimension line is
+        parallel to the two points and runs through ``location``. ``text`` and ``dim_style`` are as ``add_linear_dim`` takes
+        them.
+
+        Example:
+            drawing.add_aligned_dim((0, 0), (30, 40), (35, 5))        # an aligned dimension of 50, its line through (35, 5)
+        """
+        one, two, put = point2(first), point2(second), point2(location)
+        finite("A point of a dimension", one.X, one.Y, two.X, two.Y, put.X, put.Y)
+        length = math.hypot(two.X - one.X, two.Y - one.Y)
+        if length <= 1e-9:
+            raise ValueError("The two points of an aligned dimension are the same point.")
+        along = ((two.X - one.X) / length, (two.Y - one.Y) / length)
+        foot = (two.X - put.X) * along[0] + (two.Y - put.Y) * along[1]
+        line = _geo.GeoPoint3(put.X + along[0] * foot, put.Y + along[1] * foot, 0.0)
+        made = _dxf.DxfAlignedDimension(point3(first), point3(second), line, "" if text is None else str(text), None)
+        return self.add(self._dimension(made, dim_style, props))
+
+    def _rim(self, center: Any, radius: float, location: Any, what: str) -> tuple[Any, Any, Any]:
+        """The centre, the point of the rim the line of a radius or diameter dimension meets and the point opposite it: the line
+        runs from the centre toward ``location`` (to the right where ``location`` is the centre)."""
+        middle, put = point2(center), point2(location)
+        finite(f"A point of a {what} dimension", middle.X, middle.Y, put.X, put.Y)
+        positive(f"The radius of a {what} dimension", radius)
+        toward = (put.X - middle.X, put.Y - middle.Y)
+        length = math.hypot(toward[0], toward[1])
+        unit = (1.0, 0.0) if length <= 1e-9 else (toward[0] / length, toward[1] / length)
+        near = _geo.GeoPoint3(middle.X + unit[0] * radius, middle.Y + unit[1] * radius, 0.0)
+        far = _geo.GeoPoint3(middle.X - unit[0] * radius, middle.Y - unit[1] * radius, 0.0)
+        return _geo.GeoPoint3(middle.X, middle.Y, 0.0), near, far
+
+    def add_radial_dim(
+        self,
+        center: Any,
+        radius: float,
+        location: Any,
+        text: str | None = None,
+        dim_style: str | None = None,
+        **props: Any,
+    ) -> Entity[DxfRadialDimension]:
+        """Queue a radius dimension of the circle or arc about ``center`` of ``radius``, as DIMRADIUS makes one: its line runs
+        from the centre toward ``location``, which also sets where its words stand. The words read ``R`` and the radius unless
+        ``text`` gives others. ``dim_style`` is as ``add_linear_dim`` takes it.
+
+        Example:
+            drawing.add_radial_dim((50, 50), 25, (80, 70))            # a radius dimension reading R25 toward (80, 70)
+        """
+        middle, near, _ = self._rim(center, radius, location, "radius")
+        made = _dxf.DxfRadialDimension(middle, near, 0.0, "" if text is None else str(text), None)
+        return self.add(self._dimension(made, dim_style, props))
+
+    def add_diameter_dim(
+        self,
+        center: Any,
+        radius: float,
+        location: Any,
+        text: str | None = None,
+        dim_style: str | None = None,
+        **props: Any,
+    ) -> Entity[DxfDiametricDimension]:
+        """Queue a diameter dimension of the circle or arc about ``center`` of ``radius``, as DIMDIAMETER makes one: its line
+        runs across the circle along the line from the centre through ``location``. The words read the diameter after the
+        sign unless ``text`` gives others. ``dim_style`` is as ``add_linear_dim`` takes it.
+
+        Example:
+            drawing.add_diameter_dim((50, 50), 25, (80, 70))          # a diameter dimension reading ∅50
+        """
+        _, near, far = self._rim(center, radius, location, "diameter")
+        made = _dxf.DxfDiametricDimension(near, far, 0.0, "" if text is None else str(text), None)
+        return self.add(self._dimension(made, dim_style, props))
+
+    def add_angular_dim(
+        self,
+        vertex: Any,
+        first: Any,
+        second: Any,
+        location: Any,
+        text: str | None = None,
+        dim_style: str | None = None,
+        **props: Any,
+    ) -> Entity[DxfPoint3AngularDimension]:
+        """Queue an angular dimension of the angle at ``vertex`` between the rays through ``first`` and ``second``, as DIMANGULAR
+        makes one from three points: its arc passes through ``location``, which says the radius of the arc and which of the
+        four angles the two rays make is measured. ``text`` and ``dim_style`` are as ``add_linear_dim`` takes them.
+
+        Example:
+            drawing.add_angular_dim((0, 0), (100, 0), (0, 100), (50, 50))   # 90 degrees, its arc through (50, 50)
+        """
+        corner, one, two, put = point2(vertex), point2(first), point2(second), point2(location)
+        finite("A point of an angular dimension", corner.X, corner.Y, one.X, one.Y, two.X, two.Y, put.X, put.Y)
+        for ray in (one, two):
+            if math.hypot(ray.X - corner.X, ray.Y - corner.Y) <= 1e-9:
+                raise ValueError("A ray of an angular dimension starts and ends at its vertex.")
+        made = _dxf.DxfPoint3AngularDimension(
+            point3(vertex), point3(first), point3(second), point3(location), "" if text is None else str(text), None
+        )
+        return self.add(self._dimension(made, dim_style, props))
+
+    @staticmethod
+    def _loops(boundary: Any) -> list[tuple[list[Any], list[float]]]:
+        """The loops of a hatch boundary: a sequence of points is one loop; an ``Entity`` or ``GeometryHelper.Dxf`` entity, or a
+        sequence of them, is a loop for each (a closed polyline or a circle). Each loop is its corners and the bulge of each."""
+        items: list[Any] = [boundary] if isinstance(boundary, Entity) else list(boundary)
+        if not items:
+            raise ValueError("A hatch boundary needs at least three points, or a closed polyline or a circle.")
+        if not any(isinstance(item, Entity) or isinstance(item, _dxf.DxfEntity) for item in items):
+            corners = [point2(item) for item in items]
+            if len(corners) < 3:
+                raise ValueError("A hatch boundary of points needs at least three of them.")
+            return [(corners, [0.0] * len(corners))]
+        loops: list[tuple[list[Any], list[float]]] = []
+        for item in items:
+            net = _net_of(item)
+            if isinstance(net, _dxf.DxfCircle):
+                x, y, r = float(net.Center.X), float(net.Center.Y), float(net.Radius)
+                loops.append(([_geo.GeoPoint2(x + r, y), _geo.GeoPoint2(x - r, y)], [1.0, 1.0]))
+            elif isinstance(net, _dxf.DxfPolyline) and bool(net.Closed):
+                count = int(net.NumberOfVertices)
+                loops.append(
+                    ([net.GetPoint2dAt(i) for i in range(count)], [float(net.GetBulgeAt(i)) for i in range(count)])
+                )
+            else:
+                raise ValueError(
+                    f"A hatch boundary is points, a closed polyline or a circle, not {getattr(net, 'DxfName', net)!r}."
+                )
+        return loops
+
+    def add_hatch(
+        self, boundary: Any, pattern: str = "ANSI31", scale: float = 1.0, angle: float = 0.0, **props: Any
+    ) -> Entity[DxfHatch]:
+        """Queue a hatch of the area ``boundary`` encloses, as HATCH makes one with a pattern of the built-in set
+        (``OpenCAD2D.pat``: ANSI31 to ANSI38, BRICK, EARTH, HONEY, STEEL, ISO02W100 to ISO15W100, AR-CONC and the rest, ignoring
+        case, and ``"SOLID"`` for a fill), at ``scale`` and ``angle`` (radians).
+        ``boundary`` is the corners of a closed outline (three or more points), or a closed polyline or a circle (an ``Entity``
+        or a ``GeometryHelper.Dxf`` entity), or a list of them: the first is the outer boundary and the others lie inside it as
+        islands. The hatch follows no object: it is the loops as they are now. ``ValueError`` for a pattern the set has not.
+
+        Example:
+            drawing.add_hatch([(0, 0), (100, 0), (100, 50), (0, 50)])                  # ANSI31 in a 100 by 50 box, area 5000
+            drawing.add_hatch([(0, 0), (40, 0), (40, 40)], pattern="SOLID", color=1)   # a red solid triangle
+        """
+        loops = self._loops(boundary)
+        positive("The scale of a hatch", scale)
+        finite("The angle of a hatch", angle)
+        name = str(pattern).strip().upper()
+        found = None if name == "SOLID" else _cad.CadPatternFile.FindBuiltIn(name)
+        if name != "SOLID" and found is None:
+            raise ValueError(f"The pattern {pattern!r} is not in the built-in set {_cad.CadPatternFile.BuiltInName}.")
+        made = _dxf.DxfHatch()
+        made.SetHatchPattern(_dxf.DxfHatchPatternType.PreDefined, name)
+        if found is not None:
+            made.PatternAngle = float(angle)
+            made.PatternScale = float(scale)
+            made.SetPatternDefinitions(found.Place(math.degrees(angle), float(scale), 0.0, 0.0))
+        for index, (corners, bulges) in enumerate(loops):
+            kind = _dxf.DxfHatchLoopTypes.External if index == 0 else _dxf.DxfHatchLoopTypes.Default
+            made.AppendLoop(kind, _net.Array[_geo.GeoPoint2](corners), _net.Array[_net.Double](bulges))
+        return self.add(self._made(made, props))
+
+    def add_insert(
+        self, name: str, insert: Any, scale: float = 1.0, rotation: float = 0.0, **props: Any
+    ) -> Entity[DxfBlockReference]:
+        """Queue an INSERT of the block ``name`` at ``insert``, scaled by ``scale`` and turned ``rotation`` radians, as INSERT
+        places one. The block is one the drawing has or one ``blocks.add`` makes in the same commit; the commit refuses
+        a name neither has.
+
+        Example:
+            drawing.add_insert("BOLT", (100, 50))                      # an INSERT of BOLT at (100, 50)
+            drawing.add_insert("BOLT", (200, 50), scale=2.0, rotation=math.pi / 2)   # twice the size, turned a quarter
+        """
+        label = _record_name(name, "block")
+        positive("The scale of an insert", scale)
+        finite("The rotation of an insert", rotation)
+        carrier = _dxf.DxfDatabase("AC1027")
+        record = _dxf.DxfBlockTableRecord()
+        record.Name = label
+        carrier.BlockTable.Add(record)
+        made = _dxf.DxfBlockReference(point3(insert), record)
+        made.ScaleFactors = _geo.GeoVector3(float(scale), float(scale), float(scale))
+        made.Rotation = float(rotation)
         return self.add(self._made(made, props))
 
     # ---- changing -------------------------------------------------------------------------------------------------
@@ -1076,7 +1832,7 @@ class Drawing:
             return []
         ops, changed_layers = self._take()
         try:
-            handles, found = self._backend.edit(ops, how, entities, args)
+            handles, found = self._backend.edit(self._staged(ops), how, entities, args)
         finally:
             self._released(changed_layers)
         self._settled(ops, handles)
@@ -1185,6 +1941,43 @@ class Drawing:
         self._noted = False
         return ops, changed_layers
 
+    def _named(self, ops: list[Op]) -> None:
+        """``ValueError`` for a text style, dimension style or linetype that an object queued names and the drawing lacks and
+        the commit does not add: the same words on every backend, before anything is sent. What each object names is kept on its
+        op, for the backend to give the small drawing it adds the object to."""
+        wanted: dict[str, set[str]] = {"STYLE": set(), "DIMSTYLE": set(), "LTYPE": set()}
+        for op in ops:
+            if op.kind != "insert":
+                continue
+            op.needs = needs(op.copy)
+            for kind, name in op.needs:
+                if kind in wanted:
+                    wanted[kind].add(name)
+        added = {"text_style": "STYLE", "dim_style": "DIMSTYLE", "linetype": "LTYPE"}
+        for kind, names in wanted.items():
+            if not names:
+                continue
+            have = {n.upper() for n in self._backend.names(kind)}
+            have |= {op.spec.name.upper() for op in ops if added.get(op.kind) == kind}
+            for name in sorted(names, key=lambda n: (n.upper(), n)):
+                if name and name.upper() not in have:
+                    raise ValueError(f'The {_WORDS[kind]} "{name}" is not in the drawing: add it with {_ADDED_BY[kind]} first.')
+
+    def _staged(self, ops: list[Op]) -> list[Op]:
+        """The ops a backend is given: the table records queued (styles, linetypes, blocks) made in one small drawing and put
+        first as one ``records`` op, the rest as they are. A record the drawing has, or that two of them make, raises here, as
+        does an object that names a style or linetype nobody has."""
+        self._named(ops)
+        records = [op for op in ops if op.kind in RECORD_KINDS]
+        if not records:
+            return ops
+        staging = Staging(self._backend)
+        for op in records:
+            staging.add(op)
+        return [Op("records", spec=staging.added, records=staging.database)] + [
+            op for op in ops if op.kind not in RECORD_KINDS
+        ]
+
     def _released(self, changed_layers: list[Layer]) -> None:
         """Ends a send, well or not: a layer is no longer waiting to be written and the layers are read again."""
         for layer in changed_layers:
@@ -1219,7 +2012,7 @@ class Drawing:
         if not ops:
             return []
         try:
-            handles = self._backend.commit(ops)
+            handles = self._backend.commit(self._staged(ops))
         finally:
             self._released(changed_layers)
         return self._settled(ops, handles)
@@ -1251,35 +2044,79 @@ class Drawing:
         self._backend.current_layer = name
 
     @property
-    def text_styles(self) -> list[Any]:
-        """Copies of the drawing's ``DxfTextStyleTableRecord``, sorted by name ignoring case, then ordinal; changing one
-        changes nothing in the drawing.
+    def text_styles(self) -> TextStyles:
+        """The text styles: copies of the drawing's ``DxfTextStyleTableRecord``, sorted by name ignoring case, then ordinal;
+        changing one changes nothing in the drawing. ``drawing.text_styles.add("NOTE", font="romans.shx")`` queues a new one.
 
         Example:
             [s.Name for s in drawing.text_styles]         # ['Standard'] in a new drawing
+            drawing.text_styles.add("NOTE", font="romans.shx", x_scale=0.8)   # queued; NOTE exists after drawing.commit()
         """
-        return self._backend.text_styles
+        return self._text_styles
 
     @property
-    def dimension_styles(self) -> list[Any]:
-        """Copies of the drawing's ``DxfDimStyleTableRecord``, sorted as ``text_styles`` are.
+    def current_text_style(self) -> str:
+        """The name of the text style new texts take (TEXTSTYLE); setting it takes effect at once, as one undo step, not at
+        ``commit()``, and a style the drawing has not is refused.
+
+        Example:
+            drawing.current_text_style                    # 'Standard' in a new drawing
+            drawing.current_text_style = "NOTE"           # at once; NOTE is in the drawing after the commit that added it
+        """
+        return str(self.get_variable("TEXTSTYLE"))
+
+    @current_text_style.setter
+    def current_text_style(self, name: str) -> None:
+        self.set_variable("TEXTSTYLE", str(name))
+
+    @property
+    def dimension_styles(self) -> DimensionStyles:
+        """The dimension styles: copies of the drawing's ``DxfDimStyleTableRecord``, sorted as ``text_styles`` are.
+        ``drawing.dimension_styles.add("PLAN", scale=50)`` queues a new one.
 
         Example:
             [s.Name for s in drawing.dimension_styles]    # ['ISO-25', 'Standard'] in a new drawing
+            drawing.dimension_styles.add("PLAN", scale=50)   # queued; PLAN exists after drawing.commit()
         """
-        return self._backend.dimension_styles
+        return self._dimension_styles
 
     @property
-    def blocks(self) -> list[Any]:
-        """Copies of the drawing's ``DxfBlockTableRecord`` with their objects, sorted as ``text_styles`` are; the blocks of
-        the layouts (``*Model_Space``) and the anonymous ones (``*D1``) are left out. An external reference attached and
-        loaded brings the blocks of its drawing, as AutoCAD lists them: ``grid|TAG`` for the block ``TAG`` of ``grid``, its
+    def current_dim_style(self) -> str:
+        """The name of the dimension style new dimensions are drawn in (DIMSTYLE); setting it takes effect at once, as one
+        undo step, not at ``commit()``, and a style the drawing has not is refused (``RuntimeError``).
+
+        Example:
+            drawing.current_dim_style                     # 'ISO-25' in a new drawing
+            drawing.current_dim_style = "PLAN"            # at once; PLAN is in the drawing after the commit that added it
+        """
+        return self._backend.current_dim_style
+
+    @current_dim_style.setter
+    def current_dim_style(self, name: str) -> None:
+        self._backend.current_dim_style = name
+
+    @property
+    def linetypes(self) -> Linetypes:
+        """The linetypes, by name; ``drawing.linetypes.load("DASHED")`` queues one of the built-in set or a .lin file.
+
+        Example:
+            list(drawing.linetypes)                       # ['ByBlock', 'ByLayer', 'Continuous'] in a new drawing
+            drawing.linetypes.load("DASHED")              # queued; DASHED exists after drawing.commit()
+        """
+        return self._linetypes
+
+    @property
+    def blocks(self) -> Blocks:
+        """The blocks: copies of the drawing's ``DxfBlockTableRecord`` with their objects, sorted as ``text_styles`` are; the
+        blocks of the layouts (``*Model_Space``) and the anonymous ones (``*D1``) are left out. An external reference attached
+        and loaded brings the blocks of its drawing, as AutoCAD lists them: ``grid|TAG`` for the block ``TAG`` of ``grid``, its
         ``IsDependent`` true, its objects the drawing's own copies. They are not inserted or changed.
+        ``drawing.blocks.add("BOLT", entities)`` queues a new block, and ``add_insert`` places one.
 
         Example:
             [b.Name for b in drawing.blocks]              # [] in a new drawing: no block of its own yet
         """
-        return self._backend.blocks
+        return self._blocks
 
     @property
     def layouts(self) -> list[str]:
