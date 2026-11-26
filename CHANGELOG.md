@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **NEW.** `CadRender`, `CadRenderOptions` and `CadRenderImage` in `OpenCAD2D.Rendering` (namespace `OpenCAD2D`): a drawing of a
+  file drawn with no window as the app's canvas draws it. `CadRender.Draw` gives the pixels (red, green and blue, rows from the
+  top), `WritePng` a PNG of colour type 2, `WriteSvg` the same picture in vectors (at the screen's level of detail: an item
+  under half a pixel is a dot, a text under 3 pixels is left out) and `WritePdf` the plot of EXPORTPDF, one page, full detail.
+  A layout or model space, a part of it (`Box`), a size in pixels or a `Dpi` (an A3 sheet at 96 is 1 587 by 1 123 pixels), and
+  a black or white ground. `CadRender.Prepare` gives a drawing the fonts and measure the app gives it on opening. The pixels
+  are the canvas's: ten drawings of every kind of entity differ by 0 bytes from the app's.
+- **NEW.** `--screenshot out.png plan.dxf --canvas canvas.png` also writes the drawing canvas's own picture, the pixels under
+  the UCS icon, grips and crosshair, as a PNG, and says where the canvas lies in the window; with it an image is read before
+  the picture is drawn, so the image is in it and not its frame alone.
 - **CHANGED.** The canvas renderer and the PDF and raster writers moved from `OpenCAD2D.Wpf.dll` into a new
   `OpenCAD2D.Rendering.dll` (netstandard2.0, no WPF), so they can draw without a window. Their namespace stays
   `OpenCAD2D.Wpf` and `OpenCAD2D.Wpf.dll` forwards the five public types (`CanvasOptions`, `SkiaCanvasRenderer`,

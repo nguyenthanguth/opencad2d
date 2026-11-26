@@ -413,6 +413,42 @@ writes the [`CadImageJob`](xref:OpenCAD2D.CadImageJob) the command hands over, a
 at 1 920 by 1 080 showing the extents where there is none. A view of 1 920 by 1 080 of a drawing of 100 000 entities is
 written as a PNG of 1.2 MB in 0.25 s (.NET Framework 4.8; 0.20 s on .NET 10).
 
+## Drawing with no window
+
+`CadRender` (in `OpenCAD2D.Rendering.dll`, namespace `OpenCAD2D`) draws a drawing of a file to pixels, a PNG, an SVG or a
+PDF with no window, through the renderer the canvas draws with. It uses the app's default settings, never the user's file,
+so the same drawing gives the same picture on every machine that has the same fonts.
+
+```csharp
+CadDocument document = CadDocument.Open("plan.dxf");
+CadRender.WritePng("plan.png", document, new CadRenderOptions { Width = 1600 });
+CadRender.WriteSvg("plan.svg", document, new CadRenderOptions { Layout = "Layout1" });
+CadRender.WritePdf("plan.pdf", document, "Layout1");
+CadRenderImage pixels = CadRender.Draw(document, null);   // Rgb: 3 bytes a pixel, rows from the top
+```
+
+The size of a picture, where `Width` and `Height` do not give it: one of the two given, the other follows the aspect of the
+part drawn, rounded (800 wide of a part 400 by 300 is 600 high); neither, a layout is its sheet in millimetres times `Dpi` over
+25.4 (A3 is 1 587 by 1 123 pixels at 96 and 4 961 by 3 508 at 300) and model space is 1 600 pixels along the longer side (a
+drawing 400 by 300 is 1 600 by 1 200). `Box` empty fits the extents with the 5 per cent margin of ZOOM Extents, a layout's
+sheet among them; a `Box` is fitted with no margin. A picture over 16 384 pixels a side or 100 000 000 pixels is refused with an
+`ArgumentException`. Lines keep the canvas's widths in pixels whatever the `Dpi`.
+
+The pixels are the app's canvas: ten drawings built in code (every kind of entity, TrueType and SHX text, dimensions, blocks,
+hatches, an image, a layout with two viewports) differ by 0 bytes from `OpenCAD2D.exe --screenshot ... --canvas`, which writes
+the canvas's own bitmap, with the grid and the UCS icon off. `CadRender.Prepare` gives a drawing what the app gives it on
+opening (the canvas's measure of TrueType letters, the fonts and the default lineweight) and lays out again what was laid out
+before; every other member calls it.
+
+An SVG is the PNG in vectors at the picture's size, so it keeps the screen's level of detail: an item under half a pixel is one
+dot, a text under 3 pixels high is left out, a hatch whose lines are closer than 2 pixels is a tint. A PDF is the plot of
+EXPORTPDF, the page setup of the layout (a drawing with no page setup plots at what its file says, a bare DXF made in code at
+1 unit to the inch), at full detail. One picture is drawn at a time in a process.
+
+Measured on .NET Framework 4.8, a picture of 1 600 by 960 pixels of the ten test drawings: PNG 25 ms, SVG 0.5 to 1.4 ms, PDF
+0.6 to 1.5 ms (26 ms for the page with TrueType text, whose font is subset), each the median of five; the first PNG of a process takes 0.36 s while the native
+library loads.
+
 ## EXPORT and -EXPORT
 
 EXPORT asks for the file in the window's Export Data dialog, which lists the types AutoCAD 2021's help gives for it: 3D
