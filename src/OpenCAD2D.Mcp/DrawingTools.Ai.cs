@@ -536,6 +536,7 @@ namespace OpenCAD2D.Mcp
                 return Summarised(text, name, page, page_size);
             });
 
+        [WritesFile]
         [McpServerTool(
             Name = "export_to_file",
             ReadOnly = false,

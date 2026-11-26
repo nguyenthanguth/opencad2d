@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+- **FIXED.** MCP server and the sheets of the Python package, from the third independent review. (1) Attached, a plan was not one undo step
+  when a step grouped itself: the app does not nest UNDO groups, so the UNDO End a tool such as `add_table`, `add_mleader`, `define_block`,
+  `create_layout`, `add_viewport`, `fillet` or `offset` typed closed the plan's group, and one undo took back only the steps after it
+  (a plan of `add_line`, `add_table`, `add_line` left 2 of 3 after one undo); a tool types no group of its own inside a plan now. (2) A
+  dry run, or a plan taken back, still wrote the files of a step in the middle of it (`export_svg`, `plot_pdf`) and `export_to_file` and
+  `dump_drawing` were not known as writers at all; every tool that writes a file says so (an attribute, not a list of names), such a step is
+  allowed only at the end of a plan, where it is written after the edits are kept and not in a dry run, and is refused anywhere else, in a
+  dry run too. A plan whose file step at the end failed said "it had changed nothing" while its edits were kept; it says they were kept as
+  one undo step. (3) `add_hatch` of the handle of a polyline that faces down (normal -Z) hatched the mirror place, from the polyline's own
+  coordinates; it takes the world points and turns its arcs the right way, and refuses an outline in a plane that is not the plane of
+  the drawing, a handle given twice, a handle of another layout, and two corners whose arcs go there and back. (4) A `--read-only` server
+  ran `snapshot`, `release_snapshot`, `audit` (without `fix`), `dump_drawing` and, on a file, `zoom_*` alone but refused them in a plan; a
+  plan decides call by call as a call alone does. `snapshot` and `reset` always failed inside a plan on a file and are refused by name.
+  (5) A `null` for an argument that has a default was answered "An error occurred invoking"; it leaves the argument out, in a call and in a
+  plan. (6) The app was asked for no second look at a running command where a tool typed: the first line of a script that starts a
+  command is refused by the app itself when one has started since the tool looked (the Remote request `strict`), and the plan's two UNDO
+  lines are typed so. (7) A lineweight of `-0.5` set 0.00 mm (only the codes -1, -2 and -3 are negative weights now), the refusal of a whole
+  number named the weights in hundredths where the description says millimetres, `add_layer` refused the `-3` its description names, a viewport
+  scale below 0.000000000000001 was written as 1:0 (also `Layout.add_viewport` in Python), a path that names the open drawing's file another
+  way (a hard link, a short name) was not seen as its own, and a `plot_pdf` that was refused still made its folder. (8) `run_command` in a
+  plan on a file may not start `U`, `UNDO`, `REDO`, `QSAVE`, `SAVE`, `SAVEAS`, `OPEN`, `NEW`, `CLOSE` or `QUIT`, which defeat the plan's
+  undo step. (9) `CadLayouts.Add` and `AddViewport` inside a group of the caller kept what they had made when they failed; they take it
+  back, and the caller's own edits stay. (10) Python: `add_insert(attributes={})` for a block with no attribute to fill is a `ValueError`,
+  as its docstring says; a preset attribute keeps its default as the insert command does; `entities(DxfClass, layout=Layout)` passes the
+  layout as the plain name; the `Layout` class says why its equality is that of `str`.
+
 - **FIXED.** MCP server, from the end-to-end acceptance (a plate drafted and plotted with the tools alone). (1) A server attached
   with `--read-only` was not refused `open_drawing` and `new_drawing`, which replace the drawing the user has on screen; they are
   refused now (on a drawing file they still work: a read-only server starts that way). (2) A call with a missing, unknown or wrongly

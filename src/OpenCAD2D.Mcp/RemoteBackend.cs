@@ -391,6 +391,17 @@ namespace OpenCAD2D.Mcp
                     + "\n(The command is still waiting for an answer in the app: answer it with another run_command, or press Esc in the app.)";
         }
 
+        /// <summary>
+        /// Types a fixed text of the tool's own, as <see cref="RunCommand"/> does, but strictly: the app refuses it where a command is
+        /// running by the time it types the first line, and types none once the command has ended.
+        /// </summary>
+        public string RunFixed(string text)
+        {
+            CadRemoteTyped sent = Document.TypeScript(text + "\n", false);
+            string output = string.Join("\n", sent.Output);
+            return sent.Completed ? output : output + "\n(The command is still waiting for an answer in the app.)";
+        }
+
         public void Dispose() { }
     }
 }

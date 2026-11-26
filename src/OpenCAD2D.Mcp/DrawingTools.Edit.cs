@@ -154,7 +154,7 @@ namespace OpenCAD2D.Mcp
 
             double whole = Math.Round(value);
 
-            if (value < 0.0 || (Math.Abs(value - whole) < 1e-9 && LineWeights.Contains((int)whole)))
+            if (Math.Abs(value - whole) < 1e-9 && (value < 0.0 || LineWeights.Contains((int)whole)))
             {
                 return (int)whole;
             }
@@ -176,13 +176,26 @@ namespace OpenCAD2D.Mcp
                 "The lineweight "
                     + value.ToString("0.####", CultureInfo.InvariantCulture)
                     + " is none of AutoCAD's: "
-                    + string.Join(
-                        ", ",
-                        LineWeights.Select(w => (w / 100.0).ToString("0.##", CultureInfo.InvariantCulture))
-                    )
+                    + LineWeightList
                     + " millimetres."
             );
         }
+
+        /// <summary>The lineweights AutoCAD has, in millimetres, as the descriptions of the tools write them.</summary>
+        private static string LineWeightList =>
+            string.Join(", ", LineWeights.Select(w => (w / 100.0).ToString("0.##", CultureInfo.InvariantCulture)));
+
+        /// <summary>The words of a refusal of a lineweight that is a whole number (read as hundredths of a millimetre) and no weight of AutoCAD's.</summary>
+        private static string NoSuchWeight(int hundredths, string also) =>
+            "The lineweight "
+            + (hundredths / 100.0).ToString("0.00", CultureInfo.InvariantCulture)
+            + " mm ("
+            + hundredths
+            + " in hundredths of a millimetre) is none of AutoCAD's: "
+            + LineWeightList
+            + " millimetres"
+            + also
+            + ".";
 
         /// <summary>The lineweights AutoCAD has, in hundredths of a millimetre.</summary>
         private static readonly int[] LineWeights =
@@ -228,7 +241,8 @@ namespace OpenCAD2D.Mcp
             [Description("AutoCAD colour index 1 to 255; 7 (white or black by the ground) where left out.")]
                 int color = 7,
             [Description("A linetype of the drawing; Continuous where left out.")] string linetype = "Continuous",
-            [Description(LineWeightText + "; the default weight (-3) where left out.")] double? lineweight = null,
+            [Description(LineWeightText + "; or -3 for the default weight, which is where left out.")]
+                double? lineweight = null,
             [Description("False to make the layer off.")] bool on = true,
             [Description("True to make the layer frozen.")] bool frozen = false,
             [Description("True to make the layer locked.")] bool locked = false,
@@ -248,15 +262,9 @@ namespace OpenCAD2D.Mcp
                     throw new ArgumentException("A layer's colour index is 1 to 255.");
                 }
 
-                if (weight.HasValue && !LineWeights.Contains(weight.Value))
+                if (weight.HasValue && weight.Value != -3 && !LineWeights.Contains(weight.Value))
                 {
-                    throw new ArgumentException(
-                        "The lineweight "
-                            + weight.Value
-                            + " is none of AutoCAD's: "
-                            + string.Join(", ", LineWeights)
-                            + "."
-                    );
+                    throw new ArgumentException(NoSuchWeight(weight.Value, ", or -3 for the default weight"));
                 }
 
                 string type = string.IsNullOrWhiteSpace(linetype) ? "Continuous" : linetype.Trim();

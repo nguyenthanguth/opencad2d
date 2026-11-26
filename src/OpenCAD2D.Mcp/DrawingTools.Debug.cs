@@ -187,6 +187,8 @@ namespace OpenCAD2D.Mcp
                 return result;
             });
 
+        [WritesFile]
+        [ReadOnlyAllowed]
         [McpServerTool(
             Name = "dump_drawing",
             ReadOnly = false,

@@ -395,7 +395,15 @@ namespace OpenCAD2D.Mcp
             Add("add_hatch", layout, drawing =>
                 EntityFactory.Looks(
                     EntityFactory.Hatch(
-                        HatchLoops(drawing, boundary, bulges, circle_center, circle_radius, handles),
+                        HatchLoops(
+                            drawing,
+                            Layout(drawing, layout),
+                            boundary,
+                            bulges,
+                            circle_center,
+                            circle_radius,
+                            handles
+                        ),
                         pattern,
                         scale,
                         Radians(angle)
@@ -409,6 +417,7 @@ namespace OpenCAD2D.Mcp
         /// <summary>The outlines of an <c>add_hatch</c>: the corners given (with their bulges), the circle, and the closed polylines and circles of the drawing.</summary>
         private static List<(GeoPoint2[] Points, double[] Bulges)> HatchLoops(
             IDrawingBackend drawing,
+            string space,
             double[][] boundary,
             double[] bulges,
             double[] circleCenter,
@@ -440,6 +449,14 @@ namespace OpenCAD2D.Mcp
                     throw new ArgumentException("A bulge is a finite number.");
                 }
 
+                // Two corners enclose something only where the two arcs differ: a bulge and its opposite go there and back.
+                if (corners.Count == 2 && Math.Abs(bulges[0] + bulges[1]) <= Tol.EqualVector)
+                {
+                    throw new ArgumentException(
+                        "The two corners and their bulges enclose no area: the second side goes back along the first."
+                    );
+                }
+
                 loops.Add(
                     (
                         corners.Select(c => new GeoPoint2(c.X, c.Y)).ToArray(),
@@ -464,8 +481,44 @@ namespace OpenCAD2D.Mcp
 
             if (handles != null && handles.Length > 0)
             {
-                foreach (string handle in Handles(handles))
+                List<string> given = Handles(handles);
+
+                // Handles() drops a handle that is given again, so the twice is looked for in what was given.
+                string twice = handles
+                    .Where(h => !string.IsNullOrWhiteSpace(h))
+                    .GroupBy(h => h.Trim(), StringComparer.OrdinalIgnoreCase)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .OrderBy(h => h, StringComparer.Ordinal)
+                    .FirstOrDefault();
+
+                if (twice != null)
                 {
+                    throw new ArgumentException(
+                        "The handle "
+                            + twice
+                            + " is given twice: an outline is hatched once, or the fill would cancel itself."
+                    );
+                }
+
+                var inSpace = new HashSet<string>(
+                    drawing.Entities(space).Select(e => e.Handle),
+                    StringComparer.OrdinalIgnoreCase
+                );
+
+                foreach (string handle in given)
+                {
+                    if (!inSpace.Contains(handle) && Editing(drawing).Objects(new[] { handle }).Count > 0)
+                    {
+                        throw new ArgumentException(
+                            "The entity "
+                                + handle
+                                + " is not in the layout "
+                                + space
+                                + " where the hatch is made: give layout, or the handle of an entity of that layout."
+                        );
+                    }
+
                     EntityRef found = Editing(drawing).Objects(new[] { handle }).FirstOrDefault();
 
                     switch (found?.Entity)
@@ -473,14 +526,25 @@ namespace OpenCAD2D.Mcp
                         case null:
                             throw new ArgumentException("The drawing has no entity with the handle " + handle + ".");
                         case DxfCircle circle:
+                            // The centre is in the world already; a circle facing -Z is the same circle seen from above.
+                            Facing(circle.Normal, handle);
                             loops.Add(Circular(circle.Center, circle.Radius));
                             break;
                         case DxfPolyline polyline when polyline.Closed && polyline.NumberOfVertices >= 2:
                             int count = polyline.NumberOfVertices;
+                            int facing = Facing(polyline.Normal, handle);
                             loops.Add(
                                 (
-                                    Enumerable.Range(0, count).Select(i => polyline.GetPoint2dAt(i)).ToArray(),
-                                    Enumerable.Range(0, count).Select(i => polyline.GetBulgeAt(i)).ToArray()
+                                    Enumerable
+                                        .Range(0, count)
+                                        .Select(i =>
+                                        {
+                                            GeoPoint3 world = polyline.GetPoint3dAt(i);
+                                            return new GeoPoint2(world.X, world.Y);
+                                        })
+                                        .ToArray(),
+                                    // A polyline facing -Z turns the other way in the world than in its own system: its arcs bulge the other way.
+                                    Enumerable.Range(0, count).Select(i => polyline.GetBulgeAt(i) * facing).ToArray()
                                 )
                             );
                             break;
@@ -508,6 +572,27 @@ namespace OpenCAD2D.Mcp
             }
 
             return loops;
+        }
+
+        /// <summary>Whether the plane of an object faces +Z (1) or -Z (-1): a hatch is made in the plane of the drawing, so the plane of an outline that is tilted has no outline there.</summary>
+        private static int Facing(GeoVector3 normal, string handle)
+        {
+            if (Math.Abs(normal.X) > Tol.EqualVector || Math.Abs(normal.Y) > Tol.EqualVector)
+            {
+                throw new ArgumentException(
+                    "The entity "
+                        + handle
+                        + " lies in a plane that is not the plane of the drawing (its normal is "
+                        + EntityDescriber.R(normal.X)
+                        + ", "
+                        + EntityDescriber.R(normal.Y)
+                        + ", "
+                        + EntityDescriber.R(normal.Z)
+                        + "): a hatch takes an outline that faces up or down."
+                );
+            }
+
+            return normal.Z < 0.0 ? -1 : 1;
         }
 
         /// <summary>A circle as the outline of a hatch: two vertices on its ends across, each a half circle (bulge 1) to the other.</summary>

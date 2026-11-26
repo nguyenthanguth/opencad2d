@@ -499,6 +499,21 @@ namespace OpenCAD2D
                 session = _host.SessionOf(document);
                 before = session.History.Count;
 
+                // The client looked before it sent this, and a command may have started since: a script that starts a command is
+                // refused here, in the dispatch that would type it, whose first line would be an answer to the user's command.
+                if (
+                    strict
+                    && !continuing
+                    && session.IsRunning
+                    && Lines(text).FirstOrDefault() is string first
+                    && first != EscapeLine
+                )
+                {
+                    throw new Refusal(
+                        "A command is running in the app: end it (answer it or press Esc) before typing a new one. Nothing was typed."
+                    );
+                }
+
                 int index = 0;
 
                 foreach (string line in Lines(text))

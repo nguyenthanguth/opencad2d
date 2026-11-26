@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using GeometryHelper.Dxf;
+using Microsoft.Win32.SafeHandles;
 using OpenCAD2D.Remote;
 
 namespace OpenCAD2D.Mcp
@@ -87,7 +89,7 @@ namespace OpenCAD2D.Mcp
 
             string full = Path.GetFullPath(given);
 
-            if (own != null && string.Equals(Path.GetFullPath(own), full, StringComparison.OrdinalIgnoreCase))
+            if (own != null && SameFile(Path.GetFullPath(own), full))
             {
                 throw new ArgumentException(
                     "That is the open drawing's own file, "
@@ -106,6 +108,75 @@ namespace OpenCAD2D.Mcp
             Directory.CreateDirectory(Path.GetDirectoryName(full));
             return full;
         }
+
+        /// <summary>
+        /// Whether two paths are one file: the same path in either case, or two names of a file that is there (a short 8.3 name, a
+        /// hard link, a junction or a symbolic link on the way), found by the file's own identity.
+        /// </summary>
+        private static bool SameFile(string a, string b)
+        {
+            if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (!File.Exists(a) || !File.Exists(b))
+            {
+                return false;
+            }
+
+            try
+            {
+                return IdentityOf(a) == IdentityOf(b);
+            }
+            catch (Exception exception)
+                when (exception is IOException
+                    || exception is UnauthorizedAccessException
+                    || exception is DllNotFoundException
+                    || exception is EntryPointNotFoundException
+                )
+            {
+                return false;
+            }
+        }
+
+        private static string IdentityOf(string path)
+        {
+            using (
+                var stream = new FileStream(
+                    path,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete
+                )
+            )
+            {
+                if (!GetFileInformationByHandle(stream.SafeFileHandle, out ByHandleInformation info))
+                {
+                    throw new IOException("The file " + path + " has no identity.");
+                }
+
+                return info.VolumeSerialNumber + ":" + info.FileIndexHigh + ":" + info.FileIndexLow;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ByHandleInformation
+        {
+            public uint FileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME CreationTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastAccessTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastWriteTime;
+            public uint VolumeSerialNumber;
+            public uint FileSizeHigh;
+            public uint FileSizeLow;
+            public uint NumberOfLinks;
+            public uint FileIndexHigh;
+            public uint FileIndexLow;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool GetFileInformationByHandle(SafeFileHandle file, out ByHandleInformation information);
 
         /// <summary>The union of a table's boxes as <c>[minX, minY, maxX, maxY]</c>; null for none.</summary>
         public static double[] Union(BoxRows rows)

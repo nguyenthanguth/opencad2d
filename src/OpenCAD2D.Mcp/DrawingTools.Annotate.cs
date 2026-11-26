@@ -287,11 +287,9 @@ namespace OpenCAD2D.Mcp
             if (weight < 0 || !LineWeights.Contains(weight))
             {
                 throw new ArgumentException(
-                    "The lineweight "
-                        + weight
-                        + " is none of AutoCAD's: "
-                        + string.Join(", ", LineWeights)
-                        + ", or -1 BYLAYER, -2 BYBLOCK, -3 default."
+                    weight < 0
+                        ? "The lineweight " + weight + " is none of the codes: -1 BYLAYER, -2 BYBLOCK, -3 default."
+                        : NoSuchWeight(weight, ", or -1 BYLAYER, -2 BYBLOCK, -3 default")
                 );
             }
 

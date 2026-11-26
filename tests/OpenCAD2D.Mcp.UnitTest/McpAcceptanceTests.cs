@@ -738,7 +738,6 @@ namespace OpenCAD2D.Mcp.UnitTest
             finish.Add(S("overModel", "overlaps"));
             finish.Add(S("overSheet", "overlaps", ("layout", "Sheet1")));
             finish.Add(S("standard", "check_standard", ("standard", JsonNode.Parse(Standard)), ("page_size", 50)));
-            finish.Add(S("pdf", "plot_pdf", ("path", pdf), ("layout", "Sheet1")));
             finish.Add(T("infoModel", "info"));
             finish.Add(T("infoSheet", "info", ("layout", "Sheet1")));
             finish.Add(T("viewports", "list_layouts"));
@@ -747,6 +746,9 @@ namespace OpenCAD2D.Mcp.UnitTest
             finish.Add(T("textStyles", "list_text_styles"));
             finish.Add(T("dimStyles", "list_dimension_styles"));
             finish.Add(T("sheetWords", "get_texts", ("layout", "Sheet1")));
+
+            // A step that writes a file ends the plan: it is written once what the plan drew is kept.
+            finish.Add(S("pdf", "plot_pdf", ("path", pdf), ("layout", "Sheet1")));
             await d.Run(finish);
 
             Assert.Equal(0, (int)d["overModel"]["total"]);
