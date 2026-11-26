@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **NEW.** `OpenCAD2D.Mcp.exe`, an MCP server over stdio, installed beside `OpenCAD2D.exe`: an AI agent (Claude Desktop, Claude
+  Code, Cursor) opens a DXF or DWG file (`--file`, or `open_drawing`, in the server's own process, no app and no window) or
+  attaches to the running app through its Remote channel (`--attach`), and reads (`info`, `list_layers`, `list_text_styles`,
+  `list_dimension_styles`, `list_blocks`, `query_entities`, `bounds`, `overlaps`), draws (`add_line`, `add_polyline`, `add_circle`,
+  `add_arc`, `add_text`, `add_mtext`, the five `add_*_dim`, `add_hatch`, `add_insert`), changes (`move`, `rotate`, `scale`,
+  `erase`, `set_properties`, `undo`), looks at the result (`render_png`, an image drawn as the app's canvas draws it) and saves.
+  Each writing call is one undo step. `--read-only` refuses every tool that writes, and `run_command`, which types free
+  command or AutoLISP text, is refused unless the server was started with `--allow-scripts`; only `save` writes a file. It is a
+  project of its own, `src/OpenCAD2D.Mcp` on .NET 8, with the official C# SDK `ModelContextProtocol.Core` 2.4.0 (Apache-2.0),
+  which stays out of `OpenCAD2D.Core`, its NuGet package and the Python wheel. Attached, `render_png` draws the saved file of
+  the app's drawing and says to `save` first where it has unsaved changes. See
+  [Letting an AI agent drive OpenCAD2D](docs/presenter/mcp.md).
 - **FIXED.** On a drawing file with no app, a layer switched off or frozen by Python (`drawing.layers["Steel"].is_on = False`, then
   `commit()`) left the drawing's display list as it was, so what the display list feeds (`entity.bounds`, `drawing.bounds()`,
   `drawing.overlaps()`, picks) still counted the layer's objects: the commit wrote the layer but told the document nothing for a

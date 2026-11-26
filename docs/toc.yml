@@ -23,6 +23,8 @@
       href: presenter/app.md
     - name: Driving the app from another program
       href: presenter/remote.md
+    - name: Letting an AI agent drive it (MCP)
+      href: presenter/mcp.md
 - name: Python
   href: python.md
   items:

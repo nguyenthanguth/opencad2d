@@ -137,4 +137,21 @@
         <ProjectReference Include="..\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
     </ItemGroup>
+
+    <!--
+    OpenCAD2D.Mcp.exe, the MCP server an AI agent drives OpenCAD2D with, is published into the folder of the app, so that every
+    installed copy has it beside OpenCAD2D.exe. The app loads none of its code: the reference is for the build order and the
+    restore of its runtime, and the publish below puts its files (and the SDK's packages, which the app has no use for) in place.
+  -->
+    <ItemGroup>
+        <ProjectReference Include="..\OpenCAD2D.Mcp\OpenCAD2D.Mcp.csproj" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <Target Name="PublishMcpServer" AfterTargets="Publish">
+        <MSBuild
+            Projects="..\OpenCAD2D.Mcp\OpenCAD2D.Mcp.csproj"
+            Targets="Publish"
+            Properties="PublishDir=$(PublishDir)"
+        />
+    </Target>
 </Project>

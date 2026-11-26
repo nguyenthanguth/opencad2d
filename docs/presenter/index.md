@@ -68,6 +68,7 @@ What each line does is on the page that follows.
 | [Python commands and tools](python.md) | the Pythons folder, tools as folders with a `plugin.json`, APPLOAD, PYLOAD and PYRUN, the venv of each tool, `@command`, the prompts and `cmd`, the `Drawing` API, one undo step for a run, finding Python, Esc and errors |
 | [Settings, autosave and the window](app.md) | global settings as JSON, autosave copies, closing a drawing, the keys, the mouse and the app's command line |
 | [Driving the app from another program](remote.md) | a console program or a Tekla plugin reads and edits the open drawings, types commands, asks the user to pick and lists the layers and layouts, through a named pipe |
+| [Letting an AI agent drive it (MCP)](mcp.md) | `OpenCAD2D.Mcp.exe`, an MCP server over stdio: an agent opens a drawing file or attaches to the running app, reads, draws, edits, renders and checks it; `--read-only` and `--allow-scripts` |
 
 ## Measured
 

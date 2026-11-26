@@ -1,6 +1,6 @@
 # Third-party notices
 
-OpenCAD2D holds a word list, the NuGet client, four Python wheels and a Python runtime that come from other projects.
+OpenCAD2D holds a word list, the NuGet client, the MCP SDK, four Python wheels and a Python runtime that come from other projects.
 Their notices follow. The setup installs this file beside `OpenCAD2D.exe`.
 
 ## English word list (SCOWL / ESDB)
@@ -231,6 +231,41 @@ The NuGet client reads JSON with Newtonsoft.Json 13.0.3 (https://www.newtonsoft.
 The MIT License (MIT)
 
 Copyright (c) 2007 James Newton-King
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## MCP server
+
+`OpenCAD2D.Mcp.exe`, the server an AI agent drives OpenCAD2D with, is written with the C# SDK of the Model Context Protocol,
+`ModelContextProtocol.Core` 2.4.0 (https://github.com/modelcontextprotocol/csharp-sdk), which sits beside it. It is licensed under
+the Apache License 2.0 (`Apache-2.0` on nuget.org), Copyright (c) Model Context Protocol a Series of LF Projects, LLC; the
+licence is the one printed under "NuGet client" above. It is used unchanged. It brings `Microsoft.Extensions.AI.Abstractions`
+10.11.0, `Microsoft.Extensions.Logging.Abstractions` 10.0.14, `Microsoft.Extensions.DependencyInjection.Abstractions`,
+`System.IO.Pipelines` 10.0.14 and `System.Net.ServerSentEvents` 10.0.14, which are licensed under the MIT licence,
+Copyright (c) .NET Foundation and Contributors, all rights reserved, and are used unchanged:
+
+```
+The MIT License (MIT)
+
+Copyright (c) .NET Foundation and Contributors
+
+All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
