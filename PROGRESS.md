@@ -188,9 +188,12 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 
   Check: the app runs from `D:\OpenCAD2D-run`; both `main` branches are pushed and their CI is green.
 
-- [ ] **S12. Installer** (after the split): Inno Setup, per-user install, .NET included, `OpenCAD2D-Setup-x.y.z.exe`.
-  Planned 2026-11-23; started the same day at the maintainer's word, so I2-I8 are taken as written. Done so far: steps 1,
-  2 (the icon E3) and 4; step 3 checked by a silent install on this machine, the Sandbox run still open.
+- [x] **S12. Installer** (after the split): Inno Setup, per-user install, .NET included, `OpenCAD2D-Setup-x.y.z.exe`.
+  Planned 2026-11-23; started the same day at the maintainer's word, so I2-I8 are taken as written. DONE 2026-11-26:
+  steps 1-5; step 3 in Windows Sandbox (below); step 5 is release v2.0.0 with `OpenCAD2D-Setup-2.0.0.exe` attached by
+  publish-installer.yml. Left to the maintainer on a real desktop (a headless Sandbox has no session to show them): the
+  icon in the Start menu, on the setup and on a `.dxf` in Explorer, SmartScreen's warning on the unsigned setup, and an
+  upgrade over a running app as a standard user.
 
   | # | Decision | State |
   |---|---|---|
@@ -199,7 +202,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
   | I3 | Per-user: `PrivilegesRequired=lowest`, installed to `%LocalAppData%\Programs\OpenCAD2D`, a Start menu shortcut, a desktop shortcut as an unticked task. | decided by the maintainer 2026-11-23: kept over Program Files (no administrator; users drop files into Lisps, Plugins, Pythons beside the exe) |
   | I4 | The `.dxf`/`.dwg` association is a ticked task that runs `OpenCAD2D.exe --register`; the uninstaller runs `--unregister`. | proposed |
   | I5 | The uninstaller removes only what the setup installed. `%AppData%\OpenCAD2D` (settings, plot styles, the plugin list) and files the user added to `Lisps`, `Pythons`, `Plugins`, `Fonts` stay, as AutoCAD leaves its user folders. | proposed |
-  | I6 | Python is not bundled: the app finds the Python of the machine or of Global settings, as it does now. | proposed |
+  | I6 | Python is bundled: the setup carries python.org's own Python 3.12.10 (64-bit; nuget.org's `python` package pinned by version and SHA-512, fetched into artifacts\cache; the repository holds no Python binaries) in python\runtime of the install folder, with venv, pip and its PSF licence. The app uses it last: the Python of Global settings, else the machine's (PEP 514), else the bundled one. | decided by the maintainer 2026-11-26 (way 1); checked in Windows Sandbox with no .NET and no Python |
   | I7 | The setup is unsigned for now (SmartScreen warns on the first run); a code signing certificate is the maintainer's call. | proposed |
   | I8 | One fixed `AppId` GUID, the version from `Directory.Build.props`, `CloseApplications=yes` so an upgrade closes a running app first. | proposed |
 
@@ -236,6 +239,24 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
      -> verify: the CI run is green and the artifact downloads and installs.
      DONE: `.github/workflows/publish-installer.yml`, on a published release (attaches the setup) or by hand (`tag`).
   5. A release with the setup attached: the maintainer's word (tags and releases need it).
+     DONE: v2.0.0 (2026-11-26), the setup attached by the workflow.
+
+- [x] **S13. Python in the setup** (maintainer 2026-11-26: way 1, +40 MB is fine, in parallel with A14): the setup
+  carries a full Python 3.12 x64 (python.org's own `python` package from nuget.org, with `venv` and `pip`, PSF licence
+  shipped beside it) in `python\runtime` of the install folder, so Python tools run on a machine with neither
+  .NET nor Python. Order of choice: the Python of Global settings, else the machine's, else the bundled one. Decision I6 changes.
+  1. Fetch and lay out -> verify: make-installer.ps1 (or a step before it) takes the package at a pinned version and
+     hash, unpacks the runtime into the publish folder; the repo holds no Python binaries; the setup's size recorded.
+  2. The app finds it -> verify: tests of the order of choice (settings, machine, bundled) and that a tool's venv is
+     made from the bundled Python where it is the one chosen.
+  3. Install, run a Python tool, upgrade, uninstall in Windows Sandbox with no .NET and no Python -> verify: the tool
+     runs (offline: no download at run time beyond the tool's own packages), the uninstall leaves no Python file.
+  DONE 2026-11-26: steps 1-3. Python 3.12.10 (nuget.org `python`, SHA-512 pinned) by
+  tools\installer\fetch-python-runtime.ps1; setup 94 125 007 bytes (89.8 MB, +10.2 MB); 1322 files, 41 MB installed.
+  Windows Sandbox (no .NET, no Python, standard user): install 9 s, a Python tool with no packages ran on the bundled
+  3.12.10 (netfx, venv from it, offline base) in 5.5 s, the install over it, and the uninstall left no file. Not
+  covered: a tool with network packages; the first CI run of publish-installer.yml with the fetch (run it once by
+  hand before the next release); old tool venvs keep `home =` into the install folder (a changed path rebuilds them).
 
 ### Leftovers of the split
 
@@ -423,6 +444,25 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 Small parity and speed follow-ups left by finished items. They stay parked under "features first" unless the
 maintainer meets one as a real fault. Details for each are in the history at `ddf1ff27`.
 
+- [ ] A14. Dimension style preview, readable and linked to the fields (maintainer 2026-11-26; design first): today's
+      preview is a 256 x 164 bitmap scaled up (blurred, thin white lines, small text) and nothing shows which part a
+      field changes.
+      Aims: (a) a vector preview at the frame's real size and DPI, resizable, lines of 1.5 px or more, a black or white
+      ground, wheel zoom and Fit; (b) the field being edited or hovered lights its part in the preview (accent colour,
+      the rest dimmed) with a measuring callout of the distance it sets ("DIMEXE = 1.0") and a magnifier inset for small
+      distances (DIMEXO, DIMEXE, DIMGAP, DIMASZ); hovering a part of the preview lights its fields, a click goes to the
+      field; (c) a sample per tab (Lines, Symbols and arrows, Text, Fit wide and narrow, units, tolerances).
+      1. Research -> verify: AutoCAD 2021's preview (samples, per tab) and BricsCAD/ZWCAD/LibreCAD/QCAD compared; a spec
+         with numbered decisions and a table of every editable DIM variable -> the part(s) it changes.
+      2. Design -> verify: board A14DimPreview on the canvas (overview, DIMEXE focus with callout and magnifier, arrow
+         size, Text tab DIMGAP, Fit tab, the reverse hover, white ground), shown to the maintainer before code.
+      3. Engine (Core) -> verify: sample dimensions with each part tagged, the variable -> part table, the callout
+         geometry; tests that every variable maps to a part present in the sample.
+      4. Window (Wpf) -> verify: the preview in the Manager, New, Modify and Override dialogs; view-model tests,
+         screenshots at 100 % and 150 % against the board, a redraw under 30 ms per keystroke.
+      5. The same for the Multileader Style and Table Style previews (maintainer 2026-11-26: part of A14; the lead
+         decides and builds without waiting for a board review; report afterwards) -> verify: their variable/setting ->
+         part tables, boards, tests and screenshots as for dimensions.
 - [ ] Checks only the AutoCAD GUI can give: LAYERP with U and the Layer manager; the guessed prompts of SPELL,
       ATTIPEDIT, MLEADERALIGN Spacing/Distribute; DIMBREAK Auto breaks; filter.nfl; Ctrl cycling of grip modes; the
       Properties kind list order and its reset to All
@@ -553,31 +593,38 @@ scripts inside the app, and a script outside that drives a running app.
       DXF and DWG read and write, a document edited and saved headless; type stubs (`.pyi`) so editors complete names.
       Done 2026-11-21: a local wheel `py3-none-win_amd64` (10.2 MB), 152 pytest tests on .NET 8 and .NET Framework 4.8,
       stubs generated by tools/GeometryHelper.PyStubs (806 types), guide docs/python.md
-- [ ] P2 parked: the PyPI name (now `opencad2d`, free) and the upload, both the maintainer's word; a Pylance look in
+- [x] P2 parked: the PyPI name (now `opencad2d`, free) and the upload, both the maintainer's word; a Pylance look in
       VS Code; Linux, macOS and ARM64; a PyInstaller
       hook; one `<summary>` per partial class so hovers stay short (CadDocument); in the stubs, 331 settable reference
       properties and 139 optional parameters that default to null still refuse None, getters are never `| None`
+      Tidied 2026-11-26: the name `opencad2d` and the upload are done (2.0.0 on PyPI); Linux, macOS and ARM64 are never
+      (Windows only, the maintainer 2026-11-23); the None in the stubs, the Pylance look and PyInstaller go to PW4.
 - [x] P3. Python inside `GeometryHelper.Cad.App`: a PYTHON console palette and the commands PYLOAD and PYRUN, with the
       active document, the selection, the command line, prompts (get point, get selection) and undo of a script as one
       step. Done 2026-11-21: GeometryHelper.Cad.Python embeds CPython 3.11-3.15 on the window thread, Esc stops Python
       code in about 20 ms, one undo step per run, PYLOAD with `@cad_command`, a script connecting to its own app refused
-- [ ] P3 parked: the command and function names (PYTHON, PYRUN, PYLOAD, get_point...) await the maintainer's word; a
+- [x] P3 parked: the command and function names (PYTHON, PYRUN, PYLOAD, get_point...) await the maintainer's word; a
       Wpf test of CadAppRemoteHost.IsOwnerThread; EntityCount cached inside an open group and a failed ApplyEdit taking back a run's whole group
       silently (the maintainer to decide); output flushed only when the window is next idle during a long run (settled by
       TF7: the tools channel redraws the command line after each request)
+      Tidied 2026-11-26: the names went with the console (PW3, TF7: tools are folders, PYRUN and PYLOAD stay); the
+      silent take-back of a failed ApplyEdit goes to PW4.
 - [x] P4. Driving a running app from outside: a Python client over `GeometryHelper.Cad.Remote`'s named pipe (open,
       draw, select, run commands, read the drawing). Done 2026-11-21: the .NET CadApplication through pythonnet in a
       `with` block, no protocol change; a headless test server and 63 pytest tests on both runtimes; checked on the
       real app (100 lines committed in 207 ms, one U takes the commit back)
-- [ ] P4 parked: a CadApplication used after Dispose reconnects silently (documented); the app's announced title empty
+- [x] P4 parked: a CadApplication used after Dispose reconnects silently (documented); the app's announced title empty
       just after it starts
+      Tidied 2026-11-26: both go to PW4.
 - [x] P5. Examples and the guide: a script per common task, and the API reference for Python from the XML docs.
       Done 2026-11-22: 13 examples in src/python/examples (library, in the app, remote), each run by a test on both
       runtimes; a Python API section of the docs site, one page per type (806), generated from the stubs with links to
       the .NET pages
-- [ ] P5 parked: the place of the examples and the docs build needing Python (the maintainer to confirm); 548 member
+- [x] P5 parked: the place of the examples and the docs build needing Python (the maintainer to confirm); 548 member
       groups with no .NET page to link (enum `__int__` and
       `__init__`, flags operators, delegates' `__call__`)
+      Tidied 2026-11-26: the examples are in examples/Pythons (shipped in Pythons) and src/python/examples, as
+      CLAUDE.md says; the docs build needs Python by design (docs.yml); the 548 groups with no .NET page stay unlinked.
 - [x] P6. Scripts in the trusted folders of L6 only, and a script's errors shown without closing the app. Done
       2026-11-22: PYRUN, PYLOAD and the palette go through the same gate; every kind of script error leaves the app
       running with one line on the command line (a .NET error too), the streams put back before each run
@@ -592,11 +639,12 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       outside, closing a drawing and reading text styles, dimension styles and blocks. Done 2026-11-23: an empty
       Pythons folder starts no engine (1 ms), one .py costs about 0.45 s at start; Close(discard) refuses unsaved or busy
       drawings; style and block reads as copies sorted by name
-- [ ] PW1 parked: closed 2026-11-25: the dependent blocks of a loaded xref (`grid|TAG`) are carried by Remote
+- [x] PW1 parked: closed 2026-11-25: the dependent blocks of a loaded xref (`grid|TAG`) are carried by Remote
       `Blocks`, Python `drawing.blocks` and `-BLOCK ?` as AutoCAD 2021 lists them (held while loaded, never saved: AutoCAD's
       DXF reader refuses one; core 2cbd11c5 SetDependent). Left: an unloaded Python row shows no commands (Lisp rows keep theirs); no Global settings row for the Pythons
       folder or the Python Startup Suite; a .py asking a prompt at module level while APPLOAD runs; Remove's tooltip
       naming only Lisps and Plugins. TF7 (2026-11-25) settled the unloaded row's commands (from its plugin.json)
+      Tidied 2026-11-26: the Global settings row, the module-level prompt under APPLOAD and Remove's tooltip go to PW4.
 - [x] PW2. One API: `@command("NAME")`, `cmd(...)` and the get_* prompts; a Drawing API (entities, add, modify, erase,
       layers, tables, save, close) the same in the app, from outside (`connect()`, any open drawing) and headless
       (`open_file()`); parity with the C# plugin API (ribbon tabs, panels and buttons, side panel, settings, events).
@@ -604,8 +652,9 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       giving Entity objects; `add_ribbon_tab`, panels, buttons, split buttons, DRAWINGS button and menu, canvas menu
       and Properties from a .py, one host per file; Drawing, Entity, Layer, App, connect, open_file, new_file with
       commit() as one undo step; 25 shared scenarios held equal headless, outside and in the app
-- [ ] PW2 parked: no Python side panel (it takes WPF content); style and block reads copy the whole drawing. The side
+- [x] PW2 parked: no Python side panel (it takes WPF content); style and block reads copy the whole drawing. The side
       panel is settled as never by TF-D16 (a tool shows no WPF content); the copies stay
+      Tidied 2026-11-26: settled as written (no side panel by TF-D16; the copies stay).
 - [x] PW3. Finish: the PYTHON console and PYTHONCLOSE removed (PYRUN kept); a docstring with an example for every public
       name of `geometryhelper.cad` (typed inline, so no .pyi), checked by a test; the guide, the changelog and the
       examples on the new API; acceptance: the C1 layer command written in Python run in the app and from outside, and
@@ -620,6 +669,17 @@ inside the app; made to be used a lot, by people and by AI (plan and spec in .cl
       because `test_e0` pins that signature and `with CadApplication()`; `batch_folder.py` and `convert.py` stay on
       `DxfDatabase` (they need the version and the writer's warnings); no ribbon-button example file (`test_e0` lists
       the examples); the empty row 1 of the canvas grid stays
+
+- [ ] PW4. Python leftovers (gathered 2026-11-26 from the parked lines above; small, after A14 and S13):
+      1. Stubs: the 331 settable reference properties and 139 optional parameters that default to null take None, and
+         getters that can give null say `| None` -> verify: a stub test per case; pyright on the examples clean.
+      2. Global settings: a row for the Pythons folder and the Python Startup Suite; Remove's tooltip names Python too;
+         a .py asking a prompt at module level while APPLOAD loads it is answered or refused clearly -> verify: view-
+         model tests.
+      3. A failed ApplyEdit in a run says so instead of taking the run's undo group back silently -> verify: a test.
+      4. A CadApplication used after Dispose raises instead of reconnecting silently; the app's announced title is
+         right just after it starts -> verify: Remote tests.
+      5. A look in VS Code with Pylance and a PyInstaller hook check (no feature) -> verify: notes of what was seen.
 
 #### C# source plugins
 

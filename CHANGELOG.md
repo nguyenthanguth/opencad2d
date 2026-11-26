@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **CHANGED.** The core library is GeometryHelper 13.13.0 (on nuget.org), which holds the core fixes and members
+  2.0.0 shipped in Lib under 13.12.1; the NuGet packages of OpenCAD2D name it as their dependency.
+
 ## 2.0.0 (2026-11-26)
 
 - **NEW.** eTransmit of a sheet set (A12): the eTransmit item of the Sheet List's set, subset and sheet menus opens
