@@ -223,6 +223,7 @@ namespace OpenCAD2D.Wpf
         private StyleRowViewModel _selected;
         private string _notice = string.Empty;
         private ImageSource _preview;
+        private StylePreviewViewModel _previewModel;
 
         /// <summary>Makes the Manager's view model over a document, the current style selected.</summary>
         /// <param name="document">The document.</param>
@@ -312,6 +313,7 @@ namespace OpenCAD2D.Wpf
                 if (value != null && Set(ref _selected, value))
                 {
                     _preview = null;
+                    _previewModel?.Invalidate();
                     Raise(nameof(Preview));
                     Raise(nameof(Description));
                     Raise(nameof(Notice));
@@ -378,6 +380,30 @@ namespace OpenCAD2D.Wpf
                         360,
                         230
                     )
+            );
+
+        /// <summary>
+        /// Gets what the preview view shows of the style selected: the overview sample (a linear, a radius and an angle), drawn at the
+        /// frame's real size, a part named by a tooltip as the pointer passes over it; it has no fields to light.
+        /// </summary>
+        public StylePreviewViewModel PreviewModel =>
+            _previewModel
+            ?? (
+                _previewModel = new StylePreviewViewModel(
+                    new DimPreviewSource(
+                        _document.Database,
+                        () =>
+                            _selected != null && _document.Database.DimStyleTable.Has(_selected.Name)
+                                ? CadDimStyleEditor.Read(_document.Database.DimStyleTable[_selected.Name])
+                                : new SortedDictionary<string, object>(),
+                        () => CadDimSampleKind.Overview,
+                        _ => string.Empty
+                    ),
+                    _document.Fonts
+                )
+                {
+                    CanEdit = false,
+                }
             );
 
         /// <summary>Gets the notice under the description: why an edit was refused; else empty, the notice hidden.</summary>

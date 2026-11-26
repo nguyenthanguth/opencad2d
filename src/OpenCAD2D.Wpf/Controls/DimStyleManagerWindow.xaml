@@ -132,10 +132,12 @@
 
                 <!-- The preview of the style selected, its description and the notice. -->
                 <StackPanel Grid.Column="2">
-                    <TextBlock Style="{StaticResource StyleGroup}" Text="{Binding PreviewTitle}" Margin="0,0,0,8" />
-                    <Border Style="{StaticResource StylePreview}" Height="250" Margin="0,0,0,8">
-                        <Image Source="{Binding Preview}" Stretch="None" />
-                    </Border>
+                    <local:StylePreviewPanel
+                        Title="{Binding PreviewTitle}"
+                        Model="{Binding PreviewModel}"
+                        Height="282"
+                        Margin="0,0,0,8"
+                    />
                     <Border Style="{StaticResource StyleFrame}" Margin="0,0,0,8">
                         <StackPanel>
                             <TextBlock Text="Description" Foreground="{StaticResource GhTextMuted}" />

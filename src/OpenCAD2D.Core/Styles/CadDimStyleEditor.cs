@@ -19,7 +19,7 @@ namespace OpenCAD2D
     /// owner keeps and those whose kind the commands do not make (ordinate, arc length, jogged), which keep
     /// their pictures until AutoCAD next draws them.
     /// </remarks>
-    public static class CadDimStyleEditor
+    public static partial class CadDimStyleEditor
     {
         private static readonly Lazy<IReadOnlyList<PropertyInfo>> StyleProperties = new Lazy<
             IReadOnlyList<PropertyInfo>
@@ -500,6 +500,23 @@ namespace OpenCAD2D
         /// <returns>The drawing of the samples.</returns>
         public static DxfDatabase Samples(DxfDatabase source, IDictionary<string, object> values)
         {
+            DxfDatabase database = PreviewDrawing(source, values, false);
+            CadCommands.DrawSamples(database, database.DimStyleTable["Preview"]);
+            return database;
+        }
+
+        /// <summary>
+        /// A drawing of its own for the sample dimensions: the style's variables written into its style Preview, the text style
+        /// copied by its name and font, the arrowheads' blocks made, and where <paramref name="linetypes"/> says so the linetypes
+        /// of the dimension and extension lines copied from the drawing edited (<c>Dimltype</c>, <c>Dimltex1</c>, <c>Dimltex2</c>),
+        /// which <see cref="Samples"/> leaves out.
+        /// </summary>
+        private static DxfDatabase PreviewDrawing(
+            DxfDatabase source,
+            IDictionary<string, object> values,
+            bool linetypes
+        )
+        {
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
@@ -530,17 +547,31 @@ namespace OpenCAD2D
 
             var copy = new DxfDimStyleTableRecord { Name = "Preview" };
             database.DimStyleTable.Add(copy);
+
+            if (linetypes)
+            {
+                foreach (string key in new[] { "Dimltype", "Dimltex1", "Dimltex2" })
+                {
+                    if (values.TryGetValue(key, out object linetype) && linetype is string linetypeName)
+                    {
+                        CadSymbolCopy.Linetype(database, source, linetypeName);
+                    }
+                }
+            }
+
             Write(
                 database,
                 database.DimStyleTable["Preview"],
                 values
                     .Where(v =>
-                        !v.Key.StartsWith("Dimltype", StringComparison.Ordinal)
-                        && !v.Key.StartsWith("Dimltex", StringComparison.Ordinal)
+                        linetypes
+                        || (
+                            !v.Key.StartsWith("Dimltype", StringComparison.Ordinal)
+                            && !v.Key.StartsWith("Dimltex", StringComparison.Ordinal)
+                        )
                     )
                     .ToDictionary(v => v.Key, v => v.Value)
             );
-            CadCommands.DrawSamples(database, database.DimStyleTable["Preview"]);
             return database;
         }
 

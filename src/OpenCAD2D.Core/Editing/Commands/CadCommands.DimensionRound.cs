@@ -426,7 +426,12 @@ namespace OpenCAD2D
 
             foreach (KeyValuePair<GeoPoint2, GeoPoint2> line in lines)
             {
-                picture.Add(Lined(new DxfLine(P3(line.Key), P3(line.Value)), style.Dimclrd, style.Dimlwd));
+                picture.Add(
+                    Tag(
+                        Lined(new DxfLine(P3(line.Key), P3(line.Value)), style.Dimclrd, style.Dimlwd),
+                        RadialParts(line.Key, line.Value, center, u, diameter)
+                    )
+                );
             }
 
             if (nearArrow)
@@ -607,7 +612,12 @@ namespace OpenCAD2D
 
             foreach (KeyValuePair<GeoPoint2, GeoPoint2> line in lines)
             {
-                picture.Add(Lined(new DxfLine(P3(line.Key), P3(line.Value)), style.Dimclrd, style.Dimlwd));
+                picture.Add(
+                    Tag(
+                        Lined(new DxfLine(P3(line.Key), P3(line.Value)), style.Dimclrd, style.Dimlwd),
+                        RadialParts(line.Key, line.Value, center, u, diameter)
+                    )
+                );
             }
 
             AddArrow(picture, style, DxfDimArrowFlag.FirstArrow, chord, pushed ? -u : u, arrow);
@@ -654,18 +664,31 @@ namespace OpenCAD2D
 
             var x = new GeoVector2(1.0, 0.0);
             var y = new GeoVector2(0.0, 1.0);
-            picture.Add(Lined(new DxfLine(P3(center - x * mark), P3(center + x * mark)), style.Dimclrd, style.Dimlwd));
-            picture.Add(Lined(new DxfLine(P3(center - y * mark), P3(center + y * mark)), style.Dimclrd, style.Dimlwd));
+            picture.Add(
+                Tag(
+                    Lined(new DxfLine(P3(center - x * mark), P3(center + x * mark)), style.Dimclrd, style.Dimlwd),
+                    CadStylePart.CentreMark
+                )
+            );
+            picture.Add(
+                Tag(
+                    Lined(new DxfLine(P3(center - y * mark), P3(center + y * mark)), style.Dimclrd, style.Dimlwd),
+                    CadStylePart.CentreMark
+                )
+            );
 
             if (style.Dimcen < 0.0 && CentreLinesFit(radius, mark))
             {
                 foreach (GeoVector2 way in new[] { -x, x, -y, y })
                 {
                     picture.Add(
-                        Lined(
-                            new DxfLine(P3(center + way * (2.0 * mark)), P3(center + way * (radius + mark))),
-                            style.Dimclrd,
-                            style.Dimlwd
+                        Tag(
+                            Lined(
+                                new DxfLine(P3(center + way * (2.0 * mark)), P3(center + way * (radius + mark))),
+                                style.Dimclrd,
+                                style.Dimlwd
+                            ),
+                            CadStylePart.CentreMark
                         )
                     );
                 }
@@ -693,8 +716,51 @@ namespace OpenCAD2D
 
             foreach (DxfLine side in Frame(at, angle, width, height, gap))
             {
-                picture.Add(Lined(side, style.Dimclrd, style.Dimlwd));
+                picture.Add(Tag(Lined(side, style.Dimclrd, style.Dimlwd), CadStylePart.TextFrame));
             }
+        }
+
+        /// <summary>
+        /// Which half of a radius or a diameter's line a segment is part of, for the entities of a sample: all of a radius's line is
+        /// the first (the line to its arrowhead at the rim); a diameter's first half runs from its centre to the rim the first
+        /// arrowhead is on, the second the other way; a segment across the centre is both. Null where nothing is tagged.
+        /// </summary>
+        private static CadStylePart[] RadialParts(
+            GeoPoint2 a,
+            GeoPoint2 b,
+            GeoPoint2 center,
+            GeoVector2 u,
+            bool diameter
+        )
+        {
+            if (!Tagging || !diameter)
+            {
+                return Tagging ? new[] { CadStylePart.DimensionLine1 } : null;
+            }
+
+            double ta = Dot(a - center, u);
+            double tb = Dot(b - center, u);
+            double eps = 1E-9 * Math.Max(1.0, (a - b).Length);
+            return Math.Min(ta, tb) >= -eps ? new[] { CadStylePart.DimensionLine1 }
+                : Math.Max(ta, tb) <= eps ? new[] { CadStylePart.DimensionLine2 }
+                : new[] { CadStylePart.DimensionLine1, CadStylePart.DimensionLine2 };
+        }
+
+        /// <summary>
+        /// Which half of an angle's dimension arc an arc from one angle to another is part of, for the entities of a sample: the
+        /// first before the angle <paramref name="middle"/>, the second after it, both for an arc across it. Null where nothing is tagged.
+        /// </summary>
+        private static CadStylePart[] ArcParts(double from, double to, double middle)
+        {
+            if (!Tagging)
+            {
+                return null;
+            }
+
+            const double Eps = 1E-9;
+            return Math.Max(from, to) <= middle + Eps ? new[] { CadStylePart.DimensionLine1 }
+                : Math.Min(from, to) >= middle - Eps ? new[] { CadStylePart.DimensionLine2 }
+                : new[] { CadStylePart.DimensionLine1, CadStylePart.DimensionLine2 };
         }
 
         /// <summary>The four sides of the box round words centred on a point, turned to an angle, a gap clear of them.</summary>
@@ -1538,10 +1604,13 @@ namespace OpenCAD2D
                     if (radius + beyond > start)
                     {
                         picture.Add(
-                            Lined(
-                                new DxfLine(P3(vertex + ray * start), P3(vertex + ray * (radius + beyond))),
-                                style.Dimclre,
-                                style.Dimlwe
+                            Tag(
+                                Lined(
+                                    new DxfLine(P3(vertex + ray * start), P3(vertex + ray * (radius + beyond))),
+                                    style.Dimclre,
+                                    style.Dimlwe
+                                ),
+                                i == 0 ? CadStylePart.ExtensionLine1 : CadStylePart.ExtensionLine2
                             )
                         );
                     }
@@ -1552,13 +1621,19 @@ namespace OpenCAD2D
                 )
                 {
                     picture.Add(
-                        Lined(
-                            new DxfLine(
-                                P3(vertex + ray * (near[i] - ExtensionStart(style, scale, offset, near[i] - radius))),
-                                P3(vertex + ray * Math.Max(0.0, radius - beyond))
+                        Tag(
+                            Lined(
+                                new DxfLine(
+                                    P3(
+                                        vertex
+                                            + ray * (near[i] - ExtensionStart(style, scale, offset, near[i] - radius))
+                                    ),
+                                    P3(vertex + ray * Math.Max(0.0, radius - beyond))
+                                ),
+                                style.Dimclre,
+                                style.Dimlwe
                             ),
-                            style.Dimclre,
-                            style.Dimlwe
+                            i == 0 ? CadStylePart.ExtensionLine1 : CadStylePart.ExtensionLine2
                         )
                     );
                 }
@@ -2435,17 +2510,25 @@ namespace OpenCAD2D
             foreach (KeyValuePair<double, double> arc in arcs)
             {
                 picture.Add(
-                    Lined(
-                        new DxfArc(P3(vertex), radius, Turned(arc.Key), Turned(arc.Value)),
-                        style.Dimclrd,
-                        style.Dimlwd
+                    Tag(
+                        Lined(
+                            new DxfArc(P3(vertex), radius, Turned(arc.Key), Turned(arc.Value)),
+                            style.Dimclrd,
+                            style.Dimlwd
+                        ),
+                        ArcParts(arc.Key, arc.Value, middle)
                     )
                 );
             }
 
             foreach (KeyValuePair<GeoPoint2, GeoPoint2> line in lines)
             {
-                picture.Add(Lined(new DxfLine(P3(line.Key), P3(line.Value)), style.Dimclrd, style.Dimlwd));
+                picture.Add(
+                    Tag(
+                        Lined(new DxfLine(P3(line.Key), P3(line.Value)), style.Dimclrd, style.Dimlwd),
+                        CadStylePart.TextLeader
+                    )
+                );
             }
 
             GeoPoint2 start2 = vertex + Heading(from) * radius;

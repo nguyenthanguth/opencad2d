@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+- **NEW.** The previews of the dimension and multileader style dialogs are readable and linked to the fields (A14, the presenter
+  half). They are drawn at the real size of their frame and the real scale of the display, sharp at 150 %, every line at least 1.5
+  pixels wide, with a black or a white ground, a wheel zoom about the pointer and Fit. The field being edited or hovered lights its
+  part of a sample made for its tab (a baseline pair for Lines, a radius, centre mark, arc length, jogged radius and leader for
+  Symbols and arrows, a narrow dimension for Fit, 28.375 and an angle for the units tabs) in the accent with the rest faded, a
+  callout of the distance it sets (DIMEXE = 1.25), a magnifier for a small one, a chip for a field that has no part
+  (Every part Â· DIMSCALE = 1) or formats the words (DIMDEC = 0.00 Â· 28,38), and a dashed ghost with Suppressed for a part the
+  style leaves out. Pointing at a part of the preview lights its fields (an accent bar on the row, a dot on the tabs that hold
+  others) with a tooltip, and a click goes to the first one. The New, Modify and Override Dimension Style dialogs and the Modify
+  Multileader Style dialog are 960 by 660 (were 800 by 640) and can be resized. New public members: StylePreviewViewModel,
+  StylePreviewGround, StylePreviewView, StylePreviewPanel, CadStylePreview.PartAt, PreviewModel on the four style view
+  models, and ActiveField, PreviewKey, IsActive, IsLit and HasLitField on the dialogs, fields and tabs; Preview stays
+  an image. The table style previews follow.
+- **CHANGED.** A multileader style that does not include the landing is previewed without it, as AutoCAD draws it: the leader line
+  runs on to the words. The DIMLDRBLK field of the dimension style dialogs lights the line of the leader as well as
+  its arrowhead.
+- **NEW.** The samples of the style previews, with their parts told apart (A14, the core half; the previews themselves follow):
+  `CadDimStyleEditor.Sample` draws the sample of one tab of the dimension style dialogs (`CadDimSampleKind`: the Overview of the
+  Manager, Lines with a baseline pair, Symbols and arrows with a radius, centre mark, arc length, jogged radius and leader, Text,
+  Fit with a narrow dimension and one whose words were moved by hand, and the units tabs with 28.375 and an angle of 37.5), made by
+  the builders the DIM commands use, each part of each dimension an entity of its own with its own handle (extension line 1 or 2,
+  dimension line 1 or 2, arrowhead 1 or 2, the words, their frame and fill, the centre mark, the arc symbol, the jog, a leader's
+  arrowhead). The dimension line of a dimension is both halves where one line spans its middle. The Overview sample draws what
+  `Samples` draws, item for item, so that nothing drawn changes; the samples copy the linetypes of DIMLTYPE, DIMLTEX1 and DIMLTEX2
+  into the drawing, which `Samples` leaves out, so that a dashed dimension line shows. `CadDimStyleEditor.PartsOf` and `KeysOf` say
+  which parts each of the 68 fields of the four dimension style dialogs sets (and the reverse, in the dialog's order), and `Measures`
+  measures what a field sets on the sample as a callout: with DIMSCALE 1 DIMEXE is 1.25 along the first extension line past the
+  dimension line, DIMEXO 0.625, DIMASZ 2.5, DIMGAP 0.625 (Text tab), DIMDLI 3.75 (Lines tab), at DIMSCALE 25 each 25 times as long,
+  its label still `DIMEXE = 1.25`; a part the style leaves out (DIMSE1, DIMSD2, no centre mark) comes as a ghost measure of where it
+  would be. `CadMLeaderStyleEditor.PreviewSample`, `PartsOf`, `KeysOf` and `Measures` do the same for the Modify Multileader Style
+  dialog: the pieces of the multileader (words or block, landing, leader line, arrowhead) are entities of their own, with
+  ArrowSize 2.5, LandingDistance 8 and LandingGap 2 as callouts. New public members: `CadStylePart`, `CadDimSampleKind`,
+  `CadStyleSample`, `CadStyleSamplePart`, `CadStyleMeasure`, `CadDimStyleEditor.Sample`, `PartsOf`, `KeysOf`, `Measures`, and the
+  same four on `CadMLeaderStyleEditor` (`PreviewSample` for `Sample`); `CadDimStyleEditor` and `CadMLeaderStyleEditor` are now
+  `partial`.
 - **CHANGED.** PDFs carry only the glyphs their text uses (P4), as AutoCAD's and every PDF writer's do. SkiaSharp embedded each
   TrueType font whole, so a plot of 100 lines and one text in Arial was 543 KB (10 375 bytes now), a plan with a line in
   Malgun Gothic 8 MB (47 KB), and one with Chinese text in Microsoft YaHei, MS Gothic or SimSun, which SkiaSharp embeds as

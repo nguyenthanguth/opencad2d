@@ -13,7 +13,7 @@ namespace OpenCAD2D.Wpf
     /// renderer, in the fonts of the drawing the dialog edits, scaled to fit a picture of a size, as AutoCAD's dialogs show
     /// theirs, so that an SHX font, a slant or an arrowhead looks as the drawing will.
     /// </summary>
-    public static class CadStylePreview
+    public static partial class CadStylePreview
     {
         /// <summary>The sample text of the Text Style dialog, as AutoCAD's.</summary>
         public const string SampleText = "AaBbCcD 123";

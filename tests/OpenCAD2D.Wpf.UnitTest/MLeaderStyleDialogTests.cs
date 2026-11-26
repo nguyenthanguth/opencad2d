@@ -306,13 +306,13 @@ namespace OpenCAD2D.Wpf.UnitTest
                 )
                 {
                     Assert.Equal(
-                        window is MLeaderStyleEditWindow ? 800
+                        window is MLeaderStyleEditWindow ? 960
                             : window is MatchPropSettingsWindow ? 600
                             : 780,
                         window.Width
                     );
                     Assert.Equal(
-                        window is MLeaderStyleEditWindow ? 640
+                        window is MLeaderStyleEditWindow ? 660
                             : window is MatchPropSettingsWindow ? 480
                             : 540,
                         window.Height
@@ -327,7 +327,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 List<Button> buttons = Descendants(manager.Body).OfType<Button>().ToList();
                 Assert.Equal(
                     new[] { "Set Current", "New…", "Modify…", "Delete" },
-                    buttons.Select(b => b.Content as string).Where(c => c != null && c != "Close")
+                    buttons.Select(b => b.Content as string).Where(c => c != null && c != "Close" && c != "Fit")
                 );
                 Assert.Same(
                     manager.FindResource("StylePrimaryButton"),

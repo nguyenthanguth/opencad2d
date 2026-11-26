@@ -234,7 +234,7 @@ namespace OpenCAD2D
     /// step through <see cref="CadDocument.ApplyEdit"/>, refused where AutoCAD refuses it. A style changed gives its values to
     /// every multileader of it, but those a multileader has of its own.
     /// </summary>
-    public static class CadMLeaderStyleEditor
+    public static partial class CadMLeaderStyleEditor
     {
         /// <summary>
         /// Gets the multileader styles of a drawing, by name, letters of either case alike first: the entries of its dictionary
@@ -998,7 +998,8 @@ namespace OpenCAD2D
         /// Makes the sample multileader of the Manager's preview: a drawing of its own whose one style, Standard, has the
         /// settings (its text style Standard given the font of the one they name in the drawing edited, its leaders ByBlock),
         /// and a multileader of the words "Default Text" in it, its arrow at the origin and its landing 6 by 4 text heights up
-        /// to the right, made as MLEADER makes one.
+        /// to the right, made as MLEADER makes one; with no landing where the settings leave it out (its dogleg not drawn, the
+        /// leader line running on to the words).
         /// </summary>
         /// <param name="source">The drawing edited, whose text style's font the words take; null for Standard's own.</param>
         /// <param name="settings">The settings of the style.</param>
@@ -1080,6 +1081,12 @@ namespace OpenCAD2D
                 if (shownBlock != null)
                 {
                     PlaceBlock(mleader, shownBlock, new GeoPoint3(0, 0, 0), new GeoPoint3(6.0 * size, 4.0 * size, 0));
+                }
+
+                // A style that leaves the landing out draws none, as AutoCAD's MLEADER does: the leader line runs on to the words.
+                if (!settings.IncludeLanding)
+                {
+                    mleader.EnableDogleg = false;
                 }
             }
             catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException)

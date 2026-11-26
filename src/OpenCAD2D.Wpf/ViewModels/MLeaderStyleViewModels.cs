@@ -97,6 +97,8 @@ namespace OpenCAD2D.Wpf
         private readonly Func<bool> _shown;
         private readonly Action _changed;
         private string _text;
+        private bool _isActive;
+        private bool _isLit;
 
         internal MLeaderFieldViewModel(
             MLeaderFieldKind kind,
@@ -183,6 +185,32 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>Gets whether a "…" stands after the value.</summary>
         public bool HasMore => More.Length > 0;
+
+        /// <summary>
+        /// Gets the key the preview knows the field by, as <see cref="CadMLeaderStyleEditor.PartsOf"/> takes it: the name of the setting it
+        /// sets, as <c>LandingGap</c>; empty for a group's title.
+        /// </summary>
+        public string PreviewKey { get; internal set; } = string.Empty;
+
+        /// <summary>Gets whether the field is the one the preview shows: the one under the pointer, else the one with the keyboard focus.</summary>
+        public bool IsActive
+        {
+            get => _isActive;
+            internal set => Set(ref _isActive, value);
+        }
+
+        /// <summary>Gets whether the field sets the part of the preview under the pointer, so that the form marks its row.</summary>
+        public bool IsLit
+        {
+            get => _isLit;
+            internal set => Set(ref _isLit, value);
+        }
+
+        /// <summary>Gets the value as the field shows it: the item of a list, <c>on</c> or <c>off</c> for a box, the text of the others.</summary>
+        internal string ValueText =>
+            Kind == MLeaderFieldKind.Choice ? SelectedChoice?.Label ?? string.Empty
+            : Kind == MLeaderFieldKind.Flag ? (LeadChecked ? "on" : "off")
+            : _text;
 
         /// <summary>Gets the swatch of a colour field as 0xRRGGBB: the colour chosen, white for ByBlock and ByLayer; null for a field of no colour.</summary>
         public int? SwatchRgb =>
@@ -410,6 +438,7 @@ namespace OpenCAD2D.Wpf
         private MLeaderStyleRowViewModel _selected;
         private string _notice = string.Empty;
         private ImageSource _preview;
+        private StylePreviewViewModel _previewModel;
 
         /// <summary>Makes the Manager's view model over a document, the current style selected.</summary>
         /// <param name="document">The document.</param>
@@ -492,6 +521,7 @@ namespace OpenCAD2D.Wpf
                 if (value != null && Set(ref _selected, value))
                 {
                     _preview = null;
+                    _previewModel?.Invalidate();
                     Raise(nameof(Preview));
                     Raise(nameof(Description));
                     Raise(nameof(PreviewTitle));
@@ -544,6 +574,34 @@ namespace OpenCAD2D.Wpf
                     );
             }
         }
+
+        /// <summary>
+        /// Gets what the preview view shows of the style selected: the sample multileader at the frame's real size, a part named by a
+        /// tooltip as the pointer passes over it; it has no fields to light.
+        /// </summary>
+        public StylePreviewViewModel PreviewModel =>
+            _previewModel
+            ?? (
+                _previewModel = new StylePreviewViewModel(
+                    new MLeaderPreviewSource(
+                        _document.Database,
+                        () =>
+                        {
+                            DxfMLeaderStyle style =
+                                _selected == null
+                                    ? null
+                                    : CadMLeaderStyleEditor.Find(_document.Database, _selected.Name);
+                            return style == null ? null : CadMLeaderStyleSettings.Of(style);
+                        },
+                        _ => string.Empty,
+                        _ => null
+                    ),
+                    _document.Fonts
+                )
+                {
+                    CanEdit = false,
+                }
+            );
 
         /// <summary>Gets whether the style selected may be deleted: not Standard, not current, not in use.</summary>
         public bool CanDelete =>
@@ -690,6 +748,9 @@ namespace OpenCAD2D.Wpf
         private string _refused = string.Empty;
         private ImageSource _preview;
         private DxfDatabase _copy;
+        private StylePreviewViewModel _previewModel;
+        private MLeaderFieldViewModel _hovered;
+        private MLeaderFieldViewModel _focused;
 
         /// <summary>Makes the dialog's view model over a style.</summary>
         /// <param name="document">The document.</param>
@@ -714,10 +775,14 @@ namespace OpenCAD2D.Wpf
                 RefreshTextStyles();
             });
             BuildTabs();
+            KeyFields();
         }
 
         /// <summary>Raised when the dialog is to close: true after OK, false after Cancel.</summary>
         public event EventHandler<bool> CloseRequested;
+
+        /// <summary>Raised when a click on a part of the preview chooses a field: the view focuses its control and scrolls it into view (the tab is already shown).</summary>
+        public event EventHandler<MLeaderFieldViewModel> FocusRequested;
 
         /// <summary>Gets or sets what shows the Text Style dialog, as the "…" beside Text style does. Set by the window.</summary>
         public Action ShowTextStyles { get; set; }
@@ -752,10 +817,182 @@ namespace OpenCAD2D.Wpf
                 {
                     Raise(nameof(Fields));
                     Raise(nameof(Description));
+                    _previewModel?.Invalidate();
+                    UpdateLinks();
+                }
+            }
+        }
 
-                    foreach (MLeaderTabViewModel chip in TabChips)
+        /// <summary>
+        /// Gets what the preview view shows: the sample multileader (made again as a value changes), the parts the field active lights,
+        /// the callouts and chips, and the part under the pointer with the fields that set it.
+        /// </summary>
+        public StylePreviewViewModel PreviewModel
+        {
+            get
+            {
+                if (_previewModel == null)
+                {
+                    _previewModel = new StylePreviewViewModel(
+                        new MLeaderPreviewSource(
+                            _document.Database,
+                            () => _settings,
+                            key => AllFields().FirstOrDefault(f => f.PreviewKey == key)?.ValueText,
+                            key => AllFields().FirstOrDefault(f => f.PreviewKey == key)?.Label
+                        ),
+                        _document.Fonts
+                    )
                     {
-                        chip.Refresh();
+                        InCurrentTab = key => Fields.Any(f => f.PreviewKey == key),
+                    };
+                    _previewModel.PropertyChanged += (s, e) =>
+                    {
+                        if (e.PropertyName == nameof(StylePreviewViewModel.HoverPart))
+                        {
+                            UpdateLinks();
+                        }
+                    };
+                    _previewModel.FieldRequested += (s, key) => ChooseField(key);
+                }
+
+                return _previewModel;
+            }
+        }
+
+        /// <summary>Gets the field the preview shows: the one under the pointer, else the one with the keyboard focus; null for none.</summary>
+        public MLeaderFieldViewModel ActiveField => _hovered ?? _focused;
+
+        /// <summary>Tells the dialog the keyboard focus entered a field row or left it, as the window sees it.</summary>
+        /// <param name="field">The field.</param>
+        /// <param name="focused">True where the focus is in it now.</param>
+        internal void SetFocused(MLeaderFieldViewModel field, bool focused)
+        {
+            if (focused)
+            {
+                _focused = field;
+            }
+            else if (ReferenceEquals(_focused, field))
+            {
+                _focused = null;
+            }
+
+            UpdateLinks();
+        }
+
+        /// <summary>Tells the dialog the pointer entered a field row or left it, as the window sees it.</summary>
+        /// <param name="field">The field.</param>
+        /// <param name="hovered">True where the pointer is over it now.</param>
+        internal void SetHovered(MLeaderFieldViewModel field, bool hovered)
+        {
+            if (hovered)
+            {
+                _hovered = field;
+            }
+            else if (ReferenceEquals(_hovered, field))
+            {
+                _hovered = null;
+            }
+
+            UpdateLinks();
+        }
+
+        private IEnumerable<MLeaderFieldViewModel> AllFields() => TabNames.SelectMany(t => _tabs[t]);
+
+        /// <summary>The preview told which field is active, the fields that set the part under the pointer lit, the tabs that hold some marked.</summary>
+        private void UpdateLinks()
+        {
+            MLeaderFieldViewModel active = _hovered ?? _focused;
+            string key = active == null || active.Kind == MLeaderFieldKind.Header ? null : active.PreviewKey;
+            PreviewModel.SetActiveKey(key);
+            IReadOnlyList<string> keys = PreviewModel.HoverKeys;
+
+            foreach (MLeaderFieldViewModel field in AllFields())
+            {
+                field.IsActive = ReferenceEquals(field, active) && key != null;
+                field.IsLit = field.Kind != MLeaderFieldKind.Header && keys.Contains(field.PreviewKey);
+            }
+
+            foreach (MLeaderTabViewModel chip in TabChips)
+            {
+                chip.Refresh(chip.Name != _tab && _tabs[chip.Name].Any(f => f.IsLit));
+            }
+
+            Raise(nameof(ActiveField));
+        }
+
+        /// <summary>A click on a part of the preview chose a field by its key: the first of the tab shown, else the first in tab order; its tab shown and the window asked to focus it.</summary>
+        private void ChooseField(string key)
+        {
+            MLeaderFieldViewModel field = Fields.FirstOrDefault(f => f.PreviewKey == key)
+                ?? AllFields().FirstOrDefault(f => f.PreviewKey == key);
+
+            if (field == null)
+            {
+                return;
+            }
+
+            string tab = TabNames.First(t => _tabs[t].Contains(field));
+            Tab = tab;
+            _focused = field;
+            UpdateLinks();
+            FocusRequested?.Invoke(this, field);
+        }
+
+        /// <summary>
+        /// Gives each field the key the preview knows it by, the name of the setting it sets: the fields of a tab are told apart by
+        /// their words, which no two fields of a tab share.
+        /// </summary>
+        private void KeyFields()
+        {
+            var keys = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                { "Leader Format|Type", "LeaderType" },
+                { "Leader Format|Color", "LeaderColor" },
+                { "Leader Format|Linetype", "LeaderLinetype" },
+                { "Leader Format|Lineweight", "LeaderLineweight" },
+                { "Leader Format|Symbol", "Arrowhead" },
+                { "Leader Format|Size", "ArrowSize" },
+                { "Leader Format|Break size", "BreakSize" },
+                { "Leader Structure|Maximum leader points", "MaxLeaderPoints" },
+                { "Leader Structure|First segment angle", "FirstSegmentAngle" },
+                { "Leader Structure|Second segment angle", "SecondSegmentAngle" },
+                { "Leader Structure|Automatically include landing", "IncludeLanding" },
+                { "Leader Structure|Set landing distance", "LandingDistance" },
+                { "Leader Structure|Annotative", "Annotative" },
+                { "Leader Structure|Scale multileaders to layout", "Scale" },
+                { "Leader Structure|Specify scale", "Scale" },
+                { "Content|Type", "ContentType" },
+                { "Content|Source block", "BlockName" },
+                { "Content|Attachment", "BlockConnection" },
+                { "Content|Color", "BlockColor" },
+                { "Content|Scale", "BlockScale" },
+                { "Content|Default text", "DefaultText" },
+                { "Content|Text style", "TextStyle" },
+                { "Content|Text angle", "TextAngle" },
+                { "Content|Text color", "TextColor" },
+                { "Content|Text height", "TextHeight" },
+                { "Content|Always left justify", "AlwaysLeftJustify" },
+                { "Content|Frame text", "FrameText" },
+                { "Content|Horizontal attachment", "AttachmentDirection" },
+                { "Content|Vertical attachment", "AttachmentDirection" },
+                { "Content|Left attachment", "LeftAttachment" },
+                { "Content|Right attachment", "RightAttachment" },
+                { "Content|Top attachment", "TopAttachment" },
+                { "Content|Bottom attachment", "BottomAttachment" },
+                { "Content|Landing gap", "LandingGap" },
+                { "Content|Extend leader to text", "ExtendLeaderToText" },
+            };
+
+            foreach (string tab in TabNames)
+            {
+                foreach (MLeaderFieldViewModel field in _tabs[tab])
+                {
+                    if (
+                        field.Kind != MLeaderFieldKind.Header
+                        && keys.TryGetValue(tab + "|" + field.Label, out string key)
+                    )
+                    {
+                        field.PreviewKey = key;
                     }
                 }
             }
@@ -873,6 +1110,8 @@ namespace OpenCAD2D.Wpf
             }
 
             _preview = null;
+            _previewModel?.Invalidate();
+            UpdateLinks();
             Raise(nameof(Preview));
             Raise(nameof(Description));
         }
@@ -1496,6 +1735,14 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        internal void Refresh() => Raise(nameof(IsSelected));
+        /// <summary>Gets whether a field of the tab sets the part of the preview under the pointer, so that the chip shows an accent dot.</summary>
+        public bool HasLitField { get; private set; }
+
+        internal void Refresh(bool lit)
+        {
+            HasLitField = lit;
+            Raise(nameof(HasLitField));
+            Raise(nameof(IsSelected));
+        }
     }
 }

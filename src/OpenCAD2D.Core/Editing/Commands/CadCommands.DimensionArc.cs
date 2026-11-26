@@ -494,10 +494,13 @@ namespace OpenCAD2D
                 if (!suppressed[i] && length + beyond > first)
                 {
                     picture.Add(
-                        Lined(
-                            new DxfLine(P3(ends[i] + way * first), P3(tips[i] + way * beyond)),
-                            style.Dimclre,
-                            style.Dimlwe
+                        Tag(
+                            Lined(
+                                new DxfLine(P3(ends[i] + way * first), P3(tips[i] + way * beyond)),
+                                style.Dimclre,
+                                style.Dimlwe
+                            ),
+                            i == 0 ? CadStylePart.ExtensionLine1 : CadStylePart.ExtensionLine2
                         )
                     );
                 }
@@ -527,6 +530,7 @@ namespace OpenCAD2D
                             Turned(text.Rotation + Math.PI - Math.Atan2(0.7875, 0.75))
                         );
                 Picture(mark);
+                Tag(mark, CadStylePart.ArcSymbol);
 
                 if (style.Dimclrt != null && !style.Dimclrt.IsByBlock)
                 {
@@ -543,7 +547,12 @@ namespace OpenCAD2D
                 GeoPoint2 leaderFrom = middle + at * size;
                 GeoPoint2 leaderTo = center + at * radius;
                 led = true;
-                picture.Add(Lined(new DxfLine(P3(leaderFrom), P3(leaderTo)), style.Dimclrd, style.Dimlwd));
+                picture.Add(
+                    Tag(
+                        Lined(new DxfLine(P3(leaderFrom), P3(leaderTo)), style.Dimclrd, style.Dimlwd),
+                        CadStylePart.TextLeader
+                    )
+                );
                 AddArrow(picture, style, DxfDimArrowFlag.FirstArrow, leaderTo, -at, style.Dimasz * scale);
             }
 

@@ -4,10 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Modify Multileader Style"
-    Width="800"
-    Height="640"
+    Width="960"
+    Height="660"
+    MinWidth="960"
+    MinHeight="660"
     WindowStyle="None"
-    ResizeMode="NoResize"
+    ResizeMode="CanResizeWithGrip"
     ShowInTaskbar="False"
     WindowStartupLocation="CenterOwner"
     Background="#262B33"
@@ -87,11 +89,26 @@
             the "…" of the Text Style dialog after it; a group's title instead for a header. Greyed where it means nothing.
             -->
             <DataTemplate x:Key="MLeaderFieldTemplate" DataType="{x:Type local:MLeaderFieldViewModel}">
-                <Grid x:Name="Row" Margin="0,2" Visibility="{Binding IsShown, Converter={StaticResource Shown}}">
+                <Grid
+                    x:Name="Row"
+                    Margin="0,2"
+                    Background="Transparent"
+                    Visibility="{Binding IsShown, Converter={StaticResource Shown}}"
+                >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="200" />
                     </Grid.ColumnDefinitions>
+                    <!-- The mark of the row the preview shows (the field active) or the row of a field that sets the part under the pointer. -->
+                    <Rectangle
+                        x:Name="Bar"
+                        Grid.ColumnSpan="2"
+                        Width="3"
+                        HorizontalAlignment="Left"
+                        Margin="-6,0,0,0"
+                        Fill="{StaticResource GhAccent}"
+                        Visibility="Collapsed"
+                    />
                     <TextBlock
                         x:Name="Title"
                         Grid.ColumnSpan="2"
@@ -185,6 +202,14 @@
                     </DockPanel>
                 </Grid>
                 <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                        <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="Row" Property="Background" Value="#731F4E79" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsLit}" Value="True">
+                        <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="Row" Property="Background" Value="#731F4E79" />
+                    </DataTrigger>
                     <DataTrigger Binding="{Binding HasLeadCheck}" Value="True">
                         <Setter TargetName="LeadCheck" Property="Visibility" Value="Visible" />
                     </DataTrigger>
@@ -313,7 +338,32 @@
                                 Style="{StaticResource StyleTab}"
                                 Content="{Binding Name}"
                                 IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                            />
+                            >
+                                <RadioButton.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding}" />
+                                            <!-- The accent dot: a field of this tab sets the part of the preview under the pointer. -->
+                                            <Ellipse
+                                                x:Name="Dot"
+                                                Width="6"
+                                                Height="6"
+                                                Margin="6,0,0,0"
+                                                Fill="{StaticResource GhAccent}"
+                                                Visibility="Collapsed"
+                                            />
+                                        </StackPanel>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding DataContext.HasLitField, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                Value="True"
+                                            >
+                                                <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </RadioButton.ContentTemplate>
+                            </RadioButton>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -321,14 +371,16 @@
 
             <Grid Margin="16,10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="1.2*" MinWidth="470" />
                     <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="270" />
+                    <ColumnDefinition Width="*" MinWidth="432" />
                 </Grid.ColumnDefinitions>
 
                 <!-- The fields of the tab shown, by groups. -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl
+                        x:Name="FieldsList"
+                        Margin="6,0,0,0"
                         ItemsSource="{Binding Fields}"
                         ItemTemplate="{StaticResource MLeaderFieldTemplate}"
                         Focusable="False"
@@ -336,18 +388,24 @@
                 </ScrollViewer>
 
                 <!-- The preview, the description of the tab and what OK does. -->
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="{Binding PreviewTitle}" FontSize="13" FontWeight="SemiBold" Margin="0,7,0,8" />
-                    <Border Style="{StaticResource StylePreview}" Height="190" Margin="0,0,0,8">
-                        <Image Source="{Binding Preview}" Stretch="None" />
-                    </Border>
-                    <Border Style="{StaticResource StyleFrame}" Margin="0,0,0,8">
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" MinHeight="332" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <local:StylePreviewPanel
+                        Title="{Binding PreviewTitle}"
+                        Model="{Binding PreviewModel}"
+                        Margin="0,0,0,6"
+                    />
+                    <Border Grid.Row="1" Style="{StaticResource StyleFrame}" Margin="0,0,0,8">
                         <StackPanel>
                             <TextBlock Text="Description" Foreground="{StaticResource GhTextMuted}" />
                             <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource StyleFrame}">
+                    <Border Grid.Row="2" Style="{StaticResource StyleFrame}">
                         <DockPanel>
                             <Ellipse
                                 DockPanel.Dock="Left"
@@ -364,7 +422,7 @@
                             />
                         </DockPanel>
                     </Border>
-                </StackPanel>
+                </Grid>
             </Grid>
         </DockPanel>
     </Border>
