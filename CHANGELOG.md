@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **NEW.** A guide and two examples for batch and AI pipelines (PW6.4). The section "Batch and AI pipelines" of the Python guide shows
+  how reading, normalising, feeding a network, rendering, evaluating and placing fit together in one small loop that runs as it is
+  written, with the timings of each step for a drawing of 2 000 objects on .NET 8 and on .NET Framework 4.8, and a paragraph on driving
+  OpenCAD2D from an LLM through the MCP server. `batch_export.py` prepares a folder of DXF and DWG files for a model: for each, the
+  JSON (`flatten` and `to_json`), the graph edges and nodes and the polyline vertices as NumPy arrays (`opencad2d.arrays`), a PNG,
+  and a line of `manifest.jsonl` with the counts, the unit the drawing was drawn in (read from its header with `GeometryHelper.Dxf`),
+  the seconds of each step and the error of a file that failed, the next file going on. `layout_loop.py` is the generate, render,
+  evaluate, refine loop of an AI that places annotation: twelve tags and two dimensions on a sheet are scored by a `reward` built from
+  `check` and `overlaps` and moved to the nearest free place found with `measure_*`, `free_space` and `fits`, seeded, until the score
+  stops rising (0.321 to 1.000 in one round for the seed 1), with `before.png` and `after.png`. Each is run by a test on drawings built
+  in code. The examples are now eighteen.
 - **NEW.** Labelled renders for training vision models on drawings (PW7.4). `drawing.render_transform(...)` is the 3 by 3 matrix, a
   numpy array, from the drawing to the pixels of the picture `render_png` and `render_image` make: the view the renderer draws by,
   taken from the same code path, so a point of a line maps to a pixel the line coloured (a drawing 400 by 300 at 1 600 by 1 200 pixels:
