@@ -1157,6 +1157,60 @@ namespace OpenCAD2D.Wpf
             InvalidateVisual();
         }
 
+        /// <summary>
+        /// Draws the space again with the pictures of its images read at once, not on a worker thread that a screenshot taken
+        /// with no window never waits for, so that an image is in the picture and not its frame alone.
+        /// </summary>
+        internal void RenderNowWithImages()
+        {
+            _renderer.LazyImages = false;
+            _sceneKey = null;
+
+            try
+            {
+                RenderNow();
+            }
+            finally
+            {
+                _renderer.LazyImages = true;
+            }
+        }
+
+        /// <summary>
+        /// The canvas's own picture as last drawn, a PNG of 8-bit red, green and blue: the pixels the window composes its overlays
+        /// over, which <c>--screenshot --canvas</c> writes for the tests of the headless render to compare. Null before the
+        /// canvas has drawn.
+        /// </summary>
+        internal byte[] BitmapPng()
+        {
+            if (_bitmap == null)
+            {
+                return null;
+            }
+
+            _bitmap.Lock();
+
+            try
+            {
+                var info = new SKImageInfo(
+                    _bitmap.PixelWidth,
+                    _bitmap.PixelHeight,
+                    SKColorType.Bgra8888,
+                    SKAlphaType.Premul
+                );
+
+                using (var picture = new SKBitmap())
+                {
+                    picture.InstallPixels(info, _bitmap.BackBuffer, _bitmap.BackBufferStride);
+                    return CadRasterWriter.Encode(picture, CadImageFormat.Png);
+                }
+            }
+            finally
+            {
+                _bitmap.Unlock();
+            }
+        }
+
         /// <summary>The drawing and its grid, into the kept picture, where what it shows has changed since it was last drawn.</summary>
         private void DrawScene(CadDocument document, CadSpace space, CadView view, SKImageInfo info, double scale)
         {

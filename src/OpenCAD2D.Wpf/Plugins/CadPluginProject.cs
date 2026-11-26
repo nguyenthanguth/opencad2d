@@ -29,6 +29,7 @@ namespace OpenCAD2D.Wpf.Plugins
             "GeometryHelper",
             "OpenCAD2D.Core",
             "OpenCAD2D.Remote",
+            "OpenCAD2D.Rendering",
             "OpenCAD2D.Wpf",
         };
 

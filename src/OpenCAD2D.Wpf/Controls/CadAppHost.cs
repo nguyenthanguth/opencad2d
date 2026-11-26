@@ -43,9 +43,13 @@ namespace OpenCAD2D.Wpf
     /// </para>
     /// <para>
     /// <c>app.exe --screenshot out.png [plan.dxf] [--size 1600 960] [--space "Layout1"] [--select H1,H2] [--run "MOVE;0,0"]
-    /// [--cursor x,y] [--toggle GRID,SNAP] [--layers] [--tab Insert] [--dialog name] [--plugin path.dll]</c> draws the window
+    /// [--canvas canvas.png] [--cursor x,y] [--toggle GRID,SNAP] [--layers] [--tab Insert] [--dialog name] [--plugin path.dll]</c> draws the window
     /// with the drawing open, 1 600 by 960 unless <c>--size</c> says otherwise, and exits: 0 when written, 2 for arguments or a
     /// file it cannot read. <c>--run</c> types lines on the command line, parted by semicolons, an empty part being Enter;
+    /// <c>--canvas canvas.png</c> also writes the drawing canvas's own picture, the pixels under its overlays (grips, UCS icon,
+    /// crosshair), as a PNG of 8-bit red, green and blue, and says where the canvas lies in the window, which the tests of the
+    /// headless render compare byte for byte. With it the pictures of images are read before the canvas is drawn, not on the
+    /// worker thread the app uses and a screenshot never waits for, so that an image is in the pictures and not its frame alone;
     /// <c>--cursor</c> puts the cursor on a point of the drawing, showing the snap and the rubber band of the prompt waiting;
     /// <c>--type REC</c> types text and leaves it unsent, the AutoComplete list shown for it, and <c>--type {Down}</c> opens
     /// the options menu of dynamic input; <c>--dialog plot:png</c>, <c>plot:jpg</c> and <c>plot-custom</c> draw PLOT's
@@ -125,7 +129,7 @@ namespace OpenCAD2D.Wpf
         protected virtual string Usage =>
             "Usage: "
             + (Assembly.GetEntryAssembly()?.GetName().Name ?? "app")
-            + " --screenshot out.png [file.dxf] [--size 1600 960] [--space \"Layout1\"] [--select H1,H2] [--run \"MOVE;0,0\"] [--cursor x,y] [--type REC|{Down}] [--toggle GRID,SNAP] [--layers] [--tab Home|Insert|Annotate|Parametric|View|Manage|Output|Plugins|Settings] [--dialog save-changes|mtext-unsaved|secureload|writable-folder|settings-security|options|settings:Category|plugins|plugin-untrusted|plugin-settings|color|truecolor|truecolor-rgb|dsettings[:Tab]|constraints[:0|1|2]|parameters|osnap-menu|snap-menu|canvas-menu|drawings-menu|scale-menu|missing-shx|missing-shx-replace|missing-fonts|missing-fonts-truetype|ptype|linetype|linetype-load|select-linetype|hatch|hatch-gradient|hatch-user|hatch-solid|hatch-file|block|insert|wblock|attdef|eattedit[:Tab]|battman|battman-edit[:Tab]|battman-settings|attdia|purge|purge-nonpurgeable|classicgroup|group-order|layerstate|scalelist|qleader|qleader-line|qleader-attach|selectarrow|tolerance|tolerance-filled|tolerance-full|gdtsymbol|gdtmaterial|inputsearch|view|newview|units|units-direction|xref|xref-tree|plot:png|plot:jpg|plot-custom|plot-view|style|style-new|dimstyle|dimstyle-new|dimstyle-modify[:Tab]|dimstyle-override[:Tab]|dimstyle-compare[:Other]|mleaderstyle|mleaderstyle-modify[:Tab]|matchprop|mlstyle|mlstyle-new|mlstyle-new-page|mlstyle-modify|mlstyle-load|mledit|plotstamp|plotstamp-advanced|plotstamp-fields|imageadjust|attext|xbind|insertobject|recovery|spell|spell-settings|objectscale|objectscale-add|insertlayout|templateoptions|saveaspdf|pdf-override|pdf-options|rename|lweight|boundary|viewports|viewports-named|filter|layerfilter|sheetset[-locked]|subset[-refused]|sheet[-missing]|customprops|addprop[-refused]|newsheet[-exists]|sheettemplate|renumber[-open]|importlayouts[-listed]|pastespec|app-menu[:Item]|cmdline-menu|input-settings-menu|recent-commands-menu|autocomplete:Text] [--recent \"a.dxf|*b.dxf\"] [--plugin path.dll]";
+            + " --screenshot out.png [file.dxf] [--size 1600 960] [--space \"Layout1\"] [--select H1,H2] [--run \"MOVE;0,0\"] [--canvas canvas.png] [--cursor x,y] [--type REC|{Down}] [--toggle GRID,SNAP] [--layers] [--tab Home|Insert|Annotate|Parametric|View|Manage|Output|Plugins|Settings] [--dialog save-changes|mtext-unsaved|secureload|writable-folder|settings-security|options|settings:Category|plugins|plugin-untrusted|plugin-settings|color|truecolor|truecolor-rgb|dsettings[:Tab]|constraints[:0|1|2]|parameters|osnap-menu|snap-menu|canvas-menu|drawings-menu|scale-menu|missing-shx|missing-shx-replace|missing-fonts|missing-fonts-truetype|ptype|linetype|linetype-load|select-linetype|hatch|hatch-gradient|hatch-user|hatch-solid|hatch-file|block|insert|wblock|attdef|eattedit[:Tab]|battman|battman-edit[:Tab]|battman-settings|attdia|purge|purge-nonpurgeable|classicgroup|group-order|layerstate|scalelist|qleader|qleader-line|qleader-attach|selectarrow|tolerance|tolerance-filled|tolerance-full|gdtsymbol|gdtmaterial|inputsearch|view|newview|units|units-direction|xref|xref-tree|plot:png|plot:jpg|plot-custom|plot-view|style|style-new|dimstyle|dimstyle-new|dimstyle-modify[:Tab]|dimstyle-override[:Tab]|dimstyle-compare[:Other]|mleaderstyle|mleaderstyle-modify[:Tab]|matchprop|mlstyle|mlstyle-new|mlstyle-new-page|mlstyle-modify|mlstyle-load|mledit|plotstamp|plotstamp-advanced|plotstamp-fields|imageadjust|attext|xbind|insertobject|recovery|spell|spell-settings|objectscale|objectscale-add|insertlayout|templateoptions|saveaspdf|pdf-override|pdf-options|rename|lweight|boundary|viewports|viewports-named|filter|layerfilter|sheetset[-locked]|subset[-refused]|sheet[-missing]|customprops|addprop[-refused]|newsheet[-exists]|sheettemplate|renumber[-open]|importlayouts[-listed]|pastespec|app-menu[:Item]|cmdline-menu|input-settings-menu|recent-commands-menu|autocomplete:Text] [--recent \"a.dxf|*b.dxf\"] [--plugin path.dll]";
 
         /// <summary>
         /// Gets whether <see cref="Run"/> opens the window for these arguments: false where the first is <c>--screenshot</c>,
@@ -722,6 +726,7 @@ namespace OpenCAD2D.Wpf
             string file = null;
             string spaceName = null;
             string run = null;
+            string canvasOutput = null;
             double[] cursor = null;
             string typed = null;
             bool layers = false;
@@ -756,6 +761,10 @@ namespace OpenCAD2D.Wpf
                 else if (string.Equals(arg, "--run", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
                 {
                     run = args[++i];
+                }
+                else if (string.Equals(arg, "--canvas", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+                {
+                    canvasOutput = args[++i];
                 }
                 else if (string.Equals(arg, "--cursor", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
                 {
@@ -1585,6 +1594,42 @@ namespace OpenCAD2D.Wpf
                 }
 
                 Layout(root, width, height);
+            }
+
+            if (canvasOutput != null)
+            {
+                // The canvas reads the pictures of images on a worker thread a screenshot never waits for; here they are read first.
+                if (root is CadWorkspace imaged)
+                {
+                    imaged.DrawingCanvas.RenderNowWithImages();
+                    root.UpdateLayout();
+                }
+
+                CadCanvas canvas = (root as CadWorkspace)?.DrawingCanvas;
+                byte[] png = canvas?.BitmapPng();
+
+                if (png == null)
+                {
+                    Console.Error.WriteLine("--canvas: there is no drawing canvas to write.");
+                    return 2;
+                }
+
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(canvasOutput)));
+                File.WriteAllBytes(canvasOutput, png);
+                Point corner = canvas.TranslatePoint(new Point(0, 0), root);
+                Console.WriteLine(
+                    "Wrote "
+                        + Path.GetFullPath(canvasOutput)
+                        + " ("
+                        + canvas.PixelWidth
+                        + " by "
+                        + canvas.PixelHeight
+                        + ", at "
+                        + corner.X.ToString("0.###", CultureInfo.InvariantCulture)
+                        + ","
+                        + corner.Y.ToString("0.###", CultureInfo.InvariantCulture)
+                        + " of the window)."
+                );
             }
 
             var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);

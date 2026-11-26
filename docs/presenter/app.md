@@ -1024,6 +1024,7 @@ and LISP registry are kept in a folder of the run under the temporary folder. Bo
 | `--space "Layout1"` | shows a layout |
 | `--select H1,H2` | selects entities by handle |
 | `--run "MOVE;0,0"` | types lines on the command line, parted by semicolons, an empty part being Enter |
+| `--canvas canvas.png` | also writes the drawing canvas's own picture, the pixels under its overlays (UCS icon, grips, crosshair), as a PNG of 8-bit red, green and blue, and prints where the canvas lies in the window (`1000 by 679, at 288,170 of the window`); images are read before it is drawn. The tests of [drawing with no window](plot.md#drawing-with-no-window) compare it byte for byte |
 | `--cursor x,y` | puts the cursor on a point of the drawing, to show the snap and the rubber band of the prompt waiting |
 | `--toggle GRID,DYN` | switches status toggles |
 | `--tab Insert` | shows a ribbon tab: Home (the default), Insert, Annotate, View, Plugins, Settings, or a host's; another name exits with 2, `--tab Nowhere: no such tab.` |

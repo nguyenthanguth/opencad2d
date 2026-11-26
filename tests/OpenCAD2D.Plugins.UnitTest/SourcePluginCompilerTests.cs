@@ -954,6 +954,27 @@ namespace OpenCAD2D.Plugins.UnitTest
         }
 
         [Fact]
+        public void AReferenceToTheRenderingAssembly_IsTheAppsOwn_AndItsTypesCompile()
+        {
+            string project = Project(
+                "rendering-ref",
+                SourceProject.Csproj(
+                    items: new[]
+                    {
+                        "<Reference Include=\"OpenCAD2D.Rendering\" HintPath=\"C:\\Program Files\\OpenCAD2D\\OpenCAD2D.Rendering.dll\" />",
+                    }
+                ),
+                "A.cs",
+                "namespace Stairs { public class A { public void Draw(OpenCAD2D.CadDocument d) { OpenCAD2D.CadRender.WritePng(\"a.png\", d, new OpenCAD2D.CadRenderOptions { Width = 100 }); } } }\n"
+            );
+
+            CadPluginBuild build = Compile(project);
+
+            Assert.True(build.Succeeded, Failure(build));
+            Assert.Empty(build.Warnings);
+        }
+
+        [Fact]
         public void ALineOfTheOldDirective_IsAComment_AndNothingIsRead()
         {
             string source = "//#r \"Missing.dll\"\n//#r \"../Other.dll\"\n" + SourceProject.Stairs();
