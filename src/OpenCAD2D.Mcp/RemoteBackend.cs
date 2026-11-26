@@ -110,6 +110,102 @@ namespace OpenCAD2D.Mcp
             return new OverlapRows(table.Words, table.Others, table.Boxes);
         }
 
+        public MeasureRows Measure(DxfEntity entity) => Measured(Document.Measure(entity));
+
+        public MeasureRows MeasureLeader(
+            string style,
+            double arrowX,
+            double arrowY,
+            double landingX,
+            double landingY,
+            string words,
+            double? scale
+        ) => Measured(Document.MeasureLeader(style, arrowX, arrowY, landingX, landingY, words, scale));
+
+        private static MeasureRows Measured(CadRemoteMeasurement measured) =>
+            new MeasureRows(measured.Box.Length == 0 ? null : measured.Box, measured.Frames);
+
+        public double[] FreeSpace(
+            string layout,
+            double[] frame,
+            IReadOnlyList<string> kinds,
+            double margin,
+            double minWidth,
+            double minHeight,
+            double tolerance
+        ) =>
+            Document
+                .GetFreeSpace(
+                    Layout(layout),
+                    frame[0],
+                    frame[1],
+                    frame[2],
+                    frame[3],
+                    kinds,
+                    margin,
+                    minWidth,
+                    minHeight,
+                    tolerance
+                )
+                .Boxes;
+
+        public bool Fits(
+            string layout,
+            double[] candidate,
+            IReadOnlyList<string> kinds,
+            double margin,
+            double tolerance
+        ) =>
+            Document.Fits(
+                Layout(layout),
+                candidate[0],
+                candidate[1],
+                candidate[2],
+                candidate[3],
+                candidate[4],
+                kinds,
+                margin,
+                tolerance
+            );
+
+        public StandardRows Check(string standard, double modelScale, double tolerance)
+        {
+            CadRemoteStandardResult result = Document.CheckStandard(standard, modelScale, tolerance);
+            return new StandardRows(
+                result.Name,
+                result.Total,
+                result
+                    .Rules.Select(r => new RuleScoreInfo
+                    {
+                        Rule = r.Rule,
+                        Score = r.Score,
+                        Subjects = r.Subjects,
+                        Offenders = r.Offenders,
+                        Weight = r.Weight,
+                    })
+                    .ToList(),
+                result
+                    .Violations.Select(v => new ViolationInfo
+                    {
+                        Rule = v.Rule,
+                        Handle = v.Handle,
+                        Other = v.Other,
+                        Space = v.Space,
+                        Through = v.Through,
+                        Box = v.Box,
+                        Measured = v.Measured,
+                        Allowed = v.Allowed,
+                        Value = double.IsNaN(v.Value) ? (double?)null : v.Value,
+                        Limit = double.IsNaN(v.Limit) ? (double?)null : v.Limit,
+                    })
+                    .ToList()
+            );
+        }
+
+        public string ExportJson(string layout) => Document.ExportJson(layout);
+
+        public string ExportGraph(string layout, double tolerance) => Document.ExportGraph(layout, tolerance);
+
         public IReadOnlyList<string> Add(IReadOnlyList<DxfEntity> entities, string layout)
         {
             foreach (DxfEntity entity in entities)

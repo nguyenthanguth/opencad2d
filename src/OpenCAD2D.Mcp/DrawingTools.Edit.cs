@@ -247,7 +247,7 @@ namespace OpenCAD2D.Mcp
 
         [McpServerTool(Name = "render_png", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
         [Description(
-            "Draws a layout (or a part of it) to a PNG and returns the picture as an image, as the app's canvas draws it, on a white ground. Size: width or height in pixels (the other follows the part's shape), or dpi for a layout; 1024 pixels wide where none is given. At most 16384 pixels a side. In a server attached to an app the drawing must be saved: the picture is of the saved file."
+            "Draws a layout (or a part of it) to a PNG and returns the picture as an image, as the app's canvas draws it, on a white ground. Size: width or height in pixels (the other follows the part's shape), or dpi for a layout; 1024 pixels wide where none is given. At most 16384 pixels a side."
         )]
         public CallToolResult RenderPng(
             [Description(

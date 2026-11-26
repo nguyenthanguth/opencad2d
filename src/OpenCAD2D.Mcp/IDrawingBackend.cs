@@ -77,6 +77,47 @@ namespace OpenCAD2D.Mcp
         public double[] Boxes { get; }
     }
 
+    /// <summary>What a thing would take: the box of everything it draws (null for nothing) and five numbers a word frame.</summary>
+    internal sealed class MeasureRows
+    {
+        public MeasureRows(double[] box, double[] frames)
+        {
+            Box = box;
+            Frames = frames;
+        }
+
+        /// <summary>Gets the box as <c>MinX, MinY, MaxX, MaxY</c>; null where the thing draws nothing.</summary>
+        public double[] Box { get; }
+
+        /// <summary>Gets the frames, five numbers each: X, Y, width, height and the angle in radians.</summary>
+        public double[] Frames { get; }
+    }
+
+    /// <summary>The scores and violations of a check against a standard, with the numbers as the answer writes them.</summary>
+    internal sealed class StandardRows
+    {
+        public StandardRows(
+            string name,
+            double total,
+            IReadOnlyList<RuleScoreInfo> rules,
+            IReadOnlyList<ViolationInfo> violations
+        )
+        {
+            Name = name;
+            Total = total;
+            Rules = rules;
+            Violations = violations;
+        }
+
+        public string Name { get; }
+
+        public double Total { get; }
+
+        public IReadOnlyList<RuleScoreInfo> Rules { get; }
+
+        public IReadOnlyList<ViolationInfo> Violations { get; }
+    }
+
     /// <summary>What <c>render_png</c> asks for.</summary>
     internal sealed class RenderRequest
     {
@@ -146,6 +187,43 @@ namespace OpenCAD2D.Mcp
             IReadOnlyList<string> handles,
             double tolerance
         );
+
+        /// <summary>Measures an entity as it would be once added to the drawing, without adding it.</summary>
+        MeasureRows Measure(DxfEntity entity);
+
+        /// <summary>Measures the multileader MLEADER would make; the style null is the current one, the scale null the one MLEADER gives.</summary>
+        MeasureRows MeasureLeader(
+            string style,
+            double arrowX,
+            double arrowY,
+            double landingX,
+            double landingY,
+            string words,
+            double? scale
+        );
+
+        /// <summary>The empty rectangles of a frame <c>MinX, MinY, MaxX, MaxY</c>, four numbers each, the largest first.</summary>
+        double[] FreeSpace(
+            string layout,
+            double[] frame,
+            IReadOnlyList<string> kinds,
+            double margin,
+            double minWidth,
+            double minHeight,
+            double tolerance
+        );
+
+        /// <summary>Whether a candidate (X, Y, width, height, angle in radians) is clear of what the kinds name, the margin round it.</summary>
+        bool Fits(string layout, double[] candidate, IReadOnlyList<string> kinds, double margin, double tolerance);
+
+        /// <summary>Checks the drawing against a standard, given as its JSON text.</summary>
+        StandardRows Check(string standard, double modelScale, double tolerance);
+
+        /// <summary>The drawing as the JSON text of schema <c>opencad2d.drawing</c>; the layout null for model space and every layout.</summary>
+        string ExportJson(string layout);
+
+        /// <summary>The graph of the drawing as the JSON text of schema <c>opencad2d.graph</c>; the layout null for model space and every layout.</summary>
+        string ExportGraph(string layout, double tolerance);
 
         /// <summary>Adds the entities to a layout as one undo step and gives their handles, in order.</summary>
         IReadOnlyList<string> Add(IReadOnlyList<DxfEntity> entities, string layout);

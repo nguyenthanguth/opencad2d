@@ -157,6 +157,131 @@ namespace OpenCAD2D.Mcp
             return new OverlapRows(table.Words, table.Others, table.Boxes);
         }
 
+        public MeasureRows Measure(DxfEntity entity) => Measured(CadMeasure.Of(Document, entity));
+
+        public MeasureRows MeasureLeader(
+            string style,
+            double arrowX,
+            double arrowY,
+            double landingX,
+            double landingY,
+            string words,
+            double? scale
+        ) =>
+            Measured(
+                CadMeasure.Leader(
+                    Document,
+                    style,
+                    new GeoPoint2(arrowX, arrowY),
+                    new GeoPoint2(landingX, landingY),
+                    words,
+                    scale
+                )
+            );
+
+        private static MeasureRows Measured(CadMeasurement measured)
+        {
+            DisplayBox box = measured.Box;
+            var frames = new double[5 * measured.Frames.Count];
+
+            for (int i = 0; i < measured.Frames.Count; i++)
+            {
+                CadFrame frame = measured.Frames[i];
+                frames[5 * i] = frame.X;
+                frames[5 * i + 1] = frame.Y;
+                frames[5 * i + 2] = frame.Width;
+                frames[5 * i + 3] = frame.Height;
+                frames[5 * i + 4] = frame.Rotation;
+            }
+
+            return new MeasureRows(box.IsEmpty ? null : new[] { box.MinX, box.MinY, box.MaxX, box.MaxY }, frames);
+        }
+
+        public double[] FreeSpace(
+            string layout,
+            double[] frame,
+            IReadOnlyList<string> kinds,
+            double margin,
+            double minWidth,
+            double minHeight,
+            double tolerance
+        )
+        {
+            CadFreeSpace table = CadSpatial.FreeSpace(
+                Document,
+                SpaceNamed(layout),
+                new DisplayBox(frame[0], frame[1], frame[2], frame[3]),
+                new CadFreeSpaceOptions
+                {
+                    Kinds = kinds,
+                    Margin = margin,
+                    MinWidth = minWidth,
+                    MinHeight = minHeight,
+                },
+                new Tolerance(tolerance, 1e-5)
+            );
+            return table.Boxes;
+        }
+
+        public bool Fits(
+            string layout,
+            double[] candidate,
+            IReadOnlyList<string> kinds,
+            double margin,
+            double tolerance
+        ) =>
+            CadSpatial.Fits(
+                Document,
+                SpaceNamed(layout),
+                new CadFrame(candidate[0], candidate[1], candidate[2], candidate[3], candidate[4]),
+                new CadFreeSpaceOptions { Kinds = kinds, Margin = margin },
+                new Tolerance(tolerance, 1e-5)
+            );
+
+        public StandardRows Check(string standard, double modelScale, double tolerance)
+        {
+            CadStandardResult result = CadStandards.Check(
+                Document,
+                CadStandard.Parse(standard),
+                modelScale,
+                new Tolerance(tolerance, 1e-5)
+            );
+            return new StandardRows(
+                result.Name,
+                result.Total,
+                result
+                    .Rules.Select(r => new RuleScoreInfo
+                    {
+                        Rule = r.Rule,
+                        Score = r.Score,
+                        Subjects = r.Subjects,
+                        Offenders = r.Offenders,
+                        Weight = r.Weight,
+                    })
+                    .ToList(),
+                result
+                    .Violations.Select(v => new ViolationInfo
+                    {
+                        Rule = v.Rule,
+                        Handle = v.Handle,
+                        Other = v.Other,
+                        Space = v.Space,
+                        Through = v.Through,
+                        Box = v.Box,
+                        Measured = v.Measured,
+                        Allowed = v.Allowed,
+                        Value = double.IsNaN(v.Value) ? (double?)null : v.Value,
+                        Limit = double.IsNaN(v.Limit) ? (double?)null : v.Limit,
+                    })
+                    .ToList()
+            );
+        }
+
+        public string ExportJson(string layout) => CadDrawingJson.Write(Document, layout);
+
+        public string ExportGraph(string layout, double tolerance) =>
+            CadDrawingGraph.Build(Document, layout, tolerance).ToJson();
+
         public IReadOnlyList<string> Add(IReadOnlyList<DxfEntity> entities, string layout)
         {
             CadSpace space = SpaceNamed(layout);
