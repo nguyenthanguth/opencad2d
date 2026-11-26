@@ -746,6 +746,61 @@ A display list and its index are kept until an edit touches the space, when its 
 they are asked for; `Changed` says which spaces and which handles. `Regen()` drops every list, as REGEN does. A change
 to the layer table, a layer switched off or given a colour, makes the builder read the table again.
 
+## Where things are drawn
+
+A program that lays a drawing out, or scores a layout, asks where things are on the sheet, not where they were put: the insertion
+point of a TEXT is a corner of its word, the word runs on from it for as long as its letters take, and a dimension or an INSERT is
+one entity whose lines and words are elsewhere. [`CadSpatial`](xref:OpenCAD2D.CadSpatial) answers from the display list of the space,
+so what it says is what the canvas draws, with no second path to keep equal to it.
+
+```csharp
+CadBoundsTable boxes = CadSpatial.Bounds(document, document.ModelSpace);
+boxes.Handles;                                     // the entities model space draws, in the order it draws them
+boxes.Boxes;                                       // four numbers each: least X, least Y, greatest X, greatest Y
+boxes.BoxOf(0);                                    // a DisplayBox: the line from (0, 0) to (100, 40) is (0, 0) to (100, 40)
+CadSpatial.Bounds(document, new[] { "2F", "30" }); // by handle, each in the space that holds it (a layout's too)
+```
+
+The box of an entity is the union of the boxes of its display items, the same that `DisplayList2.Bounds` unites for the whole
+space: the letters of an SHX word and the frame they stand in, the picture of a dimension, a block however deep and however it is
+scaled and turned, the columns of an MTEXT, the width of a wide polyline, the lines of a hatch. An entity that draws nothing (a
+layer off, no words) has no row. One box is not the list's: a TEXT in a TrueType font is drawn with a width the display only guesses
+(0.6 of the height a letter), and its box is measured by the letters of the font file instead, as an MTEXT run is: "iiiiiiiiii"
+10 high in Arial is 31 wide and "WWWWWWWWWW" 132, where the guess is 60 for both.
+
+```csharp
+var options = new CadOverlapOptions
+{
+    Words = new[] { "TEXT", "MTEXT", "DIMENSION" },   // null: TEXT, MTEXT, DIMENSION and MULTILEADER
+    Over = new[] { "LINE", "ARC", "CIRCLE" },        // null: every kind, the words included
+    Handles = null,                                   // or the handles the answer is about
+};
+CadOverlapTable hits = CadSpatial.Overlaps(document, document.ModelSpace, options, new Tolerance(1E-3, 1E-5));
+hits.Words;                                        // the entity whose words meet the other, a row a pair
+hits.Others;                                       // the entity they meet
+hits.BoxOf(0);                                     // the box of the places they meet
+```
+
+A word is the frame of a text, the rectangle its height and the width of its letters make, turned as the text is; an MTEXT is
+framed run by run, so that the gap between two columns is no word, and a dimension's words are those of its picture. A word
+overlaps a line, an arc, a polyline or the edge of a hatch that runs through its frame, a filled area its frame lies in, and the
+frame of another word it shares an area with. What only touches the frame, or comes within the tolerance of its edge, does not
+(the frame is drawn in by the tolerance on every side, `Tolerance.EqualPoint`: pass the tolerance, never the global one), and two
+parts of one entity never overlap, so a dimension's text is not over its own lines. A pair is one row however many of its parts
+meet, with the box of all the places. A frame from (0, 0) to (20, 5) and a line from (10, -10) to (10, 10) are one row whose box runs
+from (10, 0.001) to (10, 4.999) at a tolerance of 0.001. The words of an INSERT, its attributes and the text
+of its block, are of the kind `INSERT`: the display list gives an attribute the handle of its INSERT.
+
+The rows come in the order the space draws the entities, the word's first; where two entities of words meet each other the one
+drawn first is the word. Nothing in the answer follows the order of a table: it is the same on every run.
+
+The answers are made from an index kept for each display list (an STR-packed R-tree over the boxes of its pieces, the pieces
+being the words, the chains, the segments, the arcs and the fills), and an edit makes a new list, so a program that asks again after
+each change pays for the entities the edit drew again. A drawing of 100 000 objects (25 000 texts, 50 000 lines, 15 000 circles and
+10 000 inserts at random over 3 000 by 3 000) is drawn in 0.2 to 0.3 s, gives its boxes in 0.05 to 0.35 s, the 95 000 pairs of its
+overlaps in 0.3 to 0.6 s on .NET Framework 4.8 and 0.25 to 0.35 s on .NET 10, and the pairs one entity stands in in a millisecond;
+`handles` makes the question of one entity cheap, since its answer is not cut from the whole one.
+
 ## The view
 
 [`CadView`](xref:OpenCAD2D.CadView) is what part of a space the canvas shows and at what zoom: the point of

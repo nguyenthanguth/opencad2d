@@ -21,7 +21,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Protocol, TypeVar, cast, overload
 
 if TYPE_CHECKING:
+    import numpy as np
     import typing_extensions
+    from numpy.typing import NDArray
     from GeometryHelper.Dxf import (
         DxfAlignedDimension,
         DxfArc,
@@ -223,6 +225,17 @@ class Backend(Protocol):
     def select_all(self) -> list[tuple[str, Any, Any]]: ...
     def select_window(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
+
+    # ---- where things are drawn (PW6.2) ----
+    def bounds(self, layout: str | None, handles: list[str] | None) -> tuple[list[str], Any]: ...
+    def overlaps(
+        self,
+        layout: str | None,
+        words: list[str] | None,
+        over: list[str] | None,
+        handles: list[str] | None,
+        tolerance: float,
+    ) -> tuple[list[str], list[str], Any]: ...
 
 
 def dxf_type_of(net: Any) -> str:
@@ -597,6 +610,23 @@ class Entity(Generic[E]):
     @linetype.setter
     def linetype(self, value: str) -> None:
         self._set("Linetype", value)
+
+    @property
+    def bounds(self) -> Box | None:
+        """The box the object takes as the drawing draws it, as a ``Box`` of (min_x, min_y, max_x, max_y): the letters of an SHX
+        or TrueType word and not its insertion point, the picture of a dimension, a block however deep and scaled, the width
+        of a wide polyline. ``None`` where the drawing draws nothing of it (an object on a layer that is off or frozen). It is
+        the drawing as committed: a change queued and not committed is not in it, and an object just added (``~1``) is a
+        ``ValueError`` until ``commit()``.
+
+        Example:
+            line = drawing.add_line((0, 0), (100, 40))
+            drawing.commit()
+            line.bounds                                   # Box(min_x=0.0, min_y=0.0, max_x=100.0, max_y=40.0)
+        """
+        if self._handle.startswith("~"):
+            raise ValueError(f"The {self._type} {self._handle} is not in the drawing yet: call commit() first.")
+        return self._drawing._bounds_of(self._handle)  # pyright: ignore[reportPrivateUsage]
 
     def __repr__(self) -> str:
         return f"<Entity {self._type} {self._handle} on {self.layer}>"
@@ -1435,6 +1465,73 @@ class Drawing:
         """
         self._backend.set_variable(name, variable_value(name, value))
 
+    # ---- where things are drawn: bounds and overlaps (PW6.2) ------------------------------------------------------
+
+    def _bounds_of(self, handle: str) -> Box | None:
+        """The box of one object as drawn, or None where the drawing draws nothing of it."""
+        handles, boxes = self._backend.bounds(None, [handle])
+        if not handles:
+            return None
+        one = [float(number) for number in boxes]
+        return Box(one[0], one[1], one[2], one[3])
+
+    def bounds(self, layout: str | None = None) -> BoundsTable:
+        """The box every object of a space takes as the drawing draws it, as a ``BoundsTable``: ``handles`` and ``boxes``, a
+        NumPy array of one row of (min_x, min_y, max_x, max_y) for each, in the order the space draws them. Read from the
+        display list, so the box is the one the canvas fills: the letters of SHX and TrueType words, a dimension's lines,
+        arrows and words, the contents of a block however deep and scaled, the columns of an MTEXT, the width of a polyline.
+        ``layout`` names a layout (model space where None). An object that draws nothing has no row. Needs numpy
+        (``pip install opencad2d[numpy]``). A drawing of 100 000 objects answers in 0.3 s the first time (it makes its index) and 0.01 s after.
+
+        Example:
+            table = drawing.bounds()
+            table.handles                                 # ['101', '102'] for a line and a text
+            table.boxes[0]                                # array([0., 0., 100., 40.]) for the line from (0, 0) to (100, 40)
+        """
+        handles, boxes = self._backend.bounds(layout, None)
+        return BoundsTable(handles, _rows(boxes))
+
+    def overlaps(
+        self,
+        kinds: Sequence[str] | None = None,
+        over: Sequence[str] | None = None,
+        layout: str | None = None,
+        of: Sequence[Entity | str] | None = None,
+        tolerance: float = 0.001,
+    ) -> OverlapTable:
+        """Find the objects whose words overlap what is drawn near them, as an ``OverlapTable``: ``words`` and ``others``, the
+        handles of each pair, and ``boxes``, a NumPy array of the box (min_x, min_y, max_x, max_y) of the common part. A
+        word is the frame of a text (a TEXT, the runs of an MTEXT line by line so that a gap between columns is no word, the
+        words of a dimension), turned as the text is; it overlaps a line, an arc, a polyline, a hatch or a filled area that
+        runs through it and the frame of another word it shares an area with. What only touches it within ``tolerance``
+        (millimetres, 0.001) does not, and neither does a part of the word's own object: a dimension's text is not over its
+        own lines. A pair is one row however many of the parts of the two meet; the box holds all the places they do.
+
+        ``kinds`` are the DXF names whose words are looked at (``"TEXT"``, ``"MTEXT"``, ``"DIMENSION"``, ``"MULTILEADER"``; None
+        takes those four), ``over`` the names of what they are looked at against (None takes every kind, words included, so
+        two texts that overlap are a row, the one drawn first as ``words``). The words of an INSERT, its attributes and the
+        text of its block, are of the kind ``"INSERT"``. ``of`` limits the answer to pairs in which one of these objects
+        stands, on either side. ``layout`` names a layout (model space where None). Fast enough for a reward function: 100 000
+        objects in about 0.5 s, and one object's pairs in a few milliseconds. Needs numpy.
+
+        Example:
+            hits = drawing.overlaps()                     # a text with a line through it
+            hits.words, hits.others                       # (['101'], ['102'])
+            drawing.overlaps(kinds=["DIMENSION"], over=["LINE", "LWPOLYLINE"])   # where dimension words sit on lines
+            drawing.overlaps(of=[line])                   # what the object just moved meets
+        """
+        if not (math.isfinite(tolerance) and tolerance >= 0.0):
+            raise ValueError(f"The tolerance is a finite number of nought or more, not {tolerance!r}.")
+        handles = None if of is None else self._handles_of(of)
+        words, others, boxes = self._backend.overlaps(
+            layout,
+            None if kinds is None else [str(kind) for kind in kinds],
+            None if over is None else [str(kind) for kind in over],
+            handles,
+            float(tolerance),
+        )
+        return OverlapTable(words, others, _rows(boxes))
+
     # ---- adding ---------------------------------------------------------------------------------------------------
 
     def _made(self, entity: K, props: dict[str, Any]) -> K:
@@ -2248,3 +2345,47 @@ class Documents:
             if drawing.name.upper() == key.upper():
                 return drawing
         raise KeyError(f"No drawing named {key!r} is open.")
+
+
+def _rows(boxes: Any) -> NDArray[np.float64]:
+    """A .NET array of doubles, four to a box, as a NumPy array of shape (n, 4)."""
+    arrays: Any = importlib.import_module("opencad2d.arrays")
+    return arrays.to_numpy(boxes).reshape(-1, 4)
+
+
+@dataclass(frozen=True, eq=False)
+class BoundsTable:
+    """The boxes ``drawing.bounds()`` gives: ``handles``, the handle of each object, and ``boxes``, a NumPy array of shape
+    (n, 4) whose row ``i`` is (min_x, min_y, max_x, max_y) of the object ``handles[i]``, in the units of the drawing.
+
+    Example:
+        table = drawing.bounds()
+        len(table)                                    # 2
+        dict(zip(table.handles, table.boxes.tolist()))   # {'101': [0.0, 0.0, 100.0, 40.0], '102': [10.0, 20.0, 31.2, 22.5]}
+    """
+
+    handles: list[str]
+    boxes: NDArray[np.float64]
+
+    def __len__(self) -> int:
+        return len(self.handles)
+
+
+@dataclass(frozen=True, eq=False)
+class OverlapTable:
+    """The pairs ``drawing.overlaps()`` gives: ``words``, the handle of the object whose words meet ``others``, the handle of the
+    object they meet (the object drawn first where both are words), and ``boxes``, a NumPy array of shape (n, 4) whose row
+    ``i`` is (min_x, min_y, max_x, max_y) of the places the pair meets. The rows are in the order the space draws the objects.
+
+    Example:
+        hits = drawing.overlaps()
+        list(zip(hits.words, hits.others))            # [('101', '102')]: the text 101 has the line 102 through it
+        hits.boxes[0]                                 # array([20., 20.001, 20., 24.999]): the part of the line inside the frame
+    """
+
+    words: list[str]
+    others: list[str]
+    boxes: NDArray[np.float64]
+
+    def __len__(self) -> int:
+        return len(self.words)

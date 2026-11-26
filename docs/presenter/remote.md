@@ -109,6 +109,17 @@ dimension style new dimensions are drawn in (one undo step, `DIMSTYLE`, at once)
 `dimension_styles.add`, `linetypes.load` and `blocks.add` ([the Drawing API](../python.md#styles-linetypes-dimensions-hatches-and-blocks))
 are made of these calls from outside the app.
 
+## Where things are drawn
+
+`drawing.GetBounds(layout)` gives the box of every entity of model space (null) or a layout as the app draws it, as a
+`CadRemoteBounds`: `Handles` and `Boxes`, four numbers a row. `drawing.GetBoundsOf(handles)` gives those of some handles, in the
+order asked, each in the space that holds it. `drawing.GetOverlaps(layout, words, over, handles, tolerance)` gives the entities whose
+words overlap what is drawn near them, as a `CadRemoteOverlaps` (`Words`, `Others`, `Boxes`); the kinds are DXF names (`TEXT`,
+`MTEXT`, `DIMENSION`, `MULTILEADER`, `LINE`) and null takes the defaults. They are the requests `bounds` and `overlaps` and the
+answers of `CadSpatial` in the app, whose [guide](display.md#where-things-are-drawn) says what a box and an overlap are. The arrays
+are the whole answer, which a program copies as it does: Python gives them as NumPy arrays (`drawing.bounds()`,
+`drawing.overlaps()`, `entity.bounds`). A layout that is not there is a `CadRemoteException`.
+
 ## Layers and layouts
 
 `drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)

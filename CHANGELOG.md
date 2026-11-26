@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- **FIXED.** On a drawing file with no app, a layer switched off or frozen by Python (`drawing.layers["Steel"].is_on = False`, then
+  `commit()`) left the drawing's display list as it was, so what the display list feeds (`entity.bounds`, `drawing.bounds()`,
+  `drawing.overlaps()`, picks) still counted the layer's objects: the commit wrote the layer but told the document nothing for a
+  layer that already existed. It now tells it, and the spaces are drawn again: the objects of a layer switched off or frozen have no
+  bounds and no overlaps, and are back when it is switched on or thawed. In the app and from outside the app this already worked.
+- **NEW.** Python asks where things are drawn, for a program that lays out a drawing and scores it: `entity.bounds` is the box an
+  object takes (`Box(min_x, min_y, max_x, max_y)`, `None` where nothing is drawn), `drawing.bounds(layout=None)` the boxes of a
+  whole space as a `BoundsTable` (`handles` and `boxes`, a NumPy array of n by 4), and `drawing.overlaps(kinds, over, layout, of,
+  tolerance)` the pairs whose words overlap what is near them as an `OverlapTable` (`words`, `others` and the `boxes` of the
+  places they meet). The boxes are the display list's, so an SHX or TrueType word is its letters and not its insertion point, a
+  dimension its lines, arrows and words, a block however deep and scaled its contents, an MTEXT its columns and a wide polyline
+  its width; a TrueType TEXT, whose display width is a guess of 0.6 of the height a letter, is measured by its font. A word is
+  its turned frame (an MTEXT run by run, so the gap between two columns is no word); it overlaps a line, arc, polyline, hatch
+  edge or filled area that runs through it and another word it shares an area with, and not what only touches it within the
+  tolerance or a part of its own object. On a file, in the app and from outside. 100 000 objects: the overlaps in 0.3 to 0.6 s,
+  the pairs of one object in a few milliseconds.
+- **NEW.** `CadSpatial` in the core: `Bounds(document, space)`, `Bounds(document, handles)` and `Overlaps(document, space, options,
+  tolerance)` give `CadBoundsTable` and `CadOverlapTable` (handles and four numbers a row, as arrays), over an STR-packed R-tree
+  made once for each display list. The client library of a running app has `GetBounds`, `GetBoundsOf` and `GetOverlaps`
+  (`CadRemoteBounds`, `CadRemoteOverlaps`), which are the new requests `bounds` and `overlaps` of the channel.
 - **NEW.** `CadRender`, `CadRenderOptions` and `CadRenderImage` in `OpenCAD2D.Rendering` (namespace `OpenCAD2D`): a drawing of a
   file drawn with no window as the app's canvas draws it. `CadRender.Draw` gives the pixels (red, green and blue, rows from the
   top), `WritePng` a PNG of colour type 2, `WriteSvg` the same picture in vectors (at the screen's level of detail: an item
