@@ -20,7 +20,7 @@ namespace OpenCAD2D.Mcp
             "box",
         };
 
-        private static readonly IReadOnlyList<KindDescription> Kinds = new[]
+        private static readonly IReadOnlyList<KindDescription> KindTable = new[]
         {
             Kind("LINE", "a straight segment", "add_line", new[] { "start", "end", "length", "angle" }, "start", "end"),
             Kind(
@@ -200,7 +200,7 @@ namespace OpenCAD2D.Mcp
         [Description(
             "The kinds of entity this server reads and writes, with the fields get_entity gives for each (in details, beside the layer, colour and box every entity has) and the tool and arguments that make it where there is one. Other kinds in a drawing are listed by query_entities with their layer and box, and get_entity gives the Properties palette for them. Ask this before guessing a field name."
         )]
-        public IReadOnlyList<KindDescription> DescribeKinds() => Kinds;
+        public IReadOnlyList<KindDescription> DescribeKinds() => KindTable;
 
         [McpServerTool(
             Name = "server_status",

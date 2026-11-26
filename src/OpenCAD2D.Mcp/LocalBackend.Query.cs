@@ -55,8 +55,6 @@ namespace OpenCAD2D.Mcp
 
         public CadDocument ReadDocument() => Document;
 
-        public void SetVariable(string name, object value) => Session.Editor.SetVariable(name, value);
-
         public object TakeSnapshot() => Document.TakeSnapshot();
 
         public void ResetTo(object snapshot) => Document.Reset((CadSnapshot)snapshot);

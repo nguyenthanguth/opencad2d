@@ -149,7 +149,7 @@ namespace OpenCAD2D.Mcp
 
                 double[] at = center == null ? null : new[] { Point("center", center).X, Point("center", center).Y };
                 string[] layers =
-                    freeze_layers == null ? new string[0] : freeze_layers.Select(l => Found(drawing, l).Name).ToArray();
+                    freeze_layers == null ? new string[0] : freeze_layers.Select(l => FoundLayer(drawing, l).Name).ToArray();
                 IDrawingEditing editing = Editing(drawing);
                 string handle = null;
                 editing.Group(() => InLayout(drawing, sheet, () =>

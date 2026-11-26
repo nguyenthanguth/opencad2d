@@ -87,8 +87,6 @@ namespace OpenCAD2D.Mcp
 
         public CadDocument ReadDocument() => CadDocument.From(Document.GetDatabase(), Name);
 
-        public void SetVariable(string name, object value) => Document.SetVariable(name, value);
-
         public object TakeSnapshot() => Document.TakeSnapshot();
 
         public void ResetTo(object snapshot) => Document.Reset((CadRemoteSnapshot)snapshot);

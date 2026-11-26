@@ -22,7 +22,7 @@ namespace OpenCAD2D.Mcp
                 Description = l.Description,
             };
 
-        private static LayerRow Found(IDrawingBackend drawing, string name)
+        private static LayerRow FoundLayer(IDrawingBackend drawing, string name)
         {
             string wanted = name?.Trim();
 
@@ -52,9 +52,9 @@ namespace OpenCAD2D.Mcp
         public LayerInfo SetCurrentLayerTool([Description("The layer's name.")] string name) =>
             _session.Run("set_current_layer", true, drawing =>
             {
-                LayerRow row = Found(drawing, name);
+                LayerRow row = FoundLayer(drawing, name);
                 Editing(drawing).SetCurrentLayer(row.Name);
-                return Info(Found(drawing, row.Name));
+                return Info(FoundLayer(drawing, row.Name));
             });
 
         [McpServerTool(Name = "set_layer", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]
@@ -75,7 +75,7 @@ namespace OpenCAD2D.Mcp
             [Description("False to keep the layer off the plot.")] bool? plot = null
         ) => _session.Run("set_layer", true, drawing =>
             {
-                LayerRow row = Found(drawing, name);
+                LayerRow row = FoundLayer(drawing, name);
 
                 if (
                     !on.HasValue
@@ -134,7 +134,7 @@ namespace OpenCAD2D.Mcp
                 row.IsLocked = locked ?? row.IsLocked;
                 row.IsPlottable = plot ?? row.IsPlottable;
                 Editing(drawing).ModifyLayer(row);
-                return Info(Found(drawing, row.Name));
+                return Info(FoundLayer(drawing, row.Name));
             });
 
         [McpServerTool(
@@ -152,10 +152,10 @@ namespace OpenCAD2D.Mcp
             [Description("The new name.")] string new_name
         ) => _session.Run("rename_layer", true, drawing =>
             {
-                LayerRow row = Found(drawing, name);
+                LayerRow row = FoundLayer(drawing, name);
                 string next = RecordName(new_name, "layer");
                 Editing(drawing).Make("rename_layer", new CadMakeArgs().Set("name", row.Name).Set("new_name", next));
-                return Info(Found(drawing, next));
+                return Info(FoundLayer(drawing, next));
             });
 
         [McpServerTool(
@@ -174,8 +174,8 @@ namespace OpenCAD2D.Mcp
                 string move_to = null
         ) => _session.Run("delete_layer", true, drawing =>
             {
-                LayerRow row = Found(drawing, name);
-                string target = string.IsNullOrWhiteSpace(move_to) ? null : Found(drawing, move_to).Name;
+                LayerRow row = FoundLayer(drawing, name);
+                string target = string.IsNullOrWhiteSpace(move_to) ? null : FoundLayer(drawing, move_to).Name;
                 Editing(drawing).Make("delete_layer", new CadMakeArgs().Set("name", row.Name).Set("move_to", target));
                 return new ChangedResult { Changed = 1, Handles = new[] { row.Name } };
             });
