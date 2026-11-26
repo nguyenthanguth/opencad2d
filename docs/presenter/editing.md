@@ -312,7 +312,7 @@ command is typed; the console does not clear it between lines as long as the lin
 | text and clipboard | TEXTEDIT, MTEDIT, COPYCLIP, CUTCLIP, COPYBASE, PASTECLIP, PASTEBLOCK, PASTEORIG, PASTESPEC |
 | annotation | DIMOVERRIDE (Clear overrides), TEXTALIGN (alIgnment, Options, Point), MLEADEREDIT (Remove leaders, Add leaders), MLEADERALIGN (Options), MLEADERCOLLECT (Vertical, Horizontal, Wrap), ATTIPEDIT, SPELL (All, Dictionary), SCALETEXT (Existing, Left, Center, Middle, Right, TL to BR; Paper height, Match object, Scale factor, Reference), JUSTIFYTEXT (Left, Align, Fit, Center, Middle, Right, TL to BR), TXT2MTXT (Settings), ATTDISP (Normal, ON, OFF), FIELD (Height, Justify), UPDATEFIELD (see [Annotation commands](#annotation-commands)) |
 | plot | PLOT, -PLOT, PREVIEW, PAGESETUP, PNGOUT, JPGOUT, BMPOUT, WMFOUT, PSOUT (what to plot, preview, units, scale, size), STLOUT, SVGOUT, EXPORT, -EXPORT (Dwf, dwfX, Pdf) ([Plotting](plot.md)) |
-| dimension | DIM (Angular, Baseline, Continue, Ordinate, aliGn, Distribute, Layer, Undo), DIMLINEAR (Mtext, Text, Angle, Horizontal, Vertical, Rotated), DIMALIGNED (Mtext, Text, Angle), DIMRADIUS, DIMDIAMETER, DIMANGULAR, DIMARC (Mtext, Text, Angle, Partial, Leader), DIMORDINATE (Xdatum, Ydatum, Mtext, Text, Angle), DIMCONTINUE, DIMBASELINE, QDIM, DIMEDIT, DIMTEDIT, DIMSPACE, DIMBREAK, DIMINSPECT, -DIMINSPECT (Add, Remove; Round, Angular, None), DIMJOGLINE (Remove), DIMJOGGED (Mtext, Text, Angle), DIMREASSOCIATE (Select object), DIMDISASSOCIATE, -DIMDISASSOCIATE, DIMCENTER, CENTERMARK, CENTERLINE, -DIMSTYLE (ANnotative, Save, Restore, STatus, Variables, Apply, ?), DIMUPDATE |
+| dimension | DIM (Angular, Baseline, Continue, Ordinate, aliGn, Distribute, Layer, Undo), DIMLINEAR (Mtext, Text, Angle, Horizontal, Vertical, Rotated), DIMALIGNED (Mtext, Text, Angle), DIMRADIUS, DIMDIAMETER, DIMANGULAR, DIMARC (Mtext, Text, Angle, Partial, Leader), DIMORDINATE (Xdatum, Ydatum, Mtext, Text, Angle), DIMCONTINUE, DIMBASELINE, QDIM, DIMEDIT, DIMTEDIT, DIMSPACE, DIMBREAK, DIMINSPECT, -DIMINSPECT (Add, Remove; Round, Angular, None), DIMJOGLINE (Remove), DIMJOGGED (Mtext, Text, Angle), DIMREASSOCIATE (Select object), DIMDISASSOCIATE, -DIMDISASSOCIATE, DIMREGEN, DIMCENTER, CENTERMARK, CENTERLINE, -DIMSTYLE (ANnotative, Save, Restore, STatus, Variables, Apply, ?), DIMUPDATE |
 | parametric | GCCOINCIDENT (Object, Autoconstrain), GCCOLLINEAR, GCEQUAL (Multiple), GCCONCENTRIC, GCPARALLEL, GCPERPENDICULAR, GCTANGENT, GCFIX (Object), GCHORIZONTAL, GCVERTICAL (2Points), GCSYMMETRIC (2Points), GCSMOOTH, GEOMCONSTRAINT, AUTOCONSTRAIN (Settings), CONSTRAINTBAR (Show, Hide, Reset), DELCONSTRAINT, DCLINEAR, DCHORIZONTAL, DCVERTICAL, DCALIGNED, DCANGULAR, DCRADIUS, DCDIAMETER, DIMCONSTRAINT, DCCONVERT, DCFORM, DCDISPLAY, -PARAMETERS (New, Edit, Rename, Delete, ?), PARAMETERS, PARAMETERSCLOSE, CONSTRAINTSETTINGS; the variables CCONSTRAINTFORM, CONSTRAINTBARDISPLAY, CONSTRAINTBARMODE, CONSTRAINTINFER, CONSTRAINTNAMEFORMAT, DYNCONSTRAINTMODE, CONSTRAINTSOLVEMODE, PARAMETERCOPYMODE, PARAMETERSSTATUS, CONSTRAINTRELAX (see Parametric constraints below) |
 | tables | TABLE, -TABLE (Style, Width, Height, data Link), TABLESTYLE, TABLEDIT, TABLEEXPORT, DATALINK, DATALINKUPDATE, DATAEXTRACTION, -DATAEXTRACTION |
 | selection | SELECT, QSELECT, FILTER, FIND, DRAWORDER (Above objects, Under objects, Front, Back), TEXTTOFRONT, GROUP, -GROUP (?, Order, Add, Remove, Explode, REName, Selectable, Create), UNGROUP, CLASSICGROUP, GROUPEDIT (Name; Add objects, Remove objects, REName) |
@@ -4277,10 +4277,38 @@ through it: a paper LINE or a dimension takes an endpoint, midpoint, centre, qua
 space where the viewport shows it, the aperture in the viewport's scale and the point taken by its view, twist and scale; a
 viewport whose view shows the room at 1:20 about (2 000, 1 500) gives the end (3 000, 2 500) of a model line at (200, 150) on
 a frame 200 by 150 about (150, 100). Nothing is snapped to model space outside the frame or the clip outline, nor on a layer
-frozen in that viewport, and the nearer of a paper object's snap and a model one is taken. The snap names no object, as the
-object is not of the paper: a dimension placed that way is not associated with it (AutoCAD's trans-spatial association,
-DIMASSOC 2, is not made). Worked through the viewport, the snaps are those of model space in model units, the layers frozen in
-the viewport left out.
+frozen in that viewport, and the nearer of a paper object's snap and a model one is taken. The snap names the object of model space and the
+viewport (`CadSnapResult.Handle` is the model object's, `Point` the paper's). Worked through the viewport, the snaps are those
+of model space in model units, the layers frozen in the viewport left out.
+
+A snap typed (END, MID, INT ... at "Specify first point:") takes the same objects: a point typed on the paper snaps to the
+snap point of the model objects the viewport shows within the aperture of the point (in the viewport's scale), however far
+the point lies, taken to the paper; a point of the paper's own objects nearer the typed point is taken in its place, and
+outside the frame, on a layer frozen in the viewport or beyond the aperture it says "No Endpoint found for specified
+point." as it does for the paper. With the viewport shown at 1:2 about (50, 25) in a frame about (120, 70), END typed and
+95.4,57.1 gives (95, 57.5), the end shown of a model line from (0, 0). INT typed needs two model objects under the point; one
+alone is not asked for its second, as it is on the paper. Object snap tracking acquires through a viewport as it does on the
+paper: the cursor rested on a model endpoint shown in the viewport acquires it, the cross drawn where the viewport shows it
+and the tracking lines run on the paper from it (Extension and Parallel are not acquired through a viewport).
+
+A DIMLINEAR or DIMALIGNED, and the DIMCONTINUE after one, on a layout whose points were clicked with an object
+snap through a viewport, at DIMASSOC 2, is tied to the model objects as AutoCAD 2021 ties it, a trans-spatial association:
+a DIMASSOC of group 70 = 1 whose references name the viewport (a group 331 before the object's, a 332 before an
+intersection's second object), the viewport and the objects having it among their reactors, and the dimension showing the
+size of the model, its DIMLFAC the negative of the viewport's scale over one (-2 at 1:2: 50 on the paper is 100), as the
+extended data ACAD_DIMASSOC_OVERRIDDEN_DIMLFAC, ACAD_DIMASSOC_CALC_DIMLFAC and ACAD_DIMASSOC_DIMLFAC and the DIMLFAC override
+AutoCAD writes. It follows an edit of the model objects at once, in the same step, as a dimension follows its objects in one
+space: the points go where the viewport shows the objects, the line of the dimension at the distance it kept on the paper
+(a line from (0, 0) moved 10 up, its dimension's first origin goes from (95, 57.5) to (95, 62.5) and its line from 40 to
+45). The view of the viewport (ZOOM, PAN, the wheel) changes nothing until DIMREGEN, which takes each such dimension of the
+drawing to where its viewport shows its objects now, its line at the same distance on the paper and its DIMLFAC the
+viewport's scale now (the viewport shown 1:1 about (0, 0): the origin at (0, 10) goes to (120, 80) and the DIMLFAC to -1); one
+step of undo, and nothing said. The viewport erased unties the dimension, which keeps its points and its size. A dimension of
+one point of the paper and one through a viewport is tied to nothing, as AutoCAD 2021 leaves it (and measures it on the
+paper); so is one of another kind (radius, diameter, angle, ordinate), whose trans-spatial association is not made, and a
+perpendicular or a tangent through a viewport. AutoCAD 2021 read the DXF of such
+a dimension this presenter wrote, AUDIT found 0 errors and a model line moved, the viewport zoomed and DIMREGEN put the
+dimensions where this presenter puts them.
 
 The wheel, the middle button and ZOOM and PAN change the viewport's view, not the paper. ZOOM and PAN typed are one undo
 step each, as AutoCAD 2021's console undoes ZOOM 2X, ZOOM 2X and -PAN one U each. The wheel's rolls and the middle

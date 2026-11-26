@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using GeometryHelper;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
@@ -48,6 +49,11 @@ namespace OpenCAD2D
             if (snap == null || snap.Handle == null)
             {
                 return null;
+            }
+
+            if (snap.ViewportHandle != null)
+            {
+                return FromViewportSnap(document, pointIndex, snap);
             }
 
             DxfEntity entity = document.FindEntity(snap.Handle);
@@ -154,6 +160,27 @@ namespace OpenCAD2D
                 default:
                     return null;
             }
+        }
+
+        /// <summary>
+        /// The reference of a point of a dimension on a layout snapped through a viewport to an object of model space, as AutoCAD
+        /// 2021 ties it (trans-spatial association): the reference the same snap gives in model space, with the viewport. A
+        /// perpendicular or a tangent is drawn from a point of the sheet and is not tied so; null for it and for a viewport
+        /// the drawing has not.
+        /// </summary>
+        private static DxfOsnapPointRef FromViewportSnap(CadDocument document, int pointIndex, CadSnapResult snap)
+        {
+            if (
+                snap.Kind == CadSnapKind.Perpendicular
+                || snap.Kind == CadSnapKind.Tangent
+                || !(document.FindEntity(snap.ViewportHandle) is DxfViewport viewport)
+            )
+            {
+                return null;
+            }
+
+            var inModel = new CadSnapResult(snap.Kind, snap.ModelPoint, snap.Handle);
+            return FromSnap(document, pointIndex, inModel)?.WithViewport(viewport.Handle);
         }
 
         /// <summary>
@@ -271,6 +298,7 @@ namespace OpenCAD2D
                 second.Handle,
                 2,
                 swap ? marker : otherMarker,
+                null,
                 null
             );
         }
@@ -686,7 +714,7 @@ namespace OpenCAD2D
                     reference.IntersectionObjectHandle
                 );
 
-        /// <summary>A copy of a reference without its last point, numbered, tied to the objects and at the point given; its snap, segments and parameter kept.</summary>
+        /// <summary>A copy of a reference without its last point, numbered, tied to the objects and at the point given; its snap, segments, parameter and viewport kept.</summary>
         private static DxfOsnapPointRef Copy(
             DxfOsnapPointRef reference,
             int pointIndex,
@@ -705,7 +733,8 @@ namespace OpenCAD2D
                 otherHandle,
                 reference.IntersectionSubentType,
                 reference.IntersectionGsMarker,
-                null
+                null,
+                reference.ViewportHandle
             );
 
         /// <summary>
@@ -996,7 +1025,7 @@ namespace OpenCAD2D
         {
             var center = new GeoPoint2(circle.Center.X, circle.Center.Y);
             DxfEntity snapped =
-                secondSnap?.Handle == null || secondSnap.Kind == CadSnapKind.None
+                secondSnap?.Handle == null || secondSnap.ViewportHandle != null || secondSnap.Kind == CadSnapKind.None
                     ? null
                     : document.FindEntity(secondSnap.Handle);
             var at = new GeoPoint3(second.X, second.Y, circle.Center.Z);
@@ -1077,10 +1106,98 @@ namespace OpenCAD2D
                 return;
             }
 
+            // Points snapped through a viewport are tied, to the same one, or not at all.
+            DxfViewport through = null;
+
+            if (list.Exists(r => r.ViewportHandle != null))
+            {
+                through = ThroughOne(c.Document, c.Document.FindEntity(handle), list);
+
+                if (through == null)
+                {
+                    return;
+                }
+            }
+
             c.Apply(
                 new[] { new CadEditRecord(CadEditRecordKind.PropertyChanged, handle, "Associative", "No", "Yes") },
-                s => ((DxfDimension)s.Document.FindEntity(handle)).SetDimAssoc(list)
+                s =>
+                {
+                    var dimension = (DxfDimension)s.Document.FindEntity(handle);
+                    dimension.SetDimAssoc(list);
+
+                    if (through != null && ScaleThrough(dimension, through))
+                    {
+                        CadCommands.Redraw(dimension);
+                    }
+                }
             );
+        }
+
+        /// <summary>
+        /// The viewport the references of a linear or an aligned dimension on a layout were all snapped through, as AutoCAD 2021
+        /// ties one (trans-spatial association); null where a reference was not snapped through one, or through another, or the
+        /// dimension is of another kind (AutoCAD leaves a dimension with a point of the sheet and a point through a viewport
+        /// tied to nothing, and measures it on the sheet).
+        /// </summary>
+        private static DxfViewport ThroughOne(
+            CadDocument document,
+            DxfEntity dimension,
+            IReadOnlyList<DxfOsnapPointRef> references
+        )
+        {
+            if (!(dimension is DxfRotatedDimension || dimension is DxfAlignedDimension))
+            {
+                return null;
+            }
+
+            string handle = references[0].ViewportHandle;
+
+            foreach (DxfOsnapPointRef reference in references)
+            {
+                if (
+                    reference.ViewportHandle == null
+                    || !string.Equals(reference.ViewportHandle, handle, StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    return null;
+                }
+            }
+
+            return document.FindEntity(handle) as DxfViewport;
+        }
+
+        /// <summary>
+        /// Gives a dimension tied through a viewport the size of the model as AutoCAD 2021 does: its DIMLFAC the negative of the
+        /// viewport's scale over one (-2 for a viewport at 1:2, which a dimension of 50 on the sheet shows as 100), kept in the
+        /// extended data AutoCAD names ACAD_DIMASSOC_OVERRIDDEN_DIMLFAC (0, none of the user's), ACAD_DIMASSOC_CALC_DIMLFAC and
+        /// ACAD_DIMASSOC_DIMLFAC. False where the dimension has that one already; its picture is not drawn again.
+        /// </summary>
+        private static bool ScaleThrough(DxfDimension dimension, DxfViewport viewport)
+        {
+            double factor = -viewport.ViewHeight / viewport.Height;
+
+            if (
+                !(viewport.Height > 0.0)
+                || !(viewport.ViewHeight > 0.0)
+                || Math.Abs(dimension.Dimlfac - factor) <= Math.Abs(factor) * Tolerance.Default.EqualVector
+            )
+            {
+                return false;
+            }
+
+            string text = factor.ToString("R", CultureInfo.InvariantCulture);
+            dimension.Dimlfac = factor;
+            dimension.XData = new[]
+            {
+                new DxfTypedValue(1001, "ACAD_DIMASSOC_OVERRIDDEN_DIMLFAC"),
+                new DxfTypedValue(1040, "0"),
+                new DxfTypedValue(1001, "ACAD_DIMASSOC_CALC_DIMLFAC"),
+                new DxfTypedValue(1040, text),
+                new DxfTypedValue(1001, "ACAD_DIMASSOC_DIMLFAC"),
+                new DxfTypedValue(1040, text),
+            };
+            return true;
         }
 
         /// <summary>
@@ -1112,6 +1229,12 @@ namespace OpenCAD2D
                         case CadEditRecordKind.Transformed:
                         case CadEditRecordKind.Reshaped:
                         case CadEditRecordKind.PropertyChanged:
+                            // DIMREGEN's own records name the dimensions it moves itself.
+                            if (record.Property == RegenerateProperty)
+                            {
+                                continue;
+                            }
+
                             edited.Add(record.Handle);
                             break;
                         case CadEditRecordKind.Erased:
@@ -1123,6 +1246,13 @@ namespace OpenCAD2D
                     DxfEntity entity = document.FindKept(record.Handle);
 
                     if (entity == null)
+                    {
+                        continue;
+                    }
+
+                    // A dimension tied through a viewport follows the view of the viewport only at DIMREGEN, as AutoCAD 2021's
+                    // does: the viewport zoomed or panned changes nothing until then; erased, it unties the dimension.
+                    if (record.Kind != CadEditRecordKind.Erased && entity is DxfViewport)
                     {
                         continue;
                     }
@@ -1169,6 +1299,55 @@ namespace OpenCAD2D
             }
 
             return followed;
+        }
+
+        /// <summary>The property of the records DIMREGEN plans for the dimensions it moves itself, which <see cref="Follow"/> leaves alone.</summary>
+        internal const string RegenerateProperty = "DimRegen";
+
+        /// <summary>
+        /// The handles of the dimensions tied through a viewport to the objects of model space (trans-spatial association), in
+        /// the order of the spaces and of the dimensions in them: the ones DIMREGEN brings to where the viewports show their
+        /// objects now.
+        /// </summary>
+        internal static List<string> TiedThroughViewports(CadDocument document)
+        {
+            var handles = new List<string>();
+
+            foreach (CadSpace space in document.Spaces)
+            {
+                if (space.IsModel)
+                {
+                    continue;
+                }
+
+                foreach (DxfEntity entity in space.Block)
+                {
+                    if (
+                        entity is DxfDimension dimension
+                        && !dimension.IsErased
+                        && dimension.DimAssoc?.IsTransSpace == true
+                    )
+                    {
+                        handles.Add(dimension.Handle);
+                    }
+                }
+            }
+
+            return handles;
+        }
+
+        /// <summary>
+        /// Brings a dimension tied through a viewport to where the viewport shows its objects now, as DIMREGEN does after the
+        /// viewport was zoomed or panned: its points where the references say, its line at the distance it kept on the sheet,
+        /// its size the model's at the viewport's scale. A reference whose object or viewport is gone is dropped, the dimension
+        /// untied where none is left.
+        /// </summary>
+        internal static void Regenerate(CadDocument document, string handle)
+        {
+            if (document.FindEntity(handle) is DxfDimension dimension && dimension.DimAssoc != null)
+            {
+                FollowOne(document, dimension, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+            }
         }
 
         /// <summary>
@@ -1291,11 +1470,22 @@ namespace OpenCAD2D
             var points = new Dictionary<int, GeoPoint3>();
             var objects = new Dictionary<int, DxfEntity>();
 
+            DxfViewport through = null;
+
             foreach (DxfOsnapPointRef reference in references)
             {
                 DxfEntity entity = document.FindEntity(reference.ObjectHandle);
+                DxfViewport viewport =
+                    reference.ViewportHandle == null
+                        ? null
+                        : document.FindEntity(reference.ViewportHandle) as DxfViewport;
 
-                if (entity == null || (objectsEdited && Lost(reference, entity)))
+                // The viewport erased unties the point, as the object erased does.
+                if (
+                    entity == null
+                    || (reference.ViewportHandle != null && viewport == null)
+                    || (objectsEdited && Lost(reference, entity))
+                )
                 {
                     continue;
                 }
@@ -1307,12 +1497,24 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                GeoPoint3? point = Locate(document, dimension, reference, entity, !objectsEdited);
+                // A foot of a perpendicular or a point of tangency is drawn from a point of the sheet: not followed through a viewport.
+                if (
+                    viewport != null
+                    && (
+                        reference.OsnapType == DxfOsnapType.Perpendicular || reference.OsnapType == DxfOsnapType.Tangent
+                    )
+                )
+                {
+                    continue;
+                }
+
+                GeoPoint3? point = Locate(document, dimension, reference, entity, !objectsEdited, viewport);
 
                 if (point.HasValue)
                 {
-                    points[reference.PointIndex] = point.Value;
+                    points[reference.PointIndex] = viewport == null ? point.Value : OnSheet(viewport, point.Value);
                     objects[reference.PointIndex] = entity;
+                    through = viewport ?? through;
                 }
             }
 
@@ -1330,9 +1532,25 @@ namespace OpenCAD2D
                 untied = true;
             }
 
-            return Place(document, dimension, points, objects) ? "Moved"
+            // A dimension tied through a viewport shows the size of the model at the scale the viewport has now.
+            bool scaled = through != null && ScaleThrough(dimension, through);
+            bool placed = Place(document, dimension, points, objects);
+
+            if (scaled && !placed)
+            {
+                CadCommands.Redraw(dimension);
+            }
+
+            return placed || scaled ? "Moved"
                 : untied ? "Untied"
                 : null;
+        }
+
+        /// <summary>The place on the sheet where a viewport shows a point of model space, in the plane of the sheet.</summary>
+        private static GeoPoint3 OnSheet(DxfViewport viewport, GeoPoint3 model)
+        {
+            GeoPoint2 on = CadViewports.ToPaper(viewport, new GeoPoint2(model.X, model.Y));
+            return new GeoPoint3(on.X, on.Y, 0.0);
         }
 
         /// <summary>
@@ -1347,7 +1565,8 @@ namespace OpenCAD2D
             DxfDimension dimension,
             DxfOsnapPointRef reference,
             DxfEntity entity,
-            bool unchanged
+            bool unchanged,
+            DxfViewport viewport = null
         )
         {
             if (reference.OsnapType == DxfOsnapType.Perpendicular || reference.OsnapType == DxfOsnapType.Tangent)
@@ -1374,6 +1593,14 @@ namespace OpenCAD2D
             }
 
             GeoPoint3 near = PointOf(dimension, reference.PointIndex) ?? reference.Point;
+
+            // Through a viewport the point of the dimension is on the sheet: the crossing nearest where it shows is the one taken.
+            if (viewport != null && PointOf(dimension, reference.PointIndex).HasValue)
+            {
+                GeoPoint2 shown = CadViewports.ToModel(viewport, new GeoPoint2(near.X, near.Y));
+                near = new GeoPoint3(shown.X, shown.Y, 0.0);
+            }
+
             GeoPoint3? best = null;
 
             foreach (GeoPoint2 point in Crossings(a, b))

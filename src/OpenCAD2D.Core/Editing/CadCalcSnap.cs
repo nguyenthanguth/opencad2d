@@ -103,17 +103,19 @@ namespace OpenCAD2D
         /// <param name="handle">The object.</param>
         /// <param name="pick">Where it was picked.</param>
         /// <param name="from">The point perpendicular and tangent are from; null for the others.</param>
+        /// <param name="space">The index of the space the object is in; null for the working space's.</param>
         /// <returns>The point, or null.</returns>
         internal static GeoPoint2? Snap(
             CadCommandSession session,
             CadSnapKind kind,
             string handle,
             GeoPoint2 pick,
-            GeoPoint2? from
+            GeoPoint2? from,
+            PickIndex space = null
         )
         {
             CadDocument document = session.Document;
-            PickIndex whole = document.GetPickIndex(document.WorkingSpace);
+            PickIndex whole = space ?? document.GetPickIndex(document.WorkingSpace);
             PickIndex index;
             double aperture;
 
@@ -155,18 +157,20 @@ namespace OpenCAD2D
         /// <param name="first">The first object.</param>
         /// <param name="second">The second object.</param>
         /// <param name="pick">The point the crossing nearest to is taken.</param>
+        /// <param name="space">The index of the space the objects are in; null for the working space's.</param>
         /// <returns>The point, or null.</returns>
         internal static GeoPoint2? Between(
             CadCommandSession session,
             CadSnapKind kind,
             string first,
             string second,
-            GeoPoint2 pick
+            GeoPoint2 pick,
+            PickIndex space = null
         )
         {
             CadDocument document = session.Document;
             PickIndex index = Only(
-                document.GetPickIndex(document.WorkingSpace),
+                space ?? document.GetPickIndex(document.WorkingSpace),
                 new[] { first, second },
                 pick,
                 out double aperture

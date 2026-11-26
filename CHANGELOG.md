@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **NEW.** A dimension on a layout clicked through a viewport onto the model is tied to the model, as AutoCAD 2021's
+  trans-spatial association: a DIMLINEAR or DIMALIGNED (DIMCONTINUE after one too) whose points were snapped
+  through a viewport at DIMASSOC 2 writes a DIMASSOC of group 70 = 1 that names the viewport before each object, and shows the
+  size of the model (its DIMLFAC the negative of the viewport's scale over one: -2 at 1:2). It follows an edit of the model
+  at once (a line moved 10 up takes the first origin from (95, 57.5) to (95, 62.5) and the dimension line from 40 to 45), and
+  the new command DIMREGEN takes such dimensions to where the viewport shows their objects after a zoom or pan, their lines at
+  the distance they kept on the paper and their size to the scale of the viewport now. The viewport erased unties the
+  dimension. A DXF of one opens in AutoCAD 2021 with AUDIT 0 errors, the dimension still associative, and a model line moved,
+  the viewport zoomed and DIMREGEN gave the same points. A dimension of a point of the paper and one through a viewport is
+  tied to nothing, as AutoCAD leaves it.
+- **NEW.** An object snap typed at a point prompt on a layout (END, MID, INT ...) takes the model objects a viewport shows
+  under the typed point, the aperture in the viewport's scale and the point however far from the typed one, as it takes the
+  objects of the paper: END and 95.4,57.1 give (95, 57.5), the end of a model line from (0, 0) shown at 1:2 in a frame about
+  (120, 70). It was the paper's own objects alone; a click with the override chosen already did.
+- **NEW.** Object snap tracking acquires through a viewport: the cursor rested on a model endpoint, midpoint ... a viewport
+  shows acquires it at the place the viewport shows it, and the tracking lines run on the paper from it. Extension and Parallel
+  are not acquired through a viewport.
 - **BREAKING.** A `CadApplication` (and the app of a Python `with connect()`) used after `Dispose` raises
   `ObjectDisposedException` and opens no new pipe; it once reconnected without a word. A connection the app lost is still
   opened again. Make a new `CadApplication` to work on.

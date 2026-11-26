@@ -6,7 +6,8 @@ namespace OpenCAD2D
 {
     /// <summary>
     /// DIMREASSOCIATE and DIMDISASSOCIATE (-DIMDISASSOCIATE at the command line): a dimension tied to new points of objects, or
-    /// untied, as AutoCAD 2021's, each one step of undo.
+    /// untied, as AutoCAD 2021's, each one step of undo; and DIMREGEN, which brings the dimensions on a layout tied through a
+    /// viewport to where the viewport shows their objects now.
     /// </summary>
     internal static partial class CadCommands
     {
@@ -15,6 +16,7 @@ namespace OpenCAD2D
             registry.Add(new CadCommand("DIMREASSOCIATE", DimReassociate, true));
             registry.Add(new CadCommand("DIMDISASSOCIATE", DimDisassociate, true));
             registry.Add(new CadCommand("-DIMDISASSOCIATE", DimDisassociate, true));
+            registry.Add(new CadCommand("DIMREGEN", DimRegen, true));
             registry.AddVariable(
                 CadSystemVariable.Whole(
                     "DIMASSOC",
@@ -178,6 +180,40 @@ namespace OpenCAD2D
             }
 
             references[index] = reference;
+        }
+
+        /// <summary>
+        /// DIMREGEN: the dimensions on layouts tied through a viewport to objects of model space (trans-spatial association)
+        /// moved to where their viewport shows the objects now, as AutoCAD 2021's, which has no prompt and says nothing: after a
+        /// viewport was zoomed or panned its dimensions stay where they were until then. The line of a dimension keeps its
+        /// distance on the sheet and its size is the model's at the scale the viewport has now. One step of undo, made where
+        /// there is such a dimension.
+        /// </summary>
+        private static IEnumerable<CadPrompt> DimRegen(CadCommandContext c)
+        {
+            List<string> tied = CadDimAssociation.TiedThroughViewports(c.Document);
+
+            if (tied.Count == 0)
+            {
+                yield break;
+            }
+
+            var planned = new List<CadEditRecord>();
+
+            foreach (string handle in tied)
+            {
+                planned.Add(
+                    new CadEditRecord(CadEditRecordKind.Reshaped, handle, CadDimAssociation.RegenerateProperty)
+                );
+            }
+
+            c.Apply(planned, s =>
+            {
+                foreach (string handle in tied)
+                {
+                    CadDimAssociation.Regenerate(s.Document, handle);
+                }
+            });
         }
 
         /// <summary>
