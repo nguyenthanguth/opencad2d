@@ -2533,7 +2533,8 @@ def _export_edges(graph: dict[str, Any], native: Any) -> Any:
     if native is not None:
         from .. import arrays
 
-        return arrays.to_numpy(native.EdgeArray()).reshape(-1, 3)
+        edge_array: IEnumerable[float] = native.EdgeArray()
+        return arrays.to_numpy(edge_array).reshape(-1, 3)
     edges: list[dict[str, Any]] = graph["edges"]
     flat = [number for edge in edges for number in (edge["source"], edge["target"], _EDGE_KINDS.index(edge["kind"]))]
     return np.asarray(flat, dtype=np.float64).reshape(-1, 3)
