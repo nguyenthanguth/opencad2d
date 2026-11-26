@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **NEW.** Ctrl cycles the options of a multi-functional grip, as AutoCAD 2021 does with GRIPMULTIFUNCTIONAL's bit 1 set
+  (1 or 3; the hover menu is bit 2, so 2 has the menu alone and 0 neither). With a grip clicked and the edit waiting for its
+  first point, each tap of Ctrl (down and up with no other key or mouse button between, the cycle made at the key up) goes on to the next item of the grip's menu and round again: a polyline's vertex Stretch,
+  Add Vertex, Remove Vertex, Stretch (`** ADD VERTEX **`, `** REMOVE VERTEX **` with `Pick to remove vertex:`); the middle of
+  a straight segment Stretch, Add Vertex, Convert to Arc (`Specify midpoint of arc segment:`), of an arc segment Convert to
+  Line (`Pick to convert to line segment:`); a line's end Stretch and Lengthen. The grip stays hot, the drawing is untouched
+  until a point is given, and a grey item (Remove Vertex on a polyline of two vertices) is skipped: a vertex of a rectangle
+  100 by 50, Ctrl once, then a point at (120, 25), makes a fifth vertex there; Ctrl twice and any point takes the vertex out.
+  Ctrl held for a click still turns Copy on, and Ctrl+Z or any other shortcut does not cycle. The sequence follows AutoCAD's help; what AutoCAD's window does at each tap has not been checked there.
 - **NEW.** A dimension on a layout clicked through a viewport onto the model is tied to the model, as AutoCAD 2021's
   trans-spatial association: a DIMLINEAR or DIMALIGNED (DIMCONTINUE after one too) whose points were snapped
   through a viewport at DIMASSOC 2 writes a DIMASSOC of group 70 = 1 that names the viewport before each object, and shows the
