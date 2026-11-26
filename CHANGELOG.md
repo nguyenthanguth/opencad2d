@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **NEW.** Parallel workers with the same answers, and seeded synthetic drawings (PW7.8, PW7.9). `opencad2d.parallel.run_many(function, items,
+  workers, seed)` runs `function(item, item_seed)` in spawned worker processes, each loading .NET once, with the seed of an item a hash of
+  the run's seed and its place in the list, so the values are the same for one worker or eight and for any order of finishing; the
+  `Outcome`s come back in the order of the items, an item that raises (or returns what cannot be pickled) is reported with its traceback and
+  the others finish. `opencad2d.synth.generate(seed, crowding, image)` makes a steel plate detail on an A3 layout (holes, a corner notch, a
+  weld as an offset, dimension chains, notes, a title block, a viewport at 1:5 or 1:10, layers of a small standard `synth.STANDARD`) with its
+  ground truth: `to_json()`, the score and rules of `check`, the overlaps and, with a picture, the COCO annotations; the same seed gives the
+  same JSON and picture byte for byte, `crowding` 0 to 1 adds notes across the holes and lines for a placement agent to clear (none at 0,
+  17 to 55 overlaps at 1). 240 drawings with pictures and labels: 16.1 s alone, 6.7 s on 4 workers; a drawing without the picture 35 ms.
+  Guide: Parallel workers with the same answers, Synthetic drawings for training data.
 - **FIXED.** MCP server and the sheets of the Python package, from the third independent review. (1) Attached, a plan was not one undo step
   when a step grouped itself: the app does not nest UNDO groups, so the UNDO End a tool such as `add_table`, `add_mleader`, `define_block`,
   `create_layout`, `add_viewport`, `fillet` or `offset` typed closed the plan's group, and one undo took back only the steps after it

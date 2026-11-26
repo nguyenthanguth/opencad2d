@@ -106,6 +106,16 @@
             CopyToOutputDirectory="PreserveNewest"
         />
         <None
+            Include="..\python\opencad2d\parallel.py"
+            Link="python\opencad2d\parallel.py"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
+            Include="..\python\opencad2d\synth.py"
+            Link="python\opencad2d\synth.py"
+            CopyToOutputDirectory="PreserveNewest"
+        />
+        <None
             Include="..\python\opencad2d\cad\*.py"
             Link="python\opencad2d\cad\%(Filename)%(Extension)"
             CopyToOutputDirectory="PreserveNewest"

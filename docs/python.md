@@ -1550,6 +1550,102 @@ as a session). The numbers an agent works with are the library's, in millimetres
 with Python: the arrays for a network (`opencad2d.arrays`, `edge_index`), `render_masks` and `to_coco` for training a vision
 model, and a loop that runs thousands of `fits` calls, which a tool call each would make slow.
 
+## Parallel workers and synthetic drawings
+
+Two helpers for a pipeline that runs many drawings: a pool of processes whose results do not depend on how many there are, and a
+generator of seeded plate drawings with their ground truth. Both are in the package, beside `opencad2d.cad` and `opencad2d.arrays`.
+
+### Parallel workers with the same answers
+
+A pipeline that makes or scores thousands of drawings runs faster on every core, but a pool that lets each worker draw its own random
+numbers gives other numbers on every run. `opencad2d.parallel.run_many(function, items, workers, seed)` runs `function(item, item_seed)`
+over the items in worker processes and gives each item a seed that depends only on the run's `seed` and the item's place in the list
+(`item_seed(seed, index)`, 63 bits of a hash), so the value of an item is the same for one worker or eight, whichever worker takes it
+and in whatever order they finish. The result is a list of `Outcome` in the order of the items: `index`, `seed`, `value`, `error` (the
+traceback of what the function raised, whose last line is the exception and its message; None when it returned), `seconds` and `ok`.
+An item that raises is its own `Outcome` and the others finish; a worker that dies fails the items still waiting, each with an error.
+
+```python
+import operator
+from opencad2d.parallel import item_seed, run_many
+
+items = [10, 20, 30, 40]
+alone = run_many(operator.add, items, workers=1, seed=42)    # one after the other, in this process
+spread = run_many(operator.add, items, workers=2, seed=42)   # two spawned processes
+[o.value for o in alone] == [o.value for o in spread]        # True
+[o.index for o in spread]                                    # [0, 1, 2, 3]
+[o.value - item for o, item in zip(spread, items)] == [item_seed(42, i) for i in range(4)]   # True
+mixed = run_many(operator.floordiv, [10**30, "x", 10**30], workers=2, seed=1)
+[o.ok for o in mixed]                                        # [True, False, True]
+mixed[1].error.splitlines()[-1]                              # "TypeError: unsupported operand type(s) for //: 'str' and 'int'"
+```
+
+`operator.add` stands in for the function of a real run, which gets a seed to make its own drawing, episode or noise from
+(`random.Random(seed)`, `numpy.random.default_rng(seed)`, `synth.generate(seed)`):
+
+```py
+# episodes.py: the function is at the top of a module, and a script that starts a pool guards its start
+from opencad2d import synth
+from opencad2d.parallel import run_many
+
+
+def episode(crowding: float, seed: int) -> tuple[float, int]:
+    sample = synth.generate(seed, crowding)
+    return sample.score, sample.overlaps
+
+
+if __name__ == "__main__":
+    outcomes = run_many(episode, [0.0, 0.5, 1.0] * 100, workers=4, seed=2026)
+```
+
+What belongs to a process and what to the run. Each worker is a fresh process (`spawn`, the only start Windows has) that imports
+`opencad2d.cad` once when it starts, so .NET and the assemblies load once per worker and not once per item. What a process prepares it
+keeps: the fonts the renderer scans, the SkiaSharp library it loads at its first render and the display list of each drawing it has
+built; none of it is shared, so every worker pays the first-call cost once (0.35 s for the first picture, see
+[Rendering without a window](#what-it-costs)). A render draws one picture at a time in a process, the renderer's caches not being
+locked against two threads, which is why the work is spread over processes. The function, the items and the values it returns must
+be picklable (a function at the top of a module, not a lambda); a value that is not is the error of its item, and the others go on.
+`workers=1` starts no pool and runs in the calling process, and `workers=None` takes one process for each core and no more than there
+are items. The cost is the start of the pool: each worker needs about a second to start .NET, all of them at once, so it pays from tens
+of items on. Making 240 drawings with their pictures and COCO labels (`synth.generate(seed, crowding, image=...)`, 67 ms each alone)
+took 16.1 s with `workers=1` and 6.7 s with `workers=4` on .NET 8, on a machine other builds were using, with the same 240 results.
+
+### Synthetic drawings for training data
+
+A model that lays drawings out needs more drawings than a company can give it, and drawings whose right answer is known.
+`opencad2d.synth` makes them from a seed: a steel plate detail on an A3 sheet in millimetres, with a grid of 4 to 12 holes and their
+centre marks, a corner notch on some plates, a fillet weld drawn as the outline offset inward on some, the dimensions between the holes
+and the overall width and height, notes (the thickness and steel, the holes, the edge distance, the weld), and on the layout a border,
+a title block with its attributes filled and a viewport at 1:5 or 1:10. The layers (`S-PLATE`, `S-HOLE`, `S-CENTRE`, `S-WELD`,
+`S-DIM`, `S-NOTE`, `S-SHEET`), the text style `SYN` and the dimension style `SYN-DIM` are a small standard, written out as
+`synth.STANDARD` so that `drawing.check` scores a drawing against it. `synth.generate(seed, crowding, image)` gives the drawing with its
+ground truth in a `Sample`: `json` (the `to_json()` of model space), `score` and `scores` (the total and each rule of
+`check(STANDARD)`), `overlaps` (the pairs of words and what they cross) and, when `image` names a PNG to write, `coco` (the annotations
+of `to_coco`, boxes in whole pixels inside the picture). `synth.make_drawing(seed, crowding)` gives the drawing alone.
+
+```python
+from opencad2d import synth
+
+sample = synth.generate(7, crowding=0.5, image="plate7.png")   # a plate with 6 holes, its sheet and its picture
+round(sample.score, 4)                              # 0.9524
+sample.overlaps                                      # 16
+sorted(rule for rule, score in sample.scores.items() if score < 1.0)   # ['gap-word-line', 'gap-word-word']
+len(sample.coco["annotations"]), sample.coco["images"][0]["height"]   # (33, 1599)
+sample.drawing.layouts["Plate A3"].viewports         # 1
+clean = synth.generate(7)                            # the same plate with nothing added
+(clean.score, clean.overlaps)                        # (1.0, 0)
+synth.generate(7, 0.5).json == sample.json           # True: the same seed gives the same JSON, byte for byte
+synth.generate(8).json == clean.json                 # False
+```
+
+The same seed and `crowding` give the same drawing on every run, and the same picture and COCO file with it: the random numbers are
+`random.Random`'s, whose sequence for a seed is fixed, and the drawing is made in a fixed order. `crowding` from 0 to 1 is the
+difficulty. The plate is the same whatever it is, and each step adds notes that start on a hole's rim or in the middle of the plate, up
+to eight: at 0 no word overlaps anything and the score is 1.0, at 1 a plate has 17 to 55 overlaps (twelve seeds tried) for an agent
+that moves words to clear, with `reward` of the [pipelines](#batch-and-ai-pipelines) to measure it by. A drawing takes about 35 ms to
+make and score, 70 ms with its picture and labels, so `run_many` makes thousands in a minute. Words are checked on paper through the
+viewport, so they are 2.5 or 3.5 mm high on paper whatever the scale of the plate.
+
 ## Inside OpenCAD2D
 
 The same library runs in the app's tools. OpenCAD2D loads a Python tool, a folder with a `requirements.txt`, an `__init__.py`
