@@ -121,6 +121,11 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          an array), dimensions and a multileader placed with measure/free_space/fits (overlaps 0, check_standard 1),
          an A3 layout in mm with a filled title block and viewports at 1:10 and 1:5, plot_pdf, save as DWG; the PDF
          reads back with its words; the tool calls counted with and without run_plan.
+         2026-11-26 night: all groups merged (129 tools, integrate/next2); the acceptance test (feat/mcp-acceptance)
+         runs end to end in both modes (83 calls, 10 with run_plan) but is red: DWG viewports reopen off, MLEADER left
+         out of DWG, app attribute words cut at a space, --read-only attached allows new/open_drawing, descriptions,
+         overlaps of attribute words, argument errors, measure frame into fits, describe_kinds, gaps. List in
+         `.claude/scratch/pw7/mcp-acceptance-findings.md`.
 
 ## The website and Share (planned 2026-11-23)
 

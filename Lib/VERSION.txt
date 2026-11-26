@@ -1,1 +1,1 @@
-GeometryHelper 13.14.0, built in Release from commit 0f0fd585 of https://github.com/nguyenthanguth/GeometryHelper
+GeometryHelper 13.15.0, built in Release from commit cf1db73e of https://github.com/nguyenthanguth/GeometryHelper
