@@ -12,7 +12,6 @@
         <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <SolidColorBrush x:Key="SheetSetRed" Color="#FF8A7A" />
     <SolidColorBrush x:Key="SheetSetRedGround" Color="#3A2626" />
     <SolidColorBrush x:Key="SheetSetRedLine" Color="#7A3A33" />
     <SolidColorBrush x:Key="SheetSetYellow" Color="#E8B94A" />
@@ -86,6 +85,7 @@
                                         <Button
                                             x:Name="PART_Ok"
                                             Style="{StaticResource GhAccentButton}"
+                                            Padding="14,5"
                                             MinWidth="75"
                                             Margin="0,0,8,0"
                                             Content="{TemplateBinding OkText}"
@@ -95,6 +95,7 @@
                                         <Button
                                             x:Name="PART_Cancel"
                                             Style="{StaticResource GhDialogButton}"
+                                            Padding="14,5"
                                             MinWidth="75"
                                             Margin="0,0,8,0"
                                             Content="Cancel"
@@ -103,6 +104,7 @@
                                         <Button
                                             x:Name="PART_Close"
                                             Style="{StaticResource GhAccentButton}"
+                                            Padding="14,5"
                                             MinWidth="75"
                                             Margin="0,0,8,0"
                                             Content="Close"
@@ -112,6 +114,7 @@
                                         <Button
                                             x:Name="PART_Help"
                                             Style="{StaticResource GhDialogButton}"
+                                            Padding="14,5"
                                             MinWidth="75"
                                             Content="Help"
                                         />
@@ -176,7 +179,7 @@
                             <Setter TargetName="Box" Property="Background" Value="{StaticResource GhPanel}" />
                         </Trigger>
                         <Trigger Property="Tag" Value="True">
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource SheetSetRed}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource GhProblem}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -194,7 +197,7 @@
         <Setter Property="Margin" Value="0,8,0,0" />
         <Style.Resources>
             <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{StaticResource SheetSetRed}" />
+                <Setter Property="Foreground" Value="{StaticResource GhProblem}" />
             </Style>
         </Style.Resources>
     </Style>

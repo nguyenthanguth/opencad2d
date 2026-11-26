@@ -39,6 +39,7 @@
                 BorderBrush="{StaticResource GhBorder}"
                 BorderThickness="0,0,0,1"
                 Padding="12,8"
+                MouseLeftButtonDown="OnHeaderDown"
             >
                 <TextBlock x:Name="TitleText" FontWeight="SemiBold" />
             </Border>
@@ -50,10 +51,10 @@
                 Padding="12,8"
             >
                 <Button
-                    Style="{StaticResource GhDialogButton}"
+                    Style="{StaticResource GhCloseButton}"
                     Content="Close"
-                    Width="75"
-                    Padding="0,4"
+                    Padding="14,5"
+                    MinWidth="75"
                     HorizontalAlignment="Right"
                     Click="OnClose"
                     IsDefault="True"

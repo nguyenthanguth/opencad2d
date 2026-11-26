@@ -156,7 +156,7 @@ Add Style and Delete Style for a named table (Normal can be neither deleted nor 
 Save As… writes another; a value typed that a property cannot take is dropped and the box shows what it had.
 
 **STYLESMANAGER** shows the Plot Styles folder: every `.ctb` and `.stb` file with its kind, description and the time it
-was written, Edit… (or a double-click), New…, Delete and Open folder. With no window it names the tables on the command line.
+was written, Edit… (or a double-click), New…, Delete and Open Folder. With no window it names the tables on the command line.
 Not done: Edit Lineweights, the Add-A-Plot-Style-Table wizard's other sources (PCP and PC2 files), CONVERTCTB and
 CONVERTPSTYLES, and the fill style of a filled area.
 

@@ -159,18 +159,24 @@
                         x:Name="AlwaysButton"
                         Style="{StaticResource AnswerButton}"
                         Content="{Binding AlwaysLoadText}"
+                        Padding="14,5"
+                        MinWidth="75"
                         Click="OnAlwaysLoad"
                     />
                     <Button
                         x:Name="OnceButton"
                         Style="{StaticResource AnswerButton}"
                         Content="{Binding LoadOnceText}"
+                        Padding="14,5"
+                        MinWidth="75"
                         Click="OnLoadOnce"
                     />
                     <Button
                         x:Name="NotButton"
                         Style="{StaticResource DefaultAnswerButton}"
                         Content="{Binding DoNotLoadText}"
+                        Padding="14,5"
+                        MinWidth="75"
                         Click="OnDoNotLoad"
                         IsDefault="True"
                         IsCancel="True"

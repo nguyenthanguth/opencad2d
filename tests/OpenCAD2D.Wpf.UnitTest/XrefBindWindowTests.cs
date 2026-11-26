@@ -450,7 +450,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 Assert.Equal(new[] { "Bind", "Insert" }, radios.Select(r => (string)r.Content).ToArray());
                 Assert.Equal(new bool?[] { true, false }, radios.Select(r => r.IsChecked).ToArray());
                 Assert.Equal(
-                    new[] { "Cancel", "OK" },
+                    new[] { "OK", "Cancel" },
                     Descendants(dialog.Body)
                         .OfType<Button>()
                         .Where(b => b.Content is string)

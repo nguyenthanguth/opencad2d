@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Input;
 
 namespace OpenCAD2D.Wpf
 {
@@ -33,5 +34,13 @@ namespace OpenCAD2D.Wpf
         private void OnOk(object sender, RoutedEventArgs e) => DialogResult = Model.CanOk;
 
         private void OnCancel(object sender, RoutedEventArgs e) => DialogResult = false;
+
+        private void OnHeaderDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed && IsLoaded)
+            {
+                DragMove();
+            }
+        }
     }
 }

@@ -99,6 +99,7 @@
                         Style="{StaticResource GhCloseButton}"
                         Content="Close"
                         Padding="14,5"
+                        MinWidth="75"
                         Command="{Binding CloseCommand}"
                         IsCancel="True"
                     />

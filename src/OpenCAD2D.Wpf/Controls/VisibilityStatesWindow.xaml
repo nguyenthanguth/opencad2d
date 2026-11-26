@@ -56,9 +56,10 @@
                 <DockPanel>
                     <Button
                         DockPanel.Dock="Right"
-                        Style="{StaticResource StylePrimaryButton}"
+                        Style="{StaticResource GhCloseButton}"
                         Content="Close"
                         Padding="14,5"
+                        MinWidth="75"
                         Click="OnClose"
                         IsDefault="True"
                         IsCancel="True"

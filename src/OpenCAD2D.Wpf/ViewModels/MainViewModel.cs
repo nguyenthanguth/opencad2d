@@ -396,6 +396,13 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets whether a drawing is shown; false on the start screen.</summary>
         public bool HasDocument => _current != null;
 
+        /// <summary>
+        /// Gets whether the drawing shown has a reference open for editing in place (REFEDIT, until REFCLOSE); the ribbon shows its
+        /// Edit Reference panel while it does. Raised when an edit opens or closes and when another drawing is shown; false on the
+        /// start screen.
+        /// </summary>
+        public bool IsRefEditOpen => _current?.Document?.RefEdit != null;
+
         /// <summary>Gets the document shown; null on the start screen.</summary>
         public CadDocument Document => _current?.Document;
 
@@ -1509,6 +1516,7 @@ namespace OpenCAD2D.Wpf
                     other.Document.Changed -= OnDocumentChanged;
                     other.Document.ActiveViewportChanged -= OnActiveViewportChanged;
                     other.Document.LayerFilterChanged -= OnLayerFilterChanged;
+                    other.Document.RefEditChanged -= OnRefEditChanged;
                 }
 
                 _files[full] = _current;
@@ -1933,6 +1941,7 @@ namespace OpenCAD2D.Wpf
             document.ConstraintBars.Changed += OnConstraintBarsChanged;
             document.ActiveViewportChanged += OnActiveViewportChanged;
             document.LayerFilterChanged += OnLayerFilterChanged;
+            document.RefEditChanged += OnRefEditChanged;
             WatchReferences(document);
 
             // acad.lsp, acaddoc.lsp, the files of the Lisps folder, the Startup Suite of the settings and S::STARTUP; what they write waits in the history until the drawing is shown.
@@ -2589,6 +2598,15 @@ namespace OpenCAD2D.Wpf
             }
         }
 
+        /// <summary>An in-place edit opened or closed on the drawing shown: the Edit Reference panel follows.</summary>
+        private void OnRefEditChanged(object sender, EventArgs e)
+        {
+            if (_current != null && ReferenceEquals(sender, _current.Document))
+            {
+                Raise(nameof(IsRefEditOpen));
+            }
+        }
+
         /// <summary>The layer filter, its inversion or its use for the layer box changed: the box lists the layers again.</summary>
         private void OnLayerFilterChanged(object sender, EventArgs e)
         {
@@ -2640,6 +2658,7 @@ namespace OpenCAD2D.Wpf
             Layers = SortedLayers(file.Document);
             RebuildRows();
             Raise(nameof(HasDocument));
+            Raise(nameof(IsRefEditOpen));
             Raise(nameof(Document));
             Raise(nameof(Session));
             FollowParametersDocument();

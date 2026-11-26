@@ -21,7 +21,9 @@
     <Color x:Key="GhAccentInkColor">#0B1220</Color>
     <Color x:Key="GhOkColor">#3FB950</Color>
     <Color x:Key="GhWarnColor">#D29922</Color>
-    <Color x:Key="GhErrorColor">#F85149</Color>
+    <!-- The one colour of a problem (a refused value, a failed load, a name that clashes): #FF8A7A is 6.2 to 1 on the dialog
+         panel and 5.5 to 1 on the footer, where #F26B3A was 4.7 and 4.1 and #F85149 4.2 and 3.7 (WCAG). -->
+    <Color x:Key="GhProblemColor">#FF8A7A</Color>
 
     <SolidColorBrush x:Key="GhBg" Color="{StaticResource GhBgColor}" />
     <SolidColorBrush x:Key="GhPanel" Color="{StaticResource GhPanelColor}" />
@@ -39,7 +41,7 @@
     <SolidColorBrush x:Key="GhAccentInk" Color="{StaticResource GhAccentInkColor}" />
     <SolidColorBrush x:Key="GhOk" Color="{StaticResource GhOkColor}" />
     <SolidColorBrush x:Key="GhWarn" Color="{StaticResource GhWarnColor}" />
-    <SolidColorBrush x:Key="GhError" Color="{StaticResource GhErrorColor}" />
+    <SolidColorBrush x:Key="GhProblem" Color="{StaticResource GhProblemColor}" />
     <SolidColorBrush x:Key="GhHover" Color="#323944" />
 
     <!-- The seven colours of the ribbon's icons (RibbonIcons.xaml), each at least 3 to 1 on the panel GhPanel: ink for what a

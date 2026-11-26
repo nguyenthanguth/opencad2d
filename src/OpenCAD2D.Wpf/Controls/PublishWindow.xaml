@@ -73,6 +73,7 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="Publish"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnPublish"
                             IsDefault="True"
@@ -81,11 +82,18 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnCancel"
                             IsCancel="True"
                         />
-                        <Button Style="{StaticResource GhDialogButton}" Content="Help" Padding="14,5" Click="OnHelp" />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Help"
+                            Padding="14,5"
+                            MinWidth="75"
+                            Click="OnHelp"
+                        />
                     </StackPanel>
                     <TextBlock
                         x:Name="Notice"
@@ -100,7 +108,7 @@
                                 <Setter Property="Foreground" Value="{StaticResource GhTextMuted}" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasProblem}" Value="True">
-                                        <Setter Property="Foreground" Value="#F26B3A" />
+                                        <Setter Property="Foreground" Value="{StaticResource GhProblem}" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>

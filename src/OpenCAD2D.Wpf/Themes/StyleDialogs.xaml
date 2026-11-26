@@ -456,7 +456,7 @@
                 <Setter TargetName="CaptionText" Property="Foreground" Value="{StaticResource GhTextMuted}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding IsValid}" Value="False">
-                <Setter TargetName="Number" Property="Foreground" Value="{StaticResource GhError}" />
+                <Setter TargetName="Number" Property="Foreground" Value="{StaticResource GhProblem}" />
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>

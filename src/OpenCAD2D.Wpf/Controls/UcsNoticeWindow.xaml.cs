@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Input;
 
 namespace OpenCAD2D.Wpf
 {
@@ -34,5 +35,13 @@ namespace OpenCAD2D.Wpf
             new UcsNoticeWindow(error) { Owner = owner }.ShowDialog();
 
         private void OnClose(object sender, RoutedEventArgs e) => DialogResult = true;
+
+        private void OnHeaderDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed && IsLoaded)
+            {
+                DragMove();
+            }
+        }
     }
 }

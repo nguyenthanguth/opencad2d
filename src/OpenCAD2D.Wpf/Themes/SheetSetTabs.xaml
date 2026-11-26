@@ -10,7 +10,6 @@
     <!-- What the Sheet Views and Model Views tabs of the Sheet Set Manager share: the rows of their trees and the buttons of
          their toolbars (design A12SsmSheetViews and A12SsmModelViews). The Sheet List tab keeps its own, in the window. -->
     <SolidColorBrush x:Key="SsmTabMuted" Color="#6B7480" />
-    <SolidColorBrush x:Key="SsmTabError" Color="#FF8A7A" />
 
     <!-- A row of a tree: 22 high, selected in the blue of the window's selections, bold for the set and a location, grey words
          at the right (the sheet a view is on, or the scale it is placed at). -->
@@ -65,7 +64,7 @@
                             <Setter TargetName="Words" Property="Foreground" Value="{StaticResource SsmTabMuted}" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Tone}" Value="Error">
-                            <Setter TargetName="Words" Property="Foreground" Value="{StaticResource SsmTabError}" />
+                            <Setter TargetName="Words" Property="Foreground" Value="{StaticResource GhProblem}" />
                         </DataTrigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Row" Property="Background" Value="{StaticResource GhHover}" />

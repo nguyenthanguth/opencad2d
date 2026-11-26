@@ -53,9 +53,10 @@
             <!-- Footer: Close. -->
             <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
                 <Button
-                    Style="{StaticResource StylePrimaryButton}"
+                    Style="{StaticResource GhCloseButton}"
                     Content="Close"
                     Padding="14,5"
+                    MinWidth="75"
                     HorizontalAlignment="Right"
                     Command="{Binding CloseCommand}"
                     IsDefault="True"

@@ -49,8 +49,18 @@
                     BorderBrush="{StaticResource GhBorder}"
                     BorderThickness="1"
                     Background="{Binding SwatchRgb, Converter={StaticResource RgbBrush}}"
-                    Visibility="{Binding HasColor, Converter={StaticResource Shown}}"
-                />
+                >
+                    <!-- Hidden, not Collapsed: a style with no colour keeps the 19 its swatch takes, so its cells line up. -->
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasColor}" Value="False">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                </Border>
             </DataTemplate>
 
             <!-- A row of the Table View: every property of a style in a cell. -->
@@ -185,30 +195,33 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Save As…"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnSaveAs"
-                        />
-                        <Button
-                            Style="{StaticResource GhDialogButton}"
-                            Content="Cancel"
-                            Padding="14,5"
-                            Margin="0,0,8,0"
-                            Click="OnCancel"
-                            IsCancel="True"
                         />
                         <Button
                             Style="{StaticResource StylePrimaryButton}"
                             Content="Save &amp; Close"
                             Padding="14,5"
+                            MinWidth="75"
+                            Margin="0,0,8,0"
                             Click="OnSaveAndClose"
                             IsDefault="True"
+                        />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Cancel"
+                            Padding="14,5"
+                            MinWidth="75"
+                            Click="OnCancel"
+                            IsCancel="True"
                         />
                     </StackPanel>
                     <TextBlock
                         VerticalAlignment="Center"
                         TextWrapping="Wrap"
                         Text="{Binding Message}"
-                        Foreground="{StaticResource GhWarn}"
+                        Foreground="{StaticResource GhProblem}"
                     />
                 </DockPanel>
             </Border>
@@ -319,34 +332,44 @@
                     />
                 </StackPanel>
 
-                <!-- Table View: a row for each style, a column for each property. -->
-                <DockPanel Visibility="{Binding IsTableView, Converter={StaticResource Shown}}">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,0,0,4">
-                        <TextBlock Style="{StaticResource HeadText}" Width="92" Text="Name" />
-                        <Border Width="19" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="112" Text="Color" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="44" Text="Dither" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="52" Text="Gray" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="66" Text="Pen" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="66" Text="Virtual" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="52" Text="Screen" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="150" Text="Linetype" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="52" Text="Adaptive" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="128" Text="Lineweight" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="132" Text="Line end" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="132" Text="Line join" />
-                        <TextBlock Style="{StaticResource HeadText}" Width="132" Text="Fill" />
-                    </StackPanel>
-                    <ListBox
-                        ItemsSource="{Binding Rows}"
-                        ItemTemplate="{StaticResource TableRow}"
-                        ItemContainerStyle="{StaticResource StyleListItem}"
-                        Background="{StaticResource GhCanvas}"
-                        BorderBrush="{StaticResource GhBorder}"
-                        Focusable="False"
-                        AutomationProperties.Name="Plot styles"
-                    />
-                </DockPanel>
+                <!-- Table View: a row for each style, a column for each property. The header and the rows are in one horizontal
+                     scroll, so that the header moves with the cells; the header starts 12 in, where the cells do (the list's
+                     border 1, its padding 1 and a row's padding 10). -->
+                <ScrollViewer
+                    Visibility="{Binding IsTableView, Converter={StaticResource Shown}}"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Disabled"
+                >
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,0,0,4">
+                            <TextBlock Style="{StaticResource HeadText}" Width="92" Text="Name" />
+                            <Border Width="19" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="112" Text="Color" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="44" Text="Dither" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="52" Text="Gray" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="66" Text="Pen" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="66" Text="Virtual" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="52" Text="Screen" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="150" Text="Linetype" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="52" Text="Adaptive" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="128" Text="Lineweight" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="132" Text="Line end" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="132" Text="Line join" />
+                            <TextBlock Style="{StaticResource HeadText}" Width="132" Text="Fill" />
+                        </StackPanel>
+                        <ListBox
+                            ItemsSource="{Binding Rows}"
+                            ItemTemplate="{StaticResource TableRow}"
+                            ItemContainerStyle="{StaticResource StyleListItem}"
+                            Background="{StaticResource GhInput}"
+                            BorderBrush="{StaticResource GhBorder}"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            Focusable="False"
+                            AutomationProperties.Name="Plot styles"
+                        />
+                    </DockPanel>
+                </ScrollViewer>
 
                 <!-- Form View: the styles in a list, the properties of the one chosen. -->
                 <Grid Visibility="{Binding IsFormView, Converter={StaticResource Shown}}">
@@ -384,7 +407,7 @@
                             SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
                             DisplayMemberPath="Name"
                             ItemContainerStyle="{StaticResource StyleListItem}"
-                            Background="{StaticResource GhCanvas}"
+                            Background="{StaticResource GhInput}"
                             BorderBrush="{StaticResource GhBorder}"
                             AutomationProperties.Name="Plot styles"
                         />
@@ -421,7 +444,8 @@
                             <TextBlock Text="Name" Style="{StaticResource StyleLabel}" VerticalAlignment="Center" />
                             <TextBox
                                 Grid.Column="1"
-                                Style="{StaticResource CellBox}"
+                                Style="{StaticResource StyleBox}"
+                                Margin="0,3"
                                 Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
                                 IsReadOnly="{Binding IsNameLocked}"
                                 AutomationProperties.Name="Name"
@@ -430,12 +454,14 @@
                                 Grid.Row="1"
                                 Text="Description"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <TextBox
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                Style="{StaticResource CellBox}"
+                                Style="{StaticResource StyleBox}"
+                                Margin="0,3"
                                 Text="{Binding Description, UpdateSourceTrigger=LostFocus}"
                                 AutomationProperties.Name="Description"
                             />
@@ -443,12 +469,13 @@
                                 Grid.Row="2"
                                 Text="Color"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
-                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
                                 <ContentControl ContentTemplate="{StaticResource Swatch}" Content="{Binding}" />
                                 <TextBox
-                                    Style="{StaticResource CellBox}"
+                                    Style="{StaticResource StyleBox}"
                                     Width="240"
                                     Text="{Binding Color, UpdateSourceTrigger=LostFocus}"
                                     AutomationProperties.Name="Color"
@@ -458,12 +485,14 @@
                                 Grid.Row="3"
                                 Text="Enable dithering"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <CheckBox
                                 Grid.Row="3"
                                 Grid.Column="1"
                                 Style="{StaticResource CellCheck}"
+                                Margin="0,3"
                                 HorizontalAlignment="Left"
                                 IsChecked="{Binding Dither, Mode=TwoWay}"
                                 AutomationProperties.Name="Enable dithering"
@@ -472,12 +501,14 @@
                                 Grid.Row="4"
                                 Text="Convert to grayscale"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <CheckBox
                                 Grid.Row="4"
                                 Grid.Column="1"
                                 Style="{StaticResource CellCheck}"
+                                Margin="0,3"
                                 HorizontalAlignment="Left"
                                 IsChecked="{Binding Grayscale, Mode=TwoWay}"
                                 AutomationProperties.Name="Convert to grayscale"
@@ -486,12 +517,14 @@
                                 Grid.Row="5"
                                 Text="Use assigned pen number"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <TextBox
                                 Grid.Row="5"
                                 Grid.Column="1"
-                                Style="{StaticResource CellBox}"
+                                Style="{StaticResource StyleBox}"
+                                Margin="0,3"
                                 Width="100"
                                 HorizontalAlignment="Left"
                                 Text="{Binding PhysicalPen, UpdateSourceTrigger=LostFocus}"
@@ -501,12 +534,14 @@
                                 Grid.Row="6"
                                 Text="Virtual pen number"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <TextBox
                                 Grid.Row="6"
                                 Grid.Column="1"
-                                Style="{StaticResource CellBox}"
+                                Style="{StaticResource StyleBox}"
+                                Margin="0,3"
                                 Width="100"
                                 HorizontalAlignment="Left"
                                 Text="{Binding VirtualPen, UpdateSourceTrigger=LostFocus}"
@@ -516,12 +551,14 @@
                                 Grid.Row="7"
                                 Text="Screening"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <TextBox
                                 Grid.Row="7"
                                 Grid.Column="1"
-                                Style="{StaticResource CellBox}"
+                                Style="{StaticResource StyleBox}"
+                                Margin="0,3"
                                 Width="100"
                                 HorizontalAlignment="Left"
                                 Text="{Binding Screening, UpdateSourceTrigger=LostFocus}"
@@ -531,12 +568,14 @@
                                 Grid.Row="8"
                                 Text="Linetype"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <ComboBox
                                 Grid.Row="8"
                                 Grid.Column="1"
                                 Style="{StaticResource CellCombo}"
+                                Margin="0,3"
                                 ItemsSource="{x:Static local:PlotStyleChoices.Linetypes}"
                                 SelectedItem="{Binding Linetype, Mode=TwoWay}"
                                 AutomationProperties.Name="Linetype"
@@ -545,12 +584,14 @@
                                 Grid.Row="9"
                                 Text="Adaptive adjustment"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <CheckBox
                                 Grid.Row="9"
                                 Grid.Column="1"
                                 Style="{StaticResource CellCheck}"
+                                Margin="0,3"
                                 HorizontalAlignment="Left"
                                 IsChecked="{Binding Adaptive, Mode=TwoWay}"
                                 AutomationProperties.Name="Adaptive adjustment"
@@ -559,12 +600,14 @@
                                 Grid.Row="10"
                                 Text="Lineweight"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <ComboBox
                                 Grid.Row="10"
                                 Grid.Column="1"
                                 Style="{StaticResource CellCombo}"
+                                Margin="0,3"
                                 ItemsSource="{Binding DataContext.LineWeightOptions, RelativeSource={RelativeSource AncestorType=Window}}"
                                 SelectedItem="{Binding LineWeight, Mode=TwoWay}"
                                 AutomationProperties.Name="Lineweight"
@@ -573,12 +616,14 @@
                                 Grid.Row="11"
                                 Text="Line End Style"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <ComboBox
                                 Grid.Row="11"
                                 Grid.Column="1"
                                 Style="{StaticResource CellCombo}"
+                                Margin="0,3"
                                 ItemsSource="{x:Static local:PlotStyleChoices.LineEnds}"
                                 SelectedItem="{Binding LineEnd, Mode=TwoWay}"
                                 AutomationProperties.Name="Line end style"
@@ -587,12 +632,14 @@
                                 Grid.Row="12"
                                 Text="Line Join Style"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <ComboBox
                                 Grid.Row="12"
                                 Grid.Column="1"
                                 Style="{StaticResource CellCombo}"
+                                Margin="0,3"
                                 ItemsSource="{x:Static local:PlotStyleChoices.LineJoins}"
                                 SelectedItem="{Binding LineJoin, Mode=TwoWay}"
                                 AutomationProperties.Name="Line join style"
@@ -601,12 +648,14 @@
                                 Grid.Row="13"
                                 Text="Fill Style"
                                 Style="{StaticResource StyleLabel}"
+                                Margin="0,3"
                                 VerticalAlignment="Center"
                             />
                             <ComboBox
                                 Grid.Row="13"
                                 Grid.Column="1"
                                 Style="{StaticResource CellCombo}"
+                                Margin="0,3"
                                 ItemsSource="{x:Static local:PlotStyleChoices.Fills}"
                                 SelectedItem="{Binding Fill, Mode=TwoWay}"
                                 AutomationProperties.Name="Fill style"

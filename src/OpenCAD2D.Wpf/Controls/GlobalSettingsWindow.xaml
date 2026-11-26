@@ -142,7 +142,7 @@
                                         />
                                         <Run
                                             FontStyle="Italic"
-                                            Foreground="#FF8A7A"
+                                            Foreground="{StaticResource GhProblem}"
                                             Text="{Binding MissingMark, Mode=OneWay}"
                                         />
                                     </TextBlock>
@@ -384,7 +384,7 @@
                     </Grid>
                     <TextBlock
                         Text="{Binding Error}"
-                        Foreground="{StaticResource GhError}"
+                        Foreground="{StaticResource GhProblem}"
                         TextWrapping="Wrap"
                         HorizontalAlignment="Right"
                         Visibility="{Binding HasError, Converter={StaticResource Shown}}"
@@ -438,26 +438,34 @@
                         Style="{StaticResource Secondary}"
                         Margin="0"
                         Content="Reset to defaults"
+                        Padding="14,5"
+                        MinWidth="75"
                         Command="{Binding ResetCommand}"
                     />
                     <Button
                         DockPanel.Dock="Right"
                         Style="{StaticResource Secondary}"
-                        Content="OK"
-                        Command="{Binding OkCommand}"
-                    />
-                    <Button
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource Primary}"
                         Content="Apply"
+                        Padding="14,5"
+                        MinWidth="75"
                         Command="{Binding ApplyCommand}"
                     />
                     <Button
                         DockPanel.Dock="Right"
                         Style="{StaticResource Secondary}"
                         Content="Cancel"
+                        Padding="14,5"
+                        MinWidth="75"
                         Command="{Binding CancelCommand}"
                         IsCancel="True"
+                    />
+                    <Button
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource Primary}"
+                        Content="OK"
+                        Padding="14,5"
+                        MinWidth="75"
+                        Command="{Binding OkCommand}"
                     />
                     <TextBlock
                         Text="{Binding Notice}"
@@ -902,7 +910,7 @@
                                         >
                                             <Ellipse.Style>
                                                 <Style TargetType="Ellipse">
-                                                    <Setter Property="Fill" Value="{StaticResource GhError}" />
+                                                    <Setter Property="Fill" Value="{StaticResource GhProblem}" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsPythonUsable}" Value="True">
                                                             <Setter Property="Fill" Value="{StaticResource GhOk}" />
@@ -914,7 +922,7 @@
                                         <TextBlock TextWrapping="Wrap" Text="{Binding PythonFound}">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="#FF8A7A" />
+                                                    <Setter Property="Foreground" Value="{StaticResource GhProblem}" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsPythonUsable}" Value="True">
                                                             <Setter
@@ -1381,7 +1389,7 @@
                                                             />
                                                             <TextBlock
                                                                 Text="{Binding Conflict}"
-                                                                Foreground="{StaticResource GhError}"
+                                                                Foreground="{StaticResource GhProblem}"
                                                                 Visibility="{Binding HasConflict, Converter={StaticResource Shown}}"
                                                             />
                                                         </StackPanel>
@@ -1392,7 +1400,7 @@
                                                         <Setter
                                                             TargetName="KeyBox"
                                                             Property="BorderBrush"
-                                                            Value="{StaticResource GhError}"
+                                                            Value="{StaticResource GhProblem}"
                                                         />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsCapturingKeys}" Value="True">

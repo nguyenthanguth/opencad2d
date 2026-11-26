@@ -56,7 +56,8 @@
                     <Button
                         Style="{StaticResource StylePrimaryButton}"
                         Content="Open"
-                        Padding="18,5"
+                        Padding="14,5"
+                        MinWidth="75"
                         Margin="0,0,8,0"
                         IsDefault="True"
                         IsEnabled="{Binding CanOpen}"
@@ -67,6 +68,7 @@
                         Style="{StaticResource GhDialogButton}"
                         Content="Cancel"
                         Padding="14,5"
+                        MinWidth="75"
                         IsCancel="True"
                         Click="OnCancel"
                     />
@@ -140,8 +142,10 @@
 
                 <Grid>
                     <ListBox
+                        Style="{StaticResource GhListBox}"
                         Background="{StaticResource GhInput}"
                         BorderBrush="{StaticResource GhBorder}"
+                        BorderThickness="1"
                         Foreground="{StaticResource GhText}"
                         SelectionMode="Single"
                         AutomationProperties.Name="Templates"

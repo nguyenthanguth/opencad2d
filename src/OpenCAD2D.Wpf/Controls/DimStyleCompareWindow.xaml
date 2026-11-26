@@ -28,7 +28,12 @@
         TextOptions.TextFormattingMode="Display"
     >
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource GhHeader}" Padding="16,10">
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhHeader}"
+                Padding="16,10"
+                MouseLeftButtonDown="OnHeaderDown"
+            >
                 <TextBlock Text="Compare Dimension Styles" FontSize="13" FontWeight="SemiBold" />
             </Border>
             <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
@@ -37,6 +42,7 @@
                     Style="{StaticResource GhCloseButton}"
                     Content="Close"
                     Padding="14,5"
+                    MinWidth="75"
                     Command="{Binding CloseCommand}"
                     IsCancel="True"
                 />

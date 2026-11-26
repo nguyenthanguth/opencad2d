@@ -18,7 +18,6 @@
                 <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <SolidColorBrush x:Key="Refused" Color="#FF8A7A" />
             <Style x:Key="Small" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="11" />
                 <Setter Property="TextWrapping" Value="Wrap" />
@@ -34,7 +33,7 @@
                 <Setter Property="BorderBrush" Value="{StaticResource GhBorder}" />
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding HasError}" Value="True">
-                        <Setter Property="BorderBrush" Value="{StaticResource Refused}" />
+                        <Setter Property="BorderBrush" Value="{StaticResource GhProblem}" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -90,9 +89,10 @@
                         <Button
                             x:Name="OkButton"
                             Style="{StaticResource GhAccentButton}"
-                            Width="75"
                             Margin="0,0,8,0"
                             Content="OK"
+                            Padding="14,5"
+                            MinWidth="75"
                             IsDefault="True"
                             IsEnabled="{Binding CanApply}"
                             Click="OnOk"
@@ -100,8 +100,9 @@
                         <Button
                             x:Name="CancelButton"
                             Style="{StaticResource GhDialogButton}"
-                            Width="75"
                             Content="Cancel"
+                            Padding="14,5"
+                            MinWidth="75"
                             IsCancel="True"
                             Click="OnCancel"
                         />
@@ -172,7 +173,7 @@
                                         <TextBlock
                                             x:Name="Refusal"
                                             Style="{StaticResource Small}"
-                                            Foreground="{StaticResource Refused}"
+                                            Foreground="{StaticResource GhProblem}"
                                             Text="{Binding Error}"
                                             Visibility="Collapsed"
                                         />

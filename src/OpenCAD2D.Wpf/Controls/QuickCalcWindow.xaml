@@ -165,7 +165,7 @@
                 />
                 <TextBlock
                     Text="{Binding Message}"
-                    Foreground="{StaticResource GhError}"
+                    Foreground="{StaticResource GhProblem}"
                     TextWrapping="Wrap"
                     FontSize="11"
                 />

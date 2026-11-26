@@ -62,14 +62,16 @@
                         Style="{StaticResource GhDialogButton}"
                         Content="Open"
                         Padding="14,5"
+                        MinWidth="75"
                         Margin="0,0,8,0"
                         IsEnabled="{Binding CanOpen}"
                         Click="OnOpen"
                     />
                     <Button
-                        Style="{StaticResource StylePrimaryButton}"
+                        Style="{StaticResource GhCloseButton}"
                         Content="Close"
-                        Padding="18,5"
+                        Padding="14,5"
+                        MinWidth="75"
                         Click="OnClose"
                         IsCancel="True"
                     />

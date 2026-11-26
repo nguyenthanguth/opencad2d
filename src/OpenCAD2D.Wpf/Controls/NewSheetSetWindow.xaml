@@ -25,7 +25,7 @@
             <SolidColorBrush x:Key="WizFolder" Color="#E3B341" />
             <SolidColorBrush x:Key="WizFolderTint" Color="#33E3B341" />
             <SolidColorBrush x:Key="WizDisabled" Color="#6B7480" />
-            <SolidColorBrush x:Key="WizErrorGround" Color="#26F85149" />
+            <SolidColorBrush x:Key="WizErrorGround" Color="#3A2626" />
 
             <!-- A muted line of help under a choice. -->
             <Style x:Key="WizHelp" TargetType="TextBlock">
@@ -53,7 +53,7 @@
 
             <!-- The red box of a refusal, with its mark. -->
             <Style x:Key="WizRefusal" TargetType="Border">
-                <Setter Property="BorderBrush" Value="{StaticResource GhError}" />
+                <Setter Property="BorderBrush" Value="{StaticResource GhProblem}" />
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="CornerRadius" Value="4" />
                 <Setter Property="Background" Value="{StaticResource WizErrorGround}" />
@@ -327,6 +327,8 @@
                     <Button
                         Style="{StaticResource WizButton}"
                         Content="&lt; Back"
+                        Padding="14,5"
+                        MinWidth="75"
                         Margin="0,0,8,0"
                         Command="{Binding BackCommand}"
                     />
@@ -334,6 +336,7 @@
                         Style="{StaticResource StylePrimaryButton}"
                         Content="Next &gt;"
                         Padding="14,5"
+                        MinWidth="75"
                         Margin="0,0,8,0"
                         Command="{Binding NextCommand}"
                         IsDefault="True"
@@ -343,6 +346,7 @@
                         Style="{StaticResource StylePrimaryButton}"
                         Content="Finish"
                         Padding="14,5"
+                        MinWidth="75"
                         Margin="0,0,8,0"
                         Command="{Binding FinishCommand}"
                         IsDefault="True"
@@ -351,6 +355,8 @@
                     <Button
                         Style="{StaticResource WizButton}"
                         Content="Cancel"
+                        Padding="14,5"
+                        MinWidth="75"
                         Command="{Binding CancelCommand}"
                         IsCancel="True"
                     />
@@ -391,7 +397,7 @@
                 </Border.Style>
                 <TextBlock
                     Text="{Binding Message}"
-                    Foreground="{StaticResource GhError}"
+                    Foreground="{StaticResource GhProblem}"
                     FontSize="11"
                     TextWrapping="Wrap"
                 />
@@ -526,7 +532,7 @@
                     >
                         <TextBlock
                             Text="{Binding Message}"
-                            Foreground="{StaticResource GhError}"
+                            Foreground="{StaticResource GhProblem}"
                             FontSize="11"
                             TextWrapping="Wrap"
                         />

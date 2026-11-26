@@ -22,6 +22,7 @@
 
     <Border
         x:Name="Root"
+        MouseLeftButtonDown="OnHeaderDown"
         Background="{StaticResource GhPanel}"
         BorderBrush="{StaticResource GhBorder}"
         BorderThickness="1"
@@ -71,20 +72,30 @@
             <Border Background="{StaticResource GhHeader}" Padding="16,10" CornerRadius="0,0,6,6">
                 <StackPanel x:Name="Buttons" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button
+                        x:Name="YesButton"
+                        Style="{StaticResource GhAccentButton}"
+                        Padding="14,5"
+                        MinWidth="75"
+                        Click="OnYes"
+                    />
+                    <Button
                         x:Name="NoButton"
                         Style="{StaticResource GhDialogButton}"
-                        Margin="0,0,8,0"
+                        Padding="14,5"
+                        MinWidth="75"
+                        Margin="8,0,0,0"
                         Click="OnNo"
                         IsCancel="True"
                     />
                     <Button
                         x:Name="ThirdButton"
                         Style="{StaticResource GhDialogButton}"
-                        Margin="0,0,8,0"
+                        Padding="14,5"
+                        MinWidth="75"
+                        Margin="8,0,0,0"
                         Click="OnThird"
                         Visibility="Collapsed"
                     />
-                    <Button x:Name="YesButton" Style="{StaticResource GhAccentButton}" Click="OnYes" />
                 </StackPanel>
             </Border>
         </StackPanel>

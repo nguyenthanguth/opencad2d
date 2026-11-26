@@ -28,7 +28,12 @@
         TextOptions.TextFormattingMode="Display"
     >
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource GhHeader}" Padding="16,10">
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhHeader}"
+                Padding="16,10"
+                MouseLeftButtonDown="OnHeaderDown"
+            >
                 <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" />
             </Border>
             <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
@@ -38,6 +43,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Continue"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,6,0"
                             Click="OnOk"
                             IsDefault="True"
@@ -46,6 +52,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Command="{Binding CancelCommand}"
                             IsCancel="True"
                         />

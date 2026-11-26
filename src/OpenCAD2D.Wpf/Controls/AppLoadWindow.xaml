@@ -134,7 +134,7 @@
                         x:Name="RemoveButton"
                         Style="{StaticResource Secondary}"
                         Content="Remove"
-                        Foreground="{StaticResource GhError}"
+                        Foreground="{StaticResource GhProblem}"
                         Command="{Binding RemoveCommand}"
                         ToolTip="{Binding RemoveToolTip}"
                         ToolTipService.ShowOnDisabled="True"
@@ -176,6 +176,8 @@
                         DockPanel.Dock="Right"
                         Style="{StaticResource GhCloseButton}"
                         Content="Close"
+                        Padding="14,5"
+                        MinWidth="75"
                         Margin="0"
                         Click="OnClose"
                     />
@@ -442,7 +444,7 @@
                                             <Setter
                                                 TargetName="Badge"
                                                 Property="BorderBrush"
-                                                Value="{StaticResource GhError}"
+                                                Value="{StaticResource GhProblem}"
                                             />
                                             <Setter TargetName="BadgeLabel" Property="Foreground" Value="#FFB4AE" />
                                         </DataTrigger>
@@ -468,7 +470,7 @@
                         Padding="10,6"
                         CornerRadius="4"
                         Background="#3A1D1D"
-                        BorderBrush="{StaticResource GhError}"
+                        BorderBrush="{StaticResource GhProblem}"
                         BorderThickness="1"
                         AutomationProperties.LiveSetting="Polite"
                     >
@@ -490,10 +492,10 @@
                                 Margin="0,0,8,0"
                                 VerticalAlignment="Center"
                             >
-                                <Ellipse Stroke="{StaticResource GhError}" StrokeThickness="1.2" />
+                                <Ellipse Stroke="{StaticResource GhProblem}" StrokeThickness="1.2" />
                                 <Path
                                     Data="M7,4.2 L7,7.8 M7,9.9 L7,10.2"
-                                    Stroke="{StaticResource GhError}"
+                                    Stroke="{StaticResource GhProblem}"
                                     StrokeThickness="1.2"
                                     StrokeStartLineCap="Round"
                                     StrokeEndLineCap="Round"

@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Input;
 
 namespace OpenCAD2D.Wpf
 {
@@ -27,5 +28,13 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>Gets the dialog's content, so that a screenshot can draw it with no window shown.</summary>
         public FrameworkElement Body => Root;
+
+        private void OnHeaderDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed && IsLoaded)
+            {
+                DragMove();
+            }
+        }
     }
 }

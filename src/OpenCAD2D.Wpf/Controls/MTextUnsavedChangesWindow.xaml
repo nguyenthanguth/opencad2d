@@ -88,7 +88,8 @@
                             x:Name="YesButton"
                             Style="{StaticResource StylePrimaryButton}"
                             Content="Yes"
-                            Padding="22,5"
+                            Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnYes"
                             IsDefault="True"
@@ -96,7 +97,8 @@
                         <Button
                             Style="{StaticResource GhDialogButton}"
                             Content="No"
-                            Padding="18,5"
+                            Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnNo"
                         />
@@ -104,6 +106,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Click="OnCancel"
                             IsCancel="True"
                         />

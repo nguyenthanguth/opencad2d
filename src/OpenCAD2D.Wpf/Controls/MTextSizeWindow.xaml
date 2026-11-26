@@ -16,6 +16,7 @@
     </Window.Resources>
 
     <Border
+        x:Name="Root"
         Background="{StaticResource GhPanel}"
         BorderBrush="{StaticResource GhBorder}"
         BorderThickness="1"
@@ -27,7 +28,12 @@
         TextOptions.TextFormattingMode="Display"
     >
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource GhHeader}" Padding="12,6">
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhHeader}"
+                Padding="12,6"
+                MouseLeftButtonDown="OnHeaderDown"
+            >
                 <DockPanel>
                     <Button
                         DockPanel.Dock="Right"
@@ -43,7 +49,8 @@
                     <Button
                         Style="{StaticResource StylePrimaryButton}"
                         Content="OK"
-                        Padding="16,3"
+                        Padding="14,5"
+                        MinWidth="75"
                         Margin="0,0,6,0"
                         Click="OnOk"
                         IsDefault="True"
@@ -51,7 +58,8 @@
                     <Button
                         Style="{StaticResource GhDialogButton}"
                         Content="Cancel"
-                        Padding="10,3"
+                        Padding="14,5"
+                        MinWidth="75"
                         Click="OnCancel"
                         IsCancel="True"
                     />
@@ -69,7 +77,12 @@
                     />
                     <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
                 </DockPanel>
-                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="#FF8A7A" Text="{Binding Notice}" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    TextWrapping="Wrap"
+                    Foreground="{StaticResource GhProblem}"
+                    Text="{Binding Notice}"
+                />
             </StackPanel>
         </DockPanel>
     </Border>

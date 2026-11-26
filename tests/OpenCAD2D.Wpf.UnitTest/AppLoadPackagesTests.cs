@@ -574,7 +574,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal(2, dialog.Rows.Count);
             Assert.Equal(1, visibleBadges);
             Assert.Equal(Color.FromRgb(0x3A, 0x1D, 0x1D), badgeFill);
-            Assert.Equal(Color.FromRgb(0xF8, 0x51, 0x49), badgeLine);
+            Assert.Equal(Color.FromRgb(0xFF, 0x8A, 0x7A), badgeLine);
             Assert.Equal(Color.FromRgb(0xFF, 0xB4, 0xAE), badgeText);
         }
     }
