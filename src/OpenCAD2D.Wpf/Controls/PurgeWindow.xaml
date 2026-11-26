@@ -136,6 +136,7 @@
                         Style="{StaticResource GhCloseButton}"
                         Content="Close"
                         Padding="14,5"
+                        MinWidth="75"
                         Click="OnClose"
                         IsCancel="True"
                     />
@@ -147,6 +148,7 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="Purge Checked Items"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnPurgeChecked"
                         />
@@ -154,6 +156,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Purge All"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnPurgeAll"
                         />

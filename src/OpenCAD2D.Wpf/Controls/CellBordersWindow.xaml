@@ -54,19 +54,21 @@
             <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button
-                        Style="{StaticResource GhDialogButton}"
-                        Content="Cancel"
-                        Padding="14,5"
-                        Margin="0,0,8,0"
-                        Command="{Binding CancelCommand}"
-                        IsCancel="True"
-                    />
-                    <Button
                         Style="{StaticResource StylePrimaryButton}"
                         Content="OK"
                         Padding="14,5"
+                        MinWidth="75"
+                        Margin="0,0,8,0"
                         Command="{Binding OkCommand}"
                         IsDefault="True"
+                    />
+                    <Button
+                        Style="{StaticResource GhDialogButton}"
+                        Content="Cancel"
+                        Padding="14,5"
+                        MinWidth="75"
+                        Command="{Binding CancelCommand}"
+                        IsCancel="True"
                     />
                 </StackPanel>
             </Border>

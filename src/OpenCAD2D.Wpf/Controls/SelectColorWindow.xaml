@@ -120,7 +120,8 @@
                         <Button
                             Style="{StaticResource GhAccentButton}"
                             Content="OK"
-                            Padding="22,5"
+                            Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,12,0"
                             Click="OnOk"
                             IsDefault="True"
@@ -129,6 +130,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Click="OnCancel"
                             IsCancel="True"
                         />

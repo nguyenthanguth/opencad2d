@@ -22,7 +22,6 @@
 
             <local:BoolToVisibilityConverter x:Key="HiddenWhen" Invert="True" />
             <SolidColorBrush x:Key="SsmDisabled" Color="#6B7480" />
-            <SolidColorBrush x:Key="SsmError" Color="#FF8A7A" />
 
             <!-- A tab of the three under the control: its words, a blue line under the one shown. -->
             <Style x:Key="SsmTab" TargetType="RadioButton">
@@ -172,7 +171,7 @@
                                     <Setter
                                         TargetName="Words"
                                         Property="Foreground"
-                                        Value="{StaticResource SsmError}"
+                                        Value="{StaticResource GhProblem}"
                                     />
                                 </DataTrigger>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -487,7 +486,7 @@
                                                     <DataTrigger Binding="{Binding Tone}" Value="Error">
                                                         <Setter
                                                             Property="Foreground"
-                                                            Value="{StaticResource SsmError}"
+                                                            Value="{StaticResource GhProblem}"
                                                         />
                                                     </DataTrigger>
                                                 </Style.Triggers>

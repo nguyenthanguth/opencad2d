@@ -340,7 +340,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal("err.lsp", boldName);
             Assert.Equal("Shown until the next load", hint);
             Assert.Equal(System.Windows.Media.Color.FromRgb(0x3A, 0x1D, 0x1D), fill);
-            Assert.Equal(System.Windows.Media.Color.FromRgb(0xF8, 0x51, 0x49), border);
+            Assert.Equal(System.Windows.Media.Color.FromRgb(0xFF, 0x8A, 0x7A), border);
         }
 
         private static T Named<T>(DependencyObject root, string name)

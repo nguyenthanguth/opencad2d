@@ -58,9 +58,10 @@
             </Border>
             <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
                 <Button
-                    Style="{StaticResource StylePrimaryButton}"
+                    Style="{StaticResource GhCloseButton}"
                     Content="Close"
-                    Padding="18,5"
+                    Padding="14,5"
+                    MinWidth="75"
                     HorizontalAlignment="Right"
                     IsDefault="True"
                     IsCancel="True"

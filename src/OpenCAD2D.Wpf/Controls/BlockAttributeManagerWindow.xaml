@@ -137,6 +137,7 @@
                         Style="{StaticResource GhDialogButton}"
                         Content="Settings…"
                         Padding="14,5"
+                        MinWidth="75"
                         Click="OnSettings"
                     />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -144,23 +145,26 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Apply"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnApply"
-                        />
-                        <Button
-                            Style="{StaticResource GhDialogButton}"
-                            Content="Cancel"
-                            Padding="14,5"
-                            Margin="0,0,8,0"
-                            Click="OnCancel"
-                            IsCancel="True"
                         />
                         <Button
                             Style="{StaticResource StylePrimaryButton}"
                             Content="OK"
                             Padding="14,5"
+                            MinWidth="75"
+                            Margin="0,0,8,0"
                             Click="OnOk"
                             IsDefault="True"
+                        />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Cancel"
+                            Padding="14,5"
+                            MinWidth="75"
+                            Click="OnCancel"
+                            IsCancel="True"
                         />
                     </StackPanel>
                 </DockPanel>
@@ -270,7 +274,7 @@
                                             <Setter
                                                 TargetName="Cells"
                                                 Property="Foreground"
-                                                Value="{StaticResource GhError}"
+                                                Value="{StaticResource GhProblem}"
                                             />
                                         </DataTrigger>
                                     </DataTemplate.Triggers>

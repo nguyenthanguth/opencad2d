@@ -65,6 +65,7 @@
                             Style="{StaticResource GhCloseButton}"
                             Content="Close"
                             Padding="14,5"
+                            MinWidth="75"
                             Click="OnClose"
                             IsDefault="True"
                             IsCancel="True"
@@ -73,13 +74,14 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Help"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="8,0,0,0"
                             Click="OnHelp"
                         />
                     </StackPanel>
                     <TextBlock
                         Text="{Binding Message}"
-                        Foreground="#F26B3A"
+                        Foreground="{StaticResource GhProblem}"
                         VerticalAlignment="Center"
                         TextTrimming="CharacterEllipsis"
                         Margin="0,0,12,0"

@@ -47,7 +47,8 @@
                 <Button
                     Style="{StaticResource GhDialogButton}"
                     Content="Cancel"
-                    Padding="18,5"
+                    Padding="14,5"
+                    MinWidth="75"
                     HorizontalAlignment="Right"
                     IsCancel="True"
                     IsEnabled="{Binding IsCancelEnabled}"

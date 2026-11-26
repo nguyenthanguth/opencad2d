@@ -139,7 +139,7 @@
                                 <Setter TargetName="Box" Property="Foreground" Value="{StaticResource GhTextMuted}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsRed}" Value="True">
-                                <Setter TargetName="Box" Property="Foreground" Value="{StaticResource SheetSetRed}" />
+                                <Setter TargetName="Box" Property="Foreground" Value="{StaticResource GhProblem}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding HasError}" Value="True">
                                 <Setter

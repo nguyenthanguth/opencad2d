@@ -6758,6 +6758,94 @@
         </local:RibbonIcon.Small>
     </local:RibbonIcon>
 
+    <local:RibbonIcon x:Key="GhIconRefAdd.Color" po:Freeze="True">
+        <local:RibbonIcon.Large>
+            <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">
+                <GeometryDrawing Pen="{StaticResource RibbonPenTeal2}" Geometry="F1 M3 3h16v16h-16z" />
+                <GeometryDrawing Brush="{StaticResource GhIconInk}" Geometry="F1 M7 7 17 11 12 12 11 17z" />
+                <GeometryDrawing Pen="{StaticResource RibbonPenGreen4Butt}" Geometry="F1 M24 18v12M18 24h12" />
+            </DrawingGroup>
+        </local:RibbonIcon.Large>
+        <local:RibbonIcon.Small>
+            <DrawingGroup>
+                <DrawingGroup.Transform>
+                    <ScaleTransform ScaleX="0.5" ScaleY="0.5" />
+                </DrawingGroup.Transform>
+                <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">
+                    <GeometryDrawing Pen="{StaticResource RibbonPenTeal2}" Geometry="F1 M3 3h16v16h-16z" />
+                    <GeometryDrawing Brush="{StaticResource GhIconInk}" Geometry="F1 M7 7 17 11 12 12 11 17z" />
+                    <GeometryDrawing Pen="{StaticResource RibbonPenGreen4Butt}" Geometry="F1 M24 18v12M18 24h12" />
+                </DrawingGroup>
+            </DrawingGroup>
+        </local:RibbonIcon.Small>
+    </local:RibbonIcon>
+
+    <local:RibbonIcon x:Key="GhIconRefDiscard.Color" po:Freeze="True">
+        <local:RibbonIcon.Large>
+            <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">
+                <GeometryDrawing Pen="{StaticResource RibbonPenTeal2}" Geometry="F1 M3 3h16v16h-16z" />
+                <GeometryDrawing Pen="{StaticResource RibbonPenYellow2}" Geometry="F1 M7 7h8v8h-8z" />
+                <GeometryDrawing Pen="{StaticResource RibbonPenRed4Butt}" Geometry="F1 M19 19l10 10M29 19l-10 10" />
+            </DrawingGroup>
+        </local:RibbonIcon.Large>
+        <local:RibbonIcon.Small>
+            <DrawingGroup>
+                <DrawingGroup.Transform>
+                    <ScaleTransform ScaleX="0.5" ScaleY="0.5" />
+                </DrawingGroup.Transform>
+                <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">
+                    <GeometryDrawing Pen="{StaticResource RibbonPenTeal2}" Geometry="F1 M3 3h16v16h-16z" />
+                    <GeometryDrawing Pen="{StaticResource RibbonPenYellow2}" Geometry="F1 M7 7h8v8h-8z" />
+                    <GeometryDrawing Pen="{StaticResource RibbonPenRed4Butt}" Geometry="F1 M19 19l10 10M29 19l-10 10" />
+                </DrawingGroup>
+            </DrawingGroup>
+        </local:RibbonIcon.Small>
+    </local:RibbonIcon>
+
+    <local:RibbonIcon x:Key="GhIconRefRemove.Color" po:Freeze="True">
+        <local:RibbonIcon.Large>
+            <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">
+                <GeometryDrawing Pen="{StaticResource RibbonPenTeal2}" Geometry="F1 M3 3h16v16h-16z" />
+                <GeometryDrawing Brush="{StaticResource GhIconInk}" Geometry="F1 M7 7 17 11 12 12 11 17z" />
+                <GeometryDrawing Pen="{StaticResource RibbonPenRed4Butt}" Geometry="F1 M18 24h12" />
+            </DrawingGroup>
+        </local:RibbonIcon.Large>
+        <local:RibbonIcon.Small>
+            <DrawingGroup>
+                <DrawingGroup.Transform>
+                    <ScaleTransform ScaleX="0.5" ScaleY="0.5" />
+                </DrawingGroup.Transform>
+                <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">
+                    <GeometryDrawing Pen="{StaticResource RibbonPenTeal2}" Geometry="F1 M3 3h16v16h-16z" />
+                    <GeometryDrawing Brush="{StaticResource GhIconInk}" Geometry="F1 M7 7 17 11 12 12 11 17z" />
+                    <GeometryDrawing Pen="{StaticResource RibbonPenRed4Butt}" Geometry="F1 M18 24h12" />
+                </DrawingGroup>
+            </DrawingGroup>
+        </local:RibbonIcon.Small>
+    </local:RibbonIcon>
+
+    <local:RibbonIcon x:Key="GhIconRefSave.Color" po:Freeze="True">
+        <local:RibbonIcon.Large>
+            <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">
+                <GeometryDrawing Pen="{StaticResource RibbonPenTeal2}" Geometry="F1 M3 3h16v16h-16z" />
+                <GeometryDrawing Pen="{StaticResource RibbonPenYellow2}" Geometry="F1 M7 7h8v8h-8z" />
+                <GeometryDrawing Pen="{StaticResource RibbonPenGreen4Butt}" Geometry="F1 M18 24l4 4 8-8" />
+            </DrawingGroup>
+        </local:RibbonIcon.Large>
+        <local:RibbonIcon.Small>
+            <DrawingGroup>
+                <DrawingGroup.Transform>
+                    <ScaleTransform ScaleX="0.5" ScaleY="0.5" />
+                </DrawingGroup.Transform>
+                <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">
+                    <GeometryDrawing Pen="{StaticResource RibbonPenTeal2}" Geometry="F1 M3 3h16v16h-16z" />
+                    <GeometryDrawing Pen="{StaticResource RibbonPenYellow2}" Geometry="F1 M7 7h8v8h-8z" />
+                    <GeometryDrawing Pen="{StaticResource RibbonPenGreen4Butt}" Geometry="F1 M18 24l4 4 8-8" />
+                </DrawingGroup>
+            </DrawingGroup>
+        </local:RibbonIcon.Small>
+    </local:RibbonIcon>
+
     <local:RibbonIcon x:Key="GhIconRefresh.Color" po:Freeze="True">
         <local:RibbonIcon.Large>
             <DrawingGroup ClipGeometry="{StaticResource RibbonIconGrid}">

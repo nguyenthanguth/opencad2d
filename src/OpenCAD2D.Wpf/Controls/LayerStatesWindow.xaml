@@ -112,15 +112,17 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="Restore"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnRestore"
                             IsEnabled="{Binding HasSelected}"
                             IsDefault="True"
                         />
                         <Button
-                            Style="{StaticResource GhDialogButton}"
+                            Style="{StaticResource GhCloseButton}"
                             Content="Close"
                             Padding="14,5"
+                            MinWidth="75"
                             Background="{StaticResource GhClose}"
                             Foreground="White"
                             FontWeight="SemiBold"
@@ -162,7 +164,7 @@
                     <TextBlock
                         DockPanel.Dock="Bottom"
                         Margin="0,6,0,0"
-                        Foreground="{StaticResource GhError}"
+                        Foreground="{StaticResource GhProblem}"
                         TextWrapping="Wrap"
                         Text="{Binding Message}"
                     >

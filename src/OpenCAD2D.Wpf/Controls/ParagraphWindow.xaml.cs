@@ -65,6 +65,14 @@ namespace OpenCAD2D.Wpf
                 e.Handled = true;
             }
         }
+
+        private void OnHeaderDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed && IsLoaded)
+            {
+                DragMove();
+            }
+        }
     }
 
     /// <summary>The box a dialog refused a value of: a red border and the caret, until another is at fault.</summary>

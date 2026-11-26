@@ -232,7 +232,7 @@
                     IsEnabled="True"
                     Command="{Binding CloseCommand}"
                     ToolTip="BCLOSE"
-                    Foreground="#F26B3A"
+                    Foreground="{DynamicResource GhCloseCross}"
                     Margin="0"
                 />
             </DockPanel>

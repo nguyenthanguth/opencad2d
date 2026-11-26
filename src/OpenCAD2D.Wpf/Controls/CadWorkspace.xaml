@@ -6093,6 +6093,10 @@ Annotation Scaling, Leaders and Dimensions collapse; Text and Centerlines never 
                         </Style>
                     </Border.Style>
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <ContentPresenter
                             Content="{Binding SelectedTab.TabContent}"
                             Visibility="{Binding IsHomeTabSelected, Converter={StaticResource Hidden}}"
@@ -8655,6 +8659,117 @@ widths are those of the content: no panel has a floor of its own.
                                 </StackPanel>
                             </local:RibbonPanel>
                         </local:RibbonStrip>
+                        <!--
+                        The Edit Reference panel of AutoCAD 2021's REFEDIT tab (acad.CUIX, merged into the tab shown): at the right end of
+                        whichever tab is shown, only while an edit is open (IsRefEditOpen), so that the strip of the tab measures in the
+                        width left of it. Four big buttons, as the CUIX row: Save Changes and Discard Changes (REFCLOSE), a line, Add to
+                        Working Set and Remove from Working Set (REFSET). Its title band and the rule over it are the contextual green of
+                        the Text Editor tab. It never shrinks: the tab's own steps make room.
+                        -->
+                        <Border
+                            Grid.Column="1"
+                            Margin="0,-2,0,0"
+                            VerticalAlignment="Top"
+                            BorderBrush="#2F8F4E"
+                            BorderThickness="0,2,0,0"
+                            Visibility="{Binding IsRefEditOpen, Converter={StaticResource Shown}}"
+                        >
+                            <Border.Resources>
+                                <!--
+                                A big button whose label is wide enough for "Remove from" (66 pixels in Display mode) in one line: the 66
+                                of the big buttons' label broke it inside, three lines under a 72 pixel button.
+                                -->
+                                <Style x:Key="RefeditButton" TargetType="Button" BasedOn="{StaticResource BigButton}">
+                                    <Setter Property="ContentTemplate">
+                                        <Setter.Value>
+                                            <DataTemplate>
+                                                <StackPanel>
+                                                    <local:IconView
+                                                        Size="32"
+                                                        HorizontalAlignment="Center"
+                                                        Icon="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                    />
+                                                    <TextBlock
+                                                        Text="{Binding}"
+                                                        HorizontalAlignment="Center"
+                                                        MaxWidth="80"
+                                                        TextWrapping="Wrap"
+                                                        TextAlignment="Center"
+                                                    />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Border.Resources>
+                            <local:RibbonPanel
+                                Title="Edit Reference"
+                                IsEnabled="{Binding HasDocument}"
+                                RibbonIcon="{StaticResource GhIconEditReference.Color}"
+                            >
+                                <local:RibbonPanel.Header>
+                                    <Border Background="#2F8F4E">
+                                        <TextBlock
+                                            Style="{StaticResource GroupTitle}"
+                                            Margin="0"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Foreground="White"
+                                            Text="Edit Reference"
+                                        />
+                                    </Border>
+                                </local:RibbonPanel.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button
+                                        Style="{StaticResource RefeditButton}"
+                                        Tag="{StaticResource GhIconRefSave.Color}"
+                                        Content="Save&#10;Changes"
+                                        AutomationProperties.Name="Save Changes"
+                                        IsEnabled="{Binding HasDocument}"
+                                        Command="{Binding StartCommandWithOptionCommand}"
+                                        CommandParameter="REFCLOSE Save"
+                                        ToolTip="Save Changes (REFCLOSE)"
+                                    />
+                                    <Button
+                                        Style="{StaticResource RefeditButton}"
+                                        Tag="{StaticResource GhIconRefDiscard.Color}"
+                                        Content="Discard&#10;Changes"
+                                        AutomationProperties.Name="Discard Changes"
+                                        IsEnabled="{Binding HasDocument}"
+                                        Command="{Binding StartCommandWithOptionCommand}"
+                                        CommandParameter="REFCLOSE Discard"
+                                        ToolTip="Discard Changes (REFCLOSE)"
+                                    />
+                                    <Border
+                                        Width="1"
+                                        Height="68"
+                                        Margin="3,2,3,0"
+                                        VerticalAlignment="Top"
+                                        Background="{StaticResource GhBorder}"
+                                    />
+                                    <Button
+                                        Style="{StaticResource RefeditButton}"
+                                        Tag="{StaticResource GhIconRefAdd.Color}"
+                                        Content="Add to&#10;Working Set"
+                                        AutomationProperties.Name="Add to Working Set"
+                                        IsEnabled="{Binding HasDocument}"
+                                        Command="{Binding StartCommandWithOptionCommand}"
+                                        CommandParameter="REFSET Add"
+                                        ToolTip="Add to Working Set (REFSET)"
+                                    />
+                                    <Button
+                                        Style="{StaticResource RefeditButton}"
+                                        Tag="{StaticResource GhIconRefRemove.Color}"
+                                        Content="Remove from&#10;Working Set"
+                                        AutomationProperties.Name="Remove from Working Set"
+                                        IsEnabled="{Binding HasDocument}"
+                                        Command="{Binding StartCommandWithOptionCommand}"
+                                        CommandParameter="REFSET Remove"
+                                        ToolTip="Remove from Working Set (REFSET)"
+                                    />
+                                </StackPanel>
+                            </local:RibbonPanel>
+                        </Border>
                     </Grid>
                 </Border>
             </StackPanel>

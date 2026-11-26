@@ -148,7 +148,8 @@
                         DockPanel.Dock="Left"
                         Style="{StaticResource GhDialogButton}"
                         Content="Settings…"
-                        Padding="12,5"
+                        Padding="14,5"
+                        MinWidth="75"
                         Click="OnSettings"
                     />
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
@@ -156,6 +157,7 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="Translate"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnTranslate"
                             IsEnabled="{Binding CanTranslate}"
@@ -165,6 +167,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Background="{StaticResource GhClose}"
                             Foreground="White"
                             FontWeight="SemiBold"
@@ -176,7 +179,7 @@
                     <TextBlock
                         Margin="12,0"
                         VerticalAlignment="Center"
-                        Foreground="{StaticResource GhError}"
+                        Foreground="{StaticResource GhProblem}"
                         TextTrimming="CharacterEllipsis"
                         Text="{Binding Message}"
                     />

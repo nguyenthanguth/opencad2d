@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Input;
 
 namespace OpenCAD2D.Wpf
 {
@@ -47,6 +48,14 @@ namespace OpenCAD2D.Wpf
         {
             NameBox.GetBindingExpression(System.Windows.Controls.TextBox.TextProperty)?.UpdateSource();
             Model.Ok();
+        }
+
+        private void OnHeaderDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed && IsLoaded)
+            {
+                DragMove();
+            }
         }
     }
 }

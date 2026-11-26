@@ -22,7 +22,6 @@
 
             <local:BoolToVisibilityConverter x:Key="HiddenWhen" Invert="True" />
             <SolidColorBrush x:Key="TxDisabled" Color="#6B7480" />
-            <SolidColorBrush x:Key="TxError" Color="#FF8A7A" />
 
             <!-- A tab of the two above the list: its words, a blue line under the one shown. -->
             <Style x:Key="TxTab" TargetType="RadioButton">
@@ -176,7 +175,7 @@
                         <Setter TargetName="Words" Property="FontWeight" Value="SemiBold" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Tone}" Value="Error">
-                        <Setter TargetName="Words" Property="Foreground" Value="{StaticResource TxError}" />
+                        <Setter TargetName="Words" Property="Foreground" Value="{StaticResource GhProblem}" />
                     </DataTrigger>
                 </DataTemplate.Triggers>
             </DataTemplate>
@@ -228,8 +227,8 @@
                 </Grid>
                 <DataTemplate.Triggers>
                     <DataTrigger Binding="{Binding Tone}" Value="Error">
-                        <Setter TargetName="Words" Property="Foreground" Value="{StaticResource TxError}" />
-                        <Setter TargetName="Where" Property="Foreground" Value="{StaticResource TxError}" />
+                        <Setter TargetName="Words" Property="Foreground" Value="{StaticResource GhProblem}" />
+                        <Setter TargetName="Where" Property="Foreground" Value="{StaticResource GhProblem}" />
                     </DataTrigger>
                 </DataTemplate.Triggers>
             </DataTemplate>
@@ -279,13 +278,15 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="View Report…"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnViewReport"
                         />
                         <Button
                             Style="{StaticResource StylePrimaryButton}"
                             Content="OK"
-                            Padding="18,5"
+                            Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             IsDefault="True"
                             Click="OnOk"
@@ -294,11 +295,18 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             IsCancel="True"
                             Click="OnCancel"
                         />
-                        <Button Style="{StaticResource GhDialogButton}" Content="Help" Padding="14,5" Click="OnHelp" />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Help"
+                            Padding="14,5"
+                            MinWidth="75"
+                            Click="OnHelp"
+                        />
                     </StackPanel>
                     <TextBlock
                         x:Name="Footer"
@@ -313,7 +321,7 @@
                                 <Setter Property="Foreground" Value="{StaticResource GhTextMuted}" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding FooterIsError}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource TxError}" />
+                                        <Setter Property="Foreground" Value="{StaticResource GhProblem}" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>

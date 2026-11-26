@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+- **NEW.** The Edit Reference panel of AutoCAD 2021's REFEDIT tab: while a reference is open for editing the ribbon shows it at
+  the right end of whichever tab is shown (Home, Insert, any), four large buttons under a green title, Save Changes and Discard
+  Changes (REFCLOSE Save, REFCLOSE Discard), a line, Add to Working Set and Remove from Working Set (REFSET Add, REFSET Remove),
+  with four new icons from the A13 kit. The strip of the tab measures in the width left of it (Home at 1 920 takes steps it did
+  not before) and the panel goes at REFCLOSE. `MainViewModel.IsRefEditOpen` (new, read only) says whether the drawing shown has
+  an edit open; it is raised as an edit opens or closes and as another drawing is shown.
+- **CHANGED.** Every dialog that draws its own footer ends in one order, AutoCAD 2021's: the primary answer first, then the other
+  answers of a question, Cancel or Close, Apply, Help. 54 footers were reordered (OK before Cancel in most; Save, Don't
+  save, Cancel in the save question; Yes before No in the package question; Apply, OK, Cancel kept in the Attribute Editor and
+  the Block Attribute Manager as AutoCAD has them; OK, Cancel, Apply in Global settings and in the View Manager). Every footer
+  text button is 75 wide at least with a padding of 14 and 5 (the 94 of 318 that had another padding, and the 7 of the UCS
+  dialogs and the plugin settings with a fixed width of 75, are changed), and the 13 footer Close buttons that were the accent
+  or plain are the orange-red Close style the managers have.
+- **CHANGED.** One colour for a problem, `GhProblem` (#FF8A7A, 6.2 to 1 on the dialog panel and 5.5 to 1 on the footer): the
+  red of `GhError` (#F85149, 4.2 and 3.7 to 1) and the orange #F26B3A and #FF8A7A written by hand or kept as a local brush in
+  seven dialogs are gone, 81 uses in 56 files, and `GhError` and `GhErrorColor` are removed from `Dark.xaml`. The two Plot
+  Styles messages that report a failure were yellow and are the problem colour. Open folder of the Plot Styles dialog is Open
+  Folder.
+- **FIXED.** Ten dialogs that draw their own header could not be dragged by it (Save question, Column Settings, Compare Dimension
+  Styles, Background Mask, Text Size, New Layer State, Paragraph, Edit Scale, Style Name, the UCS notice). The Plot Style Table
+  Editor's Table View header started 8 pixels left of its cells, did not scroll with them, and a style with no colour shifted its
+  row 19 left; its Form View used a mono box with no gap between rows. The lists of the Plot Styles dialogs and the Select
+  Template list were black or unframed where the other dialogs' are on the box ground.
+- **NEW.** The ribbon is laid out at 120 and 144 dots per inch in the tests: Home takes the same steps at the same strip
+  widths, no label of any tab, slide-out, collapsed panel's drop-down or the Insert gallery is cut, and the pin and Esc work.
+  Home's panels are no wider than their design (Block 161 against 160; sum 1 695).
 - **NEW.** A dimension on a layout clicked through a viewport onto the model is tied to the model, as AutoCAD 2021's
   trans-spatial association: a DIMLINEAR or DIMALIGNED (DIMCONTINUE after one too) whose points were snapped
   through a viewport at DIMASSOC 2 writes a DIMASSOC of group 70 = 1 that names the viewport before each object, and shows the

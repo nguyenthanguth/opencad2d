@@ -273,6 +273,7 @@ namespace OpenCAD2D.Wpf
             document.Changed -= OnDocumentChanged;
             document.ActiveViewportChanged -= OnActiveViewportChanged;
             document.LayerFilterChanged -= OnLayerFilterChanged;
+            document.RefEditChanged -= OnRefEditChanged;
             StopWatchingReferences(document);
             document.Xrefs.Dispose();
         }
@@ -326,6 +327,7 @@ namespace OpenCAD2D.Wpf
             RebuildRows();
             UpdateProperties();
             Raise(nameof(HasDocument));
+            Raise(nameof(IsRefEditOpen));
             Raise(nameof(Document));
             Raise(nameof(Session));
             Raise(nameof(Space));

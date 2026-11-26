@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace OpenCAD2D.Wpf
@@ -403,6 +404,14 @@ namespace OpenCAD2D.Wpf
         {
             Answer = CadSaveChoice.DontSave;
             DialogResult = false;
+        }
+
+        private void OnHeaderDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed && IsLoaded)
+            {
+                DragMove();
+            }
         }
     }
 }

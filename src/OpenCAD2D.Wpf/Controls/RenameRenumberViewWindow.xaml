@@ -18,7 +18,6 @@
                 <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/StyleDialogs.xaml" />
                 <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <SolidColorBrush x:Key="ViewError" Color="#FF8A7A" />
         </ResourceDictionary>
     </Window.Resources>
 
@@ -64,7 +63,8 @@
                         <Button
                             Style="{StaticResource StylePrimaryButton}"
                             Content="OK"
-                            Padding="18,5"
+                            Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             IsDefault="True"
                             IsEnabled="{Binding CanOk}"
@@ -74,17 +74,25 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             IsCancel="True"
                             Click="OnCancel"
                         />
-                        <Button Style="{StaticResource GhDialogButton}" Content="Help" Padding="14,5" Click="OnHelp" />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Help"
+                            Padding="14,5"
+                            MinWidth="75"
+                            Click="OnHelp"
+                        />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Button
                             Style="{StaticResource GhDialogButton}"
                             Content="&lt; Previous"
-                            Padding="12,5"
+                            Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             IsEnabled="{Binding CanPrevious}"
                             Click="OnPrevious"
@@ -92,7 +100,8 @@
                         <Button
                             Style="{StaticResource GhDialogButton}"
                             Content="Next &gt;"
-                            Padding="12,5"
+                            Padding="14,5"
+                            MinWidth="75"
                             IsEnabled="{Binding CanNext}"
                             Click="OnNext"
                         />
@@ -144,7 +153,7 @@
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding CanOk}" Value="False">
                                     <Setter Property="Text" Value="{Binding Error}" />
-                                    <Setter Property="Foreground" Value="{StaticResource ViewError}" />
+                                    <Setter Property="Foreground" Value="{StaticResource GhProblem}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>

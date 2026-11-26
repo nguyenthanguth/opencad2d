@@ -11,6 +11,10 @@ I = {}
 # ---------------- Insert ----------------
 I["GhIconAttach"] = doc(3, 3, 18, 24) + [p("y", "s", R(15, 15, 14, 14)), p("b", "s", "M7 11l8 8"), p("b", "s", head(15, 19, 45, 4))]
 I["GhIconEditReference"] = [p("c", "s", R(3, 3, 16, 16)), p("y", "s", R(7, 7, 8, 8))] + pencil("BR")
+I["GhIconRefSave"] = [p("c", "s", R(3, 3, 16, 16)), p("y", "s", R(7, 7, 8, 8))] + check("BR")
+I["GhIconRefDiscard"] = [p("c", "s", R(3, 3, 16, 16)), p("y", "s", R(7, 7, 8, 8))] + cross("BR")
+I["GhIconRefAdd"] = [p("c", "s", R(3, 3, 16, 16)), p("k", "f", P((7, 7), (17, 11), (12, 12), (11, 17), close=True))] + plus("BR")
+I["GhIconRefRemove"] = [p("c", "s", R(3, 3, 16, 16)), p("k", "f", P((7, 7), (17, 11), (12, 12), (11, 17), close=True))] + minus("BR")
 I["GhIconClip"] = [p("g", "s", R(3, 3, 26, 26)), p("y", "s", P((9, 9), (23, 9), (23, 19), (15, 23), (9, 23), close=True)), p("r", "S", "M23 25l6 6M29 25l-6 6")]
 I["GhIconAdjust"] = [p("k", "s", O(16, 16, 12)), p("k", "f", "M16 4A12 12 0 0 1 16 28z"), p("y", "S", "M16 1v2")]
 I["GhIconUnderlayLayers"] = H["GhIconLayers"][:3] + [p("c", "t", P((3, 10), (16, 4), (29, 10), (16, 16), close=True)), p("c", "s", P((3, 10), (16, 4), (29, 10), (16, 16), close=True))]

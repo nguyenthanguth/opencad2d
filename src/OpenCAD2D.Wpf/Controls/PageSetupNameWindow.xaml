@@ -60,6 +60,7 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="OK"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnOk"
                             IsDefault="True"
@@ -69,17 +70,25 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnCancel"
                             IsCancel="True"
                         />
-                        <Button Style="{StaticResource GhDialogButton}" Content="Help" Padding="14,5" Click="OnHelp" />
+                        <Button
+                            Style="{StaticResource GhDialogButton}"
+                            Content="Help"
+                            Padding="14,5"
+                            MinWidth="75"
+                            Click="OnHelp"
+                        />
                     </StackPanel>
                     <Button
                         HorizontalAlignment="Left"
                         Style="{StaticResource GhDialogButton}"
                         Content="Import…"
                         Padding="14,5"
+                        MinWidth="75"
                         Click="OnImport"
                         Visibility="{Binding CanImport, Converter={StaticResource ShownWhen}}"
                         ToolTip="Copy page setups of another drawing into this one"
@@ -99,7 +108,7 @@
                             <Style.Triggers>
                                 <!-- A name that is refused has a red frame, as well as its reason below. -->
                                 <DataTrigger Binding="{Binding HasError}" Value="True">
-                                    <Setter Property="BorderBrush" Value="#F26B3A" />
+                                    <Setter Property="BorderBrush" Value="{StaticResource GhProblem}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -108,7 +117,7 @@
                 <TextBlock Text="{Binding Error}" TextWrapping="Wrap" Margin="0,6,0,0">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="#F26B3A" />
+                            <Setter Property="Foreground" Value="{StaticResource GhProblem}" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding HasError}" Value="False">
                                     <Setter Property="Visibility" Value="Collapsed" />

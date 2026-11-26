@@ -92,9 +92,10 @@
                 <DockPanel>
                     <Button
                         DockPanel.Dock="Right"
-                        Style="{StaticResource GhDialogButton}"
+                        Style="{StaticResource GhCloseButton}"
                         Content="Close"
                         Padding="14,5"
+                        MinWidth="75"
                         Background="{StaticResource GhClose}"
                         Foreground="White"
                         FontWeight="SemiBold"
@@ -161,7 +162,7 @@
             <TextBlock
                 DockPanel.Dock="Bottom"
                 Margin="16,0,16,0"
-                Foreground="{StaticResource GhError}"
+                Foreground="{StaticResource GhProblem}"
                 TextWrapping="Wrap"
                 Text="{Binding Message}"
             />

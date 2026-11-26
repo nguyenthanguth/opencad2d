@@ -22,6 +22,7 @@
     </Window.Resources>
 
     <Border
+        x:Name="Root"
         Background="{StaticResource GhPanel}"
         BorderBrush="{StaticResource GhBorder}"
         BorderThickness="1"
@@ -33,7 +34,12 @@
         TextOptions.TextFormattingMode="Display"
     >
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource GhHeader}" Padding="16,10">
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhHeader}"
+                Padding="16,10"
+                MouseLeftButtonDown="OnHeaderDown"
+            >
                 <DockPanel>
                     <Button
                         DockPanel.Dock="Right"
@@ -51,6 +57,7 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="OK"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnOk"
                             IsDefault="True"
@@ -59,13 +66,14 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Click="OnCancel"
                             IsCancel="True"
                         />
                     </StackPanel>
                     <TextBlock
                         Text="{Binding Notice}"
-                        Foreground="#FF8A7A"
+                        Foreground="{StaticResource GhProblem}"
                         TextWrapping="Wrap"
                         VerticalAlignment="Center"
                         Margin="0,0,12,0"

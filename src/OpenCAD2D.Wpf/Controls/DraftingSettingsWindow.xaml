@@ -148,7 +148,8 @@
                         <Button
                             Style="{StaticResource GhDialogButton}"
                             Content="OK"
-                            Padding="18,5"
+                            Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,6,0"
                             Click="OnOk"
                             IsDefault="True"
@@ -157,6 +158,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,6,0"
                             Command="{Binding CancelCommand}"
                             IsCancel="True"
@@ -165,6 +167,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Apply"
                             Padding="14,5"
+                            MinWidth="75"
                             Click="OnApply"
                         />
                     </StackPanel>
@@ -278,7 +281,7 @@
                                                     <DataTrigger Binding="{Binding FaultyBox}" Value="SnapX">
                                                         <Setter
                                                             Property="BorderBrush"
-                                                            Value="{StaticResource GhError}"
+                                                            Value="{StaticResource GhProblem}"
                                                         />
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -307,7 +310,7 @@
                                                     <DataTrigger Binding="{Binding FaultyBox}" Value="SnapY">
                                                         <Setter
                                                             Property="BorderBrush"
-                                                            Value="{StaticResource GhError}"
+                                                            Value="{StaticResource GhProblem}"
                                                         />
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -348,7 +351,7 @@
                                         <Style TargetType="Border" BasedOn="{StaticResource Edge}">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding FaultyBox}" Value="PolarDistance">
-                                                    <Setter Property="BorderBrush" Value="{StaticResource GhError}" />
+                                                    <Setter Property="BorderBrush" Value="{StaticResource GhProblem}" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -457,7 +460,7 @@
                                                     <DataTrigger Binding="{Binding FaultyBox}" Value="GridX">
                                                         <Setter
                                                             Property="BorderBrush"
-                                                            Value="{StaticResource GhError}"
+                                                            Value="{StaticResource GhProblem}"
                                                         />
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -486,7 +489,7 @@
                                                     <DataTrigger Binding="{Binding FaultyBox}" Value="GridY">
                                                         <Setter
                                                             Property="BorderBrush"
-                                                            Value="{StaticResource GhError}"
+                                                            Value="{StaticResource GhProblem}"
                                                         />
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -515,7 +518,7 @@
                                                     <DataTrigger Binding="{Binding FaultyBox}" Value="MajorLineEvery">
                                                         <Setter
                                                             Property="BorderBrush"
-                                                            Value="{StaticResource GhError}"
+                                                            Value="{StaticResource GhProblem}"
                                                         />
                                                     </DataTrigger>
                                                 </Style.Triggers>

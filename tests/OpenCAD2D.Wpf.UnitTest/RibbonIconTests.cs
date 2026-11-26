@@ -28,7 +28,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 var all = icons.Keys.Cast<object>().Where(k => icons[k] is RibbonIcon).Select(k => (string)k).ToList();
                 var problems = new List<string>();
 
-                Assert.Equal(378, all.Count);
+                Assert.Equal(382, all.Count);
                 Assert.All(all, k => Assert.EndsWith(".Color", k, StringComparison.Ordinal));
                 Assert.Contains("GhIconLine.Color", all);
 

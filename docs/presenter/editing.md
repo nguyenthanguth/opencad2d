@@ -2802,7 +2802,7 @@ again `** Command not allowed, BOX already checked out for editing **`, QSAVE an
 reference editing **` (the window's Save button, Ctrl+S and the Save As dialog say the same and write nothing), REFSET and REFCLOSE with no edit open `** Command not allowed unless a reference is checked out with
 REFEDIT command **`, and these commands say `Not allowed in the Block Editor.` inside it. An edit is kept in the drawing, in the XRECORD
 `OPENCAD2D_REFEDIT` of the named object dictionary, so that a drawing saved in the middle of one opens with the edit still open. The
-Refedit toolbar is not built, and a block array is refused (`A block array cannot be edited in place.`). The
+ribbon shows AutoCAD 2021's Edit Reference panel while an edit is open, at the right end of whichever tab is shown (Home, Insert or any other; the strip of the tab takes its steps in the width left): Save Changes and Discard Changes run REFCLOSE with Save or Discard, Add to Working Set and Remove from Working Set run REFSET with Add or Remove, and the panel goes at REFCLOSE (`MainViewModel.IsRefEditOpen`). AutoCAD's own menu-bar items for the working set (Tools, Xref and Block In-place Editing) and its Refedit toolbar are not built: the app has no menu bar and no toolbars, and the panel is the way in. A block array is refused (`A block array cannot be edited in place.`). The
 object menu of a block reference starts REFEDIT as Edit Block In-place, and that of one external reference as Edit Xref
 In-place. AutoCAD 2021's accoreconsole has no REFEDIT, REFSET or
 REFCLOSE, fed by a script or by standard input (`Unknown command`; ARXLOAD of AcRefEd.arx fails there, and a long transaction,

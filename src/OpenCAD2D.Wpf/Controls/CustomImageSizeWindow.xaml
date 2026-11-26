@@ -58,20 +58,22 @@
             <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button
-                        Style="{StaticResource GhDialogButton}"
-                        Content="Cancel"
-                        Padding="14,5"
-                        Margin="0,0,8,0"
-                        Click="OnCancel"
-                        IsCancel="True"
-                    />
-                    <Button
                         Style="{StaticResource StylePrimaryButton}"
                         Content="OK"
                         Padding="14,5"
+                        MinWidth="75"
+                        Margin="0,0,8,0"
                         Click="OnOk"
                         IsDefault="True"
                         IsEnabled="{Binding CanOk}"
+                    />
+                    <Button
+                        Style="{StaticResource GhDialogButton}"
+                        Content="Cancel"
+                        Padding="14,5"
+                        MinWidth="75"
+                        Click="OnCancel"
+                        IsCancel="True"
                     />
                 </StackPanel>
             </Border>
@@ -105,7 +107,7 @@
                                 <Style TargetType="TextBox" BasedOn="{StaticResource BlockNumber}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsWidthValid}" Value="False">
-                                            <Setter Property="BorderBrush" Value="#F26B3A" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource GhProblem}" />
                                             <Setter Property="ToolTip" Value="{Binding RangeTip}" />
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -136,7 +138,7 @@
                                 <Style TargetType="TextBox" BasedOn="{StaticResource BlockNumber}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsHeightValid}" Value="False">
-                                            <Setter Property="BorderBrush" Value="#F26B3A" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource GhProblem}" />
                                             <Setter Property="ToolTip" Value="{Binding RangeTip}" />
                                         </DataTrigger>
                                     </Style.Triggers>

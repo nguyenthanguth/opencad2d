@@ -194,6 +194,7 @@
                         Style="{StaticResource GhDialogButton}"
                         Content="Preview…"
                         Padding="14,5"
+                        MinWidth="75"
                         Margin="0,0,8,0"
                         Click="OnPreview"
                         IsEnabled="{Binding CanPlot}"
@@ -203,6 +204,7 @@
                         Style="{StaticResource GhDialogButton}"
                         Content="Apply to Layout"
                         Padding="14,5"
+                        MinWidth="75"
                         Margin="0,0,8,0"
                         Click="OnApply"
                     />
@@ -211,6 +213,7 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="OK"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnOk"
                             IsDefault="True"
@@ -220,6 +223,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnCancel"
                             IsCancel="True"
@@ -228,6 +232,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Help"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Click="OnHelp"
                         />
@@ -247,7 +252,7 @@
                                 <Style.Triggers>
                                     <!-- Why OK was refused is told here, in the orange of an error. -->
                                     <DataTrigger Binding="{Binding HasNotice}" Value="True">
-                                        <Setter Property="Foreground" Value="#F26B3A" />
+                                        <Setter Property="Foreground" Value="{StaticResource GhProblem}" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>

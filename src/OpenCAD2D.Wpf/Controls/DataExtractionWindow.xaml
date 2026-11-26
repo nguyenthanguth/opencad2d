@@ -127,6 +127,7 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="&lt; Back"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Command="{Binding BackCommand}"
                         />
@@ -134,6 +135,7 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="Next &gt;"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Command="{Binding NextCommand}"
                             IsDefault="True"
@@ -142,6 +144,7 @@
                             Style="{StaticResource StylePrimaryButton}"
                             Content="Finish"
                             Padding="14,5"
+                            MinWidth="75"
                             Margin="0,0,8,0"
                             Command="{Binding FinishCommand}"
                         />
@@ -149,13 +152,14 @@
                             Style="{StaticResource GhDialogButton}"
                             Content="Cancel"
                             Padding="14,5"
+                            MinWidth="75"
                             Command="{Binding CancelCommand}"
                             IsCancel="True"
                         />
                     </StackPanel>
                     <TextBlock
                         Text="{Binding Message}"
-                        Foreground="{StaticResource GhError}"
+                        Foreground="{StaticResource GhProblem}"
                         VerticalAlignment="Center"
                         TextWrapping="Wrap"
                         Margin="0,0,12,0"

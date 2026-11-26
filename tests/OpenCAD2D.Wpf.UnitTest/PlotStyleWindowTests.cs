@@ -201,7 +201,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
                     Assert.Equal(9, Descendants(body).OfType<ListBox>().Single().Items.Count);
                     Assert.Equal(
-                        new[] { "Close", "Edit…", "New…", "Delete", "Open folder" },
+                        new[] { "Close", "Edit…", "New…", "Delete", "Open Folder" },
                         Descendants(body)
                             .OfType<Button>()
                             .Select(b => b.Content as string)
