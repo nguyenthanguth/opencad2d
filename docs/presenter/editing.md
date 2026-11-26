@@ -81,6 +81,46 @@ the undo is not the object it gives after, so keep handles, not entities, across
 `Save()` writes to the file the drawing was opened from, `SaveAs(path)` to another, which it is then known by. A drawing
 opened from a stream or given in memory has no file: `HasFile` is false and `Save()` throws until `SaveAs` gives it one.
 
+### Snapshot and reset of a drawing in memory
+
+```csharp
+CadSnapshot start = document.TakeSnapshot();   // the drawing as it stands; a few ms the first time, then nothing
+// ... an episode of edits, as many as wanted ...
+document.Reset(start);                         // the drawing as it was, to the byte; as often as wanted
+```
+
+For a program that runs an episode of edits on a drawing many times from the same start (training a model, trying layouts) and
+cannot read the file again each time. The document keeps the drawing at every step already, so a snapshot is a point of the undo
+list (the number of steps behind it, the last of them and the drawing kept there), and a reset is one jump of the list back to it:
+what `Undo` does for one step, done once over all the steps since. The drawing is read from the kept bytes once, not once per step
+(`DxfDatabase.Open` of the bytes is lazy: 2 ms for 10 000 entities), only the entities the steps touched are drawn again, as after
+an undo, and the display lists, the cached `CadSpatialIndex` and the pictures of dimensions come out as a REGEN would make them.
+The steps made since are then forgotten, as a new edit after an undo forgets the steps undone, so a thousand episodes hold no more
+steps than one, and the steps before the snapshot stay undoable. The reset after the first is faster still: it reads ahead, on a
+worker thread, the drawing the next reset goes to while the episode runs, with its index of handles, as an undo reads its
+neighbours ahead; unlike those readings an edit does not stop it.
+
+| What | Time (10 000 entities, 100 edits since the snapshot) |
+|---|---|
+| open the DXF and draw model space | 20 to 40 ms; a DWG of the same objects 17 to 27 ms; 80 ms with SHX text in the test drawing |
+| `Reset`, the next one's drawing read ahead | 0.2 ms, then 1 to 2 ms to draw what the episode touched |
+| `Reset`, the first to a snapshot | 4 to 6 ms, then 5 to 10 ms to draw what the episode touched |
+| `Reset` from the snapshot's own bytes (below) | 3 to 6 ms, then every display list made again: 10 to 40 ms |
+
+Where the list no longer holds the point (the drawing was undone below it and edited again, a Block Editor session joined the steps,
+or a reset to an earlier snapshot cut the list), `Reset` reads the drawing back from the bytes the snapshot keeps, as a failed edit
+is taken back (`CadChangeKind.Rollback`): the drawing is as exact, every display list is drawn again, and the undo list starts afresh
+with the drawing, nothing left to undo and `IsModified` true. The views of the spaces and the user coordinate system, which the
+steps put back, are not restored on that path. A reset to a point below where the list stands goes forward the same way.
+`Changed` is raised as for an undo, the step named `RESET`, with the handles the steps since touched.
+
+`TakeSnapshot` and `Reset` throw `InvalidOperationException` while a command's group of edits is open (`IsInGroup`) and while the
+Block Editor or a reference edit is open, and `Reset` an `ArgumentException` for a snapshot of another document. A change written
+into `Database` directly, not through `ApplyEdit`, after the first step is not in a snapshot, as it is not in an undo. In the app, the
+Remote request `reset` is refused while a command runs in the drawing, as a commit is; the reset is not one more undo step, as that
+would keep every episode's steps for ever. Python's [`drawing.snapshot()` and `drawing.reset()`](../python.md#a-snapshot-and-reset-many-episodes-from-the-same-start)
+call these.
+
 ## The command line
 
 A [`CadCommandSession`](xref:OpenCAD2D.CadCommandSession) is the command line of one document. It knows no

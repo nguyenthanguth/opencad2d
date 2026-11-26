@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **NEW.** A fast snapshot and reset of a drawing in memory, for a program that runs thousands of episodes of edits from the same start
+  (PW7.3). `drawing.snapshot()` keeps the drawing as it stands (a few milliseconds the first time) and `drawing.reset(snapshot)` puts it
+  back to the byte: the JSON export, the objects and their handles (the next object made gets the handle it got the first time, as the
+  handle seed comes back), the layers, styles, linetypes, blocks and layouts, and the header variables such as the current layer and
+  styles. The display, the cached spatial index and the pictures of dimensions are drawn again only where the episode touched them: a
+  drawing of 10 000 objects after 100 random edits resets in about 0.2 ms and draws again in 1 to 3 ms (the first reset to a snapshot
+  takes 4 to 6 ms; opening the file and drawing it takes 20 to 40 ms), and 1 000 episodes of 100 edits each, ended by a reset, leave the
+  managed memory exactly where the first hundred put it. It works on the undo list the document already keeps: a snapshot is a point of
+  it and a reset one jump back to the point, the steps since forgotten (not made one more step, so memory does not grow, and what the
+  user did before the snapshot stays undoable), with the drawing of the next reset read ahead on a worker thread while the episode runs.
+  Where the list no longer holds the point (the drawing was undone below it and edited again) the reset reads the drawing back from
+  the snapshot's own bytes: as exact, every display list drawn again, the undo list started afresh. Refused while a command runs in the
+  drawing and while the Block Editor is open. On a file, in the app and from outside it (the requests `snapshot`, `reset` and
+  `releaseSnapshot`; `snapshot.release()` lets the app forget one). In C#: `CadDocument.TakeSnapshot`, `CadDocument.Reset`,
+  `CadSnapshot`, and `CadRemoteDocument.TakeSnapshot`, `Reset`, `Release` with `CadRemoteSnapshot`.
 - **CHANGED.** The layouts of a new drawing are in millimetres on a real sheet. The library's own new drawing has Layout1 with the paper
   in inches and a sheet of 0 by 0, which the export (`toMillimetres` 25.4), the standards checker (text heights on paper 25.4 times
   too large) and the renders read as inches. The app's NEW (the presenter's metric template, `CadTemplate.CreateMetric`), Python's `new_file()`

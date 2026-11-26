@@ -360,6 +360,20 @@ class _RemoteBackend:
         """The scores and violations of the app's check of the drawing against the standard (its JSON text)."""
         return self._document.CheckStandard(standard, model_scale, tolerance)
 
+    # ---- a snapshot and reset of the drawing in memory (PW7.3) ------------------------------------------------------
+
+    def snapshot(self) -> Any:
+        """The app's snapshot of the drawing, a ``CadRemoteSnapshot`` (the app holds the drawing)."""
+        return self._document.TakeSnapshot()
+
+    def reset(self, snapshot: Any) -> None:
+        """Asks the app to put the drawing back as the snapshot kept it."""
+        self._document.Reset(snapshot)
+
+    def release(self, snapshot: Any) -> None:
+        """Tells the app to forget the snapshot."""
+        self._document.Release(snapshot)
+
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 
     def export(

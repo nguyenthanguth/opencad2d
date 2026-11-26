@@ -979,6 +979,76 @@ that names the member. The box of a violation is that of the object, or, for a g
 what it is too near. A tolerance (`0.001` mm) is how near a gap may come to the one allowed and still pass.
 The C# calls are [`CadStandards.Check`](presenter/display.md#checking-a-drawing-against-a-standard).
 
+### A snapshot and reset: many episodes from the same start
+
+A program that learns by trying (a model that lays a drawing out, a search over layouts) runs an episode of edits on a drawing, scores
+it, and starts again from the same drawing, thousands of times. Opening the file each time reads it and draws it again from nothing
+(20 to 40 ms for 10 000 objects, much more for a drawing with hatches and dimensions). `drawing.snapshot()` keeps the drawing as it
+stands, and `drawing.reset(snapshot)` puts it back to the byte, drawing again only what the episode touched:
+
+```python
+from opencad2d.cad import new_file
+
+drawing = new_file()
+drawing.layers.add("Steel", color=1)
+drawing.commit()
+drawing.add_line((0, 0), (100, 0), layer="Steel")
+drawing.add_circle((50, 50), 25)
+drawing.commit()
+before = drawing.to_json()
+start = drawing.snapshot()                           # a few milliseconds; the drawing is held compressed
+
+handles = []
+for episode in range(3):                             # an episode is any edits at all
+    drawing.add_text("TRIAL", (0, 100), 5.0)
+    drawing.move(drawing.entities("CIRCLE"), (10, 0))
+    drawing.layers.add("Trial", color=2)
+    drawing.current_layer = "Steel"
+    handles.append(drawing.commit())
+    drawing.erase(drawing.entities("LINE")[0])
+    drawing.commit()
+    drawing.reset(start)                             # and the drawing is as it was
+
+handles[0] == handles[1] == handles[2]               # True
+drawing.to_json() == before                          # True
+drawing.current_layer                                # '0'
+[layer.name for layer in drawing.layers]             # ['0', 'Steel']
+len(drawing.entities())                              # 2
+```
+
+Everything comes back: the objects and their handles (the object an episode adds gets the handle it got in the first episode, because
+the handle seed comes back too), the layers, styles, linetypes, blocks and layouts, the current layer and styles, and the settings in
+the header. What is queued and not committed is dropped, an `Entity` read before is a copy and keeps what it had, and the same
+snapshot can be reset to as often as wanted. The display, the spatial index (`bounds`, `overlaps`, `check`) and the pictures of
+dimensions are the ones the drawing would have if it were opened again: they are drawn again only where the episode touched them.
+
+How it works, and what it costs. The drawing already keeps itself at every undo step, so a snapshot is a point of that list and
+costs a few milliseconds the first time; a reset is one jump back to that point (what `U` does for one step, done once over all the
+steps since), and the steps made since are forgotten, not made one more step, so a thousand episodes hold no more steps than one. What
+the user did before the snapshot can still be undone. Where the list no longer holds the point (the drawing was undone below it and
+edited again, or a reset to an earlier snapshot cut it) the reset reads the drawing back from the bytes the snapshot keeps: the same
+drawing, with every display list drawn again and the undo list started afresh (the views of the spaces and the user coordinate system
+are not restored on that path). A drawing of 10 000 objects, after 100 random edits, resets in about 1 ms and draws again in 1 to 3 ms
+(the first reset to a snapshot takes about 4 ms: the drawing of the next one is read while the episode runs); 1 000 episodes of 100
+edits leave the memory where the first hundred put it.
+
+```python
+for episode in range(3):
+    drawing.add_circle((200, 200), 10)
+    drawing.commit()
+    drawing.reset(start)
+len(drawing.entities())                              # 2
+start.release()
+start.drawing is drawing                             # True
+```
+
+In a running app the same calls work through `connect()`: `drawing.snapshot()` asks the app to keep the drawing, `reset` puts it
+back (the canvas is redrawn as after an undo), and `release()` lets the app forget the snapshot, which it holds until then or until
+the drawing is closed. Neither is possible while a command runs in the drawing, nor in a tool, which runs inside one: the call raises
+with the command's name. A snapshot of another drawing, or one released, is a `ValueError`; a snapshot is refused while the Block
+Editor or a reference edit is open. The C# calls are
+[`CadDocument.TakeSnapshot` and `Reset`](presenter/editing.md#snapshot-and-reset-of-a-drawing-in-memory).
+
 ## Rendering without a window
 
 A drawing of a file, from `open_file` or `new_file`, can be drawn to a picture with no app and no window: a PNG, an SVG, a PDF

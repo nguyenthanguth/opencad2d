@@ -68,6 +68,7 @@ namespace OpenCAD2D
         private readonly CadOwnerRegistry _owners = new CadOwnerRegistry();
         private ReadAhead _readUndo;
         private ReadAhead _readRedo;
+        private ReadAhead _readReset;
         private Task _reading = Task.FromResult(0);
 
         // The step of the undo list the drawing shown was read from by an undo or a redo, nothing written into it since; else null.
@@ -1478,7 +1479,7 @@ namespace OpenCAD2D
         /// A drawing kept for undo: saved at once, as the step stands, and compressed on worker threads, so that an edit of a
         /// drawing of a million entities (73 MB as text) does not wait for its packing; an undo that needs it first waits.
         /// </summary>
-        private sealed class KeptState
+        internal sealed class KeptState
         {
             private readonly Task<PackedDrawing> _packing;
 
@@ -1511,6 +1512,11 @@ namespace OpenCAD2D
             {
                 taken = _readRedo;
                 _readRedo = null;
+            }
+            else if (_readReset != null && _readReset.State == state)
+            {
+                taken = _readReset;
+                _readReset = null;
             }
 
             if (taken != null && taken.Begun && taken.Wait())

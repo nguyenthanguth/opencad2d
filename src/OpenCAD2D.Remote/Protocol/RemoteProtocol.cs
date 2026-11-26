@@ -183,6 +183,15 @@ namespace OpenCAD2D.Remote
 
         /// <summary>A drawing checked against a drawing standard (<c>standard</c>, its JSON text; <c>modelScale</c>, <c>tolerance</c>): <c>name</c>, <c>total</c>, <c>rules</c> and <c>violations</c>.</summary>
         public const string CheckStandard = "check";
+
+        /// <summary>Keeps a drawing as it stands: <c>snapshot</c>, the number to reset it with.</summary>
+        public const string Snapshot = "snapshot";
+
+        /// <summary>Puts a drawing back as a snapshot (<c>snapshot</c>, its number) kept it; the steps made since are forgotten.</summary>
+        public const string Reset = "reset";
+
+        /// <summary>Lets the app forget a snapshot (<c>snapshot</c>, its number) and the memory it holds.</summary>
+        public const string ReleaseSnapshot = "releaseSnapshot";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

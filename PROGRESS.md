@@ -92,7 +92,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       2. DONE 2026-11-26 (a71a7c43). A standards checker as reward terms: words on paper at the plotted scale, minimum gaps between words and
          lines, dimension chains in line, layers/linetypes/styles per a company standard file; a score per rule and
          the violations with their places. -> verify: a rule test each; a drawing scored before/after a fix.
-      3. Fast snapshot and reset of a drawing in memory (thousands of RL episodes without reading the file again).
+      3. DONE 2026-11-26 (97b765a3). Fast snapshot and reset of a drawing in memory (thousands of RL episodes without reading the file again).
          -> verify: reset time for a 10 000-entity drawing; state equal after reset.
       4. DONE 2026-11-26 (2a0b634f). Labelled renders: the world-to-pixel matrix, class masks (words, dimensions, lines, hatches), COCO boxes.
          -> verify: a box drawn back from the matrix covers the entity's pixels.
