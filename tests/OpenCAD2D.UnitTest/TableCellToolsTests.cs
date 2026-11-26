@@ -362,6 +362,20 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void AFieldInACell_IsEvaluatedAgainWithTheDrawingsFields_AfterASaveAndAReopen()
+        {
+            CadDocument document = Metric();
+            string handle = Schedule(document);
+            Assert.True(CadTableEditor.InsertField(document, handle, 2, 2, "%<\\AcVar Date \\f \"yyyy\">%").Succeeded);
+            TableOf(document, handle).SetFieldValue(2, 2, "2000");
+            string year = DateTime.Now.Year.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            CadDocument reopened = CadDocument.From(DxfDatabase.Parse(document.Database.ToText()), "again.dxf");
+
+            Assert.Equal(year, TableOf(reopened, handle).TextString(2, 2));
+        }
+
+        [Fact]
         public void DataFormat_GivesNumbersAKindAndAFormat_AMoneyOfTwoPlacesWithItsSign()
         {
             CadDocument document = Metric();

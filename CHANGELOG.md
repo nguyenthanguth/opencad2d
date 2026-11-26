@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **FIXED.** The fields of the attributes of a title block were lost when a layout was brought in with a template whose chosen layout
+  is not the first (LAYOUT Template, New Sheet and Import of a sheet set, Save As template): the layout was copied without the FIELD
+  behind each attribute, so the words stayed as they were and a `\AcVar` or `\AcSm` field never updated again. The copy keeps the
+  fields (the cause was in the core library: its `WblockCloneObjects` dropped the field of a copied text, attribute or dimension, which
+  Paste and Insert of a drawing suffered too); Lib brings the fix.
+- **FIXED.** The fields and formulas in the cells of tables were never evaluated again on open, save or regen: they were looked for
+  only through the drawing's list of fields, which the fields of a table's cells are not in (a cell given a field with Insert Field, or a
+  table AutoCAD saved, which owns them by the text of its block). The tables of the spaces are looked through as well.
+
 - **NEW.** OPENSHEETSET and NEWSHEETSET (A12): OPENSHEETSET shows the palette's Open dialog or, with FILEDIA 0 or no window, asks
   "Enter name of sheet set to open:" as AutoCAD 2021's -OPENSHEETSET does (also a command of its own), answering "File can not be
   opened." and "Sheet Set file is not valid." in AutoCAD's words; NEWSHEETSET asks the wizard's pages on the command line (an example

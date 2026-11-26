@@ -716,7 +716,12 @@ namespace OpenCAD2D
             return handles;
         }
 
-        /// <summary>The handles of the tables that own a field (those of their cells' formulas and fields), in the order of the drawing's list of fields.</summary>
+        /// <summary>
+        /// The handles of the tables that hold a field in a cell (a field or a formula): those whose field the drawing's list of
+        /// fields names as owned by the table, in its order, then the tables of the spaces whose cells point at a field, in the
+        /// order of the spaces. The list is not all of them: the fields a table's cells hold are not always in it (a drawing
+        /// written before they were listed, a field AutoCAD owns by the text of the table's block).
+        /// </summary>
         internal static List<string> TablesWithFields(CadDocument document)
         {
             var handles = new List<string>();
@@ -726,34 +731,63 @@ namespace OpenCAD2D
             DxfItem rootItem = root == null ? null : file.ObjectItem(root);
 
             if (
-                rootItem == null
-                || !(DxfDBObject.OfObject(rootItem) is DxfDBDictionary dictionary)
-                || !dictionary.Contains("ACAD_FIELDLIST")
+                rootItem != null
+                && DxfDBObject.OfObject(rootItem) is DxfDBDictionary dictionary
+                && dictionary.Contains("ACAD_FIELDLIST")
             )
             {
-                return handles;
-            }
+                DxfDBObject list = dictionary.GetAt("ACAD_FIELDLIST");
 
-            DxfDBObject list = dictionary.GetAt("ACAD_FIELDLIST");
-
-            if (list?.Item == null || list.Item.Type != "FIELDLIST")
-            {
-                return handles;
-            }
-
-            foreach (DxfTypedValue group in file.ObjectGroupsOf(list.Item))
-            {
-                DxfItem field = group.TypeCode == 330 ? file.ObjectItem(group.Value) : null;
-                DxfItem owner =
-                    field == null || field.IsRemoved || field.Type != "FIELD" ? null : OwnerItem(file, field);
-
-                if (owner != null && owner.Type == "ACAD_TABLE" && owner.Handle != null && seen.Add(owner.Handle))
+                if (list?.Item != null && list.Item.Type == "FIELDLIST")
                 {
-                    handles.Add(owner.Handle);
+                    foreach (DxfTypedValue group in file.ObjectGroupsOf(list.Item))
+                    {
+                        DxfItem field = group.TypeCode == 330 ? file.ObjectItem(group.Value) : null;
+                        DxfItem owner =
+                            field == null || field.IsRemoved || field.Type != "FIELD" ? null : OwnerItem(file, field);
+
+                        if (
+                            owner != null
+                            && owner.Type == "ACAD_TABLE"
+                            && owner.Handle != null
+                            && seen.Add(owner.Handle)
+                        )
+                        {
+                            handles.Add(owner.Handle);
+                        }
+                    }
+                }
+            }
+
+            foreach (CadSpace space in document.Spaces)
+            {
+                foreach (DxfTable table in space.Block.OfType<DxfTable>())
+                {
+                    if (!table.IsErased && table.Handle != null && !seen.Contains(table.Handle) && HoldsField(table))
+                    {
+                        seen.Add(table.Handle);
+                        handles.Add(table.Handle);
+                    }
                 }
             }
 
             return handles;
+        }
+
+        private static bool HoldsField(DxfTable table)
+        {
+            try
+            {
+                return table.GetFieldCells().Count > 0;
+            }
+            catch (Exception exception) when (exception is InvalidOperationException || exception is ArgumentException)
+            {
+                GeometryHelperLog.Warn(
+                    "CadFields: the cells of the table " + table.Handle + " were not read.",
+                    exception
+                );
+                return false;
+            }
         }
 
         private static DxfItem OwnerItem(DxfFile file, DxfItem item)

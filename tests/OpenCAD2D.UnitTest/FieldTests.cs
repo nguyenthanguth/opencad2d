@@ -398,6 +398,40 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void ALayoutTemplateOfASheetThatIsNotTheFirst_KeepsTheFieldsOfItsAttributes()
+        {
+            CadDocument document = Plan();
+            DxfDatabase database = document.Database;
+            DxfLayout first = database.Layouts.First(l => l.LayoutName == "Layout1");
+            first.Initialize();
+            first.LayoutName = "A3";
+            Run(Session(document), "-LAYOUT", "N", "A1");
+
+            var block = new DxfBlockTableRecord { Name = "TITLEBLOCK" };
+            database.BlockTable.Add(block);
+            var definition = new DxfAttributeDefinition(new GeoPoint3(0, 0, 0), "x", "AUTHOR", "Author", null);
+            block.AppendEntity(definition);
+            var insert = new DxfBlockReference(new GeoPoint3(0, 0, 0), block);
+            database.Layouts.First(l => l.LayoutName == "A1").BlockTableRecord.AppendEntity(insert);
+            var attribute = new DxfAttributeReference();
+            attribute.SetAttributeFromBlock(definition, insert.BlockTransform);
+            insert.AttributeCollection.AppendAttribute(attribute);
+            CadFields.Set(attribute, "By %<\\AcVar Login>%", Context(document));
+            Assert.Equal("By Jane", attribute.TextString);
+
+            DxfDatabase template = CadCommands.TemplateOf(database, "A1");
+
+            DxfAttributeReference made = template
+                .Layouts.Single(l => l.LayoutName == "A1")
+                .BlockTableRecord.OfType<DxfBlockReference>()
+                .Single()
+                .AttributeCollection.Single();
+            Assert.Equal("By Jane", made.TextString);
+            Assert.True(CadFields.Has(made));
+            Assert.Equal("By %<\\AcVar Login>%", CadFields.CodesOf(made));
+        }
+
+        [Fact]
         public void FIELDEVAL_KeepsTheBitsInTheDrawing_AndStartsAt31()
         {
             CadDocument document = Plan();
