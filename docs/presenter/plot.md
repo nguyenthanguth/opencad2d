@@ -749,6 +749,25 @@ AutoCAD's list, has no reader here: `.WMF files cannot be imported by the presen
 nothing was imported.` AutoCAD's Import File lists none of DWG and DXF (they are for INSERT and OPEN), so this dialog's one
 type, `Drawing (*.dwg;*.dxf)`, is the presenter's own.
 
+## Layouts, viewports and a PDF from code
+
+A program makes a sheet without the commands. [`CadLayouts`](xref:OpenCAD2D.CadLayouts) does the work of LAYOUT New, the page setup and MVIEW with a
+scale given, each call one undo step and none of them typed at a command prompt (so a name that starts with `(`, `!` or `'` is only a name):
+
+| Call | What it does |
+|---|---|
+| `CadLayouts.List(document)` | how each space is set up, model space first: sheet, size in millimetres, turn, unit, what is plotted, scale as `1:50`, plot style, viewports |
+| `CadLayouts.Add(document, "Plate A3", "ISO_A3", true)` | adds a layout on a sheet of `CadPaper.Standard` (`ISO_A3`, `ISO A3` and `A3` are one), plotted at 1:1; refuses a name the drawing has, `Model` and AutoCAD's forbidden characters |
+| `CadLayouts.SetPageSetup(document, "Layout1", "A2", null, "extents", "1:50", "acad.ctb")` | changes only what is given: sheet, `landscape` or `portrait`, `layout`/`extents`/`display`/`limits`, a scale as `1:50`, `2:1`, `0.02` or `fit`, the plot style table |
+| `CadLayouts.AddViewport(document, "Layout1", new[] {20, 120, 220, 280}, "1:10", new[] {600.0, 400.0}, new[] {"Notes"})` | a viewport whose frame is the rectangle on the sheet, showing 10 times its size of model space about the centre, with the layers frozen in it alone; gives its handle |
+
+A frame 200 by 100 at 1:10 shows 2 000 by 1 000 units; a centre left out is the middle of what model space draws. `CadPlot.WritePdf(path,
+document, "Layout1", paper, scale, fit)` (in `OpenCAD2D.Rendering.dll`, beside `CadRender`) plots a layout as the PDF plotter does with the
+layout's page setup, or with a sheet, a scale or fit given for that plot alone, and writes the text of an SHX font also as invisible text so that
+the words of a plot can be found; it gives the `CadPlotPage` as it was laid on the sheet. From outside the app the same calls are
+`CadRemoteDocument.GetLayoutSetups`, `AddLayout`, `SetPageSetup` and `AddViewport` (the request `sheets`). Python's `drawing.layouts` is the
+[guide](../python.md#sheets-from-code-layouts-viewports-a-title-block-and-a-pdf).
+
 ## See also
 
 - [Editing as AutoCAD does](editing.md): the command line and the undo steps.

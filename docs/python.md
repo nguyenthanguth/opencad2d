@@ -1049,6 +1049,171 @@ with the command's name. A snapshot of another drawing, or one released, is a `V
 Editor or a reference edit is open. The C# calls are
 [`CadDocument.TakeSnapshot` and `Reset`](presenter/editing.md#snapshot-and-reset-of-a-drawing-in-memory).
 
+### Comparing two drawings
+
+What did the episode change, what did the user's edit move, is this drawing the one I saved before? `drawing.compare(other)` answers by
+object: the drawing is the state before and `other` the state after, a `Drawing` of any backend or the path of a DXF or DWG file, and
+the answer is a `Diff` of what `other` has that the drawing has not (`added`), what the drawing has that `other` has not (`removed`),
+and what both have that differs (`changed`). A changed object says what differs, by the names of the JSON export (`layer`, `color`,
+`center`, `box`, `text` ...), and where its box kept its width and height and moved, by how far:
+
+```python
+from opencad2d.cad import new_file, open_file
+
+drawing = new_file()
+drawing.layers.add("Steel", color=1)
+drawing.commit()
+drawing.add_line((0, 0), (100, 0), layer="Steel")
+drawing.add_circle((50, 50), 10)
+drawing.add_text("PLATE", (0, 100), 5.0)
+drawing.commit()
+drawing.save_as("before.dxf")                        # the plan as it is: the state before
+
+drawing.move(drawing.entities("CIRCLE"), (10, 0))
+drawing.erase(drawing.entities("TEXT")[0])
+drawing.add_arc((0, 0), 30, 0.0, 1.5)
+drawing.commit()
+
+diff = open_file("before.dxf").compare(drawing)      # what the edits did
+(len(diff.added), len(diff.removed), len(diff.changed), diff.unchanged)   # (1, 1, 1, 1)
+[(c.kind, c.handle) for c in diff.added]             # [('ARC', '104')]
+[(c.kind, c.handle) for c in diff.removed]           # [('TEXT', '103')]
+circle = diff.moved[0]
+(circle.kind, circle.moved_by, circle.properties)    # ('CIRCLE', (10.0, 0.0), ('box', 'center'))
+tuple(circle.box_before)                             # (40.0, 40.0, 60.0, 60.0)
+tuple(circle.box_after)                              # (50.0, 40.0, 70.0, 60.0)
+```
+
+The boxes come as NumPy arrays too, one row of `[min_x, min_y, max_x, max_y]` for each object of a list, in the order of the handles
+(`nan` for an object that draws nothing): `added_boxes`, `removed_boxes`, `before_boxes` and `after_boxes` (of `changed`, row for row)
+and `moved_by`, `(n, 2)` of `[dx, dy]`; each is `None` without numpy. `len(diff)` is the number of objects that differ, so `if diff:` asks
+whether the two differ, and `diff.is_same` says it the other way:
+
+```python
+diff.added_boxes.round(3).tolist()                   # [[2.122, 0.0, 30.0, 29.925]]
+diff.moved_by.tolist()                               # [[10.0, 0.0]]
+len(diff), diff.is_same                              # (3, False)
+```
+
+Objects are matched by handle, and the pieces a block draws by their place in the block, so the two drawings must be two states of one
+drawing: a file and the same file after an edit, the app's drawing now and a dump or a save of it earlier. Lengths are millimetres, as
+the [JSON export](#preparing-real-drawings-for-ai-flatten-json-and-graph) has them, and equal where they differ by no more than
+`tolerance` (0.001); a drawing in inches and one in millimetres that draw the same thing are the same. Two drawings drawn apart share
+handles that mean different things and come out as a mess: that is not what `compare` is for. What is queued is in neither side
+(`commit()` first). A drawing of the app is read as a copy of its database, as the renders read it, so the app is only read; a snapshot
+is not taken as `other`: keep a copy on disk instead.
+
+The use that wants this most is the reset. A drawing put back to its snapshot is the drawing of the copy saved before the episode, and the
+copy says so:
+
+```python
+drawing.save_as("episode-start.dxf")                 # the state to come back to
+start = drawing.snapshot()
+for episode in range(3):
+    drawing.add_circle((200, 200), 10)
+    drawing.commit()
+len(drawing.compare("episode-start.dxf"))            # 3: the three circles, which the copy does not have
+drawing.reset(start)
+drawing.compare("episode-start.dxf").is_same         # True
+```
+
+Two drawings of 10 000 objects are compared in about 0.4 s (each is read as the JSON export reads it, and the display of each is made
+once). The same comparison is the MCP tool `compare_drawings`, and the C# call is `CadDrawingDiff.Compare`.
+
+### Sheets from code: layouts, viewports, a title block and a PDF
+
+A plotted sheet takes a layout on a sheet of paper, a title block, viewports that show the model at a scale, and a plot. `drawing.layouts`
+is the table of the layouts, like `layers`: iterable (each a `Layout`), `len`, `[index]` or `[name]`, `in`, `add` and `current`. A
+`Layout` is its own name as a `str` too, so what took a layout name takes it. `add` makes a layout on a sheet of the plotter's list (ISO A0
+to A4, ANSI A to E, as `'ISO_A3'`, `'ISO A3'` or `'A3'`), in millimetres, plotted at 1:1; it is not made the layout shown. A layout's page
+setup is its members, which read the drawing each time and write it at once, one undo step each:
+
+```python
+from opencad2d.cad import new_file
+
+drawing = new_file()
+drawing.layers.add("Steel", color=1)
+drawing.layers.add("Notes", color=3)
+drawing.commit()
+drawing.add_polyline([(0, 0), (1200, 0), (1200, 800), (0, 800)], closed=True, layer="Steel")
+drawing.add_text("PLATE PL12", (100, 400), 25.0, layer="Notes")
+drawing.commit()
+
+sheet = drawing.layouts.add("Plate A3", paper="ISO_A3")
+(sheet.paper, sheet.size, sheet.units, sheet.scale, sheet.plot_area)   # ('ISO A3', (420.0, 297.0), 'mm', '1:1', 'layout')
+[str(layout) for layout in drawing.layouts]          # ['Model', 'Layout1', 'Plate A3']
+drawing.layouts.current                              # 'Model': adding a layout does not show it
+sheet.landscape = False
+sheet.size                                           # (297.0, 420.0)
+sheet.landscape = True
+sheet.scale = 0.02                                   # paper millimetres to a unit: the same as "1:50"
+sheet.scale                                          # '1:50'
+sheet.scale = "fit"
+sheet.scale                                          # 'fit'
+sheet.scale = "1:1"                                  # the sheet as it is: the viewports carry the scales
+sheet.plot_style = "monochrome.ctb"
+sheet.plot_area                                      # 'layout'
+```
+
+The page setup of a layout is `paper`, `landscape` (and so `size`, the sheet as plotted), `plot_area` (`layout`, `extents`, `display` or
+`limits`), `scale` (`'1:50'` or `'2:1'`, paper to drawing; `'fit'` fits the plot to the sheet) and `plot_style` (the table by the name of its
+file; empty for none), the page setup of the Plot dialog. Sheets are in millimetres: `units` is `'mm'` and a drawing from another program
+may say `'in'`; `add(..., units="in")` is a `ValueError`, because the page setup writes millimetres. A name that is empty, `Model`, one the
+drawing has, over 255 characters or with one of AutoCAD's forbidden characters, and a sheet the plotter lacks (the message lists its sheets),
+are `ValueError`s that leave the drawing as it was.
+
+A viewport shows model space at a scale. `add_viewport(frame, scale, center=None, frozen_layers=())` takes the rectangle on the sheet in
+millimetres (`[x1, y1, x2, y2]`, any two opposite corners), the scale as `"1:10"` or as paper millimetres to a unit (`0.2` is 1:5), the point of
+model space at the middle of the frame (the middle of what model space draws where left out) and the layers to freeze in this viewport
+only. A frame 200 by 100 at 1:10 shows 2 000 by 1 000 units. It gives the handle of the viewport:
+
+```python
+main = sheet.add_viewport((20, 120, 220, 280), "1:10", center=(600, 400), frozen_layers=["Notes"])
+detail = sheet.add_viewport((240, 120, 400, 280), 0.2, center=(1100, 700))
+(main, detail)                                       # ('109', '10A')
+sheet.viewports                                      # 2
+```
+
+The title block is a block with attribute definitions, inserted on the layout with the words of its attributes. `add_insert` takes
+`layout=` and `attributes=`, a dictionary of the words by tag (letters of either case the same); a tag left out keeps the default of its
+definition, `{}` gives every attribute its default and none gives the insert no attribute, as before. A constant attribute belongs to the
+block and is not made; a tag the block lacks is a `ValueError` that lists the tags it has. The block may be made in the same commit:
+
+```python
+from GeometryHelper.Dxf import DxfAttributeDefinition, DxfLine
+from GeometryHelper.Geometry import GeoPoint3
+
+frame = [DxfLine(GeoPoint3(0, 0, 0), GeoPoint3(160, 0, 0)), DxfLine(GeoPoint3(160, 0, 0), GeoPoint3(160, 20, 0))]
+number = DxfAttributeDefinition(GeoPoint3(4, 6, 0), "A-000", "NUMBER", "Drawing number", None)   # value, tag, prompt
+number.Height = 5.0
+drawing.blocks.add("TITLE", [*frame, number])
+drawing.add_insert("TITLE", (240, 10), layout=sheet, attributes={"NUMBER": "A-101"})
+drawing.commit()
+```
+
+`sheet.plot_pdf(path)` plots the layout through the plot pipeline, as PLOT to the PDF plotter does: one page of the sheet, the page setup of
+the layout, lines at their lineweights, the plot style table, text as text (the text of an SHX font also as invisible text over its strokes, so a
+reader's search and a program that reads the plot back find the words). It gives a `PlotInfo` of the file, the sheet, the scale as `'1:1'`
+and the part of the drawing plotted. `paper`, `scale` and `fit` change the setup for this plot only and are not written into the drawing:
+
+```python
+info = sheet.plot_pdf("plate.pdf")
+(info.sheet, info.scale)                             # ((420.0, 297.0), '1:1')
+sheet.plot_pdf("a4.pdf", paper="A4").sheet           # (297.0, 210.0): fitted to A4 for this plot, the layout stays A3
+sheet.paper                                          # 'ISO A3'
+```
+
+Every call that writes a layout, and `plot_pdf`, commits what is queued first, so that the order of a script is the order of the drawing.
+`examples/library/sheet_from_code.py` is the whole of it ([Python examples](python-examples.md#a-plotted-sheet-made-from-code)): a plate, an A3
+layout with a filled title block and two viewports at 1:10 and 1:5, plotted to a PDF whose words read back are the title block's. Each call is a
+few milliseconds (a layout 3 ms, a viewport 3 ms, a page setup 4 ms), and the plot of that sheet 35 ms once the fonts are loaded.
+
+On a drawing of a running app the same members work through `connect()`: the app makes the layout, sets its page setup and adds the viewport
+(the `sheets` request, each one undo step, refused with the command's name while a command runs in the drawing), and the PDF is plotted in
+your process from a copy of the app's drawing as it stands, changes not saved included, as the renders are. A refusal comes as the
+`CadRemoteException` of the app. In a Python tool, which runs inside a command of the drawing, the writes are refused with the command's name,
+as `snapshot` is; `compare` and the reads work there. The C# calls are [`CadLayouts`](presenter/plot.md#layouts-viewports-and-a-pdf-from-code) and `CadPlot.WritePdf`.
+
 ## Rendering without a window
 
 A drawing of a file, from `open_file` or `new_file`, can be drawn to a picture with no app and no window: a PNG, an SVG, a PDF
@@ -1488,7 +1653,7 @@ the block, also when it raises. A tool of the app uses `opencad2d.cad`, whose `c
 | Page | What it covers |
 |---|---|
 | [How do I](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
-| [Python examples](python-examples.md) | eighteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
+| [Python examples](python-examples.md) | nineteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
 | [Python API](../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
 | [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md), [Reading and writing DWG files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) | the drawing, its tables and entities, read and written |
 | [The 2D presenter](presenter/index.md), [Editing as AutoCAD does](presenter/editing.md) | `CadDocument`, its command session and undo |

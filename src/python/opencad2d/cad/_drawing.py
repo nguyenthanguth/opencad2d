@@ -304,6 +304,27 @@ class Backend(Protocol):
     def snapshot(self) -> Any: ...
     def reset(self, snapshot: Any) -> None: ...
     def release(self, snapshot: Any) -> None: ...
+    def as_drawn(self) -> Any: ...
+    def layout_list(self) -> list[dict[str, Any]]: ...
+    def layout_add(self, name: str, paper: str | None, landscape: bool) -> dict[str, Any]: ...
+    def layout_setup(
+        self,
+        layout: str,
+        paper: str | None,
+        orientation: str | None,
+        area: str | None,
+        scale: str | None,
+        plot_style: str | None,
+    ) -> dict[str, Any]: ...
+    def layout_viewport(
+        self,
+        layout: str,
+        frame: tuple[float, float, float, float],
+        scale: str,
+        center: tuple[float, float] | None,
+        frozen: list[str],
+    ) -> str: ...
+    def plot_pdf(self, layout: str, path: str, paper: str | None, scale: str | None, fit: bool) -> Any: ...
 
 
 def dxf_type_of(net: Any) -> str:
@@ -358,6 +379,11 @@ def positive(what: str, number: float) -> None:
     """``ValueError`` unless the number is finite and above nought (a scale factor, an offset distance)."""
     if not (math.isfinite(number) and number > 0.0):
         raise ValueError(f"{what} is a finite number above nought, not {number!r}.")
+
+
+def _layout_name(layout: str | None) -> str | None:
+    """A layout as a plain ``str``: a ``Layout`` is one, but .NET takes only an exact ``str``."""
+    return None if layout is None else str(layout)
 
 
 def variable_value(name: str, value: Any) -> Any:
@@ -1183,6 +1209,7 @@ class Drawing:
         self._dimension_styles = DimensionStyles(self)
         self._linetypes = Linetypes(self)
         self._blocks = Blocks(self)
+        self._layouts = Layouts(self)
 
     # ---- the queue ------------------------------------------------------------------------------------------------
 
@@ -1290,7 +1317,7 @@ class Drawing:
             len(drawing.entities(DxfCurve))               # 4: the line, the circle, the arc and the polyline
         """
         if type is None or isinstance(type, str):
-            found = self._backend.read(None if type is None else type.upper(), layer, layout)
+            found = self._backend.read(None if type is None else type.upper(), layer, _layout_name(layout))
             entities = [Entity(self, handle, net, source) for handle, net, source in found]
             if type is None:
                 return entities
@@ -1557,7 +1584,7 @@ class Drawing:
             table.handles                                 # ['101', '102'] for a line and a text
             table.boxes[0]                                # array([0., 0., 100., 40.]) for the line from (0, 0) to (100, 40)
         """
-        handles, boxes = self._backend.bounds(layout, None)
+        handles, boxes = self._backend.bounds(_layout_name(layout), None)
         return BoundsTable(handles, _rows(boxes))
 
     def overlaps(
@@ -1593,7 +1620,7 @@ class Drawing:
             raise ValueError(f"The tolerance is a finite number of nought or more, not {tolerance!r}.")
         handles = None if of is None else self._handles_of(of)
         words, others, boxes = self._backend.overlaps(
-            layout,
+            _layout_name(layout),
             None if kinds is None else [str(kind) for kind in kinds],
             None if over is None else [str(kind) for kind in over],
             handles,
@@ -1784,7 +1811,7 @@ class Drawing:
                 raise ValueError(f"{what} is a finite number of nought or more, not {value!r}.")
         _tolerance(tolerance)
         rows = self._backend.free_space(
-            layout,
+            _layout_name(layout),
             frame,
             None if kinds is None else [str(kind) for kind in kinds],
             float(margin),
@@ -1818,7 +1845,7 @@ class Drawing:
         _tolerance(tolerance)
         return bool(
             self._backend.fits(
-                layout,
+                _layout_name(layout),
                 (place.x, place.y, place.width, place.height, place.rotation),
                 None if kinds is None else [str(kind) for kind in kinds],
                 float(margin),
@@ -1855,7 +1882,7 @@ class Drawing:
         if self._drafts is not None:  # a measure takes the object an add_* makes and queues nothing
             self._drafts.append(clone)
             return entity
-        self._queue(Op("insert", entity=entity, copy=dxf_entity.Clone(), layout=layout))
+        self._queue(Op("insert", entity=entity, copy=dxf_entity.Clone(), layout=_layout_name(layout)))
         return entity
 
     def add_line(self, start: Any, end: Any, **props: Any) -> Entity[DxfLine]:
@@ -2159,15 +2186,27 @@ class Drawing:
         return self.add(self._made(made, props))
 
     def add_insert(
-        self, name: str, insert: Any, scale: float = 1.0, rotation: float = 0.0, **props: Any
+        self,
+        name: str,
+        insert: Any,
+        scale: float = 1.0,
+        rotation: float = 0.0,
+        layout: str | None = None,
+        attributes: Mapping[str, str] | None = None,
+        **props: Any,
     ) -> Entity[DxfBlockReference]:
         """Queue an INSERT of the block ``name`` at ``insert``, scaled by ``scale`` and turned ``rotation`` radians, as INSERT
-        places one. The block is one the drawing has or one ``blocks.add`` makes in the same commit; the commit refuses
-        a name neither has.
+        places one, in model space or in ``layout``. The block is one the drawing has or one ``blocks.add`` makes in the same
+        commit; the commit refuses a name neither has. ``attributes`` fills the attributes of the block, as -INSERT asks for
+        them: the words by tag (letters of either case the same), a tag left out keeping the default of its definition, and
+        ``{}`` an insert with every attribute at its default; the constant attributes belong to the block and are not made. A
+        tag the block lacks, and ``attributes`` for a block with no attribute definition, are a ``ValueError`` that names the
+        tags the block has. Left out, the insert has no attribute of its own, as before.
 
         Example:
             drawing.add_insert("BOLT", (100, 50))                      # an INSERT of BOLT at (100, 50)
             drawing.add_insert("BOLT", (200, 50), scale=2.0, rotation=math.pi / 2)   # twice the size, turned a quarter
+            drawing.add_insert("TITLE", (0, 0), layout="Layout1", attributes={"DRAWING": "Plate", "SCALE": "1:10"})
         """
         label = _record_name(name, "block")
         positive("The scale of an insert", scale)
@@ -2179,7 +2218,41 @@ class Drawing:
         made = _dxf.DxfBlockReference(point3(insert), record)
         made.ScaleFactors = _geo.GeoVector3(float(scale), float(scale), float(scale))
         made.Rotation = float(rotation)
-        return self.add(self._made(made, props))
+        if attributes is not None:
+            self._fill_attributes(made, record, label, attributes)
+        return self.add(self._made(made, props), layout=layout)
+
+    def _fill_attributes(self, made: Any, record: Any, label: str, values: Mapping[str, str]) -> None:
+        """Gives an INSERT the attributes its block defines: one for each definition that is not constant, its words the value
+        given for its tag or the definition's own, placed as the INSERT places the block."""
+        found: list[Any] | None = None
+        for op in reversed(self._ops):
+            if op.kind == "block" and op.spec.name.upper() == label.upper():
+                found = list(op.spec.entities)
+                record.Origin = op.spec.base_point
+                break
+        if found is None:
+            for block in self._backend.blocks:
+                if str(block.Name).upper() == label.upper():
+                    found = list(block)
+                    record.Origin = block.Origin
+                    break
+        if found is None:
+            raise ValueError(f"The block {label} is not in the drawing, nor made in this commit: attributes need its definition.")
+        definitions = [item for item in found if isinstance(item, _dxf.DxfAttributeDefinition) and not item.Constant]
+        tags = [str(definition.Tag) for definition in definitions]
+        given = {str(tag).upper(): (str(tag), str(words)) for tag, words in values.items()}
+        for key, (tag, _) in given.items():
+            if key not in {t.upper() for t in tags}:
+                have = ", ".join(tags) if tags else "none"
+                raise ValueError(f"The block {label} has no attribute {tag!r}: its tags are {have}.")
+        for definition in definitions:
+            attribute = _dxf.DxfAttributeReference()
+            attribute.SetAttributeFromBlock(definition, made.BlockTransform)
+            entry = given.get(str(definition.Tag).upper())
+            if entry is not None:
+                attribute.TextString = entry[1]
+            made.AttributeCollection.AppendAttribute(attribute)
 
     # ---- changing -------------------------------------------------------------------------------------------------
 
@@ -2516,13 +2589,16 @@ class Drawing:
         return self._blocks
 
     @property
-    def layouts(self) -> list[str]:
-        """The names of the layouts, ``["Model", "Layout1"]``.
+    def layouts(self) -> Layouts:
+        """The layouts of the drawing as a table, ``Model`` and then the tabs: iterable (each a ``Layout``, which is its name
+        as a ``str`` too), ``len``, ``[index]`` or ``[name]``, ``in``, ``add`` and ``current``. A layout is set up and plotted
+        from its own members (``paper``, ``scale``, ``add_viewport``, ``plot_pdf``).
 
         Example:
-            drawing.layouts                               # ['Model', 'Layout1'] in a new drawing
+            [str(layout) for layout in drawing.layouts]   # ['Model', 'Layout1'] in a new drawing
+            drawing.layouts["Layout1"].paper              # 'ISO A3'
         """
-        return self._backend.layouts
+        return self._layouts
 
     @property
     def current_layout(self) -> str:
@@ -2536,7 +2612,7 @@ class Drawing:
 
     @current_layout.setter
     def current_layout(self, name: str) -> None:
-        self._backend.current_layout = name
+        self._backend.current_layout = str(name)
 
     # ---- the user -------------------------------------------------------------------------------------------------
 
@@ -2589,7 +2665,7 @@ class Drawing:
                 raise ValueError(f"{what} is a whole number of pixels, not {pixels!r}.")
         self.commit()
         corners = None if box is None else Box(min(box[0], box[2]), min(box[1], box[3]), max(box[0], box[2]), max(box[1], box[3]))
-        return RenderOptions(corners, float(dpi), width, height, 0xFFFFFF if ground == "white" else 0, layout)
+        return RenderOptions(corners, float(dpi), width, height, 0xFFFFFF if ground == "white" else 0, _layout_name(layout))
 
     def render_png(
         self,
@@ -2657,7 +2733,7 @@ class Drawing:
             drawing.render_pdf("sheet.pdf", layout="Layout1")
         """
         self.commit()
-        self._backend.render("pdf", os.path.abspath(path), RenderOptions(layout=layout))
+        self._backend.render("pdf", os.path.abspath(path), RenderOptions(layout=_layout_name(layout)))
 
     def render_image(
         self,
@@ -2860,7 +2936,7 @@ class Drawing:
             json.loads(text)["units"]                                 # {'insunits': 'Inches', ..., 'toMillimetres': 25.4, 'normalised': True}
             drawing.to_json("Layout1")                                # the entities of that layout alone
         """
-        text, _ = self._backend.export("json", layout, 0.0)
+        text, _ = self._backend.export("json", _layout_name(layout), 0.0)
         return text
 
     def to_dict(self, layout: str | None = None) -> dict[str, Any]:
@@ -2901,7 +2977,7 @@ class Drawing:
             raise ValueError("The tolerance is a number of millimetres above nought.")
         if max_edges is not None and (type(max_edges) is not int or max_edges < 1):
             raise ValueError(f"max_edges is a number of edges of 1 or more, or None, not {max_edges!r}.")
-        text, native = self._backend.export("graph", layout, tolerance, max_edges)
+        text, native = self._backend.export("graph", _layout_name(layout), tolerance, max_edges)
         return _export_graph(text, native)
 
     # ---- checking a drawing against a company standard (PW7.2) ----------------------------------------------------
@@ -2955,6 +3031,39 @@ class Drawing:
             for r in native.Rules  # pyright: ignore[reportAny]
         ]
         return CheckResult(str(native.Name), float(native.Total), rules, numbers, native)  # pyright: ignore[reportAny]
+
+    # ---- comparing two drawings (PW7.6) ---------------------------------------------------------------------------
+
+    def compare(self, other: Drawing | str | os.PathLike[str], tolerance: float = 0.001) -> Diff:
+        """Compare this drawing, the state things changed from, with ``other``, the state after, as a ``Diff``: the objects
+        ``other`` has and this drawing has not (``added``), those it has and ``other`` has not (``removed``), and those both
+        have that differ (``changed``, each with the names of the properties that differ and, where the box kept its size
+        and moved, how far). ``other`` is a ``Drawing`` of any backend (a drawing of a running app is read as a copy of its
+        database, as the renders do) or the path of a DXF or DWG file. Objects are matched by handle, and a piece of a block
+        by its place in the block, so the two must be two states of one drawing: a file and the file after an edit, a drawing
+        and the copy saved before an episode and compared after a ``reset``. Two drawings drawn apart share no handles, and
+        every object of one is added and of the other removed. Lengths are millimetres, as the JSON export has them, and
+        equal where they differ by no more than ``tolerance``; boxes are as the canvas draws them. Not committed: what is
+        queued is in neither. A snapshot is not taken as ``other``: ``save_as`` a copy before the episode and compare with that.
+        Two drawings of 10 000 objects are compared in about 0.4 s.
+
+        Example:
+            drawing.save_as("before.dxf")                 # a copy of the plan as it is
+            drawing.move(drawing.entities("CIRCLE"), (10, 0))
+            drawing.commit()
+            diff = open_file("before.dxf").compare(drawing)   # the copy is the state before, the plan the state after
+            diff.moved[0].moved_by                        # (10.0, 0.0): the circle moved 10 mm along x
+            len(diff.added), len(diff.removed)            # (0, 0)
+        """
+        if isinstance(tolerance, bool) or not (math.isfinite(tolerance) and tolerance >= 0.0):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(f"The tolerance is a finite number of nought or more, not {tolerance!r}.")
+        if not isinstance(other, (Drawing, str, os.PathLike)):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(f"compare takes a Drawing or the path of a DXF or DWG file, not {other!r}.")
+        from . import _local  # pyright: ignore[reportPrivateUsage]
+
+        second = other._backend.as_drawn() if isinstance(other, Drawing) else _local.open_as_drawn(other)  # pyright: ignore[reportPrivateUsage]
+        native = _local.compare_documents(self._backend.as_drawn(), second, float(tolerance))
+        return _diff_of(native)
 
     # ---- a snapshot and reset of the drawing in memory (PW7.3) ----------------------------------------------------
 
@@ -3516,3 +3625,573 @@ class Snapshot:
 
     def __repr__(self) -> str:
         return f"<Snapshot of {self._drawing.name}{'' if self._native is not None else ', released'}>"
+
+
+# ---- comparing two drawings (PW7.6) ------------------------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Change:
+    """One object of a comparison of two drawings: where it is, what it is, and for a changed one what differs. A block
+    reference and the pieces it draws share its handle, so the pieces of a changed block come as several ``Change`` of one
+    handle, told apart by ``properties`` and ``box_before``.
+
+    Example:
+        change = diff.changed[0]
+        change.handle, change.kind                    # ('101', 'LINE')
+        change.properties                             # ('box', 'end'): what differs, in alphabetical order
+        change.moved_by                               # None: its end moved, so its box changed its size
+    """
+
+    handle: str
+    """The handle, as in the JSON export: an object's own, or the handle of the block reference a drawn piece belongs to."""
+    kind: str
+    """The DXF name of the kind, as ``LINE`` or ``MTEXT``."""
+    layout: str
+    """The layout it is drawn in, or ``Model``; of the first drawing for a removed object, else of the second."""
+    layer: str
+    """The layer; of the first drawing for a removed object, else of the second."""
+    properties: tuple[str, ...]
+    """The names of what differs (``layer``, ``color``, ``box``, ``start``, ``text`` ...); empty for an added or removed object."""
+    box_before: Box | None
+    """The box it took in the first drawing, in millimetres; None for an added object or one that draws nothing."""
+    box_after: Box | None
+    """The box it takes in the second drawing; None for a removed object or one that draws nothing."""
+    moved_by: tuple[float, float] | None
+    """How far its box moved, ``(dx, dy)`` in millimetres, where it kept its width and height; None where it did not move, or changed
+    its size, or has no box in one of the drawings."""
+
+
+def _box_of(numbers: Any) -> Box | None:
+    if numbers is None:
+        return None
+    values = [float(n) for n in numbers]
+    return Box(values[0], values[1], values[2], values[3])
+
+
+def _change_of(native: Any) -> Change:
+    moved = None if native.MovedBy is None else (float(native.MovedBy[0]), float(native.MovedBy[1]))
+    return Change(
+        str(native.Handle),
+        str(native.Kind),
+        str(native.Layout),
+        str(native.Layer),
+        tuple(str(name) for name in native.Properties),
+        _box_of(native.BoxBefore),
+        _box_of(native.BoxAfter),
+        moved,
+    )
+
+
+class Diff:
+    """What ``drawing.compare(other)`` found: the objects only ``other`` has (``added``), those only the drawing has
+    (``removed``), and those both have that differ (``changed``), each list in the order of the handles; ``moved`` is the
+    changed ones whose box kept its size and moved; ``unchanged`` counts the rest. ``len(diff)`` is the number of objects
+    that differ, so ``if diff:`` asks whether the two drawings differ. The boxes come as NumPy arrays too (``None`` without
+    numpy): one row of ``[min_x, min_y, max_x, max_y]`` for each ``Change`` of the list, ``nan`` for an object with no box.
+
+    Example:
+        diff = before.compare(after)
+        (len(diff.added), len(diff.removed), len(diff.changed), diff.unchanged)   # (1, 0, 2, 40)
+        diff.is_same                                  # False
+        diff.moved_by.shape                           # (1, 2): one object moved
+    """
+
+    def __init__(self, added: list[Change], removed: list[Change], changed: list[Change], unchanged: int) -> None:
+        self._added = added
+        self._removed = removed
+        self._changed = changed
+        self._unchanged = unchanged
+
+    @property
+    def added(self) -> list[Change]:
+        """The objects the other drawing has and this one has not.
+
+        Example:
+            [(c.handle, c.kind) for c in diff.added]      # [('10A', 'CIRCLE')]
+        """
+        return list(self._added)
+
+    @property
+    def removed(self) -> list[Change]:
+        """The objects this drawing has and the other has not.
+
+        Example:
+            [(c.handle, c.kind) for c in diff.removed]    # [('101', 'LINE')]
+        """
+        return list(self._removed)
+
+    @property
+    def changed(self) -> list[Change]:
+        """The objects both drawings have whose properties differ beyond the tolerance.
+
+        Example:
+            [(c.handle, c.properties) for c in diff.changed]   # [('102', ('box', 'center'))]
+        """
+        return list(self._changed)
+
+    @property
+    def moved(self) -> list[Change]:
+        """The changed objects whose box kept its width and height and moved: what ``move`` and ``copy`` leave, where ``changed``
+        also holds what was resized or recoloured.
+
+        Example:
+            [c.moved_by for c in diff.moved]              # [(10.0, 0.0)]
+        """
+        return [change for change in self._changed if change.moved_by is not None]
+
+    @property
+    def unchanged(self) -> int:
+        """How many objects both drawings have that do not differ.
+
+        Example:
+            diff.unchanged                                # 40
+        """
+        return self._unchanged
+
+    @property
+    def is_same(self) -> bool:
+        """Whether the two drawings hold the same objects with the same properties.
+
+        Example:
+            drawing.compare(drawing).is_same              # True
+        """
+        return not (self._added or self._removed or self._changed)
+
+    def __len__(self) -> int:
+        return len(self._added) + len(self._removed) + len(self._changed)
+
+    @staticmethod
+    def _rows(changes: list[Change], after: bool) -> NDArray[np.float64] | None:
+        try:
+            import numpy as np
+        except ImportError:
+            return None
+        none = (float("nan"),) * 4
+        rows = [(change.box_after if after else change.box_before) or none for change in changes]
+        return np.array(rows, dtype=np.float64).reshape(len(rows), 4)
+
+    @property
+    def added_boxes(self) -> NDArray[np.float64] | None:
+        """The boxes of ``added``, ``(n, 4)`` of ``[min_x, min_y, max_x, max_y]`` as they are drawn; None without numpy.
+
+        Example:
+            diff.added_boxes.shape                        # (1, 4)
+        """
+        return self._rows(self._added, True)
+
+    @property
+    def removed_boxes(self) -> NDArray[np.float64] | None:
+        """The boxes of ``removed``, as ``added_boxes`` has them: where they were; None without numpy.
+
+        Example:
+            diff.removed_boxes.shape                      # (0, 4)
+        """
+        return self._rows(self._removed, False)
+
+    @property
+    def before_boxes(self) -> NDArray[np.float64] | None:
+        """The boxes of ``changed`` in this drawing, ``nan`` for an object that draws nothing; None without numpy.
+
+        Example:
+            diff.before_boxes.shape                       # (2, 4)
+        """
+        return self._rows(self._changed, False)
+
+    @property
+    def after_boxes(self) -> NDArray[np.float64] | None:
+        """The boxes of ``changed`` in the other drawing, row for row with ``before_boxes``; None without numpy.
+
+        Example:
+            diff.after_boxes.shape                        # (2, 4)
+        """
+        return self._rows(self._changed, True)
+
+    @property
+    def moved_by(self) -> NDArray[np.float64] | None:
+        """How far each of ``moved`` moved, ``(n, 2)`` of ``[dx, dy]`` in millimetres; None without numpy.
+
+        Example:
+            diff.moved_by.tolist()                        # [[10.0, 0.0]]
+        """
+        try:
+            import numpy as np
+        except ImportError:
+            return None
+        rows = [change.moved_by for change in self.moved if change.moved_by is not None]
+        return np.array(rows, dtype=np.float64).reshape(len(rows), 2)
+
+    def __repr__(self) -> str:
+        return (
+            f"<Diff {len(self._added)} added, {len(self._removed)} removed, {len(self._changed)} changed, "
+            f"{self._unchanged} unchanged>"
+        )
+
+
+def _diff_of(native: Any) -> Diff:
+    return Diff(
+        [_change_of(c) for c in native.Added],  # pyright: ignore[reportAny]
+        [_change_of(c) for c in native.Removed],  # pyright: ignore[reportAny]
+        [_change_of(c) for c in native.Changed],  # pyright: ignore[reportAny]
+        int(native.Unchanged),
+    )
+
+
+# ---- sheets from code (PW7.7) --------------------------------------------------------------------------------------------------
+
+
+def _scale_text(scale: float | str) -> str:
+    """A scale as the core reads it: ``"1:50"`` as it is, a number of paper millimetres to the drawing unit as decimal digits."""
+    if isinstance(scale, str):
+        return scale
+    if isinstance(scale, bool) or not (math.isfinite(scale) and scale > 0.0):  # pyright: ignore[reportUnnecessaryIsInstance]
+        raise ValueError(f"A scale is a number above nought, as 0.02, or text, as '1:50': not {scale!r}.")
+    return f"{scale:.15f}".rstrip("0").rstrip(".")
+
+
+class PlotInfo(NamedTuple):
+    """What ``layout.plot_pdf`` wrote: the file, the sheet in millimetres, the scale as ``'1:50'`` and the part of the drawing
+    plotted, as the plot laid it on the sheet.
+
+    Example:
+        info = drawing.layouts["Layout1"].plot_pdf("sheet.pdf")
+        info.sheet                                    # (420.0, 297.0)
+        info.scale                                    # '1:1'
+    """
+
+    path: str
+    sheet: tuple[float, float]
+    scale: str | None
+    area: Box | None
+
+
+class Layout(str):
+    """A layout of a drawing: its name, as a ``str`` (so it goes where a layout name goes: ``render_png(layout=...)``,
+    ``add(..., layout=...)``), and its page setup and what a sheet needs: ``paper``, ``landscape``, ``plot_area``, ``scale``,
+    ``plot_style``, ``add_viewport`` and ``plot_pdf``. Members read the drawing each time and a setter writes it at once, as
+    PAGESETUP does, one undo step; what is queued is committed first, so that the order of a script is the order of the
+    drawing. Sheets are in millimetres. ``drawing.layouts`` gives them.
+
+    Example:
+        sheet = drawing.layouts.add("Detail", paper="ISO_A3")
+        sheet.paper, sheet.size                       # ('ISO A3', (420.0, 297.0))
+        sheet.scale = "1:50"                          # plotted at 1:50; 0.02 is the same
+    """
+
+    _drawing: Drawing
+
+    def __new__(cls, drawing: Drawing, name: str) -> Layout:
+        made = super().__new__(cls, name)
+        made._drawing = drawing
+        return made
+
+    def _info(self) -> dict[str, Any]:
+        for info in self._drawing._backend.layout_list():  # pyright: ignore[reportPrivateUsage]
+            if str(info["name"]).upper() == self.upper():
+                return info
+        raise KeyError(f"The drawing {self._drawing.name} has no layout {str(self)!r}.")
+
+    def _setup(
+        self,
+        paper: str | None = None,
+        orientation: str | None = None,
+        area: str | None = None,
+        scale: str | None = None,
+        plot_style: str | None = None,
+    ) -> None:
+        self._drawing.commit()
+        self._drawing._backend.layout_setup(self._info()["name"], paper, orientation, area, scale, plot_style)  # pyright: ignore[reportPrivateUsage]
+
+    @property
+    def name(self) -> str:
+        """The name of the layout, as on its tab: ``Model`` or ``Layout1``.
+
+        Example:
+            drawing.layouts[1].name                       # 'Layout1'
+        """
+        return str(self._info()["name"])
+
+    @property
+    def is_model(self) -> bool:
+        """Whether this is model space, which has a page setup too but no sheet to put viewports on.
+
+        Example:
+            drawing.layouts["Model"].is_model             # True
+        """
+        return bool(self._info()["model"])
+
+    @property
+    def is_current(self) -> bool:
+        """Whether this is the layout the drawing shows; ``drawing.layouts.current = layout`` shows another.
+
+        Example:
+            drawing.layouts["Model"].is_current           # True in a new drawing
+        """
+        return self._drawing.current_layout.upper() == self.upper()
+
+    @property
+    def paper(self) -> str:
+        """The sheet as the plotter names it, ``'ISO A3'``; set it with the name as ``'ISO_A3'``, ``'ISO A3'`` or ``'A3'`` (ISO A0
+        to A4, ANSI A to E). ``ValueError`` names the sheets there are for another.
+
+        Example:
+            sheet = drawing.layouts["Layout1"]
+            sheet.paper                                   # 'ISO A3'
+            sheet.paper = "A2"                            # the sheet becomes 594 by 420
+        """
+        return str(self._info()["paper"])
+
+    @paper.setter
+    def paper(self, value: str) -> None:
+        self._setup(paper=str(value))
+
+    @property
+    def size(self) -> tuple[float, float]:
+        """The sheet as it is plotted, ``(width, height)`` in millimetres: ``(420.0, 297.0)`` for A3 on its side.
+
+        Example:
+            drawing.layouts["Layout1"].size               # (420.0, 297.0)
+        """
+        info = self._info()
+        return (float(info["width"]), float(info["height"]))
+
+    @property
+    def landscape(self) -> bool:
+        """Whether the long side of the sheet runs across; false turns the sheet on its end.
+
+        Example:
+            sheet = drawing.layouts["Layout1"]
+            sheet.landscape = False                       # a sheet 297 wide and 420 high
+            sheet.size                                    # (297.0, 420.0)
+        """
+        return bool(self._info()["landscape"])
+
+    @landscape.setter
+    def landscape(self, value: bool) -> None:
+        self._setup(orientation="landscape" if value else "portrait")
+
+    @property
+    def units(self) -> str:
+        """The unit of the sheet: ``'mm'``, as a sheet made here and by the app is; ``'in'`` for a drawing of another program.
+
+        Example:
+            drawing.layouts["Layout1"].units              # 'mm'
+        """
+        return str(self._info()["units"])
+
+    @property
+    def plot_area(self) -> str:
+        """What is plotted: ``'layout'`` (the sheet), ``'extents'``, ``'display'`` or ``'limits'``; ``'window'`` and ``'view'`` are read but
+        not set from code. Setting it takes one of the first four.
+
+        Example:
+            drawing.layouts["Layout1"].plot_area          # 'layout'
+        """
+        return str(self._info()["area"])
+
+    @plot_area.setter
+    def plot_area(self, value: str) -> None:
+        self._setup(area=str(value))
+
+    @property
+    def scale(self) -> str:
+        """The plot scale as ``'1:50'`` or ``'2:1'`` (paper to drawing), or ``'fit'`` where the plot is fitted to the sheet. Set
+        it with the same text, or the paper millimetres to a drawing unit: ``0.02`` is ``'1:50'``.
+
+        Example:
+            sheet = drawing.layouts["Layout1"]
+            sheet.scale = 0.02
+            sheet.scale                                   # '1:50'
+            sheet.scale = "fit"
+        """
+        text = self._info()["scale"]
+        return "fit" if text is None else str(text)
+
+    @scale.setter
+    def scale(self, value: float | str) -> None:
+        self._setup(scale=_scale_text(value))
+
+    @property
+    def plot_style(self) -> str:
+        """The plot style table by the name of its file, ``'monochrome.ctb'``; empty for none.
+
+        Example:
+            sheet = drawing.layouts["Layout1"]
+            sheet.plot_style = "acad.ctb"
+            sheet.plot_style                              # 'acad.ctb'
+        """
+        return str(self._info()["plotStyle"])
+
+    @plot_style.setter
+    def plot_style(self, value: str) -> None:
+        self._setup(plot_style=str(value))
+
+    @property
+    def viewports(self) -> int:
+        """How many viewports show model space on the sheet; the one of the sheet itself is not counted.
+
+        Example:
+            drawing.layouts["Layout1"].viewports          # 0 in a new drawing
+        """
+        return int(self._info()["viewports"])
+
+    def add_viewport(
+        self,
+        frame: Box | Sequence[float],
+        scale: float | str,
+        center: Sequence[float] | None = None,
+        frozen_layers: Sequence[str] = (),
+    ) -> str:
+        """Add a viewport that shows model space at ``scale`` and return its handle. ``frame`` is its rectangle on the sheet,
+        ``[x1, y1, x2, y2]`` in millimetres; ``scale`` is ``'1:10'`` or paper millimetres to the unit (``0.1``), so a frame 200 by
+        100 at ``'1:10'`` shows 2 000 by 1 000 units. ``center`` is the point of model space at the middle of the frame; left
+        out, the middle of what model space draws. ``frozen_layers`` are frozen in this viewport only. What is queued is
+        committed first, so model space is as the script has drawn it. One undo step; ``ValueError`` for model space, a
+        frame with no width or height, a scale that is not above nought and a layer the drawing lacks.
+
+        Example:
+            sheet = drawing.layouts["Layout1"]
+            top = sheet.add_viewport((20, 120, 220, 280), "1:10", center=(50, 30))   # the handle, as '10A'
+            sheet.viewports                               # 1
+            sheet.add_viewport((240, 120, 400, 280), 0.2, frozen_layers=["Notes"])   # 1:5, without the layer Notes
+        """
+        corners = tuple(float(n) for n in frame)
+        if len(corners) != 4 or not all(math.isfinite(n) for n in corners):
+            raise ValueError("A frame is four finite numbers, [x1, y1, x2, y2] in millimetres.")
+        middle: tuple[float, float] | None = None
+        if center is not None:
+            point = tuple(float(n) for n in center)
+            if len(point) != 2 or not all(math.isfinite(n) for n in point):
+                raise ValueError("The centre is two finite numbers, [x, y].")
+            middle = (point[0], point[1])
+        if isinstance(frozen_layers, str):
+            raise ValueError("frozen_layers is a list of layer names, not one text.")
+        names = [str(name) for name in frozen_layers]
+        text = _scale_text(scale)
+        self._drawing.commit()
+        return self._drawing._backend.layout_viewport(  # pyright: ignore[reportPrivateUsage]
+            self._info()["name"], (corners[0], corners[1], corners[2], corners[3]), text, middle, names
+        )
+
+    def plot_pdf(
+        self,
+        path: str | os.PathLike[str],
+        paper: str | None = None,
+        scale: float | str | None = None,
+        fit: bool = False,
+    ) -> PlotInfo:
+        """Plot the layout to a PDF file of one page through the plot pipeline, as PLOT to the PDF plotter does: the page setup of
+        the layout (its sheet and scale), lines at their lineweights, the plot style table, text as text. The text of an SHX
+        font is also written as invisible text over its strokes, so that a reader's search finds the words. ``paper``,
+        ``scale`` and ``fit`` change the setup for this plot only and are not written into the drawing: ``paper`` is a sheet as
+        in the property (the plot is then fitted to it unless a ``scale`` is given), ``scale`` as ``'1:10'`` or ``0.1``, ``fit``
+        fills the sheet; ``ValueError`` for a ``scale`` with ``fit``. A drawing of the app is read as a copy and plotted in this
+        process, as the renders do. What is queued is committed first. ``RuntimeError`` where there is nothing to plot (model
+        space with nothing in it). An A3 sheet on its side is 1 190.55 by 841.89 points.
+
+        Example:
+            sheet = drawing.layouts["Layout1"]
+            sheet.scale = "1:50"
+            info = sheet.plot_pdf("sheet.pdf")            # one A3 page at 1:50
+            info.sheet, info.scale                        # ((420.0, 297.0), '1:50')
+            sheet.plot_pdf("small.pdf", paper="A4")       # fitted to A4 for this plot; the layout itself stays A3
+        """
+        if scale is not None and fit:
+            raise ValueError("Give a scale or fit, not both: a scale is how big the drawing is plotted.")
+        text = None if scale is None else _scale_text(scale)
+        self._drawing.commit()
+        page = self._drawing._backend.plot_pdf(  # pyright: ignore[reportPrivateUsage]
+            self._info()["name"], os.path.abspath(path), paper, text, bool(fit)
+        )
+        area = page.Area
+        return PlotInfo(
+            os.path.abspath(path),
+            (float(page.SheetWidth), float(page.SheetHeight)),
+            _page_scale(page),
+            None if bool(area.IsEmpty) else Box(float(area.MinX), float(area.MinY), float(area.MaxX), float(area.MaxY)),
+        )
+
+    def __repr__(self) -> str:
+        return f"<Layout {str(self)}>"
+
+
+def _page_scale(page: Any) -> str | None:
+    """The scale a plot page has as ``'1:50'``; None where it has none."""
+    text: Any = importlib.import_module("OpenCAD2D").CadLayouts.ScaleText(float(page.Scale))
+    return None if text is None else str(text)
+
+
+class Layouts:
+    """The layouts of a drawing, ``Model`` first and then the tabs in their order: iterable (each a ``Layout``), ``len``,
+    ``[index]``, ``[name]`` (ignoring case, ``KeyError`` when none), ``in``, ``add`` and ``current``. Each reading asks the
+    drawing. A ``Layout`` is its own name, so ``drawing.layouts[1]`` still goes where a layout name does::
+
+        sheet = drawing.layouts.add("Plate A3", paper="ISO_A3")
+        sheet.add_viewport((10, 10, 410, 287), "1:10")
+        sheet.plot_pdf("plate.pdf")
+
+    Example:
+        [str(layout) for layout in drawing.layouts]   # ['Model', 'Layout1'] in a new drawing
+        "layout1" in drawing.layouts                  # True
+        drawing.layouts.current                       # 'Model'
+    """
+
+    def __init__(self, drawing: Drawing) -> None:
+        self._drawing = drawing
+
+    def _read(self) -> list[Layout]:
+        return [Layout(self._drawing, str(name)) for name in self._drawing._backend.layouts]  # pyright: ignore[reportPrivateUsage]
+
+    def __iter__(self) -> Iterator[Layout]:
+        return iter(self._read())
+
+    def __len__(self) -> int:
+        return len(self._read())
+
+    def __contains__(self, name: object) -> bool:
+        return isinstance(name, str) and any(layout.upper() == name.upper() for layout in self._read())
+
+    def __getitem__(self, name: int | str) -> Layout:
+        layouts = self._read()
+        if isinstance(name, int):
+            return layouts[name]
+        for layout in layouts:
+            if layout.upper() == name.upper():
+                return layout
+        raise KeyError(f"The drawing {self._drawing.name} has no layout {name!r}.")
+
+    def __repr__(self) -> str:
+        return repr([str(layout) for layout in self._read()])
+
+    @property
+    def current(self) -> Layout:
+        """The layout the drawing shows; setting it, with a ``Layout`` or a name, shows that layout at once.
+
+        Example:
+            drawing.layouts.current = "Layout1"           # Layout1 is shown
+            drawing.layouts.current.is_current            # True
+        """
+        return self[self._drawing.current_layout]
+
+    @current.setter
+    def current(self, value: str) -> None:
+        self._drawing.current_layout = str(value)
+
+    def add(self, name: str, paper: str = "ISO_A3", units: str = "mm") -> Layout:
+        """Add a layout on a sheet, plotted at 1:1, as LAYOUT New and the page setup do, and return it; it does not become the
+        layout shown (``current``). ``paper`` is a sheet as in ``Layout.paper``; ``units`` is ``"mm"``, the unit of the sheets the
+        page setup writes (inches are a ``ValueError``). What is queued is committed first. One undo step. ``ValueError`` for
+        a name that is empty, ``Model``, one the drawing has (either case), over 255 characters or with one of the characters
+        AutoCAD keeps out of layout names (``< > / \\ " : ; ? * | , =`` and the grave accent), and for a sheet the plotter lacks.
+
+        Example:
+            sheet = drawing.layouts.add("Plate A3", paper="ISO_A3")
+            sheet.name, sheet.paper, sheet.scale          # ('Plate A3', 'ISO A3', '1:1')
+        """
+        if not isinstance(name, str) or not name.strip():  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(f"A layout needs a name, not {name!r}.")
+        if str(units).strip().lower() not in ("mm", "millimetres", "millimeters"):
+            raise ValueError(f"A sheet is in millimetres, as the page setup writes it: units is 'mm', not {units!r}.")
+        self._drawing.commit()
+        made = self._drawing._backend.layout_add(name.strip(), str(paper), True)  # pyright: ignore[reportPrivateUsage]
+        return Layout(self._drawing, str(made["name"]))

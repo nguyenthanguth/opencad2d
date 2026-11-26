@@ -1,6 +1,6 @@
 # Python examples
 
-Eighteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
+Nineteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
 drawing in code, draw one to pictures with no window, cut one solid from another, number points in the app, draw in an app that is running. They are in
 `src/python/examples` of the repository, in three folders for the three places Python works with the library (a tool of the
 app is a folder of its own), and this page shows each as it is, with what it prints. A test of the repository runs every file, on .NET 8 and on .NET Framework
@@ -26,6 +26,7 @@ is what the files do.
 | [`coco_dataset.py`](#a-dataset-for-a-vision-model) | three drawings written as pictures, class masks and one COCO file |
 | [`batch_export.py`](#a-folder-of-drawings-prepared-for-a-model) | every DXF and DWG of a folder written as JSON, graph arrays and a picture, with a manifest |
 | [`layout_loop.py`](#a-loop-that-places-notes-and-the-reward-that-scores-it) | tags and dimensions placed, scored and moved until the score stops rising |
+| [`sheet_from_code.py`](#a-plotted-sheet-made-from-code) | a plate, an A3 layout with a filled title block and two viewports, plotted to a PDF |
 | [`number_points`](#number-the-points-you-pick) | a number written at each point you pick |
 | [`drawing_tools`](#commands-of-your-own) | the commands RECTC and LAYERCOUNT |
 | [`selection_lengths`](#the-length-of-a-selection) | the length and closed area of the selected objects |
@@ -304,9 +305,32 @@ stays where it is, and the reward says so by not reaching 1. It needs numpy.
 
 [!code-python[](../src/python/examples/library/layout_loop.py)]
 
+### A plotted sheet made from code
+
+`sheet_from_code.py OUT_FOLDER` makes what a drafter makes of a steel plate, with no app and no file to start from. In model space a
+plate 1 200 by 800 mm with two holes of 60 and their centre marks, and two linear dimensions on the layer `Dims` in a dimension style
+whose scale is 10, so that their words are 2.5 mm high on a sheet at 1:10. Then `drawing.layouts.add("Plate A3", paper="ISO_A3")`,
+an A3 layout in millimetres, a border drawn on it, and a title block: the block `TITLE` is a box with three attribute definitions
+(`DRAWING`, `NUMBER`, `SCALE`) and `add_insert(..., layout=..., attributes=...)` puts it on the sheet with their words, in the same
+commit that defines it. Two viewports show the plate: `add_viewport` at `"1:10"` with the layer `Notes` frozen in it, and a detail of
+the second hole at `0.2` paper millimetres to a unit, which is 1:5, with `Dims` frozen. `plot_pdf` writes the sheet through the
+plot pipeline to `plate.pdf`, one A3 page at the 1:1 the layout is plotted at (the scales are the viewports'), and the words of the PDF,
+read back by a test, are the title block's (`PLATE PL12`, `A-101`, `1:10, DETAIL 1:5`) and the plate's (`1200`, `800`, `2 HOLES D60`):
+
+```text
+$ python sheet_from_code.py sheet
+Plate A3: ISO A3, 2 viewports, title block A-101
+plate.pdf: sheet 420 by 297, scale 1:1, written to sheet
+```
+
+[Sheets from code](python.md#sheets-from-code-layouts-viewports-a-title-block-and-a-pdf) says what each call does; the same script
+drives a drawing of a running app with `connect()` in place of `new_file()`, the PDF being plotted here from a copy of the app's drawing.
+
+[!code-python[](../src/python/examples/library/sheet_from_code.py)]
+
 ## Tools of the app
 
-The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the eighteen: they
+The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the nineteen: they
 are in the app's `Pythons` folder and in `examples\Pythons` of the repository, and [Python commands and
 tools](presenter/python.md#where-tools-load-from) shows what they write. Each tool below is run in a `python.exe` of its own, with a
 venv of its own that its `requirements.txt` fills (these need no package, so their files are empty).

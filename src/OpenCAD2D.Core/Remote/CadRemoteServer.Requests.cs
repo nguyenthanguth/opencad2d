@@ -270,6 +270,8 @@ namespace OpenCAD2D
                     return ResetToSnapshot(Find(request), request);
                 case RemoteOps.ReleaseSnapshot:
                     return ReleaseSnapshot(request);
+                case RemoteOps.Sheets:
+                    return Sheets(Find(request), request);
                 default:
                     return OtherRequest(op, request);
             }

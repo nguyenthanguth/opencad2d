@@ -9,6 +9,7 @@ styles are read as copies in a small drawing of their own.
 from __future__ import annotations
 
 import importlib
+import json
 import os
 import re
 from collections.abc import Callable
@@ -67,6 +68,22 @@ def _handle_key(handle: str) -> tuple[int, str]:
         return int(handle, 16), handle
     except ValueError:
         return 1 << 62, handle
+
+
+def open_as_drawn(path: str | os.PathLike[str]) -> Any:
+    """Opens a DXF or DWG file and sets it up as the app sets one up (``CadRender.Prepare``), for a comparison; ``ValueError`` for
+    a path with no file."""
+    full = os.path.abspath(path)
+    if not os.path.isfile(full):
+        raise ValueError(f"There is no file {full}.")
+    document = _cad.CadDocument.Open(full)
+    _render.load().CadRender.Prepare(document)
+    return document
+
+
+def compare_documents(first: Any, second: Any, tolerance: float) -> Any:
+    """The core's ``CadDrawingDiff.Compare`` of two prepared documents."""
+    return _cad.CadDrawingDiff.Compare(first, second, _geometry.Tolerance(tolerance, 1e-5))
 
 
 class _LocalBackend:
@@ -758,6 +775,73 @@ class _LocalBackend:
     def release(self, snapshot: Any) -> None:
         """Lets the core go of the drawing it read ahead for the snapshot; the snapshot itself is a managed object."""
         self.document.ReleaseSnapshot(snapshot)
+
+    # ---- comparing, sheets and plots (PW7.6, PW7.7) -------------------------------------------------------------------
+
+    def as_drawn(self) -> Any:
+        """The document, set up as the app sets one up on opening it, to be compared or plotted as it is drawn."""
+        return self._as_drawn
+
+    def layout_list(self) -> list[dict[str, Any]]:
+        """How every layout is set up, by the core's ``CadLayouts``: the objects of its JSON."""
+        return [json.loads(str(info.ToJson())) for info in _cad.CadLayouts.List(self.document)]
+
+    def layout_add(self, name: str, paper: str | None, landscape: bool) -> dict[str, Any]:
+        return self._sheets(lambda: json.loads(str(_cad.CadLayouts.Add(self.document, name, paper, landscape).ToJson())))
+
+    def layout_setup(
+        self,
+        layout: str,
+        paper: str | None,
+        orientation: str | None,
+        area: str | None,
+        scale: str | None,
+        plot_style: str | None,
+    ) -> dict[str, Any]:
+        return self._sheets(
+            lambda: json.loads(
+                str(
+                    _cad.CadLayouts.SetPageSetup(
+                        self.document, layout, paper, orientation, area, scale, plot_style
+                    ).ToJson()
+                )
+            )
+        )
+
+    def layout_viewport(
+        self,
+        layout: str,
+        frame: tuple[float, float, float, float],
+        scale: str,
+        center: tuple[float, float] | None,
+        frozen: list[str],
+    ) -> str:
+        return self._sheets(
+            lambda: str(
+                _cad.CadLayouts.AddViewport(
+                    self.document,
+                    layout,
+                    _net.Array[_net.Double](list(frame)),
+                    scale,
+                    None if center is None else _net.Array[_net.Double](list(center)),
+                    _net.Array[_net.String](frozen),
+                )
+            )
+        )
+
+    def _sheets(self, work: Callable[[], Any]) -> Any:
+        """Runs a sheet edit of the core: what it refuses is a ``ValueError``, a drawing busy a ``RuntimeError``."""
+        try:
+            return work()
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+        except _net.InvalidOperationException as error:
+            raise RuntimeError(str(error.Message)) from None
+
+    def plot_pdf(self, layout: str, path: str, paper: str | None, scale: str | None, fit: bool) -> Any:
+        """Plots a layout through ``CadPlot`` and gives the ``CadPlotPage``; the refusals are ``ValueError``."""
+        facade = _render.load()
+        return self._sheets(lambda: facade.CadPlot.WritePdf(path, self.document, layout, paper, scale, fit))
 
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 

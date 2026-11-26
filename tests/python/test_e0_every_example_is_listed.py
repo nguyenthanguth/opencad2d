@@ -1,8 +1,8 @@
 """E0: no example without a row, a page section and a test, and every example in the shape D1002 gives (P5 D1001,
 D1002, D1007, D1008).
 
-The set of ``.py`` files under ``src/python/examples`` is the eighteen of D1002, PW3, PW6 and PW7.4 (the thirteen, the tool ``circle_marks``, ``render_views.py``, ``coco_dataset.py``,
-``batch_export.py`` and ``layout_loop.py``), three folders; a Python tool of
+The set of ``.py`` files under ``src/python/examples`` is the nineteen of D1002, PW3, PW6, PW7.4 and PW7.7 (the thirteen, the tool ``circle_marks``, ``render_views.py``, ``coco_dataset.py``,
+``batch_export.py``, ``layout_loop.py`` and ``sheet_from_code.py``), three folders; a Python tool of
 ``tools`` is a folder (a ``requirements.txt``, an ``__init__.py`` and a ``plugin.json``), the example being its
 ``__init__.py``. The set equals the examples the README of the folder names in its table, equals the files the guide page
 ``python-examples.md`` includes with ``[!code-python[...](...)]``, and each example's name is in at least one test file.
@@ -32,6 +32,7 @@ EXPECTED = {
         "make_drawing.py",
         "regions.py",
         "render_views.py",
+        "sheet_from_code.py",
         "solids.py",
     ],
     "tools": ["circle_marks", "drawing_tools", "number_points", "selection_lengths"],
@@ -63,7 +64,7 @@ def _function(tree: ast.Module, name: str) -> ast.FunctionDef | None:
     return next((n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name), None)
 
 
-def test_the_examples_are_the_eighteen_of_the_spec_each_in_its_place() -> None:
+def test_the_examples_are_the_nineteen_of_the_spec_each_in_its_place() -> None:
     assert [p.relative_to(EXAMPLES).as_posix() for p in ON_DISK] == [
         p.relative_to(EXAMPLES).as_posix() for p in _expected_paths()
     ]

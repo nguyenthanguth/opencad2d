@@ -192,6 +192,9 @@ namespace OpenCAD2D.Remote
 
         /// <summary>Lets the app forget a snapshot (<c>snapshot</c>, its number) and the memory it holds.</summary>
         public const string ReleaseSnapshot = "releaseSnapshot";
+
+        /// <summary>The layouts of a drawing made and set up (<c>action</c>: <c>list</c>, <c>add</c>, <c>setup</c>, <c>viewport</c>, with the arguments of each): <c>layouts</c>, <c>layout</c> or <c>handle</c>.</summary>
+        public const string Sheets = "sheets";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>
