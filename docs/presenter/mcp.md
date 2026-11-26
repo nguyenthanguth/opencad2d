@@ -69,11 +69,13 @@ server may be started before the app is.
 
 | Flag | Effect |
 |---|---|
-| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `save` and `run_command`. Opening and rendering still work |
+| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `save`, `export_to_file` and `run_command`. Opening, reading, measuring, checking and rendering still work |
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
-- Only `save` writes a file: to the drawing's own file, which is in the folder it was opened from, or to the path the agent
-  gives it. `render_png` makes its picture in memory (a temporary file under the system's temporary folder, deleted at once).
+- Only `save` and `export_to_file` write a file. `save` writes the drawing's own file, which is in the folder it was opened from, or the path the agent
+  gives it; `export_to_file` writes the JSON or the graph of the drawing to the path the agent gives it, and nowhere else. `render_png`
+  makes its picture in memory (a temporary file under the system's temporary folder, deleted at once). Every other tool, the
+  measuring, scoring and export tools included, reads and writes nothing.
 - `open_drawing` and `new_drawing` refuse to replace a drawing that has changes not saved, unless the call says
   `discard: true`.
 - The server listens on no port. It speaks only on its standard input and output, and writes nothing else on standard output.
@@ -100,6 +102,13 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 | `bounds(handles=, layout=)` | the box each entity takes as it is drawn: the letters of a text and not its insertion point, a dimension's picture, a block however deep |
 | `overlaps(kinds=, over=, of=, layout=, tolerance=)` | the words (TEXT, MTEXT, dimension text, multileader text) that overlap a line, an arc, a polyline, a hatch edge, a filled area or another word, with the box of each meeting |
 | `render_png(box=, layout=, width=, height=, dpi=)` | the layout, or a part of it, as a picture the agent sees (an MCP image) |
+| `measure_text(text, at, height, rotation=, text_style=, justify=)`, `measure_mtext(text, at, height, width=, rotation=, text_style=, justify=)` | the box a text would take and the frame of its words, found by the code that draws it in the drawing's own text style and fonts, **before it is added**: nothing is added, no undo step is made |
+| `measure_dimension(kind, points, dim_style=, text=, angle=)`, `measure_leader(arrow, landing, text, style=, scale=)` | the same for a dimension (`linear`, `aligned`, `radial`, `diameter`, `angular`) and for the multileader MLEADER would make |
+| `free_space(frame, kinds=, margin=, min_width=, min_height=, layout=, tolerance=)` | the empty rectangles of a frame, the largest first: no line or word of the `kinds` runs through them or comes within `margin`. Give the size of the thing to place as `min_width` and `min_height` to get only the places it could stand in. Paged |
+| `fits(candidate, kinds=, margin=, layout=, tolerance=)` | whether one place is free, tested on the real lines, arcs, fills and word frames and not on their boxes. `candidate` is a box `[minX, minY, maxX, maxY]` or a frame `[x, y, width, height, rotation]` as the `measure_*` tools give it |
+| `check_standard(standard, model_scale=, tolerance=)` | scores the drawing against a company standard: a score from 0 to 1 for each rule, the total `score` and the violations (rule, handle, place, found, allowed), a page at a time. `standard` is a JSON object of the schema `docs/schemas/opencad2d-standard-v1.schema.json` or the path of a file of one |
+| `export_json(layout=)`, `export_graph(layout=, tolerance=, part=)` | what [`to_json` and `to_graph`](../python.md#batch-and-ai-pipelines) write: a summary (the members that are not lists, how many rows each list has, how many entities or edges of each kind) and a page of the entities, or of the edges or nodes of the graph (`part`) |
+| `export_to_file(what, path, layout=, tolerance=)` | writes the whole JSON (`json`) or graph (`graph`) to `path`, for a program that reads the file and not the agent; refused by `--read-only` |
 | `add_layer(name, color=, linetype=, lineweight=, on=, frozen=, locked=)` | a layer with the look given (a colour index, a linetype of the drawing, a lineweight in hundredths of a millimetre such as 25); refused for a name the drawing has (either case), a name AutoCAD refuses, or a look it does not take |
 | `add_line`, `add_polyline`, `add_circle`, `add_arc` | geometry; `layer`, `color` (a colour index) and `linetype` for each |
 | `add_text`, `add_mtext` | words, with a `text_style` of the drawing |
@@ -108,6 +117,10 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 | `move`, `rotate`, `scale`, `erase`, `set_properties` | change entities by handle (refused on a locked layer); `set_properties` sets `layer`, `color`, `linetype` |
 | `undo` | takes back the last step |
 | `run_command(text)` | types on the command line; only with `--allow-scripts` |
+
+A frame is `{x, y, width, height, rotation}`: the first corner of a word, its length along the baseline, its height across it,
+and the angle the length runs at, **in degrees** here (the Python library gives radians). A `justify` of `measure_text` is
+`left`, `center`, `right`, `middle` or a code `TL`, `TC`, `TR`, `ML`, `MC`, `MR`, `BL`, `BC`, `BR`; of `measure_mtext` a code alone.
 
 `kinds` are DXF names, either case: `LINE`, `CIRCLE`, `ARC`, `LWPOLYLINE`, `TEXT`, `MTEXT`, `DIMENSION`, `INSERT`, `HATCH`.
 
@@ -132,6 +145,38 @@ render_png width 800                 -> an image, PNG 800 by 525 pixels
 save path "C:\plans\plate.dxf"          -> { "name": "plate.dxf", "modified": false }
 ```
 
+## Placing annotation: measure, find room, score, refine
+
+An agent that lays words out has the loop the [Python guide](../python.md#batch-and-ai-pipelines) describes, with the same
+engine behind each call: measure a word before adding it, ask where there is room, put it there, check the result and score it,
+and look at the picture. The tools are the ones in the table; `overlaps` finds the words that sit on something, `check_standard`
+gives the number to push up, and `render_png` is the look.
+
+A model asked to "put the two tags TAG-1 and TAG-2 on the plate where nothing touches them, and score the sheet against our
+standard", over the plate of the session above (a line across it at y 50 and a circle of radius 20 at its middle), with
+`--file plate.dxf` (the numbers are from a run; the answers are shortened):
+
+```
+add_text text "TAG-1" at [80,48] height 3.5           -> { "handle": "107", "kind": "TEXT" }
+add_text text "TAG-2" at [20,48.5] height 3.5          -> { "handle": "108", "kind": "TEXT" }
+overlaps of ["107","108"]                              -> { "total": 3 }              the tags sit on the line, TAG-1 on the circle too
+check_standard standard {...}                          -> { "score": 0.778, "violations": [ gap-word-line 107, gap-word-line 108 ... ] }
+measure_text text "TAG-1" at [80,48] height 3.5        -> { "box": [...], "frames": [ { "width": 12.25, "height": 4.6, "rotation": 0 } ] }
+free_space frame [0,0,200,100] kinds ["LINE","CIRCLE","LWPOLYLINE","TEXT"] margin 2 min_width 12.25 min_height 4.6
+                                                       -> { "total": 90, "boxes": [ [2,71.95,198,98], ... ] }   the largest first
+bounds handles ["107"]                                 -> { "rows": [ { "handle": "107", "box": [ ... ] } ] }     where the tag stands now
+move handles ["107"] delta [13.9, 35.8]                -> centre of the largest place
+fits candidate <the box bounds gave after the move> kinds ["LINE","CIRCLE","LWPOLYLINE"] margin 1   -> { "fits": true }
+... the same for TAG-2 ...
+overlaps of ["107","108"]                              -> { "total": 0 }
+check_standard standard {...}                          -> { "score": 1.0, "violations": [] }
+render_png width 400                                   -> an image
+```
+
+Measuring a word before it is added is exact: the box `measure_text` gives equals, to a thousandth of a millimetre, what `bounds`
+gives for the text once added in the same server. Measure and score through the one connection (a file, or `--attach`), and do
+not mix the numbers of a file with those of an app.
+
 ## Limits
 
 - One drawing at a time: the tools work on the one `open_drawing`, `new_drawing`, `--file` or the app's active drawing names.
@@ -139,6 +184,10 @@ save path "C:\plans\plate.dxf"          -> { "name": "plate.dxf", "modified": fa
   API ([Driving the app from another program](remote.md), [Python](../python.md)).
 - Attached, a `run_command` that is still asking something after 10 seconds is left waiting in the app; the next
   `run_command` answers it, or Esc in the app ends it.
+- `export_json` and `export_graph` page the document: the whole of it is megabytes for a drawing of thousands of entities (3 MB
+  for 10 000), which no model reads. `export_to_file` writes it all to a path for a program that does.
+- The labelled renders of Python (`render_masks`, `to_coco`, PW7.4) are not tools: a mask is an array of a million numbers and a
+  COCO file is for a training pipeline, which uses the Python library.
 - Attached, `render_png` draws a copy of the app's drawing taken at the call: the header, tables, blocks, layouts and objects as the
   app has them (a 10 000-entity drawing is 1 MB of text and the request takes about 20 ms); what the app shows beyond the drawing
   (its grid, grips, selection) is not in the picture, as on a file.

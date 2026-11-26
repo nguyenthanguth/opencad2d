@@ -1281,11 +1281,14 @@ bounds, not these numbers.
 ### From an LLM
 
 A language model need not run Python to do part of this: `OpenCAD2D.Mcp.exe` is a server of the Model Context Protocol that
-lets an agent (Claude Desktop, Claude Code, Cursor) open a drawing, query it, ask for `bounds` and `overlaps`, look at a
-`render_png`, and draw, move and erase, with the same engine and renderer as the library
-([Letting an AI agent drive OpenCAD2D](presenter/mcp.md)). It is the reading and doing half of the loop above; the measuring
-(`measure_*`, `free_space`, `fits`), the standard check and the exports for a network are calls of the Python library today, so a
-pipeline that trains on a score uses Python.
+lets an agent (Claude Desktop, Claude Code, Cursor) run the same loop with the same engine and renderer as the library, on a
+file or on the drawing of a running app: `measure_text`, `measure_mtext`, `measure_dimension` and `measure_leader` before it adds
+anything, `free_space` and `fits` to find room, `overlaps` and `check_standard` to score the result, `export_json` and
+`export_graph` (a page at a time, or `export_to_file` for the whole) to read the drawing as a network would, `render_png` to look
+at it, and `add_*`, `move` and `erase` to draw and change ([Letting an AI agent drive OpenCAD2D](presenter/mcp.md), with the loop
+as a session). The numbers an agent works with are the library's, in millimetres, with a frame's rotation in degrees. What stays
+with Python: the arrays for a network (`opencad2d.arrays`, `edge_index`), `render_masks` and `to_coco` for training a vision
+model, and a loop that runs thousands of `fits` calls, which a tool call each would make slow.
 
 ## Inside OpenCAD2D
 

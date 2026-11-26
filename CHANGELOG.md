@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **NEW.** The MCP server gives an AI agent the place, render, score, refine loop that Python already had (PW7.5), on a file and on an
+  app attached with `--attach`. `measure_text`, `measure_mtext`, `measure_dimension` and `measure_leader` give the box and the word
+  frames a thing would take before it is added, nothing added and no undo step made (for a text the box equals what `bounds` gives once it
+  is added, to 0.001 mm); `free_space` lists the empty rectangles of a frame, the largest first, paged; `fits` tests one box or one
+  turned frame; `check_standard` scores the drawing against a company standard given as a JSON object or the path of a file, with the
+  score of each rule and the violations a page at a time; `export_json` and `export_graph` give a summary of the drawing's document or
+  graph and a page of its entities, edges or nodes; `export_to_file` writes the whole of either to a path and is the one new tool
+  `--read-only` refuses. A frame's rotation is in degrees, as every angle of the server is. A scripted session in the tests adds two
+  tags across a line (3 overlaps, score 0.778), measures them, finds the free places, moves each into the largest, and ends with 0
+  overlaps, score 1.000 and a PNG, over a file and over an app. The server has 43 tools; the guide shows the loop as a session.
+- **FIXED.** The description of `render_png` said an attached server draws the saved file; it draws the app's drawing as it is, changes
+  not saved included, as the guide says.
 - **NEW.** A guide and two examples for batch and AI pipelines (PW6.4). The section "Batch and AI pipelines" of the Python guide shows
   how reading, normalising, feeding a network, rendering, evaluating and placing fit together in one small loop that runs as it is
   written, with the timings of each step for a drawing of 2 000 objects on .NET 8 and on .NET Framework 4.8, and a paragraph on driving

@@ -22,7 +22,11 @@ namespace OpenCAD2D.Mcp
             + "list_dimension_styles to learn the names the drawing has. Read with query_entities (paged), bounds and overlaps; "
             + "draw with the add_* tools; change with move, rotate, scale, erase and set_properties; every writing call is one "
             + "undo step that undo takes back. Look at the result with render_png. Check a layout with overlaps before saving. "
-            + "Nothing reaches a file until save.";
+            + "To place annotation: measure_text, measure_mtext, measure_dimension and measure_leader give the box and the frame of "
+            + "a word before it is added, free_space lists the empty rectangles of a frame, fits tests one place, check_standard "
+            + "scores the drawing against a company standard (higher is better), and export_json and export_graph read the drawing "
+            + "as a document a model can read, a page at a time. "
+            + "Nothing reaches a file until save (export_to_file writes an export where asked).";
 
         /// <summary>Makes the options of a server over a session: every tool of <see cref="DrawingTools"/>.</summary>
         public static McpServerOptions Options(McpSession session)

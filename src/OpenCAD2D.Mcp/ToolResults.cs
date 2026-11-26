@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace OpenCAD2D.Mcp
 {
@@ -211,5 +212,149 @@ namespace OpenCAD2D.Mcp
     {
         /// <summary>Gets or sets what the command line wrote.</summary>
         public string Output { get; set; }
+    }
+
+    /// <summary>The frame of one word: where it stands and how it is turned, as <c>measure_*</c> gives it and <c>fits</c> takes it.</summary>
+    internal sealed class FrameInfo
+    {
+        /// <summary>Gets or sets the X of the first corner, the foot of the start of the word.</summary>
+        public double X { get; set; }
+
+        /// <summary>Gets or sets the Y of the first corner.</summary>
+        public double Y { get; set; }
+
+        /// <summary>Gets or sets the length of the word along its baseline.</summary>
+        public double Width { get; set; }
+
+        /// <summary>Gets or sets the height of the frame, across the baseline.</summary>
+        public double Height { get; set; }
+
+        /// <summary>Gets or sets the angle the width runs at, in degrees counter-clockwise from the +x direction.</summary>
+        public double Rotation { get; set; }
+    }
+
+    /// <summary>What the <c>measure_*</c> tools answer: what a thing would take on the page, found before it is added.</summary>
+    internal sealed class MeasureResult
+    {
+        /// <summary>Gets or sets the box of everything it draws, <c>[minX, minY, maxX, maxY]</c>; null where it draws nothing.</summary>
+        public double[] Box { get; set; }
+
+        /// <summary>Gets or sets the frame of each word, in the order they are drawn.</summary>
+        public IReadOnlyList<FrameInfo> Frames { get; set; }
+    }
+
+    /// <summary>What <c>free_space</c> answers: the empty rectangles of a frame, the largest first.</summary>
+    internal sealed class FreeSpaceResult : PagedResult
+    {
+        /// <summary>Gets or sets the rectangles of the page, each <c>[minX, minY, maxX, maxY]</c>.</summary>
+        public IReadOnlyList<double[]> Boxes { get; set; }
+    }
+
+    /// <summary>What <c>fits</c> answers.</summary>
+    internal sealed class FitsResult
+    {
+        /// <summary>Gets or sets whether nothing of the kinds asked about is in the candidate or within the margin of it.</summary>
+        public bool Fits { get; set; }
+    }
+
+    /// <summary>How one rule of a standard fared in <c>check_standard</c>.</summary>
+    internal sealed class RuleScoreInfo
+    {
+        /// <summary>Gets or sets the id of the rule, as <c>text-height</c> or <c>gap-word-line</c>.</summary>
+        public string Rule { get; set; }
+
+        /// <summary>Gets or sets the score, from 0 (every subject offends) to 1 (none does).</summary>
+        public double Score { get; set; }
+
+        /// <summary>Gets or sets how many things the rule looked at.</summary>
+        public int Subjects { get; set; }
+
+        /// <summary>Gets or sets how many of them offend.</summary>
+        public int Offenders { get; set; }
+
+        /// <summary>Gets or sets the weight of the rule in the total score.</summary>
+        public double Weight { get; set; }
+    }
+
+    /// <summary>One place the drawing breaks a rule of the standard in <c>check_standard</c>.</summary>
+    internal sealed class ViolationInfo
+    {
+        /// <summary>Gets or sets the id of the rule broken.</summary>
+        public string Rule { get; set; }
+
+        /// <summary>Gets or sets the handle of the object, or of the record of the layer or style, that breaks the rule.</summary>
+        public string Handle { get; set; }
+
+        /// <summary>Gets or sets the handle of the second object where the rule is about two; null otherwise.</summary>
+        public string Other { get; set; }
+
+        /// <summary>Gets or sets the name of the space the object is in; empty for a record of a table.</summary>
+        public string Space { get; set; }
+
+        /// <summary>Gets or sets the handle of the viewport the object was measured through; null where none.</summary>
+        public string Through { get; set; }
+
+        /// <summary>Gets or sets the place <c>[minX, minY, maxX, maxY]</c>; null where the violation has none.</summary>
+        public double[] Box { get; set; }
+
+        /// <summary>Gets or sets what was found, as a sentence: <c>3.2 mm</c>.</summary>
+        public string Measured { get; set; }
+
+        /// <summary>Gets or sets what the standard allows, as a sentence: <c>2.5, 3.5, 5, 7 mm</c>.</summary>
+        public string Allowed { get; set; }
+
+        /// <summary>Gets or sets the number found, in millimetres on paper; null where the rule is about a name.</summary>
+        public double? Value { get; set; }
+
+        /// <summary>Gets or sets the number allowed against <see cref="Value"/>; null where the rule is about a name.</summary>
+        public double? Limit { get; set; }
+    }
+
+    /// <summary>What <c>check_standard</c> answers: the scores, and a page of the violations.</summary>
+    internal sealed class StandardResult : PagedResult
+    {
+        /// <summary>Gets or sets the name of the standard.</summary>
+        public string Name { get; set; }
+
+        /// <summary>Gets or sets the total score from 0 to 1: the weighted mean of the rules the standard runs.</summary>
+        public double Score { get; set; }
+
+        /// <summary>Gets or sets the score of each rule the standard runs.</summary>
+        public IReadOnlyList<RuleScoreInfo> Rules { get; set; }
+
+        /// <summary>Gets or sets the violations of the page, sorted by rule, then handle.</summary>
+        public IReadOnlyList<ViolationInfo> Violations { get; set; }
+    }
+
+    /// <summary>What <c>export_json</c> and <c>export_graph</c> answer: what the document holds, and a page of its rows.</summary>
+    internal sealed class ExportResult : PagedResult
+    {
+        /// <summary>Gets or sets the members of the document that are not lists (<c>schema</c>, <c>version</c>, <c>units</c>, <c>tolerance</c>).</summary>
+        public SortedDictionary<string, JsonElement> Header { get; set; }
+
+        /// <summary>Gets or sets how many rows each list of the document has: <c>layers</c>, <c>blocks</c>, <c>entities</c>, <c>edges</c>.</summary>
+        public SortedDictionary<string, int> Tables { get; set; }
+
+        /// <summary>Gets or sets how many rows of each kind the whole list has, kinds in alphabetical order.</summary>
+        public SortedDictionary<string, int> Kinds { get; set; }
+
+        /// <summary>Gets or sets the name of the list the rows are of: <c>entities</c>, <c>nodes</c> or <c>edges</c>.</summary>
+        public string Part { get; set; }
+
+        /// <summary>Gets or sets the rows of the page, as the document writes them.</summary>
+        public IReadOnlyList<JsonElement> Rows { get; set; }
+    }
+
+    /// <summary>What <c>export_to_file</c> answers.</summary>
+    internal sealed class ExportedResult
+    {
+        /// <summary>Gets or sets the full path written.</summary>
+        public string Path { get; set; }
+
+        /// <summary>Gets or sets <c>json</c> or <c>graph</c>.</summary>
+        public string What { get; set; }
+
+        /// <summary>Gets or sets how many bytes were written.</summary>
+        public long Bytes { get; set; }
     }
 }
