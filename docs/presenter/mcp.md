@@ -69,14 +69,18 @@ server may be started before the app is.
 
 | Flag | Effect |
 |---|---|
-| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `set_variable`, `reset`, `undo`, `redo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `export_to_file`, `purge`, `audit` with `fix`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts; `run_plan` when a step of the plan writes; attached, also the three `zoom_*` tools, which move the view the user has on screen. Rendering, the reading, measuring and checking tools, the check of `audit`, `dump_drawing` and the debug tools, selecting and taking or releasing a snapshot still work, and so does a plan of such tools. `open_drawing` and `new_drawing` still work on a drawing file (a read-only server starts with no drawing, and opening one changes nothing the user has open) and are **refused when attached**, where they would replace the drawing the user has on screen: open it in the app first (File, Open) and attach to it |
+| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `set_variable`, `reset`, `undo`, `redo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `export_to_file`, `purge`, `audit` with `fix`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts; `run_plan` when a step of the plan writes; attached, also the three `zoom_*` tools, which move the view the user has on screen. Rendering, the reading, measuring and checking tools, the check of `audit`, `dump_drawing` and the debug tools, selecting and taking or releasing a snapshot still work. A plan of such tools works too, and a plan decides this call by call as a call alone does: `audit`, `release_snapshot`, `dump_drawing` and (on a file) the `zoom_*` tools pass the plan's check of a read-only server, and a step that this server refuses on its own (`audit` with `fix`, a `zoom_*` of an app) is refused in its step, with the same words, and nothing is typed. `snapshot` and `reset` are refused in any plan, read-only or not (see below). `open_drawing` and `new_drawing` still work on a drawing file (a read-only server starts with no drawing, and opening one changes nothing the user has open) and are **refused when attached**, where they would replace the drawing the user has on screen: open it in the app first (File, Open) and attach to it |
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
 - Files are written by `save` (the drawing's own file, which is in the folder it was opened from, or the path the agent gives
   it), by `save_as`, `plot_pdf`, `export_svg` and `export_to_file` (the path the agent gives; a file that
   is there is refused unless `overwrite` is true), and by `dump_drawing`, which writes only inside the debug folder.
   `render_png` makes its picture in memory (a temporary file under the system's temporary folder, deleted at once). Every
-  other tool, the measuring, scoring and export tools included, reads and writes nothing.
+  other tool, the measuring, scoring and export tools included, writes nothing. Two read files by the path the agent gives:
+  `check_standard` (a standard given as the path of a `.json` file) and `compare_drawings` (a DXF or DWG file, or a
+  `dump_drawing` file in the debug folder); neither changes them. A path that names the open drawing's own file by another
+  name (a short 8.3 name, a hard link, a junction) is the drawing's own file all the same: the file tools tell it by the
+  file's identity, and refuse it.
 - No text of the agent's reaches a command line except as one answer to a prompt for words (the words of a multileader): a word of a command may not start with `(`, `!` or `'`, which the command line would run as AutoLISP or as a
   transparent command, and a block is inserted by an edit of the core and not by typing its name, so no AutoLISP runs without
   `--allow-scripts`. Attached, a tool that types (and `undo` and `redo`) is refused while a command is running in the app, so that it
@@ -98,6 +102,7 @@ versions took, `50`, are read too: no weight is both, so a number is read the on
 the drawing is one undo step (a `run_plan` is one in all, `run_command` the steps of its commands). Every answer is small: a long
 list comes in pages of 100 (`page_size` up to 500). A call with a missing, unknown or wrongly typed argument is refused before it
 runs, with the name of the argument and what the tool takes (`add_line was not run: The argument end is required and is missing.`).
+A `null` for an argument that has a default leaves it out, in a call and in a plan alike (`"scale": null`); for one that has none it is a wrong type, said in words. A negative lineweight is read only as one of the codes (`-1`, `-2`, `-3`); `-0.5` is refused, and so is a scale of a viewport below `0.000000000000001`.
 
 **Which space a tool works in.** One rule: every tool that takes a `layout` works in **model space where it is left out**,
 whatever layout is shown: the `add_*` tools, the reading, measuring and placing tools, `render_png`, `export_svg` and `plot_pdf`. The
@@ -140,7 +145,7 @@ tools act on handles wherever they are.
 | `add_line`, `add_polyline`, `add_circle`, `add_arc` | geometry; `layer`, `color` (a colour index) and `linetype` for each |
 | `add_text`, `add_mtext` | words, with a `text_style` of the drawing; `add_text` takes a `justify` (`left`, `center`, `right`, `middle` or a code `TL` ... `BR`) as `measure_text` does, so the box measured is the box of the text added |
 | `add_linear_dim`, `add_aligned_dim`, `add_radial_dim`, `add_diameter_dim`, `add_angular_dim` | dimensions made as DIMLINEAR, DIMALIGNED, DIMRADIUS, DIMDIAMETER and DIMANGULAR make them, in a `dim_style` of the drawing (the current one by default); the picture is drawn by the engine |
-| `add_hatch(boundary=, bulges=, circle_center=, circle_radius=, handles=, pattern=, scale=, angle=)`, `add_insert` | a hatch of closed outlines with a pattern of the built-in set: corners (`boundary`, with a `bulges` entry for each corner where a side is an arc), a circle, or the closed polylines and circles already in the drawing by handle, several together (the first is the outer outline); or a block of the drawing placed |
+| `add_hatch(boundary=, bulges=, circle_center=, circle_radius=, handles=, pattern=, scale=, angle=)`, `add_insert` | a hatch of closed outlines with a pattern of the built-in set: corners (`boundary`, with a `bulges` entry for each corner where a side is an arc), a circle, or the closed polylines and circles already in the drawing by handle, several together (the first is the outer outline); or a block of the drawing placed. An outline is taken where it is in the world: a polyline that faces down (normal -Z) is hatched where it is drawn, its arcs turning the right way. Refused: a polyline or circle in a plane that is not the plane of the drawing, a handle given twice, a handle of another layout than the hatch's, and two corners whose arcs go there and back (no area) |
 | `move`, `rotate`, `scale`, `erase`, `set_properties` | change entities by handle (refused on a locked layer); `set_properties` sets `layer`, `color`, `linetype`, `linetype_scale`, `lineweight` (millimetres, as for a layer) and `transparency` (per cent) |
 | `undo`, `redo` | take back the last step, or do the step taken back again |
 | `run_plan(steps, dry_run=, stop_on_error=)` | runs a list of calls of the tools above in one call, as one undo step, each step able to take a value from an earlier step's answer; see [Plans](#plans-many-steps-in-one-call) |
@@ -372,7 +377,11 @@ read, with what the answer has: `has no member handel (it has handle, kind)`.
 - **One undo step.** All the steps that write are one undo step: one `undo` takes them all back. On a file the steps are one group of
   edits of the engine. Attached, the app has no group in its Remote API, so the server types the two lines of AutoCAD's own UNDO group
   on the app's command line, `UNDO BEgin` before the first step and `UNDO End` after the last (fixed text, nothing the agent writes;
-  they show in the app's command history), and U then takes the whole group back. The server first asks the app for a snapshot of the
+  they show in the app's command history), and U then takes the whole group back. The app does not nest UNDO groups (a second `UNDO Begin`
+  closes the first, as AutoCAD does), so the tools that group their own steps when called alone (`add_mleader`, `add_table`, `define_block`,
+  `insert_block_with_attributes`, `create_layout`, `add_viewport`, `fillet`, `chamfer`, `offset`, `set_properties` of a lineweight, and the
+  rest) type no group of their own inside a plan: the plan's is the one step. The two fixed lines are typed strictly: the app looks again for
+  a running command in the request that types the first of them, and refuses it, typing nothing, where one has started since the look. The server first asks the app for a snapshot of the
   drawing (see [Keeping a drawing and putting it back](remote.md#keeping-a-drawing-and-putting-it-back)), which is refused while a command is running in the app: the plan then says the app is busy
   and runs nothing. Before each of the two lines the server reads `CMDACTIVE` and types nothing while it is not 0, so a line is never
   an answer to a command the user is in the middle of (text typed at a prompt that is not a text prompt would be read as AutoLISP or a
@@ -389,15 +398,21 @@ read, with what the answer has: `has no member handel (it has handle, kind)`.
   drawing's handle counter is put back too, so the real run that follows gives the same handles). A plan with steps that only read is
   simply run. A dry run on an app draws the plan in the user's window for a moment (about 30 ms for a drawing of 10 000 entities) and
   puts it back; a drawing file in memory is not seen by anyone.
-- **Refused by name in a plan:** `run_plan` (no plan holds a plan), `open_drawing`, `new_drawing`, `undo`, `redo` and `save`
-  (they replace the drawing, step through its history, or write its file, which a plan that stops could not take back).
-- **Files at the end.** A plan may end with `plot_pdf`, `export_svg` and `save_as` as its **last steps** (`save_as` is allowed nowhere
-  else): they are run after the plan's edits are kept, so a plan that was stopped or taken back writes none of them, and a dry run
-  writes none (their answers say `written: false`). A `plot_pdf` or `export_svg` earlier in the plan is run where it stands, with the
-  edits so far. `run_command` is
+- **Refused by name in a plan:** `run_plan` (no plan holds a plan), `open_drawing`, `new_drawing`, `undo`, `redo`, `save`,
+  `snapshot` and `reset` (they replace the drawing, step through its history, write its file, or keep and put back the drawing
+  while the plan holds its own group of edits open, which a plan that stops could not take back). `release_snapshot` is allowed.
+- **Files at the end.** A tool that writes a file and no part of the drawing (`plot_pdf`, `export_svg`, `save_as`, `export_to_file`
+  and `dump_drawing`; the tool says so itself, not a list of names) is allowed in a plan only as its **last step**, or among the last
+  steps that write files. They are run after the plan's edits are kept, so a plan that was stopped or taken back writes none of
+  them, and a dry run writes none (their answers say `written: false`). One that stands earlier in the plan is refused before
+  anything runs, in a dry run too, with the answer "allowed in a plan only as its last step": a file cannot be taken back, and a
+  later step could not read the drawing as the file was written. Put it at the end. A file step at the end that fails stops the
+  files after it, and the answer says that the plan's edits were kept as one undo step. `run_command` is
   refused unless the server has `--allow-scripts`, as it is alone, and is never allowed in a plan on an app (a command it starts may
   wait for the user's answer, and the plan could not end its group while it does). On a file its text is typed **as written**: no
-  reference is read in it, so no earlier answer can reach the command line. A plan with **any** step that writes is refused by `--read-only` before
+  reference is read in it, so no earlier answer can reach the command line. Its first word may not be `U`, `UNDO`, `REDO`, `QSAVE`,
+  `SAVE`, `SAVEAS`, `OPEN`, `NEW`, `CLOSE` or `QUIT` (in either case, with or without the leading `_` or `.`): they step through the plan's own
+  history or write or replace the drawing's file, which the plan's one undo step cannot hold. A plan with **any** step that writes is refused by `--read-only` before
   anything runs, naming those steps; a plan of reading tools runs on a read-only server.
 - At most 200 steps. A picture a step makes (`render_png`) is reported by its type and size, not its data (the step answers metadata
   only): call `render_png` alone to see it.

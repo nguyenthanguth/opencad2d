@@ -33,13 +33,22 @@ namespace OpenCAD2D.Mcp
 
             if (given != null)
             {
+                var kept = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+
                 foreach (string name in new SortedSet<string>(given.Keys, StringComparer.Ordinal))
                 {
                     // A client that sends null for an argument that has a default means to leave it out.
                     if (given[name].ValueKind != JsonValueKind.Null || Required(name))
                     {
                         arguments[name] = JsonSerializer.SerializeToNode(given[name]);
+                        kept[name] = given[name];
                     }
+                }
+
+                // The tool is called without them too: the SDK would refuse a null for a parameter of a type that has none.
+                if (kept.Count != given.Count)
+                {
+                    request.Params.Arguments = kept;
                 }
             }
 
@@ -62,8 +71,11 @@ namespace OpenCAD2D.Mcp
             );
         }
 
-        private bool Required(string name) =>
-            ProtocolTool.InputSchema.TryGetProperty("required", out JsonElement required)
+        private bool Required(string name) => IsRequired(ProtocolTool.InputSchema, name);
+
+        /// <summary>Whether the input schema of a tool lists the argument as required.</summary>
+        internal static bool IsRequired(JsonElement schema, string name) =>
+            schema.TryGetProperty("required", out JsonElement required)
             && required.ValueKind == JsonValueKind.Array
             && required.EnumerateArray().Any(r => string.Equals(r.GetString(), name, StringComparison.Ordinal));
     }

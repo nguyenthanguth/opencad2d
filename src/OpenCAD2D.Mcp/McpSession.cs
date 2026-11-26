@@ -28,6 +28,9 @@ namespace OpenCAD2D.Mcp
         /// <summary>Gets the options the server was started with.</summary>
         public McpOptions Options { get; }
 
+        /// <summary>Gets or sets whether a plan holds its group of undo steps open on the app: the drawing the tools are given then adds no group of its own.</summary>
+        public bool PlanOpen { get; set; }
+
         /// <summary>Opens the file of <c>--file</c>, where there is one; a file that cannot be opened throws.</summary>
         public void Start()
         {
@@ -184,7 +187,10 @@ namespace OpenCAD2D.Mcp
                 CadRemoteDocument document = chosen ?? open.FirstOrDefault(d => d.IsActive);
                 return new RemoteBackend(
                     document ?? throw new McpException("The app has no drawing open: call open_drawing or new_drawing.")
-                );
+                )
+                {
+                    InPlan = PlanOpen,
+                };
             }
         }
 

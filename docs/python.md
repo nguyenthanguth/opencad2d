@@ -1177,7 +1177,9 @@ sheet.viewports                                      # 2
 The title block is a block with attribute definitions, inserted on the layout with the words of its attributes. `add_insert` takes
 `layout=` and `attributes=`, a dictionary of the words by tag (letters of either case the same); a tag left out keeps the default of its
 definition, `{}` gives every attribute its default and none gives the insert no attribute, as before. A constant attribute belongs to the
-block and is not made; a tag the block lacks is a `ValueError` that lists the tags it has. The block may be made in the same commit:
+block and is not made, and a preset attribute keeps its default whatever is given for it, as the insert command does; a tag the block
+lacks, and attributes (`{}` too) for a block that has none to fill, are a `ValueError` that lists the tags it has. The block may be made in
+the same commit:
 
 ```python
 from GeometryHelper.Dxf import DxfAttributeDefinition, DxfLine

@@ -232,6 +232,58 @@ namespace OpenCAD2D.UnitTest
             Assert.Empty(Viewports(document, "Layout1"));
         }
 
+        [Fact]
+        public void AViewportThatFailsInsideAnOuterGroup_LeavesNoHalfViewportInIt()
+        {
+            CadDocument document = Plate();
+            var frame = new[] { 10.0, 10.0, 110.0, 70.0 };
+            DxfLine line = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(5, 5, 0));
+
+            document.BeginGroup("OUTER");
+            document.ApplyEdit("OUTER", null, s => s.Append(document.ModelSpace, line));
+            int seen = 0;
+
+            // The layer freeze, the last of the edits, is the one that fails: the viewport is made by then.
+            document.Changed += (sender, args) =>
+            {
+                if (seen++ > 0)
+                {
+                    throw new InvalidOperationException("The edit failed.");
+                }
+            };
+            Assert.Throws<InvalidOperationException>(() =>
+                CadLayouts.AddViewport(document, "Layout1", frame, "1:10", null, new[] { "Notes" })
+            );
+            document.EndGroup();
+
+            Assert.Empty(Viewports(document, "Layout1"));
+            Assert.Equal(3, document.ModelSpace.Block.OfType<DxfLine>().Count(l => !l.IsErased));
+        }
+
+        [Fact]
+        public void ALayoutThatFailsInsideAnOuterGroup_IsNotLeftHalfSetUp()
+        {
+            CadDocument document = Plate();
+            DxfLine line = new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(5, 5, 0));
+            document.BeginGroup("OUTER");
+            document.ApplyEdit("OUTER", null, s => s.Append(document.ModelSpace, line));
+            int seen = 0;
+
+            // The page setup, the last of the edits, is the one that fails: the layout is made by then.
+            document.Changed += (sender, args) =>
+            {
+                if (seen++ > 0)
+                {
+                    throw new InvalidOperationException("The edit failed.");
+                }
+            };
+            Assert.Throws<InvalidOperationException>(() => CadLayouts.Add(document, "Detail", "ISO_A4", true));
+            document.EndGroup();
+
+            Assert.Equal(new[] { "Model", "Layout1" }, Names(document));
+            Assert.Equal(3, document.ModelSpace.Block.OfType<DxfLine>().Count(l => !l.IsErased));
+        }
+
         [Theory]
         [InlineData("1:50", 1.0, 50.0)]
         [InlineData("2:1", 2.0, 1.0)]

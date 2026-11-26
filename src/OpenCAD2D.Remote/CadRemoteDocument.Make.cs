@@ -80,7 +80,8 @@ namespace OpenCAD2D.Remote
         /// <summary>
         /// Types the lines of a script on the command line without waiting, as <see cref="SendCommand(string)"/> does, but types none
         /// once the command has ended, and says how many it left: the first line starts the command unless the script goes on with
-        /// one already running.
+        /// one already running. A script that starts a command is refused by the app, which types nothing, where a command is running
+        /// by the time it looks again, in the request that types.
         /// </summary>
         internal CadRemoteTyped TypeScript(string text, bool continuing)
         {

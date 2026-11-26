@@ -170,6 +170,9 @@ namespace OpenCAD2D
 
             CadPaper sheet = Paper(paper ?? CadPaper.Default.Name);
             bool own = !document.IsInGroup;
+
+            // Inside a group of the caller the failure takes back what this call made, and the caller's own edits stay.
+            CadGroupMark mark = own ? null : document.MarkGroup();
             document.BeginGroup("LAYOUT");
 
             try
@@ -203,6 +206,7 @@ namespace OpenCAD2D
                 }
                 else
                 {
+                    document.BackTo(mark);
                     document.EndGroup();
                 }
 
@@ -364,6 +368,7 @@ namespace OpenCAD2D
             List<string> names = FrozenNames(document, frozenLayers);
             string handle = null;
             bool own = !document.IsInGroup;
+            CadGroupMark mark = own ? null : document.MarkGroup();
             document.BeginGroup("MVIEW");
 
             try
@@ -409,6 +414,7 @@ namespace OpenCAD2D
                 }
                 else
                 {
+                    document.BackTo(mark);
                     document.EndGroup();
                 }
 

@@ -115,13 +115,7 @@ namespace OpenCAD2D.Mcp
                 {
                     if (weight.Value != -3 && !LineWeights.Contains(weight.Value))
                     {
-                        throw new ArgumentException(
-                            "The lineweight "
-                                + weight.Value
-                                + " is none of AutoCAD's: "
-                                + string.Join(", ", LineWeights)
-                                + ", or -3."
-                        );
+                        throw new ArgumentException(NoSuchWeight(weight.Value, ", or -3 for the default weight"));
                     }
 
                     row.LineWeight = weight.Value;

@@ -6,6 +6,7 @@ namespace OpenCAD2D.Mcp
 {
     internal sealed partial class DrawingTools
     {
+        [ReadOnlyAllowed]
         [McpServerTool(Name = "snapshot", ReadOnly = false, Destructive = false, Idempotent = false, OpenWorld = false)]
         [Description(
             "Keeps the drawing as it stands (with changes not saved) and gives an id such as s1 to put it back to with reset: try a layout, look at it, and roll it back. It costs next to nothing where the drawing keeps its undo list, and the drawing itself is not changed. In a server attached to an app the app holds the snapshot until release_snapshot or until the drawing is closed. Refused while a command runs in the drawing."
@@ -41,6 +42,7 @@ namespace OpenCAD2D.Mcp
                 };
             });
 
+        [ReadOnlyAllowed]
         [McpServerTool(
             Name = "release_snapshot",
             ReadOnly = false,

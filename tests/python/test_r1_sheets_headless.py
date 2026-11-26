@@ -31,8 +31,9 @@ def _plate() -> Drawing:
     return drawing
 
 
-def _title_block(drawing: Drawing, constant: bool = False) -> None:
-    """A block TITLE of a box and three attributes: DRAWING and NUMBER with defaults, and SCALE, constant where asked."""
+def _title_block(drawing: Drawing, constant: bool = False, preset: bool = False) -> None:
+    """A block TITLE of a box and three attributes: DRAWING and NUMBER with defaults, and SCALE, constant where asked; NUMBER
+    preset (its default taken without asking) where asked."""
     box = [
         _dxf.DxfLine(_geo.GeoPoint3(0, 0, 0), _geo.GeoPoint3(100, 0, 0)),
         _dxf.DxfLine(_geo.GeoPoint3(100, 0, 0), _geo.GeoPoint3(100, 20, 0)),
@@ -45,6 +46,7 @@ def _title_block(drawing: Drawing, constant: bool = False) -> None:
     for each in attributes:
         each.Height = 4.0
     attributes[2].Constant = constant
+    attributes[1].Preset = preset
     drawing.blocks.add("TITLE", [*box, *attributes])
 
 
@@ -308,6 +310,9 @@ def test_a_viewport_is_refused_in_words_and_leaves_the_layout_as_it_was() -> Non
             sheet.add_viewport(bad_frame, "1:1")
     with pytest.raises(ValueError, match="A scale is a number above nought"):
         sheet.add_viewport(frame, 0)
+    # A scale is written with 15 decimals: a smaller one would be written as 0.
+    with pytest.raises(ValueError, match="0.000000000000001 or more"):
+        sheet.add_viewport(frame, 1e-16)
     with pytest.raises(ValueError, match="A scale is two numbers"):
         sheet.add_viewport(frame, "1:0")
     with pytest.raises(ValueError, match="not fitted"):
@@ -361,6 +366,28 @@ def test_a_constant_attribute_belongs_to_the_block_and_is_not_made() -> None:
         drawing.add_insert("TITLE", (0, 0), attributes={"SCALE": "1:5"})
 
 
+def test_a_preset_attribute_keeps_its_default_as_the_insert_command_does() -> None:
+    drawing = new_file()
+    _title_block(drawing, preset=True)
+    drawing.commit()
+
+    drawing.add_insert("TITLE", (0, 0), attributes={"DRAWING": "X", "NUMBER": "B-999"})
+    drawing.commit()
+
+    assert _attributes_of(drawing, "Model") == [{"DRAWING": "X", "NUMBER": "A-000", "SCALE": "1:1"}]
+
+
+def test_entities_of_a_class_takes_a_layout_as_the_layout_it_is() -> None:
+    drawing = new_file()
+    sheet = drawing.layouts["Layout1"]
+    _title_block(drawing)
+    drawing.add_insert("TITLE", (300, 10), layout=sheet, attributes={})
+    drawing.commit()
+
+    assert len(drawing.entities(_dxf.DxfBlockReference, layout=sheet)) == 1
+    assert drawing.entities(_dxf.DxfBlockReference, layout="Model") == []
+
+
 def test_an_insert_places_its_attributes_by_its_scale_and_rotation() -> None:
     drawing = new_file()
     _title_block(drawing)
@@ -384,6 +411,9 @@ def test_attributes_for_a_block_that_is_not_there_or_has_none_are_refused_with_t
         drawing.add_insert("NOPE", (0, 0), attributes={})
     with pytest.raises(ValueError, match="The block BOX has no attribute 'A': its tags are none"):
         drawing.add_insert("BOX", (0, 0), attributes={"A": "1"})
+    # An empty dictionary is attributes too: a block with none to fill is refused as the docstring says.
+    with pytest.raises(ValueError, match="The block BOX has no attribute to fill: its tags are none"):
+        drawing.add_insert("BOX", (0, 0), attributes={})
     assert drawing.entities("INSERT", layout="Model") == []
 
 

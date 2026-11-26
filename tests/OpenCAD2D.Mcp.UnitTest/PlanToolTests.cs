@@ -70,6 +70,24 @@ namespace OpenCAD2D.Mcp.UnitTest
         }
 
         [Fact]
+        public async Task A_tool_that_groups_itself_inside_a_plan_leaves_the_plan_one_undo_step()
+        {
+            await using McpHarness harness = await Plate("plangrouped");
+
+            JsonNode result = await Plan(
+                harness,
+                "[{\"tool\":\"add_line\",\"arguments\":{\"start\":[0,0],\"end\":[50,0]}},"
+                    + "{\"tool\":\"add_table\",\"arguments\":{\"at\":[100,100],\"columns\":2,\"rows\":1}},"
+                    + "{\"tool\":\"add_line\",\"arguments\":{\"start\":[0,5],\"end\":[50,5]}}]"
+            );
+
+            Assert.True((bool)result["ok"], (string)result["message"]);
+            Assert.Equal(7, await Count(harness));
+            Assert.True((bool)(await harness.CallAsync("undo"))["undone"]);
+            Assert.Equal(4, await Count(harness));
+        }
+
+        [Fact]
         public async Task A_step_takes_a_value_from_an_earlier_answer_by_its_id_and_path()
         {
             await using McpHarness harness = await Plate("planrefs");

@@ -92,6 +92,28 @@ namespace OpenCAD2D.Mcp.UnitTest
         }
 
         [Fact]
+        public async Task Attached_a_tool_that_groups_itself_inside_a_plan_leaves_the_plan_one_undo_step()
+        {
+            using TestApp app = TestApp.Start();
+            await using McpHarness harness = await Attach(app, "attgroup");
+            Assert.Equal(4, await Count(harness));
+
+            JsonNode result = await Plan(
+                harness,
+                "[{\"tool\":\"add_line\",\"arguments\":{\"start\":[0,0],\"end\":[50,0]}},"
+                    + "{\"tool\":\"add_table\",\"arguments\":{\"at\":[100,100],\"columns\":2,\"rows\":1}},"
+                    + "{\"tool\":\"add_line\",\"arguments\":{\"start\":[0,5],\"end\":[50,5]}}]"
+            );
+
+            Assert.True((bool)result["ok"], (string)result["message"]);
+            Assert.Equal(7, await Count(harness));
+
+            // The table's own group did not end the plan's: one undo takes all three steps back.
+            Assert.True((bool)(await harness.CallAsync("undo"))["undone"]);
+            Assert.Equal(4, await Count(harness));
+        }
+
+        [Fact]
         public async Task Attached_a_step_that_fails_puts_the_app_back_as_it_was()
         {
             using TestApp app = TestApp.Start();
@@ -159,6 +181,23 @@ namespace OpenCAD2D.Mcp.UnitTest
             Assert.False((bool)refused["ok"]);
             Assert.Contains("--allow-scripts", (string)refused["steps"][1]["error"]);
             Assert.Equal(4, await Count(scriptless));
+        }
+
+        [Fact]
+        public async Task Attached_a_read_only_plan_leaves_the_refusal_of_a_zoom_to_the_zoom_as_a_call_alone_has_it()
+        {
+            using TestApp app = TestApp.Start();
+            await using McpHarness readOnly = await Attach(app, "attroallowed", readOnly: true);
+
+            JsonNode audit = await Plan(readOnly, "[{\"tool\":\"audit\"},{\"tool\":\"info\"}]");
+            Assert.True((bool)audit["ok"], audit.ToJsonString());
+            Assert.False((bool)audit["changed"]);
+
+            // The zoom moves the view the user has on screen: its own refusal says so, in the step, and nothing was typed.
+            JsonNode zoom = await Plan(readOnly, "[{\"tool\":\"zoom_extents\"}]");
+            Assert.False((bool)zoom["ok"]);
+            Assert.Contains("--read-only", (string)zoom["steps"][0]["error"]);
+            Assert.Equal(4, await Count(readOnly));
         }
 
         [Fact]

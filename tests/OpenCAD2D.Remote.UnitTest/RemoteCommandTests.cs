@@ -58,6 +58,35 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        public void AStrictScriptThatStartsACommand_IsRefusedWhileACommandRuns_AndTypesNothing()
+        {
+            using (var harness = new Harness())
+            {
+                var host = new TestHost();
+                CadDocument document = host.Add(Blank("A-101.dxf"));
+                harness.Serve(host);
+                CadRemoteDocument drawing = harness.Connect().Documents.Single();
+                drawing.SendCommand("LINE 0,0", TimeSpan.Zero);
+                Assert.True(host.SessionOf(document).IsRunning);
+                int history = host.SessionOf(document).History.Count;
+
+                // The look that found no command running was a request ago: the server looks again where it types.
+                CadRemoteException refused = Assert.Throws<CadRemoteException>(() =>
+                    drawing.TypeScript("CIRCLE\n", false)
+                );
+
+                Assert.Contains("command is running", refused.Message);
+                Assert.Equal(history, host.SessionOf(document).History.Count);
+                Assert.True(host.SessionOf(document).IsRunning);
+
+                // A script that goes on with the command running is allowed to answer it.
+                CadRemoteTyped answered = drawing.TypeScript("50,0\n\n", true);
+                Assert.True(answered.Completed);
+                Assert.Equal(50.0, ((DxfLine)document.Database.ModelSpace.Single()).EndPoint.X, 9);
+            }
+        }
+
+        [Fact]
         public void ACommandForADrawingThatIsNotActive_ShowsItFirst_AndRunsOnIt()
         {
             using (var harness = new Harness())

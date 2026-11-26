@@ -138,7 +138,8 @@ namespace OpenCAD2D.Mcp
             /// <summary>Types one of the two fixed lines of the UNDO group on the app's command line.</summary>
             private void Type(string line)
             {
-                CadRemoteCommandResult result = _document.SendCommand(line, TimeSpan.FromSeconds(10));
+                // Typed strictly: the app looks again for a running command where it types, which the check before this cannot.
+                CadRemoteTyped result = _document.TypeScript(line + "\n", false);
 
                 if (!result.Completed)
                 {

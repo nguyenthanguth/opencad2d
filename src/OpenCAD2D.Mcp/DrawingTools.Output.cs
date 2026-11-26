@@ -20,6 +20,7 @@ namespace OpenCAD2D.Mcp
         private const string OverwriteText =
             "True to replace a file that is there already; a file that is there is refused otherwise.";
 
+        [WritesFile]
         [McpServerTool(Name = "plot_pdf", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
             "Plots a layout (or model space) to a PDF file of one page, as PLOT to the PDF plotter does (model space where layout is left out, whatever layout is shown, as in the other tools): the layout's own page setup (its sheet and scale), lines at their lineweights, text as text. A space never set up is fitted to an A3 sheet. paper, scale or fit change the setup for this plot only and are not written into the drawing: paper is a sheet of the plotter's list (A0 to A4, ANSI A to E) and the plot is fitted to it unless a scale is given too; scale is 1:10 or 2:1, on the sheet the layout has or the paper given; fit fills the sheet. The text of an SHX font is also written as invisible text over its strokes, so that a PDF reader's search and a program that reads the plot back find the words. An attached server plots the app's drawing as it stands, changes not saved included, in its own process; the app is not touched. Refused with --read-only."
@@ -34,8 +35,27 @@ namespace OpenCAD2D.Mcp
             [Description(OverwriteText)] bool overwrite = false
         ) => _session.Run("plot_pdf", true, drawing =>
             {
-                string full = McpKit.Target(path, ".pdf", overwrite, drawing.Path);
+                // What the plot needs is checked before the file's folder is made: a plot that is refused leaves no folder behind.
                 string space = Layout(drawing, layout);
+
+                if (scale != null && fit)
+                {
+                    throw new ArgumentException(
+                        "Give a scale or fit, not both: a scale is how big the drawing is plotted."
+                    );
+                }
+
+                if (paper != null)
+                {
+                    CadLayouts.Paper(paper);
+                }
+
+                if (scale != null)
+                {
+                    CadLayouts.ParseScale(scale, out _, out _);
+                }
+
+                string full = McpKit.Target(path, ".pdf", overwrite, drawing.Path);
                 CadDocument document = McpKit.Snapshot(drawing);
                 CadPlotPage page = CadPlot.WritePdf(full, document, space, paper, scale, fit);
                 return new PlotResult
@@ -57,6 +77,7 @@ namespace OpenCAD2D.Mcp
                 };
             });
 
+        [WritesFile]
         [McpServerTool(Name = "export_svg", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
             "Draws a layout (or a part of it) to an SVG file, as the app's canvas draws it on a white ground: vectors, text as text, at the canvas's level of detail (a text under 3 pixels is left out). Size and box as render_png; where no box is given, the view zoom_window or zoom_object set is drawn. An attached server draws the app's drawing as it stands, in its own process. Refused with --read-only."
@@ -84,8 +105,8 @@ namespace OpenCAD2D.Mcp
                     throw new ArgumentException("A size is not negative.");
                 }
 
-                string full = McpKit.Target(path, ".svg", overwrite, drawing.Path);
                 string space = Layout(drawing, layout);
+                string full = McpKit.Target(path, ".svg", overwrite, drawing.Path);
                 CadDocument document = McpKit.Snapshot(drawing);
                 var request = new RenderRequest
                 {
@@ -104,6 +125,7 @@ namespace OpenCAD2D.Mcp
                 };
             });
 
+        [WritesFile]
         [McpServerTool(Name = "save_as", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
             "Writes a COPY of the drawing as a DXF or a DWG of a version of AutoCAD, as the core's writers do, and leaves the open drawing as it is: its own file, its name and its unsaved changes, so the drawing is still marked modified afterwards, as nothing was saved (save with a path is the tool that moves the drawing to a new file). An attached server writes a copy of the app's drawing as it stands, changes not saved included, and never touches the app. A file that is there is refused unless overwrite is true, and the drawing's own file is always refused (save writes it). Refused with --read-only."
@@ -319,9 +341,10 @@ namespace OpenCAD2D.Mcp
                 );
             }
 
-            return drawing.RunCommand(text);
+            return drawing is RemoteBackend remote ? remote.RunFixed(text) : drawing.RunCommand(text);
         }
 
+        [ReadOnlyAllowed(WritesWhen = "fix")]
         [McpServerTool(Name = "audit", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]
         [Description(
             "Checks the drawing for errors, as AUDIT does, and counts them by kind with the first sentences it says (a block reference of a block the drawing has not, a handle two records share, a layer a record names that is not there). With fix true it also fixes what it can, as AUDIT with Yes, as one undo step, then audits again; the fix is refused with --read-only, and in an app that has a command running. The check alone writes nothing and is allowed everywhere."
@@ -364,6 +387,7 @@ namespace OpenCAD2D.Mcp
             return kinds;
         }
 
+        [ReadOnlyAllowed]
         [McpServerTool(
             Name = "zoom_extents",
             ReadOnly = false,
@@ -393,6 +417,7 @@ namespace OpenCAD2D.Mcp
                 return new ZoomResult { View = "render", Box = Rounded(McpKit.Union(drawing.Bounds(space))) };
             });
 
+        [ReadOnlyAllowed]
         [McpServerTool(
             Name = "zoom_window",
             ReadOnly = false,
@@ -429,6 +454,7 @@ namespace OpenCAD2D.Mcp
                 return new ZoomResult { View = "render", Box = Rounded(view) };
             });
 
+        [ReadOnlyAllowed]
         [McpServerTool(
             Name = "zoom_object",
             ReadOnly = false,

@@ -28,20 +28,32 @@ namespace OpenCAD2D.Mcp
             { "new_drawing", "it replaces the drawing the plan works on" },
             { "open_drawing", "it replaces the drawing the plan works on" },
             { "redo", "it steps through the history the plan's undo step is part of" },
+            {
+                "reset",
+                "it puts the drawing back to a snapshot, which a plan that holds its own group of edits open cannot do"
+            },
             { "run_plan", "a plan does not hold a plan" },
             { "save", "it writes the drawing's file, which a plan that stops cannot take back" },
+            { "snapshot", "it cannot keep the drawing while the plan holds its group of edits open" },
             { "undo", "it steps through the history the plan's undo step is part of" },
         };
 
         /// <summary>
-        /// The tools that write a file and no part of the drawing. Those that end a plan are run after the plan's group of edits has been
-        /// kept, and not at all where the plan was stopped, taken back or only a dry run; <c>save_as</c> is allowed in a plan only there.
+        /// The commands a plan's <c>run_command</c> may not start: they step through the history the plan's undo step is part of, or
+        /// write or replace the drawing's file, which a plan that stops cannot take back.
         /// </summary>
-        private static readonly HashSet<string> FileWriters = new HashSet<string>(StringComparer.Ordinal)
+        private static readonly SortedSet<string> RefusedCommands = new SortedSet<string>(StringComparer.Ordinal)
         {
-            "export_svg",
-            "plot_pdf",
-            "save_as",
+            "CLOSE",
+            "NEW",
+            "OPEN",
+            "QSAVE",
+            "QUIT",
+            "REDO",
+            "SAVE",
+            "SAVEAS",
+            "U",
+            "UNDO",
         };
 
         private readonly McpSession _session;
@@ -116,6 +128,7 @@ namespace OpenCAD2D.Mcp
             var answers = new List<PlanStepResult>();
             bool drafting = prepared.Take(trailStart).Any(p => p.Writes);
             PlanTransaction transaction = drafting ? PlanTransaction.Open(drawing) : null;
+            _session.PlanOpen = transaction != null;
             bool taken = false;
             bool stopped = false;
             int next = 0;
@@ -174,6 +187,7 @@ namespace OpenCAD2D.Mcp
                     }
 
                     transaction = null;
+                    _session.PlanOpen = false;
                 }
 
                 // The files at the end are written once what the plan drew is kept: a dry run writes none, and a plan that was stopped
@@ -221,6 +235,8 @@ namespace OpenCAD2D.Mcp
             }
             finally
             {
+                _session.PlanOpen = false;
+
                 // An exception on the way (a cancel, a lost app) leaves nothing half done.
                 if (transaction != null)
                 {
@@ -278,7 +294,7 @@ namespace OpenCAD2D.Mcp
             // The steps at the end that only write files: they are run after the plan's edits are kept.
             trailStart = list.Count;
 
-            while (trailStart > 0 && FileWriters.Contains(list[trailStart - 1].ToolName))
+            while (trailStart > 0 && WritesFile(list[trailStart - 1].ToolName))
             {
                 trailStart--;
             }
@@ -290,6 +306,37 @@ namespace OpenCAD2D.Mcp
             }
 
             return list;
+        }
+
+        /// <summary>Whether the tool of that name writes a file and no part of the drawing (<see cref="WritesFileAttribute"/>).</summary>
+        private bool WritesFile(string name) =>
+            _tools.TryGetPrimitive(name, out McpServerTool tool) && tool.Metadata.OfType<WritesFileAttribute>().Any();
+
+        /// <summary>
+        /// Whether a call of the tool writes, as a server that is read-only asks: the tool's annotation says so, unless the tool is
+        /// one a read-only server runs, which refuses what it must itself (<see cref="ReadOnlyAllowedAttribute"/>), or does not write
+        /// where it is told not to (<c>audit</c> without <c>fix</c>); a value that a step's answer will give counts as true.
+        /// </summary>
+        private static bool Writes(McpServerTool tool, JsonObject arguments)
+        {
+            if (tool.ProtocolTool.Annotations?.ReadOnlyHint == true)
+            {
+                return false;
+            }
+
+            ReadOnlyAllowedAttribute allowed = tool.Metadata.OfType<ReadOnlyAllowedAttribute>().FirstOrDefault();
+
+            if (allowed == null)
+            {
+                return true;
+            }
+
+            if (allowed.WritesWhen == null || !arguments.TryGetPropertyValue(allowed.WritesWhen, out JsonNode value))
+            {
+                return false;
+            }
+
+            return !(value == null || (value is JsonValue leaf && leaf.GetValueKind() == JsonValueKind.False));
         }
 
         private void Check(Prepared item, List<Prepared> all, int index, int trailStart)
@@ -316,7 +363,7 @@ namespace OpenCAD2D.Mcp
             }
 
             item.Tool = tool;
-            item.Writes = tool.ProtocolTool.Annotations?.ReadOnlyHint != true;
+            item.Writes = Writes(tool, item.Arguments);
 
             if (Refused.TryGetValue(item.ToolName, out string why))
             {
@@ -324,10 +371,11 @@ namespace OpenCAD2D.Mcp
                 return;
             }
 
-            if (item.ToolName == "save_as" && index < trailStart)
+            if (index < trailStart && WritesFile(item.ToolName))
             {
                 item.Errors.Add(
-                    "save_as is allowed in a plan only as its last step, or among the last steps that write files (plot_pdf, export_svg, save_as): it writes once the steps before it are kept, and a plan that stops cannot take a file back."
+                    item.ToolName
+                        + " writes a file, so it is allowed in a plan only as its last step, or among the last steps that write files: it writes once the steps before it are kept, and a plan that stops cannot take a file back. Move it to the end."
                 );
                 return;
             }
@@ -340,12 +388,40 @@ namespace OpenCAD2D.Mcp
                 return;
             }
 
+            if (item.ToolName == "run_command")
+            {
+                string first = FirstWord(item.Arguments["text"]);
+
+                if (first != null && RefusedCommands.Contains(first))
+                {
+                    item.Errors.Add(
+                        "run_command is not allowed to start "
+                            + first
+                            + " in a plan: it steps through the history the plan's undo step is part of, or writes or replaces the drawing's file, which a plan that stops cannot take back. Call it alone."
+                    );
+                    return;
+                }
+            }
+
             if (item.ToolName == "run_command" && _session.Options.Attach)
             {
                 item.Errors.Add(
                     "run_command is not allowed in a plan on an app: a command it starts may wait for the user's answer, and the plan could not end its group of steps while it does."
                 );
                 return;
+            }
+
+            // A null for an argument that has a default leaves it out, as it does in a call alone.
+            foreach (
+                string name in item
+                    .Arguments.Where(m =>
+                        m.Value == null && !CheckedTool.IsRequired(tool.ProtocolTool.InputSchema, m.Key)
+                    )
+                    .Select(m => m.Key)
+                    .ToList()
+            )
+            {
+                item.Arguments.Remove(name);
             }
 
             item.Errors.AddRange(PlanSchema.Validate(tool.ProtocolTool.InputSchema, item.Arguments));
@@ -355,6 +431,19 @@ namespace OpenCAD2D.Mcp
             {
                 CheckReferences(item.Arguments, all, index, item.Errors, string.Empty);
             }
+        }
+
+        /// <summary>The command a text of <c>run_command</c> starts: its first word in upper case, without the underscore or dot that asks for the English name; null for none.</summary>
+        private static string FirstWord(JsonNode text)
+        {
+            if (!(text is JsonValue leaf) || leaf.GetValueKind() != JsonValueKind.String)
+            {
+                return null;
+            }
+
+            string[] words = leaf.GetValue<string>()
+                .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            return words.Length == 0 ? null : words[0].TrimStart('_', '.').ToUpperInvariant();
         }
 
         /// <summary>Finds the references of a value and checks that each names an earlier step.</summary>
@@ -739,7 +828,11 @@ namespace OpenCAD2D.Mcp
                     + first.Tool
                     + ") failed: "
                     + first.Error
-                    + " The plan was stopped; it had changed nothing.";
+                    + (
+                        changed
+                            ? " The plan was stopped there: what its steps drew is kept as one undo step, and only the steps that write files from here on were not run."
+                            : " The plan was stopped; it had changed nothing."
+                    );
             }
             else
             {

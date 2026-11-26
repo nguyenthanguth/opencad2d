@@ -190,9 +190,12 @@ namespace OpenCAD2D.Mcp
                     throw new ArgumentException("The frame of a viewport has a width and a height.");
                 }
 
-                if (!(scale > 0.0) || double.IsInfinity(scale))
+                // The scale is written as 1:n with 15 decimals: a smaller one would be written as 1:0.
+                if (!(scale >= 1e-15) || double.IsInfinity(scale))
                 {
-                    throw new ArgumentException("The scale is the n of 1:n, a number above nought.");
+                    throw new ArgumentException(
+                        "The scale is the n of 1:n, a number of 0.000000000000001 or more (10 for 1:10, 0.5 for 2:1)."
+                    );
                 }
 
                 double[] at = center == null ? null : new[] { Point("center", center).X, Point("center", center).Y };

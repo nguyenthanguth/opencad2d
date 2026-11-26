@@ -1324,7 +1324,7 @@ class Drawing:
             return [entity for entity in entities if entity.dxf_type.upper() == type.upper()]
         if not isinstance(type, builtins.type) or not issubclass(type, _dxf.DxfEntity):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(f"entities takes the name of a DXF type or a class of DxfEntity, not {type!r}.")
-        found = self._backend.read(None, layer, layout, type)
+        found = self._backend.read(None, layer, _layout_name(layout), type)
         return [Entity(self, handle, net, source) for handle, net, source in found]
 
     def entity(self, handle: str) -> Entity:
@@ -2199,9 +2199,10 @@ class Drawing:
         places one, in model space or in ``layout``. The block is one the drawing has or one ``blocks.add`` makes in the same
         commit; the commit refuses a name neither has. ``attributes`` fills the attributes of the block, as -INSERT asks for
         them: the words by tag (letters of either case the same), a tag left out keeping the default of its definition, and
-        ``{}`` an insert with every attribute at its default; the constant attributes belong to the block and are not made. A
-        tag the block lacks, and ``attributes`` for a block with no attribute definition, are a ``ValueError`` that names the
-        tags the block has. Left out, the insert has no attribute of its own, as before.
+        ``{}`` an insert with every attribute at its default; the constant attributes belong to the block and are not made, and a
+        preset attribute keeps its default whatever is given for it. A tag the block lacks, and ``attributes`` (``{}`` too) for a
+        block with no attribute definition to fill, are a ``ValueError`` that names the tags the block has. Left out, the insert
+        has no attribute of its own, as before.
 
         Example:
             drawing.add_insert("BOLT", (100, 50))                      # an INSERT of BOLT at (100, 50)
@@ -2246,11 +2247,14 @@ class Drawing:
             if key not in {t.upper() for t in tags}:
                 have = ", ".join(tags) if tags else "none"
                 raise ValueError(f"The block {label} has no attribute {tag!r}: its tags are {have}.")
+        if not definitions:
+            raise ValueError(f"The block {label} has no attribute to fill: its tags are none.")
         for definition in definitions:
             attribute = _dxf.DxfAttributeReference()
             attribute.SetAttributeFromBlock(definition, made.BlockTransform)
             entry = given.get(str(definition.Tag).upper())
-            if entry is not None:
+            # A preset attribute takes its default without asking, as the insert command and the app's own edit do.
+            if entry is not None and not definition.Preset:
                 attribute.TextString = entry[1]
             made.AttributeCollection.AppendAttribute(attribute)
 
@@ -3851,6 +3855,9 @@ def _scale_text(scale: float | str) -> str:
         return scale
     if isinstance(scale, bool) or not (math.isfinite(scale) and scale > 0.0):  # pyright: ignore[reportUnnecessaryIsInstance]
         raise ValueError(f"A scale is a number above nought, as 0.02, or text, as '1:50': not {scale!r}.")
+    if scale < 1e-15:
+        # The digits below the 15th are not written: a smaller scale would be the text "0".
+        raise ValueError(f"A scale is a number above nought written with 15 decimals, 0.000000000000001 or more: not {scale!r}.")
     return f"{scale:.15f}".rstrip("0").rstrip(".")
 
 
@@ -3875,7 +3882,10 @@ class Layout(str):
     ``add(..., layout=...)``), and its page setup and what a sheet needs: ``paper``, ``landscape``, ``plot_area``, ``scale``,
     ``plot_style``, ``add_viewport`` and ``plot_pdf``. Members read the drawing each time and a setter writes it at once, as
     PAGESETUP does, one undo step; what is queued is committed first, so that the order of a script is the order of the
-    drawing. Sheets are in millimetres. ``drawing.layouts`` gives them.
+    drawing. Sheets are in millimetres. ``drawing.layouts`` gives them. Two layouts are equal as the ``str`` they are, in the
+    letters they are written in, so that a ``Layout`` hashes as its name does and a dictionary or set of names takes either; the
+    lookups (``drawing.layouts["layout1"]``, ``in``, ``entities(layout=...)``) ignore case, as the app does, so compare names
+    with ``a.upper() == b.upper()``.
 
     Example:
         sheet = drawing.layouts.add("Detail", paper="ISO_A3")

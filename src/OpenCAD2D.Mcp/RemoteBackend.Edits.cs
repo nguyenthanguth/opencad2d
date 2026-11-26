@@ -151,8 +151,17 @@ namespace OpenCAD2D.Mcp
             }
         }
 
+        /// <summary>Gets or sets whether a plan's UNDO group is open on the app: the app does not nest the groups, so <see cref="Group"/> adds none.</summary>
+        internal bool InPlan { get; set; }
+
         public void Group(Action work)
         {
+            if (InPlan)
+            {
+                work();
+                return;
+            }
+
             RefuseWhileRunning();
             Undoing("BE");
 
