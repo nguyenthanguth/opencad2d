@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **NEW.** eTransmit of a sheet set (A12): the eTransmit item of the Sheet List's set, subset and sheet menus opens
+  Create Transmittal, the reduced dialog of AutoCAD's. Its Sheets tab ticks the sheets to send, its Files Table lists
+  what they need (the .dst, the drawings, their external references, images, PDF underlays and data-link files, the
+  sheet creation templates, the page setup overrides file, the plot style tables of the layouts, and font files found
+  beside the drawings), and OK writes one zip, `<set folder>\Transmittals\<set name>.zip` unless changed, with a
+  `transmittal.txt` report. The zip keeps the folders of the set; a file outside the set's folder goes in `Files`, and a
+  path that would then be wrong is written again in the copy (the original is never touched). Unzipped elsewhere, the
+  set opens and every sheet and external reference is found. New public members: `CadTransmittal`,
+  `CadTransmittalFile`, `CadTransmittalFileKind`, `CadTransmittalResult`.
 - **NEW.** Publish a sheet set (A12): the Publish items of the Sheet List write the sheets of the set, a subset or the
   selected sheets to one multi-sheet PDF or a PDF for each sheet, in set order, as the set's Sheet Set PDF Publish
   Options say (folder, one file or a file each, file name asked for or not). A sheet left out of publishing, and the
