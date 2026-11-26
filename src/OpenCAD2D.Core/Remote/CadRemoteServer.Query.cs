@@ -12,7 +12,7 @@ namespace OpenCAD2D
         /// <summary>Answers a <c>properties</c>: what the Properties palette shows for the entities of the handles, as <see cref="CadProperties.Describe(CadDocument, CadSpace, IReadOnlyCollection{string})"/> gives it.</summary>
         private static JsonObject PropertiesOf(CadDocument document, JsonObject request)
         {
-            List<string> handles = Strings(request.GetArray("handles")).ToList();
+            List<string> handles = NamesMember(request, "handles") ?? new List<string>();
             CadSelectionInfo info = CadProperties.Describe(document, null, handles);
             var groups = new JsonArray();
 
@@ -93,7 +93,7 @@ namespace OpenCAD2D
         /// <summary>Answers a <c>list</c>: the lines AutoCAD's LIST writes for the entities of the handles, run in a command session of its own.</summary>
         private static JsonObject ListOf(CadDocument document, JsonObject request)
         {
-            List<string> handles = Strings(request.GetArray("handles")).ToList();
+            List<string> handles = NamesMember(request, "handles") ?? new List<string>();
             IReadOnlyList<string> lines = Edit(() => CadInquiry.List(document, handles));
             return new JsonObject().Set("lines", Strings(lines.ToArray()));
         }

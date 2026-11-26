@@ -78,7 +78,7 @@ namespace OpenCAD2D
 
             CadCommandSession session = _host.SessionOf(document);
             int before = session.History.Count;
-            bool taken = session.FeedSelection(Strings(request.GetArray("handles")).ToList());
+            bool taken = session.FeedSelection(NamesMember(request, "handles") ?? new List<string>());
             var output = new JsonArray();
 
             for (int i = before; i < session.History.Count; i++)
