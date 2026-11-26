@@ -70,6 +70,43 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        public void TheGraphThroughTheApp_IsCutAtTheCapAsked_AsTheCoreCutsIt()
+        {
+            var (harness, document, remote) = Start();
+            using (harness)
+            {
+                int count = CadDrawingGraph.Build(document, null, 0.001).Edges.Count;
+                Assert.True(count >= 2);
+
+                for (int cap = 1; cap <= count + 1; cap++)
+                {
+                    Assert.Equal(
+                        CadDrawingGraph.Build(document, null, 0.001, cap).ToJson(),
+                        remote.ExportGraph(null, 0.001, cap)
+                    );
+                }
+
+                Assert.Contains("\"truncated\":true", remote.ExportGraph(null, 0.001, 1));
+                Assert.Contains("\"truncated\":false", remote.ExportGraph(null, 0.001, count));
+                Assert.Contains("\"truncated\":false", remote.ExportGraph(null, 0.001));
+            }
+        }
+
+        [Fact]
+        public void ACapBelowOne_IsRefusedInWords()
+        {
+            var (harness, _, remote) = Start();
+            using (harness)
+            {
+                CadRemoteException refused = Assert.Throws<CadRemoteException>(() =>
+                    remote.ExportGraph(null, 0.001, 0)
+                );
+
+                Assert.Contains("number of edges above nought", refused.Message);
+            }
+        }
+
+        [Fact]
         public void ALayoutTheDrawingLacks_AndAToleranceBelowNought_AreRefusedInWords()
         {
             var (harness, _, remote) = Start();

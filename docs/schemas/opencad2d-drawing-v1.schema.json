@@ -156,7 +156,7 @@
             { "type": "null" },
             { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 }
           ],
-          "description": "[min x, min y, max x, max y] of the extents."
+          "description": "[min x, min y, max x, max y] of the box the entity is drawn in (as entity.bounds gives it: a word by its letters, a dimension by its picture, a polyline by its width), in millimetres; for a piece of a block, and for an entity the space draws nothing of, the extents of the library. null where it has none."
         },
         "path": { "$ref": "#/$defs/strings", "description": "The names of the blocks the entity came out of, outermost first; empty for an entity of a space." },
         "indexPath": { "type": "array", "items": { "type": "integer" } },

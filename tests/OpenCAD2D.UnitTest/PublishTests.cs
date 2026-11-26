@@ -310,8 +310,13 @@ namespace OpenCAD2D.UnitTest
 
             Assert.Equal("Nothing to plot: the plot area is empty.", steps[0].Skipped);
             Assert.Equal("Drawing not found", steps.Last().Skipped);
-            Assert.All(steps, s => Assert.Null(s.File));
-            Assert.All(steps, s => Assert.Null(s.Settings));
+            Assert.Equal(new[] { "bare-Model", "bare-Layout1", "gone-Model" }, steps.Select(s => s.Sheet.Name));
+
+            // Layout1 of the new drawing is a sheet of A3 (the plot area is the layout), a blank page as AutoCAD publishes it.
+            Assert.Null(steps[1].Skipped);
+            Assert.NotNull(steps[1].Settings);
+            Assert.All(new[] { steps[0], steps[2] }, s => Assert.Null(s.File));
+            Assert.All(new[] { steps[0], steps[2] }, s => Assert.Null(s.Settings));
         }
 
         [Fact]

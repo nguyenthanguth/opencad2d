@@ -730,12 +730,17 @@ class _LocalBackend:
 
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 
-    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
+    def export(
+        self, what: str, layout: str | None, tolerance: float, max_edges: int | None = None
+    ) -> tuple[str, Any]:
         """The JSON text of the drawing (``what`` is ``"json"``) or of its graph (``"graph"``, with the ``CadDrawingGraph``
         too, whose edge array is copied in one piece); the core does the work."""
         try:
             if what == "graph":
-                graph = _cad.CadDrawingGraph.Build(self.document, layout, tolerance)
+                if max_edges is None:
+                    graph = _cad.CadDrawingGraph.Build(self.document, layout, tolerance)
+                else:
+                    graph = _cad.CadDrawingGraph.Build(self.document, layout, tolerance, max_edges)
                 return str(graph.ToJson()), graph
             return str(_cad.CadDrawingJson.Write(self.document, layout)), None
         except _net.ArgumentException as error:
@@ -895,7 +900,9 @@ def open_file(path: str) -> Drawing:
 
 
 def new_file() -> Drawing:
-    """Make a blank drawing (AutoCAD 2013, layer 0 only) with no app and no file: ``new_file().save_as("new.dxf")``.
+    """Make a blank drawing (AutoCAD 2013, layer 0 only) with no app and no file: ``new_file().save_as("new.dxf")``. Its
+    Layout1 is a sheet of ISO A3 on its side (420 by 297 mm) in millimetres, as the app's NEW makes it, so a length on the
+    layout is a length in millimetres with nothing set up.
 
     Example:
         drawing = new_file()                  # drawing.name == 'Drawing', drawing.layers has the layer 0 only
@@ -903,4 +910,6 @@ def new_file() -> Drawing:
         drawing.commit()                      # ['101']
         drawing.save_as("new.dxf")
     """
-    return Drawing(_LocalBackend(_cad.CadDocument.From(_dxf.DxfDatabase("AC1027"))))
+    database = _dxf.DxfDatabase("AC1027")
+    _cad.CadTemplate.UseMillimetreSheet(database)
+    return Drawing(_LocalBackend(_cad.CadDocument.From(database)))

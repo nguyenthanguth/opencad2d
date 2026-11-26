@@ -5,14 +5,16 @@ using System.IO;
 using System.Linq;
 using GeometryHelper;
 using GeometryHelper.Dxf;
+using GeometryHelper.Geometry;
 
 namespace OpenCAD2D
 {
     /// <summary>
     /// The drawing NEW starts from: the presenter's own metric template, made in code with the settings of AutoCAD's
     /// acadiso.dwt (not its file). A drawing of R2013 in millimetres, its linear units decimal to four places and its angles
-    /// decimal degrees to none, its limits an A3 sheet of 420 by 297, its text 2.5 high, its points dots, and its dimensions
-    /// drawn in ISO-25: arrowheads and text 2.5, the text above the line, two decimal places and a decimal comma.
+    /// decimal degrees to none, its limits an A3 sheet of 420 by 297, its text 2.5 high, its points dots, its Layout1 an A3
+    /// sheet in millimetres (<see cref="UseMillimetreSheet"/>), and its dimensions drawn in ISO-25: arrowheads and text 2.5,
+    /// the text above the line, two decimal places and a decimal comma.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -69,7 +71,40 @@ namespace OpenCAD2D
             // library's new drawing, as acadiso.dwt has it.
             Pin(database, "$DIMTXSTY", 7, "Standard");
             Pin(database, "$DIMSTYLE", 2, DimensionStyle);
+            UseMillimetreSheet(database);
             return database;
+        }
+
+        /// <summary>
+        /// Sets up the layouts of a drawing as AutoCAD's acadiso.dwt has Layout1: a sheet of ISO A3 on its side, 420 by 297
+        /// millimetres with margins of 5 (<see cref="CadPaper.Default"/>), the paper in millimetres and the layout as the plot area. The library's new drawing leaves a
+        /// layout with the paper in inches and no sheet (0 by 0), which reads as 25.4 millimetres to the unit and has nothing
+        /// to plot on. Model space and the names of the layouts are left alone; so is a drawing read from a file, which is not
+        /// given to this method.
+        /// </summary>
+        /// <param name="database">The drawing, a new one.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the drawing is null.</exception>
+        public static void UseMillimetreSheet(DxfDatabase database)
+        {
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            // The sheet is the one a plot has when nothing else is given, ISO A3 with margins of 5, so that a layout set up here
+            // plots as a space that has no sheet is fitted to (CadPaper.Default).
+            CadPaper paper = CadPaper.Default;
+
+            foreach (DxfLayout layout in database.Layouts.Where(l => !l.ModelType))
+            {
+                layout.CanonicalMediaName = paper.CanonicalName;
+                layout.PlotPaperMargins = new DxfExtents2d(
+                    new GeoPoint2(paper.MarginLeft, paper.MarginBottom),
+                    new GeoPoint2(paper.MarginRight, paper.MarginTop)
+                );
+                layout.PlotPaperUnits = DxfPlotPaperUnit.Millimeters;
+                layout.PlotType = DxfPlotType.Layout;
+            }
         }
 
         /// <summary>

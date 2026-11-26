@@ -429,6 +429,11 @@ len(again.entities())                                  # 3
 again.entities("LWPOLYLINE")[0].net.Area               # 2500.0, the triangle
 ```
 
+The Layout1 of a drawing `new_file()` makes is what the app's NEW makes of it: a sheet of ISO A3 on its side, 420 by 297 mm, with
+the paper in millimetres, so a length on the layout is a length in millimetres with nothing set up (`to_dict()` writes its
+`toMillimetres` as 1 and `check()` measures a text on it in millimetres). A drawing `open_file` reads keeps the units its file was
+written in: a layout of inches stays one of inches.
+
 An `Entity` is a copy with a `handle`, a `dxf_type` (`"LINE"`, `"CIRCLE"`, `"LWPOLYLINE"`, the `DxfName` of its `net`) and the `DxfEntity` as `net`; after
 changing `net`, `drawing.modify(entity)` and `drawing.commit()` write it back. The numbers above came from a run of the built
 wheel on .NET 8 (`new_file`, the three adds, `commit`, `save_as`, `open_file`). `pick_point` and the other picks need somebody
@@ -702,7 +707,9 @@ for `to_graph` on .NET 8 (0.2 s and 0.4 s on .NET Framework 4.8), and a script g
 - `to_json(layout=None)` is the whole drawing as one JSON text, `to_dict()` the same read: `schema` `opencad2d.drawing`, `version` 1,
   the tables of layers, text styles, dimension styles, linetypes and blocks, a `report`, and the `entities` of `flatten`, in the order
   of their handles read as numbers, so the same drawing gives the same text every time, on both runtimes. Numbers are rounded to
-  a nanometre. Every entity has `box` (its extents) whatever its `kind`; LINE, CIRCLE, ARC, ELLIPSE, LWPOLYLINE, POLYLINE, SPLINE,
+  a nanometre. Every entity has `box` whatever its `kind`: the box it is drawn in, the one `entity.bounds` gives (a word by its
+  letters, a dimension by its picture, a polyline by its width), and for a piece of a block, which the drawing does not draw on
+  its own, and for an object that draws nothing (on a frozen layer), the library's extents; LINE, CIRCLE, ARC, ELLIPSE, LWPOLYLINE, POLYLINE, SPLINE,
   POINT, TEXT, ATTRIB, MTEXT, DIMENSION, LEADER, MULTILEADER, HATCH, SOLID, TRACE and 3DFACE carry their geometry and words as well.
   The JSON Schema is [`docs/schemas/opencad2d-drawing-v1.schema.json`](https://github.com/nguyenthanguth/OpenCAD2D/blob/main/docs/schemas/opencad2d-drawing-v1.schema.json),
   and a test validates the text against it.
@@ -711,7 +718,12 @@ for `to_graph` on .NET 8 (0.2 s and 0.4 s on .NET Framework 4.8), and a script g
   cross, or they run along each other; `at` is the place). `contains`: a closed curve (a closed polyline, a circle, a whole ellipse) that holds the other inside it, a line
   along its side not counted. `dimensions`: from a dimension to the objects its DIMASSOC ties it to, else to the curves its definition
   points lie on. `annotates`: from a leader to what its arrow tip lies on. With numpy installed the dict also has `edge_index` (2, E)
-  and `edge_kind` (E,), int64, the shapes a graph library takes.
+  and `edge_kind` (E,), int64, the shapes a graph library takes. A drawing of thousands of lines that cross each other has a
+  crossing for each pair, millions of edges: `max_edges=n` keeps the first `n` edges of the whole graph in its order (kind, source,
+  target; the order `edges` has), stops looking once it has found more than `n`, and says so: `truncated` is true and `edgesFound`
+  is how many edges it had found when it stopped, at least `n + 1`. A graph that was not cut has `truncated` false and
+  `edgesFound` the number of its edges. 600 lines across 600 others with `max_edges=50` give the 50 edges of the first line in
+  a millisecond, where the 360 000 crossings take 0.7 s. The cap is the same on a file, in the app and from outside it.
 
 ```python
 import json
@@ -742,6 +754,11 @@ len(graph["nodes"])                                    # 7
 [(e["source"], e["target"], e["kind"]) for e in graph["edges"] if e["kind"] == "contains"]  # [(4, 0, 'contains')]
 graph["edge_index"].shape                              # (2, 8)
 graph["edge_kind"].tolist()                            # [0, 0, 0, 0, 0, 0, 0, 1]
+(graph["truncated"], graph["edgesFound"])              # (False, 8)
+capped = drawing.to_graph(max_edges=3)
+(capped["truncated"], len(capped["edges"]))            # (True, 3)
+capped["edges"] == graph["edges"][:3]                  # True: the first three edges of the whole graph
+capped["edgesFound"] >= 4                              # True
 ```
 
 The numbers are from a run of the built wheel on .NET 8: the circle of radius 20 holds the first bolt's circle (node 4 holds node 0),
@@ -749,7 +766,8 @@ and the seven `touches` are the shapes that meet or cross: each bolt's line and 
 line at x = 100, its line with the big circle, the big circle with the line at x = 100, and the two lines drawn.
 
 Units are millimetres. The unit is the drawing's INSUNITS (a drawing of inches has `units.toMillimetres` 25.4, and every length,
-radius, height and coordinate is written 25.4 times larger), and the plot paper units for a layout's paper space. A drawing that
+radius, height and coordinate is written 25.4 times larger), and the plot paper units for a layout's paper space (the Layout1 of
+`new_file()` is in millimetres on an A3 sheet, so its factor is 1; a layout of inches, as the library's own new drawing has it, 25.4). A drawing that
 says no unit (INSUNITS 0) is left as it is and says so, `units.normalised` false: decide what its numbers are before you train on it.
 A block reference read from a file already has the unit ratio in its scale (AutoCAD writes it in when the block is inserted), so it
 is not scaled again; a block drawn in a unit other than the drawing's is listed in `report.blockUnits` with the factor INSERT would
@@ -764,7 +782,8 @@ in its turn and the pieces come out with the path of the block around it. `to_gr
 objects of one layout.
 
 From outside the app, and in a tool of the app, the same three calls ask the app for the text (`CadRemoteDocument.ExportJson` and
-`ExportGraph`), and C# gets it from `CadDrawingJson.Write`, `CadFlatten.Walk` and `CadDrawingGraph.Build` of the core.
+`ExportGraph(layout, tolerance)` and `ExportGraph(layout, tolerance, maxEdges)`), and C# gets it from `CadDrawingJson.Write`,
+`CadFlatten.Walk` and `CadDrawingGraph.Build` of the core (`Build(document, layout, tolerance, maxEdges)` for a cap).
 
 ### Measuring before placing: measure, free space and fits
 
@@ -1009,8 +1028,9 @@ box with a number that is not finite and a layout the drawing does not have.
   2 pixels is a tint. Draw at a larger `width` to keep more, or use the PDF.
 - **PDF** is the plot of EXPORTPDF with every detail: one page of the layout's sheet, its scale and plot style, lines at the
   lineweights of the plot, text as text. An A3 sheet on its side is 1 190.55 by 841.89 points. A space that was never given a
-  sheet, which is a drawing made in code, is fitted to ISO A3, as AutoCAD fits a page setup it has not been given; one that has
-  a sheet is plotted at the scale it records. A space with nothing to plot raises the .NET `InvalidOperationException`.
+  sheet, which is model space of a drawing made in code and any layout of one the library made with no page setup, is fitted to
+  ISO A3, as AutoCAD fits a page setup it has not been given; one that has a sheet is plotted at the scale it records, the
+  Layout1 of `new_file()` at 1:1 on its A3 sheet. A space with nothing to plot raises the .NET `InvalidOperationException`.
 
 ### Where it works
 

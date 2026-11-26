@@ -251,7 +251,9 @@ class Backend(Protocol):
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
     def render(self, kind: str, path: str | None, options: RenderOptions) -> Any: ...
 
-    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]: ...
+    def export(
+        self, what: str, layout: str | None, tolerance: float, max_edges: int | None = None
+    ) -> tuple[str, Any]: ...
 
     # ---- where things are drawn (PW6.2) ----
     def bounds(self, layout: str | None, handles: list[str] | None) -> tuple[list[str], Any]: ...
@@ -2865,7 +2867,9 @@ class Drawing:
         """
         return _export_document(self.to_json(layout))
 
-    def to_graph(self, layout: str | None = None, tolerance: float = 0.001) -> dict[str, Any]:
+    def to_graph(
+        self, layout: str | None = None, tolerance: float = 0.001, max_edges: int | None = None
+    ) -> dict[str, Any]:
         """The drawing as a graph for a network to read: a node for each entity of ``flatten`` (``nodes``, numbered as
         ``flatten`` lists them) and an edge for each way two are related (``edges``: ``source``, ``target``, ``kind`` and ``at``):
         ``touches`` (two curves that come within ``tolerance`` millimetres of each other: ends that meet, an end on the other, a crossing), ``contains`` (a closed curve that
@@ -2874,14 +2878,24 @@ class Drawing:
         of shape (2, E), int64) and ``edge_kind`` (E, int64; an index into ``["touches", "contains", "dimensions",
         "annotates"]``).  The graph is found with a grid over the boxes: 10 000 entities take about 0.25 s.
 
+        ``max_edges`` caps the edges for a drawing so dense that its crossings would run into the millions: the graph keeps
+        the first ``max_edges`` edges of the whole one in its order (kind, source, target, the order ``edges`` is sorted in),
+        stops looking once it has more, and says so: ``truncated`` is ``True`` and ``edgesFound`` is how many edges it had
+        found when it stopped (at least ``max_edges + 1``). A graph that was not cut has ``truncated`` ``False`` and
+        ``edgesFound`` the number of its edges. The same on every backend; ``None`` (the default) has no cap.
+
         Example:
             graph = drawing.to_graph()                                # a plate with a circle in it and a line from its corner
             [(e["source"], e["target"], e["kind"]) for e in graph["edges"]]   # [(0, 2, 'touches'), (2, 3, 'contains'), ...]
             graph["edge_index"].shape                                 # (2, 5): with numpy
+            capped = drawing.to_graph(max_edges=2)                    # the first 2 edges of the 5
+            (capped["truncated"], len(capped["edges"]))               # (True, 2): capped["edgesFound"] is at least 3
         """
         if not (0.0 < tolerance < math.inf):
             raise ValueError("The tolerance is a number of millimetres above nought.")
-        text, native = self._backend.export("graph", layout, tolerance)
+        if max_edges is not None and (type(max_edges) is not int or max_edges < 1):
+            raise ValueError(f"max_edges is a number of edges of 1 or more, or None, not {max_edges!r}.")
+        text, native = self._backend.export("graph", layout, tolerance, max_edges)
         return _export_graph(text, native)
 
     # ---- checking a drawing against a company standard (PW7.2) ----------------------------------------------------
