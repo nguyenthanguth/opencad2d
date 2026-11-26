@@ -76,15 +76,27 @@ namespace OpenCAD2D.Mcp
             OpenWorld = false
         )]
         [Description(
-            "Sets the layer, colour or linetype of entities. A property left out stays as it is. Refused for an entity on a locked layer. One undo step."
+            "Sets the layer, colour, linetype, linetype scale, lineweight or transparency of entities. A property left out stays as it is. Refused for an entity on a locked layer. One undo step."
         )]
         public ChangedResult SetProperties(
             [Description(HandlesText)] string[] handles,
             [Description("The layer to move them to; it must exist (list_layers).")] string layer = null,
             [Description("AutoCAD colour index 1 to 255, 256 for BYLAYER, 0 for BYBLOCK.")] int? color = null,
-            [Description("A linetype of the drawing, or BYLAYER or BYBLOCK.")] string linetype = null
+            [Description("A linetype of the drawing, or BYLAYER or BYBLOCK.")] string linetype = null,
+            [Description("The linetype scale of each object, above 0.")] double? linetype_scale = null,
+            [Description(
+                "Lineweight in hundredths of a millimetre, one of AutoCAD's (0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211), or -1 BYLAYER, -2 BYBLOCK, -3 default."
+            )]
+                int? lineweight = null,
+            [Description("Transparency in per cent, 0 to 90, or -1 for BYLAYER.")] int? transparency = null
         ) => Change("set_properties", handles, (drawing, list) =>
             {
+                if (linetype_scale.HasValue || lineweight.HasValue || transparency.HasValue)
+                {
+                    SetPropertyRows(drawing, list, layer, color, linetype, linetype_scale, lineweight, transparency);
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(layer) && !color.HasValue && string.IsNullOrEmpty(linetype))
                 {
                     throw new ArgumentException("Give a layer, a color or a linetype to set.");

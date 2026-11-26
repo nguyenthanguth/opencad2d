@@ -192,6 +192,12 @@ namespace OpenCAD2D.Remote
 
         /// <summary>Lets the app forget a snapshot (<c>snapshot</c>, its number) and the memory it holds.</summary>
         public const string ReleaseSnapshot = "releaseSnapshot";
+
+        /// <summary>An edit the core makes in one call (<c>what</c> and <c>args</c>, as <c>CadMake</c> takes them): <c>results</c>, the texts it gives back.</summary>
+        public const string Make = "make";
+
+        /// <summary>Answers the object prompt of the command that is running with objects of the drawing (<c>handles</c>), as a pick does: <c>taken</c>, <c>completed</c> and <c>output</c>.</summary>
+        public const string FeedSelection = "feedSelection";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

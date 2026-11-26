@@ -13,7 +13,7 @@ namespace OpenCAD2D.Mcp
     /// <c>open_file</c> works, the commit by <see cref="CadDocument.ApplyEdit"/> and the edits by the <see cref="CadEditor"/> of
     /// a command session, each one undo step.
     /// </summary>
-    internal sealed class LocalBackend : IDrawingBackend
+    internal sealed partial class LocalBackend : IDrawingBackend, IDrawingEditing
     {
         private CadCommandSession _session;
 

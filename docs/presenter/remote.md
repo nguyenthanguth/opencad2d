@@ -196,6 +196,16 @@ tolerance)` says whether one candidate place is free. They are the requests `mea
 answers of [`CadMeasure` and `CadSpatial`](display.md#measuring-before-placing) in the app. Python has them as
 `drawing.measure_text`, `measure_mtext`, `measure_dimension`, `measure_leader`, `free_space` and `fits`.
 
+## Edits for the MCP server
+
+The [MCP server](mcp.md) attached to the app uses two more requests, which the library keeps to itself. `make` asks the app to
+make one edit of the core in one call, as `CadMake` does (the Properties palette's rows set on objects, the words of a text changed, the
+cells of a table filled, a layout's sheet, a layer renamed or deleted, a viewport's scale and frozen layers, an attribute set, a
+layer's or a style's being current, the handles of a layout): one undo step, or part of the one `UNDO Begin` opened. `feedSelection`
+answers the object prompt of the command running in the drawing with objects given by handle, as a pick does, so that a tool
+never has to find them by a point. A line holding only the Esc character sent as part of a `command` request ends the command
+running, as Esc does in the window.
+
 ## Layers and layouts
 
 `drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)
