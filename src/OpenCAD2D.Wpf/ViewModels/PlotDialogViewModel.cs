@@ -1359,23 +1359,8 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>The sheet of a list that is the size of a wanted one in either turn, to a millimetre; else the list's first.</summary>
-        internal static CadPaper ClosestPaper(IReadOnlyList<CadPaper> papers, CadPaper wanted)
-        {
-            foreach (CadPaper paper in papers)
-            {
-                bool sameWay =
-                    Math.Abs(paper.Width - wanted.Width) <= 1.0 && Math.Abs(paper.Height - wanted.Height) <= 1.0;
-                bool turned =
-                    Math.Abs(paper.Width - wanted.Height) <= 1.0 && Math.Abs(paper.Height - wanted.Width) <= 1.0;
-
-                if (sameWay || turned)
-                {
-                    return paper;
-                }
-            }
-
-            return papers[0];
-        }
+        internal static CadPaper ClosestPaper(IReadOnlyList<CadPaper> papers, CadPaper wanted) =>
+            CadPaper.ClosestIn(papers, wanted);
 
         /// <summary>
         /// Settings made to use a plotter this dialog has: the printer of Windows they were read with (or already use) where

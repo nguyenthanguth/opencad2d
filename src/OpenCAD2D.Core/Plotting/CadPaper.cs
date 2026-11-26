@@ -266,6 +266,32 @@ namespace OpenCAD2D
                 && Near(MarginTop, other.MarginTop);
         }
 
+        /// <summary>
+        /// The sheet of a list that is the size of a wanted one in either turn, to a millimetre: A3 upright (297 by 420) for a
+        /// wanted ISO A3 on its side (420 by 297); else the list's first. The Plot dialog and -PLOT move a plot to the sheets of a
+        /// printer with it.
+        /// </summary>
+        /// <param name="papers">The sheets, at least one.</param>
+        /// <param name="wanted">The sheet the plot was on.</param>
+        /// <returns>The sheet.</returns>
+        internal static CadPaper ClosestIn(IReadOnlyList<CadPaper> papers, CadPaper wanted)
+        {
+            foreach (CadPaper paper in papers)
+            {
+                bool sameWay =
+                    Math.Abs(paper.Width - wanted.Width) <= 1.0 && Math.Abs(paper.Height - wanted.Height) <= 1.0;
+                bool turned =
+                    Math.Abs(paper.Width - wanted.Height) <= 1.0 && Math.Abs(paper.Height - wanted.Width) <= 1.0;
+
+                if (sameWay || turned)
+                {
+                    return paper;
+                }
+            }
+
+            return papers[0];
+        }
+
         /// <inheritdoc/>
         public override string ToString() => Label;
 

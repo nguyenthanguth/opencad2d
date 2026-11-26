@@ -345,13 +345,14 @@ namespace OpenCAD2D
         private bool _takesSpaces;
 
         /// <summary>
-        /// Gets whether a space typed is part of the answer: true only for a prompt for text (<see cref="CadPromptKind.String"/>)
-        /// that was made one that takes spaces (<see cref="AllowingSpaces"/>), as AutoCAD's TEXT and -MTEXT do, or as AutoLISP's
+        /// Gets whether a space typed is part of the answer: true only for a prompt for text (<see cref="CadPromptKind.String"/>, or
+        /// keywords or a text) that was made one that takes spaces (<see cref="AllowingSpaces"/>), as AutoCAD's TEXT and -MTEXT do, or as AutoLISP's
         /// <c>getstring</c> does with its first argument. False for every other prompt, a name or a file name among them:
         /// a space ends the answer as Enter does and the rest of the line is the next input. The window types a space only where
         /// this is true and takes Space as Enter elsewhere, and a script ends the word at a space there.
         /// </summary>
-        public bool TakesSpaces => Kind == CadPromptKind.String && _takesSpaces;
+        public bool TakesSpaces =>
+            (Kind == CadPromptKind.String || (Kind == CadPromptKind.Keyword && AcceptsText)) && _takesSpaces;
 
         /// <summary>
         /// Makes the prompt for text one where a space is part of the answer (<see cref="TakesSpaces"/>), as AutoCAD's own prompt

@@ -439,11 +439,6 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       the hover/pressed knock-out colour is the fixed panel colour; RibbonIcons.xaml merges Dark.xaml (+45 ms a
       workspace) and could take a small palette dictionary instead.
 
-#### Parked follow-ups
-
-Small parity and speed follow-ups left by finished items. They stay parked under "features first" unless the
-maintainer meets one as a real fault. Details for each are in the history at `ddf1ff27`.
-
 - [ ] A14. Dimension style preview, readable and linked to the fields (maintainer 2026-11-26; design first): today's
       preview is a 256 x 164 bitmap scaled up (blurred, thin white lines, small text) and nothing shows which part a
       field changes.
@@ -463,6 +458,12 @@ maintainer meets one as a real fault. Details for each are in the history at `dd
       5. The same for the Multileader Style and Table Style previews (maintainer 2026-11-26: part of A14; the lead
          decides and builds without waiting for a board review; report afterwards) -> verify: their variable/setting ->
          part tables, boards, tests and screenshots as for dimensions.
+
+#### Parked follow-ups
+
+Small parity and speed follow-ups left by finished items. They stay parked under "features first" unless the
+maintainer meets one as a real fault. Details for each are in the history at `ddf1ff27`.
+
 - [ ] Checks only the AutoCAD GUI can give: LAYERP with U and the Layer manager; the guessed prompts of SPELL,
       ATTIPEDIT, MLEADERALIGN Spacing/Distribute; DIMBREAK Auto breaks; filter.nfl; Ctrl cycling of grip modes; the
       Properties kind list order and its reset to All
