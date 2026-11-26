@@ -550,6 +550,7 @@ namespace OpenCAD2D.Wpf
             }
 
             RefreshOpenState();
+            ApplyPendingDisplay(path);
         }
 
         /// <summary>The name a file name given is saved under: with .dwg, as the core's rename finds it.</summary>

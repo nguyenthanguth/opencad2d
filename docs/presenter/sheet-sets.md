@@ -18,7 +18,7 @@ From top to bottom the palette holds:
   **New Sheet Set…** (NEWSHEETSET) and **Open…** (the Open dialog for a `.dst`). Opening a set that is open already makes
   it current; closing the current one (**Close Sheet Set** on its menu) makes the one opened before it current. A lock before
   the name means the set is read-only (see below).
-- **The tabs** Sheet List, Sheet Views and Model Views. Only Sheet List is built; the other two say so.
+- **The tabs** Sheet List, Sheet Views and Model Views, each with a toolbar of its own and a tree.
 - **The toolbar** of the tab: Publish to PDF, Publish to Plotter, and the lists Publish Using Page Setup Override and
   Publish. They are grey while no set is open.
 - **The tree** of the current set. With no set open it says "No sheet set is open. Pick New Sheet Set… or Open… in the
@@ -82,9 +82,8 @@ Right-click a row: a row outside the selection is selected first; a row inside i
 **Publish ▸** holds Publish to PDF, Publish to Plotter, Publish Using Page Setup Override ▸ (the page setups of the set's
 overrides file, grey where the set names none), then the check of the row (Publish in Reverse Order on the set; Publish
 Sheets in Subset and Publish in Reverse Order on a subset; Include for Publish on a sheet), Sheet Set PDF Publish Options…
-(the set) and Publish Dialog Box… (the Publish dialog over the set's sheets; see [Publish](#publish)). Items in the menus
-that are not built yet say so on the command line: the New Sheet, New Subset, Import Layouts, Rename & Renumber and Properties
-dialogs, Insert Sheet List Table and the Sheet Views and Model Views tabs. The operations those dialogs run are built.
+(the set) and Publish Dialog Box… (the Publish dialog over the set's sheets; see [Publish](#publish)). Insert Sheet List Table… and eTransmit… say on the command line that they are not built yet;
+the dialogs are shown by the window, and with none (a program driving the palette) the command line says so.
 
 - **Remove Subset** is grey while the subset holds sheets or subsets: move or remove them first.
 - **Remove Sheet** asks first and never deletes the sheet's drawing: the sheet leaves the set and the drawing stays on disk.
@@ -100,6 +99,72 @@ changes the set is grey (New Sheet, New Subset, Import Layout as Sheet, Resave A
 sheet New Sheet, Rename & Renumber, Remove Sheet and Include for Publish), the rows cannot be dragged, and a change asked of
 the model is refused with a line on the command line. Close Sheet Set, Publish, eTransmit, Manage Page Setups and Properties
 work as before. The palette writes the `.DBL` of a set it opens for editing (see below), and deletes it when the set is closed.
+
+## The Sheet Views tab
+
+The tab lists the views placed on the sheets of the set: the **sheet views** the set keeps for each sheet (a plain viewport of a
+layout is not one). The toolbar has **New View Category**, and two buttons that are a switch, **View by Category** and **View by
+Sheet**.
+
+By category the tree is the set, its view categories in the order the set has them, and the views in each in the order of the
+sheets, with the number of the sheet a view is on in grey at the right; views with no category come last, directly under the
+set. By sheet it is the sheets that hold views, in set order, and under each its views with the scale each was placed at in grey
+("1:100"). A view reads "Number - Title". A category with no views has no arrow; the blank category a new set holds is not shown.
+
+```text
+Example Tower
+  Plans
+    1 - Ground Floor Plan       A-101
+    1 - First Floor Plan        A-102
+  Elevations
+    1 - North Elevation         A-201
+  2 - Entrance Detail           A-101
+```
+
+**Display** (the bold item of a view's menu, a double click, or Enter) opens the sheet's drawing on its layout and shows the
+named view the sheet view points at. **New View Category…** asks the View Category dialog for a name, which must not be empty or
+another category's (letter case ignored); the callout block list in it is greyed, as callout blocks are left out. **Rename…**
+and **Properties…** of a category open the same dialog, **Remove Category** is grey while the category holds views. **Set
+Category** on a view's menu lists the categories (the view's own ticked); it acts on every view selected, and a view dragged onto a
+category (in View by Category) does the same. **Rename & Renumber…** shows the number and the title of the view, and **< Previous**
+and **Next >** make the change first and go to the view before or after it in the tree as shown. A title must not be empty. Renaming a view changes the set only: the named view in the sheet's drawing keeps its name (not built yet). A set
+that is read-only greys every change and keeps Display. **Place View Label Block** and **Properties…** of a view are grey: label
+blocks are left out, and a view has no properties dialog yet.
+
+## The Model Views tab
+
+The tab lists the places a set takes drawings from: the **resource locations**, folders the set keeps (AutoCAD's Model view
+list in the Sheet Set Properties). The toolbar has **Refresh** and **Add New Location**. The tree is the locations (a folder
+that is not there is red), then the DWG files in each (not those in the folders under it), then the named views of model space of
+each drawing, read from the closed file when the drawing is opened in the tree (a view saved in a layout is not listed). The
+Details pane gives a view's drawing, folder, size in the drawing's unit ("32 000 × 18 500 mm") and when the file was saved.
+
+**Add New Location…** asks for a folder and adds it with its relative path, so a set folder that moves keeps its locations;
+a folder that is not there or is listed already is refused. **Remove Location** takes the folder out of the set and touches no
+file. **Open** opens the drawing in the app; the presenter has no read-only drawings, so Open Read-Only opens it for editing and
+says so. **See Model Space Views** of a drawing opens it in the tree, and **Expand**, **Collapse** and **Preview/Details Pane**
+(the tick shows or hides the pane under the tree) are on every menu.
+
+### Place on Sheet
+
+**Place on Sheet** is on for a view or a drawing when the set can be changed and the layout current in the app is a sheet of
+the set. It asks "Specify insertion point or [Scale]:" on the command line with the outline of the view at the scale following
+the cursor; **Scale** lists the scales of the drawing's list (SCALELISTEDIT; the metric ones where the drawing keeps no list)
+and takes a typed ratio. The default is the scale the view was last placed at, else 1:100. Dragging a view or a drawing from the
+tab onto the drawing area places it at the point dropped, at the default scale. One undo step of the sheet's drawing does:
+
+- **the xref:** the resource drawing is attached (Attach, not Overlay: 22 of the 25 xrefs in AutoCAD's own sample sheets are) as an external reference in model space of the sheet's drawing, with one INSERT at
+  the origin; a drawing placed again reuses it. The path is relative to the sheet's drawing.
+- **the viewport:** on the current layout, the size of the view at the scale (a view 16 000 by 8 000 at 1:100 is a viewport 160 by
+  80), centred on the point, showing the view.
+- **the named view:** a view saved in the layout round the viewport, named after the model view (a number is added where the
+  drawing has the name), which is what the sheet view points at; AutoCAD's own sample sheets keep their sheet views the same way.
+- **the sheet view:** recorded in the set on that sheet, with the next number of the sheet and the model view's name for a title.
+  A drawing placed with no view shows all of model space and takes the file's name. The set is saved at once; the sheet's drawing
+  is changed and not saved, as any edit is.
+
+AutoCAD frames the named view a little wider than the viewport; ours is the viewport's own frame. The label block of the set is
+not inserted.
 
 ## Publish
 
@@ -247,7 +312,8 @@ The palette is `SheetSetManagerViewModel` (the logic) and `SheetSetManagerWindow
 keeps the sets open and the one current while the palette is closed (`MainViewModel.SheetSetManager`), and
 `MainViewModel.IsSheetSetShown` says whether it is shown (AutoCAD's SSMSTATE). Its menus are lists of `CadMenuItemViewModel`
 (`MenuFor`, `ControlMenu`), and its operations are methods (`NewSubset`, `NewSheet`, `ImportLayouts`, `RenameAndRenumber`,
-`Remove`, `Move`, `ResaveAllSheets`, `OpenSheets`), each of which says on the command line what the core refused.
+`Remove`, `Move`, `ResaveAllSheets`, `OpenSheets`; for the other tabs `NewViewCategory`, `SetCategory`,
+`RenameAndRenumberView`, `DisplayView`, `AddLocation`, `RemoveLocation`, `PlaceOnSheet`), each of which says on the command line what the core refused.
 
 The commands and the variables are in `CadCommands.SheetSetFiles.cs`; a command asks the window with the requests OPENSHEETSET (a
 `CadSheetSetRequest` whose `Path` is the `.dst` to open, or null for the Open Sheet Set dialog), NEWSHEETSET (null: the wizard) and
@@ -257,5 +323,5 @@ is SSLOCATE and `CadCommandSession.SheetSetFound` SSFOUND. `CadSheetSetFile.Open
 lock (`CadSheetSetLock`) or opening read-only (`IsReadOnly`, `ReadOnlyReason`, `LockedBy`), and `ReleaseLock` lets it go; `Change` refuses a
 read-only set. `CadSheetSetExamples` lists the examples and `CadSheetListTable` makes and updates the table.
 
-The sections of the Sheet Views and Model Views tabs, the dialogs (New Sheet, Import, Rename & Renumber, the Properties and the Create
+The dialogs (New Sheet, Import, Rename & Renumber, the Properties and the Create
 Sheet Set wizard), publishing and eTransmit are added by the packages that build them.

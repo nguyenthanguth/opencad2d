@@ -40,10 +40,12 @@ namespace OpenCAD2D.Wpf
         private static readonly Brush Red = Frozen("#F85149");
         private static readonly Brush Salmon = Frozen("#FF8A7A");
         private static readonly Brush Green = Frozen("#3FB950");
+        private static readonly Brush Purple = Frozen("#B392F0");
         private static readonly Brush Ground = Frozen("#16191E");
         private static readonly Brush YellowTint = Frozen("#33E3B341");
 
         private const string Page = "M5 3h10l4 4v14H5z";
+        private const string Folder = "M3 6h6l2 2h10v11H3z";
         private const string BadgeCircle = "M16 12a5 5 0 1 0 0 10a5 5 0 1 0 0-10z";
 
         // Each glyph: the grid it is drawn on, the stroke thickness on that grid, and its layers.
@@ -107,9 +109,22 @@ namespace OpenCAD2D.Wpf
             ),
             ["chevron-down"] = new Glyphs(12, 1.5, L("M3 4.5l3 3 3-3", Muted)),
             ["chevron-right"] = new Glyphs(12, 1.5, L("M4.5 3l3 3-3 3", Muted)),
+            ["category"] = new Glyphs(24, 1.7, L(Folder, Purple)),
+            ["category-add"] = new Glyphs(24, 1.7, L(Folder, Purple), L("M12 11v6M9 14h6", Green)),
+            ["folder"] = new Glyphs(24, 1.7, L(Folder, Yellow)),
+            ["folder-add"] = new Glyphs(24, 1.7, L(Folder, Yellow), L("M12 11v6M9 14h6", Green)),
+            ["view"] = new Glyphs(
+                24,
+                1.7,
+                L("M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z", Ink),
+                L("M5 16l4-5 3 3 2-2 4 4", Green)
+            ),
+            ["drawing"] = new Glyphs(24, 1.7, L(Page, Ink), L("M8 9h4M8 12h8M8 15h8", Blue)),
+            ["page"] = new Glyphs(24, 1.7, L(Page, Ink)),
+            ["refresh"] = new Glyphs(24, 1.7, L("M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5", Ink)),
         };
 
-        /// <summary>Gets or sets the name of the picture: set, subset, sheet, sheet-open, sheet-excluded, sheet-missing, pdf, plotter, override, publish, lock, chevron-down or chevron-right; null draws nothing.</summary>
+        /// <summary>Gets or sets the name of the picture: set, subset, sheet, sheet-open, sheet-excluded, sheet-missing, pdf, plotter, override, publish, lock, chevron-down, chevron-right, category, category-add, folder, folder-add, view, drawing, page or refresh; null draws nothing.</summary>
         public string Glyph
         {
             get => (string)GetValue(GlyphProperty);

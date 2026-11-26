@@ -1,0 +1,100 @@
+<UserControl
+    x:Class="OpenCAD2D.Wpf.SheetViewsTab"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
+>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/SheetSetTabs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!-- Design A12SsmSheetViews, states 1 and 2: the toolbar (New View Category, View by Category, View by Sheet) over the tree
+         of the set with its categories or its sheets and their views. -->
+    <DockPanel>
+        <Border
+            DockPanel.Dock="Top"
+            BorderBrush="{StaticResource GhBorder}"
+            BorderThickness="0,0,0,1"
+            Padding="8,4"
+            IsEnabled="{Binding HasSet}"
+        >
+            <StackPanel Orientation="Horizontal">
+                <Button
+                    Style="{StaticResource SsmTabTool}"
+                    Click="OnNewCategory"
+                    ToolTip="New View Category"
+                    AutomationProperties.Name="New View Category"
+                >
+                    <local:SheetSetIcon Glyph="category-add" Size="18" />
+                </Button>
+                <Border Width="1" Height="16" Margin="4,0" Background="{StaticResource GhBorder}" />
+                <RadioButton
+                    Style="{StaticResource SsmTabToggle}"
+                    GroupName="SsmViewBy"
+                    IsChecked="{Binding ViewsByCategory, Mode=TwoWay}"
+                    ToolTip="View by Category"
+                    AutomationProperties.Name="View by Category"
+                >
+                    <local:SheetSetIcon Glyph="category" Size="18" />
+                </RadioButton>
+                <RadioButton
+                    Style="{StaticResource SsmTabToggle}"
+                    GroupName="SsmViewBy"
+                    IsChecked="{Binding ViewsBySheet, Mode=TwoWay}"
+                    ToolTip="View by Sheet"
+                    AutomationProperties.Name="View by Sheet"
+                >
+                    <local:SheetSetIcon Glyph="page" Size="18" />
+                </RadioButton>
+            </StackPanel>
+        </Border>
+
+        <Grid>
+            <ListBox
+                x:Name="Tree"
+                ItemsSource="{Binding ViewRows}"
+                ItemContainerStyle="{StaticResource SsmTabRow}"
+                SelectionMode="Extended"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                Background="Transparent"
+                BorderThickness="0"
+                Padding="0,4"
+                AllowDrop="True"
+                PreviewMouseLeftButtonDown="OnTreeMouseDown"
+                PreviewMouseMove="OnTreeMouseMove"
+                MouseDoubleClick="OnTreeDoubleClick"
+                PreviewMouseRightButtonDown="OnTreeRightDown"
+                ContextMenuOpening="OnTreeMenuOpening"
+                DragOver="OnTreeDragOver"
+                DragLeave="OnTreeDragLeave"
+                Drop="OnTreeDrop"
+                PreviewKeyDown="OnTreeKeyDown"
+            />
+            <TextBlock
+                Text="{Binding ViewsHint}"
+                Foreground="{StaticResource GhTextMuted}"
+                TextAlignment="Center"
+                TextWrapping="Wrap"
+                LineHeight="18"
+                Margin="16,64,16,0"
+                VerticalAlignment="Top"
+                IsHitTestVisible="False"
+            />
+            <Border
+                x:Name="DropLine"
+                Height="22"
+                Background="{StaticResource GhAccent}"
+                Opacity="0.3"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Stretch"
+                Visibility="Collapsed"
+                IsHitTestVisible="False"
+            />
+        </Grid>
+    </DockPanel>
+</UserControl>

@@ -212,8 +212,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" MinHeight="120" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="230" MinHeight="70" />
+                <RowDefinition x:Name="SplitterRow" Height="Auto" />
+                <RowDefinition x:Name="PaneRow" Height="230" MinHeight="70" />
             </Grid.RowDefinitions>
 
             <!-- The title bar: the name, and the cross that closes it (SHEETSETHIDE). -->
@@ -303,12 +303,14 @@
                         Checked="OnTab"
                     />
                     <RadioButton
+                        x:Name="SheetViewsTabButton"
                         Style="{StaticResource SsmTab}"
                         GroupName="SsmTabs"
                         Content="Sheet Views"
                         Checked="OnTab"
                     />
                     <RadioButton
+                        x:Name="ModelViewsTabButton"
                         Style="{StaticResource SsmTab}"
                         GroupName="SsmTabs"
                         Content="Model Views"
@@ -324,6 +326,7 @@
                 BorderThickness="0,0,0,1"
                 Padding="8,4"
                 IsEnabled="{Binding HasSet}"
+                Visibility="{Binding IsSheetListTab, Converter={StaticResource Shown}}"
             >
                 <StackPanel Orientation="Horizontal">
                     <Button
@@ -411,7 +414,17 @@
                 />
             </Grid>
 
+            <!-- The body of the Sheet Views or Model Views tab, its toolbar and tree, made when the tab is first shown. -->
+            <Grid
+                x:Name="TabHost"
+                Grid.Row="3"
+                Grid.RowSpan="2"
+                Background="{StaticResource GhPanel}"
+                Visibility="{Binding ShowTabBody, Converter={StaticResource Shown}}"
+            />
+
             <GridSplitter
+                x:Name="PaneSplitter"
                 Grid.Row="5"
                 Height="5"
                 HorizontalAlignment="Stretch"
@@ -424,7 +437,7 @@
             />
 
             <!-- Details and Preview of what is selected. -->
-            <DockPanel Grid.Row="6" Background="{StaticResource GhPanel}">
+            <DockPanel x:Name="Pane" Grid.Row="6" Background="{StaticResource GhPanel}">
                 <Border DockPanel.Dock="Top" Background="{StaticResource GhHeader}" Padding="8,4">
                     <StackPanel Orientation="Horizontal">
                         <RadioButton

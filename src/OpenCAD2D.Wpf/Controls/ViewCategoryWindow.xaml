@@ -1,0 +1,147 @@
+<Window
+    x:Class="OpenCAD2D.Wpf.ViewCategoryWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="View Category"
+    Width="406"
+    Height="304"
+    WindowStyle="None"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    Background="#262B33"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/Dark.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/StyleDialogs.xaml" />
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/BlockDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="ViewCategoryError" Color="#FF8A7A" />
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- Design A12SsmSheetViews, state 4: the name, and the callout blocks of the category, which are left out and shown greyed. -->
+    <Border
+        x:Name="Root"
+        Background="{StaticResource GhPanel}"
+        BorderBrush="{StaticResource GhBorder}"
+        BorderThickness="1"
+        TextElement.FontFamily="{StaticResource GhFont}"
+        TextElement.FontSize="12"
+        TextElement.Foreground="{StaticResource GhText}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+    >
+        <DockPanel>
+            <Border
+                DockPanel.Dock="Top"
+                Background="{StaticResource GhHeader}"
+                Padding="16,10"
+                MouseLeftButtonDown="OnHeaderDown"
+            >
+                <DockPanel>
+                    <Button
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource GhTitleCloseButton}"
+                        Click="OnCancel"
+                        ToolTip="Close"
+                    />
+                    <TextBlock Text="View Category" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </DockPanel>
+            </Border>
+
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource GhHeader}" Padding="16,10">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button
+                        Style="{StaticResource StylePrimaryButton}"
+                        Content="OK"
+                        Padding="18,5"
+                        Margin="0,0,8,0"
+                        IsDefault="True"
+                        IsEnabled="{Binding CanOk}"
+                        Click="OnOk"
+                    />
+                    <Button
+                        Style="{StaticResource GhDialogButton}"
+                        Content="Cancel"
+                        Padding="14,5"
+                        Margin="0,0,8,0"
+                        IsCancel="True"
+                        Click="OnCancel"
+                    />
+                    <Button Style="{StaticResource GhDialogButton}" Content="Help" Padding="14,5" Click="OnHelp" />
+                </StackPanel>
+            </Border>
+
+            <Grid Margin="16,14,16,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Category name:" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <TextBox
+                    x:Name="NameBox"
+                    Grid.Column="1"
+                    Style="{StaticResource BlockBox}"
+                    Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                    AutomationProperties.Name="Category name"
+                />
+                <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Text="{Binding Error}"
+                    Foreground="{StaticResource ViewCategoryError}"
+                    TextWrapping="Wrap"
+                    Margin="0,4,0,0"
+                    AutomationProperties.Name="Error"
+                />
+                <TextBlock
+                    Grid.Row="2"
+                    Grid.ColumnSpan="2"
+                    Text="Select the callout blocks to be used in this category:"
+                    Margin="0,10,0,6"
+                />
+                <Border
+                    Grid.Row="3"
+                    Grid.ColumnSpan="2"
+                    Background="{StaticResource GhInput}"
+                    BorderBrush="{StaticResource GhBorder}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    IsEnabled="False"
+                    AutomationProperties.Name="Callout blocks"
+                >
+                    <TextBlock
+                        Text="{Binding CalloutHint}"
+                        Foreground="{StaticResource GhTextMuted}"
+                        Opacity="0.7"
+                        Margin="8,6"
+                        TextWrapping="Wrap"
+                    />
+                </Border>
+                <Button
+                    Grid.Row="4"
+                    Grid.ColumnSpan="2"
+                    Style="{StaticResource GhDialogButton}"
+                    Content="Add Blocks…"
+                    Padding="14,5"
+                    Margin="0,8,0,0"
+                    HorizontalAlignment="Right"
+                    IsEnabled="{Binding CanAddBlocks}"
+                    ToolTip="Callout blocks are left out of this version."
+                />
+            </Grid>
+        </DockPanel>
+    </Border>
+</Window>

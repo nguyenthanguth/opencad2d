@@ -613,13 +613,13 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void TheItemsThatNeedADialogOfTheNextPackage_SayTheyAreNotBuiltYet_AndAskItsDialogWhereOneIsSet()
+        public void TheItemsThatNeedADialog_SayTheWindowShowsItWhereNoneIsSet_AndAskItsDialogWhereOneIsSet()
         {
             SheetSetManagerViewModel palette = Opened(out MainViewModel model);
             SheetSetNodeViewModel sheet = Node(palette, "A-101 - Ground Floor Plan");
 
             Click(Item(palette.MenuFor(sheet), "Rename & Renumber…"));
-            Assert.Contains("not built yet", model.History.Last(), StringComparison.Ordinal);
+            Assert.Contains("is shown by the window", model.History.Last(), StringComparison.Ordinal);
 
             var asked = new List<(SheetSetDialog, SheetSetNodeViewModel)>();
             palette.DialogRequested += (s, e) =>

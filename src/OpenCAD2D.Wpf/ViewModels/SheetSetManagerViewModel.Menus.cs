@@ -376,7 +376,7 @@ namespace OpenCAD2D.Wpf
 
             if (!args.Handled)
             {
-                _main.Say("The " + name + " dialog is not built yet (A12 package 4b).");
+                _main.Say("The " + name + " dialog is shown by the window; there is none to show it here.");
             }
         }
 

@@ -746,7 +746,9 @@ namespace OpenCAD2D.Wpf
         {
             base.OnDragOver(e);
             e.Effects =
-                e.Data.GetDataPresent(DesignCenterDrag.Format) || e.Data.GetDataPresent(ToolPaletteDrag.Format)
+                e.Data.GetDataPresent(DesignCenterDrag.Format)
+                || e.Data.GetDataPresent(ToolPaletteDrag.Format)
+                || e.Data.GetDataPresent(SheetSetModelViewDrag.Format)
                     ? DragDropEffects.Copy
                     : DragDropEffects.None;
             e.Handled = true;
@@ -761,6 +763,14 @@ namespace OpenCAD2D.Wpf
             if (_model != null && e.Data.GetData(DesignCenterDrag.Format) is string dragged)
             {
                 _model.DropFromDesignCenter(dragged, CanvasView.DrawingPointAt(e.GetPosition(CanvasView)));
+                e.Handled = true;
+                return;
+            }
+
+            // A view or drawing dragged out of the Sheet Set Manager's Model Views tab is placed on the sheet current, where it is dropped.
+            if (_model != null && e.Data.GetData(SheetSetModelViewDrag.Format) is string view)
+            {
+                _model.DropFromSheetSetManager(view, CanvasView.DrawingPointAt(e.GetPosition(CanvasView)));
                 e.Handled = true;
                 return;
             }

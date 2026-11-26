@@ -33,6 +33,18 @@
 - **CHANGED.** New Sheet and Import Layouts as Sheets bind the `\AcSm` fields of the new sheet's layout to the sheet once the set is saved
   (the fields of a title block show the sheet's own words, and AutoCAD shows them too); the fields and the operations read a drawing's
   sheet set mark with one reader, `CadSheetSetHint`.
+- **NEW.** The Sheet Views and Model Views tabs of the Sheet Set Manager (A12): Sheet Views lists the views placed on the
+  sheets, by category or by sheet (the scale each was placed at in grey), with New View Category, Rename and Remove Category,
+  Set Category (by menu, or by dragging a view onto a category), Rename & Renumber View with Previous and Next, and Display,
+  which opens the sheet and shows the view. Model Views lists the set's resource locations (folders), the drawings in them
+  and their named model views, read from the closed files, with Add New Location, Remove Location, Refresh and Open. Place on
+  Sheet, from the menu or by dragging a view or a drawing onto the drawing area, attaches the drawing as an xref (Attach, as AutoCAD's own sample sheets do) in
+  model space of the sheet's drawing (once), makes a viewport on the current layout at a scale of the drawing's list (the
+  view's last scale, else 1:100; the Scale option changes it), saves a named view round the viewport, and records a sheet view
+  in the set (the next number on the sheet, the view's name for a title), as one undo step; the named view is what AutoCAD's
+  own sheet views point at (checked on its sample sheets). New public members: `CadSheetSetPlacement`,
+  `CadPlaceOnSheetPlan`, `CadPlaceOnSheetResult`, `CadSheetSetResources`, `CadModelView`, and a setter for
+  `CadSheetView.Category`. The label block (Place View Label Block) and callout blocks are left out.
 - **NEW.** Publish a sheet set (A12): the Publish items of the Sheet List write the sheets of the set, a subset or the
   selected sheets to one multi-sheet PDF or a PDF for each sheet, in set order, as the set's Sheet Set PDF Publish
   Options say (folder, one file or a file each, file name asked for or not). A sheet left out of publishing, and the

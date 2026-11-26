@@ -20,6 +20,8 @@ namespace OpenCAD2D.Wpf
         private const string DragFormat = "OpenCAD2D.SheetSetRows";
 
         private static SheetSetManagerWindow _open;
+        private SheetViewsTab _sheetViews;
+        private ModelViewsTab _modelViews;
         private Point _dragStart;
         private SheetSetNodeViewModel _dragNode;
         private List<SheetSetNodeViewModel> _dragged;
@@ -31,10 +33,21 @@ namespace OpenCAD2D.Wpf
         public SheetSetManagerWindow(SheetSetManagerViewModel model)
         {
             Model = model ?? throw new ArgumentNullException(nameof(model));
+            string tab = model.Tab;
             InitializeComponent();
+
+            // The tab the palette was left on is the one shown again: the first tab's button being checked at once has made it the
+            // model's, which the model's own is put back over.
+            model.Tab = tab;
             DataContext = model;
             model.AskOpenFile = AskSheetSetFile;
             model.ConfirmRemove = ConfirmRemove;
+            model.AskFolder = AskLocationFolder;
+            model.ShowViewCategoryDialog = dialog => ViewCategoryWindow.Show(this, dialog);
+            model.ShowRenameRenumberViewDialog = dialog => RenameRenumberViewWindow.Show(this, dialog);
+            model.PropertyChanged += OnModelChanged;
+            ShowTab();
+            ShowPane();
         }
 
         /// <summary>Gets the view model.</summary>
@@ -81,6 +94,67 @@ namespace OpenCAD2D.Wpf
                 Title = "Open Sheet Set",
             };
             return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+        }
+
+        /// <summary>Asks for the folder of Add New Location: the file dialog left in a folder, as neither WPF of .NET Framework nor this project has a folder dialog.</summary>
+        private string AskLocationFolder()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Add New Location",
+                FileName = "Select this folder",
+                ValidateNames = false,
+                CheckFileExists = false,
+                CheckPathExists = true,
+            };
+            return dialog.ShowDialog(this) == true ? System.IO.Path.GetDirectoryName(dialog.FileName) : null;
+        }
+
+        private void OnModelChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SheetSetManagerViewModel.Tab))
+            {
+                ShowTab();
+            }
+            else if (e.PropertyName == nameof(SheetSetManagerViewModel.PaneShown))
+            {
+                ShowPane();
+            }
+        }
+
+        /// <summary>Puts the body of the tab shown in the tab host, made the first time it is asked for; the Sheet List tab has its own tree and leaves the host empty.</summary>
+        private void ShowTab()
+        {
+            TabHost.Children.Clear();
+            RadioButton button =
+                Model.Tab == "Sheet Views" ? SheetViewsTabButton
+                : Model.Tab == "Model Views" ? ModelViewsTabButton
+                : SheetListTab;
+
+            if (button.IsChecked != true)
+            {
+                button.IsChecked = true;
+            }
+
+            if (Model.Tab == "Sheet Views")
+            {
+                TabHost.Children.Add(_sheetViews ?? (_sheetViews = new SheetViewsTab(Model)));
+            }
+            else if (Model.Tab == "Model Views")
+            {
+                TabHost.Children.Add(_modelViews ?? (_modelViews = new ModelViewsTab(Model)));
+            }
+        }
+
+        /// <summary>Shows or hides the pane under the tree, as the Preview/Details Pane item of the Model Views menu says.</summary>
+        private void ShowPane()
+        {
+            bool shown = Model.PaneShown;
+            Pane.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;
+            PaneSplitter.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;
+            SplitterRow.Height = shown ? GridLength.Auto : new GridLength(0);
+            PaneRow.MinHeight = shown ? 70 : 0;
+            PaneRow.Height = shown ? new GridLength(230) : new GridLength(0);
         }
 
         private bool ConfirmRemove(string question) =>
