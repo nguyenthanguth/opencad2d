@@ -1,0 +1,467 @@
+<local:SheetSetDialogWindow
+    x:Class="OpenCAD2D.Wpf.SheetListTableWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OpenCAD2D.Wpf"
+    Title="{Binding Title}"
+    Style="{DynamicResource SheetSetWindow}"
+    WindowStartupLocation="CenterOwner"
+    Width="720"
+>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/OpenCAD2D.Wpf;component/Themes/SheetSetDialogs.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- A tab of the right-hand side: the words, and a blue line under the one that shows. -->
+            <Style x:Key="ListTableTab" TargetType="RadioButton">
+                <Setter Property="Foreground" Value="{StaticResource GhTextMuted}" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border
+                                x:Name="Line"
+                                BorderBrush="Transparent"
+                                BorderThickness="0,0,0,2"
+                                Padding="12,6,12,6"
+                            >
+                                <ContentPresenter />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter
+                                        TargetName="Line"
+                                        Property="BorderBrush"
+                                        Value="{StaticResource GhAccent}"
+                                    />
+                                    <Setter Property="Foreground" Value="{StaticResource GhText}" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- The Gh check box with a third look, a dash in the box, for a subset with only some of its parts checked. -->
+            <Style x:Key="ListTableCheck" TargetType="CheckBox" BasedOn="{StaticResource GhCheckBox}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="CheckBox">
+                            <Border
+                                x:Name="Box"
+                                Width="13"
+                                Height="13"
+                                CornerRadius="2"
+                                Background="{StaticResource GhInput}"
+                                BorderBrush="{StaticResource GhTextMuted}"
+                                BorderThickness="1"
+                                VerticalAlignment="Center"
+                            >
+                                <Grid>
+                                    <Path
+                                        x:Name="Tick"
+                                        Data="M2.5 6.5 5 9 10 3.5"
+                                        Stroke="White"
+                                        StrokeThickness="1.6"
+                                        StrokeStartLineCap="Round"
+                                        StrokeEndLineCap="Round"
+                                        StrokeLineJoin="Round"
+                                        Visibility="Collapsed"
+                                    />
+                                    <Rectangle
+                                        x:Name="Mixed"
+                                        Width="7"
+                                        Height="7"
+                                        RadiusX="1"
+                                        RadiusY="1"
+                                        Fill="{StaticResource GhAccent}"
+                                        Visibility="Collapsed"
+                                    />
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Box" Property="Background" Value="{StaticResource GhAccent}" />
+                                    <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource GhAccent}" />
+                                    <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="{x:Null}">
+                                    <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource GhAccent}" />
+                                    <Setter TargetName="Mixed" Property="Visibility" Value="Visible" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- A line of the columns list: the selected one is edited in place. -->
+            <Style x:Key="ListTableRow" TargetType="ListBoxItem" BasedOn="{StaticResource SheetSetListRow}">
+                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+            </Style>
+
+            <!-- A line of the tree: no selection ground, the check box and the words. -->
+            <Style x:Key="ListTableNode" TargetType="ListBoxItem">
+                <Setter Property="Foreground" Value="{StaticResource GhText}" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Row" Height="22" Background="Transparent" Padding="4,0,6,0">
+                                <ContentPresenter VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Row" Property="Background" Value="{StaticResource GhHover}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <local:SheetSetDialogFrame
+        x:Name="Frame"
+        Style="{StaticResource SheetSetFrame}"
+        Title="{Binding Title}"
+        OkEnabled="{Binding CanApply}"
+        IsReadOnlyMode="{Binding IsReadOnly}"
+    >
+        <StackPanel Margin="16,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="240" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Table Style name:" Margin="0,4,0,6" />
+                    <DockPanel Margin="0,0,0,10">
+                        <Button
+                            x:Name="StylesButton"
+                            DockPanel.Dock="Right"
+                            Style="{StaticResource SheetSetDots}"
+                            Height="26"
+                            Click="OnTableStyles"
+                            IsEnabled="{Binding CanChooseStyle}"
+                            ToolTip="Launch the Table Style dialog"
+                            AutomationProperties.Name="Table Style dialog"
+                        />
+                        <ComboBox
+                            x:Name="StyleBox"
+                            Style="{StaticResource GhComboBox}"
+                            ItemsSource="{Binding TableStyles}"
+                            SelectedItem="{Binding TableStyle, Mode=TwoWay}"
+                            IsEnabled="{Binding CanChooseStyle}"
+                            AutomationProperties.Name="Table Style name"
+                        />
+                    </DockPanel>
+                    <Border
+                        BorderBrush="{StaticResource GhBorder}"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Height="124"
+                        Margin="0,0,0,12"
+                        ClipToBounds="True"
+                    >
+                        <local:TableStylePreview x:Name="StylePreview" Settings="{Binding Preview}" />
+                    </Border>
+                    <CheckBox
+                        x:Name="HeadersBox"
+                        Style="{StaticResource SheetSetCheck}"
+                        Content="Include Subsets as Headers in Output"
+                        IsChecked="{Binding IncludeSubsetHeaders}"
+                    />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <RadioButton
+                            x:Name="TableDataTab"
+                            Style="{StaticResource ListTableTab}"
+                            Content="Table Data"
+                            GroupName="ListTableTab"
+                            IsChecked="{Binding IsTableDataTab, Mode=TwoWay}"
+                        />
+                        <RadioButton
+                            x:Name="SubsetsTab"
+                            Style="{StaticResource ListTableTab}"
+                            Content="Subsets and Sheets"
+                            GroupName="ListTableTab"
+                            IsChecked="{Binding IsSubsetsTab, Mode=TwoWay}"
+                        />
+                    </StackPanel>
+
+                    <Grid Height="344">
+                        <!-- Table Data -->
+                        <StackPanel
+                            x:Name="TableDataPage"
+                            Visibility="{Binding IsTableDataTab, Converter={StaticResource SheetSetShown}}"
+                        >
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource SheetSetLabel}" Text="Title Text:" />
+                                <TextBox
+                                    x:Name="TitleBox"
+                                    Grid.Column="1"
+                                    Style="{StaticResource SheetSetBox}"
+                                    Text="{Binding TitleText, UpdateSourceTrigger=PropertyChanged}"
+                                    AutomationProperties.Name="Title Text"
+                                />
+                            </Grid>
+                            <Border
+                                BorderBrush="{StaticResource GhBorder}"
+                                BorderThickness="1"
+                                CornerRadius="3"
+                                Background="{StaticResource GhInput}"
+                            >
+                                <DockPanel>
+                                    <Border
+                                        DockPanel.Dock="Top"
+                                        Background="{StaticResource GhHeader}"
+                                        BorderBrush="{StaticResource GhBorder}"
+                                        BorderThickness="0,0,0,1"
+                                        Padding="8,5"
+                                    >
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="190" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Data type" Foreground="{StaticResource GhTextMuted}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="Heading text"
+                                                Foreground="{StaticResource GhTextMuted}"
+                                            />
+                                        </Grid>
+                                    </Border>
+                                    <ListBox
+                                        x:Name="ColumnList"
+                                        Style="{StaticResource GhListBox}"
+                                        ItemContainerStyle="{StaticResource ListTableRow}"
+                                        ItemsSource="{Binding Columns}"
+                                        Height="196"
+                                        BorderThickness="0"
+                                        Background="Transparent"
+                                        AutomationProperties.Name="Columns"
+                                    >
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="8,3" MinHeight="22">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="190" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock
+                                                        x:Name="TypeText"
+                                                        Text="{Binding DataType.Name}"
+                                                        VerticalAlignment="Center"
+                                                    />
+                                                    <ComboBox
+                                                        x:Name="TypeBox"
+                                                        Style="{StaticResource GhComboBox}"
+                                                        Margin="-4,0,6,0"
+                                                        Visibility="Collapsed"
+                                                        ItemsSource="{Binding DataContext.DataTypes, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                        SelectedItem="{Binding DataType, Mode=TwoWay}"
+                                                        DisplayMemberPath="Name"
+                                                        AutomationProperties.Name="Data type"
+                                                    />
+                                                    <TextBlock
+                                                        x:Name="HeadingText"
+                                                        Grid.Column="1"
+                                                        Text="{Binding Heading}"
+                                                        VerticalAlignment="Center"
+                                                    />
+                                                    <TextBox
+                                                        x:Name="HeadingBox"
+                                                        Grid.Column="1"
+                                                        Style="{StaticResource SheetSetBox}"
+                                                        Visibility="Collapsed"
+                                                        Text="{Binding Heading, UpdateSourceTrigger=PropertyChanged}"
+                                                        AutomationProperties.Name="Heading text"
+                                                    />
+                                                </Grid>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter
+                                                            TargetName="TypeText"
+                                                            Property="Visibility"
+                                                            Value="Collapsed"
+                                                        />
+                                                        <Setter
+                                                            TargetName="TypeBox"
+                                                            Property="Visibility"
+                                                            Value="Visible"
+                                                        />
+                                                        <Setter
+                                                            TargetName="HeadingText"
+                                                            Property="Visibility"
+                                                            Value="Collapsed"
+                                                        />
+                                                        <Setter
+                                                            TargetName="HeadingBox"
+                                                            Property="Visibility"
+                                                            Value="Visible"
+                                                        />
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+                            </Border>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button
+                                    x:Name="AddButton"
+                                    Style="{StaticResource GhDialogButton}"
+                                    Content="Add"
+                                    Padding="14,5"
+                                    Margin="0,0,6,0"
+                                    Click="OnAdd"
+                                />
+                                <Button
+                                    x:Name="RemoveButton"
+                                    Style="{StaticResource GhDialogButton}"
+                                    Content="Remove"
+                                    Padding="14,5"
+                                    Margin="0,0,6,0"
+                                    IsEnabled="{Binding CanRemoveColumn}"
+                                    Click="OnRemove"
+                                />
+                                <Button
+                                    x:Name="UpButton"
+                                    Style="{StaticResource GhDialogButton}"
+                                    Content="Move Up"
+                                    Padding="14,5"
+                                    Margin="0,0,6,0"
+                                    IsEnabled="{Binding CanMoveUp}"
+                                    Click="OnUp"
+                                />
+                                <Button
+                                    x:Name="DownButton"
+                                    Style="{StaticResource GhDialogButton}"
+                                    Content="Move Down"
+                                    Padding="14,5"
+                                    IsEnabled="{Binding CanMoveDown}"
+                                    Click="OnDown"
+                                />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Subsets and Sheets -->
+                        <StackPanel
+                            x:Name="SubsetsPage"
+                            Visibility="{Binding IsSubsetsTab, Converter={StaticResource SheetSetShown}}"
+                        >
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    Style="{StaticResource SheetSetLabel}"
+                                    Text="Populate From Sheet Selection:"
+                                />
+                                <ComboBox
+                                    x:Name="PopulateBox"
+                                    Grid.Column="1"
+                                    Style="{StaticResource GhComboBox}"
+                                    IsEnabled="{Binding CanPopulate}"
+                                    ItemsSource="{Binding PopulateItems}"
+                                    SelectedIndex="0"
+                                    AutomationProperties.Name="Populate From Sheet Selection"
+                                />
+                            </Grid>
+                            <Border
+                                BorderBrush="{StaticResource GhBorder}"
+                                BorderThickness="1"
+                                CornerRadius="3"
+                                Background="{StaticResource GhInput}"
+                            >
+                                <ListBox
+                                    x:Name="TreeList"
+                                    Style="{StaticResource GhListBox}"
+                                    ItemContainerStyle="{StaticResource ListTableNode}"
+                                    ItemsSource="{Binding Rows}"
+                                    Height="228"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    AutomationProperties.Name="Subsets and sheets"
+                                >
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="{Binding Indent}" />
+                                                <ToggleButton
+                                                    x:Name="Chevron"
+                                                    Style="{StaticResource GhFlatButton}"
+                                                    Width="14"
+                                                    Height="14"
+                                                    Padding="0"
+                                                    Margin="0,0,4,0"
+                                                    IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                                >
+                                                    <local:SheetSetIcon Glyph="{Binding Chevron}" Size="12" />
+                                                </ToggleButton>
+                                                <CheckBox
+                                                    x:Name="Box"
+                                                    Style="{StaticResource ListTableCheck}"
+                                                    IsChecked="{Binding IsChecked}"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,0,6,0"
+                                                />
+                                                <local:SheetSetIcon
+                                                    Glyph="{Binding Icon}"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,0,4,0"
+                                                />
+                                                <TextBlock
+                                                    x:Name="Words"
+                                                    Text="{Binding Text}"
+                                                    VerticalAlignment="Center"
+                                                />
+                                            </StackPanel>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding HasChildren}" Value="False">
+                                                    <Setter TargetName="Chevron" Property="Visibility" Value="Hidden" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Depth}" Value="0">
+                                                    <Setter TargetName="Words" Property="FontWeight" Value="SemiBold" />
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                            <TextBlock
+                                Margin="0,8,0,0"
+                                TextWrapping="Wrap"
+                                FontSize="11"
+                                Foreground="{StaticResource GhTextMuted}"
+                                Text="A checked subset takes in the sheets added to it later when the table is updated; a sheet checked alone stays alone."
+                            />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+            <Border
+                Style="{StaticResource SheetSetErrorBox}"
+                Visibility="{Binding HasError, Converter={StaticResource SheetSetShown}}"
+            >
+                <TextBlock x:Name="ErrorText" Text="{Binding Error}" TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+    </local:SheetSetDialogFrame>
+</local:SheetSetDialogWindow>

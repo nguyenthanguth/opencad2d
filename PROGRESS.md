@@ -367,7 +367,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       GeometryHelper-stubs). BREAKING in the CHANGELOG. Agreed by the maintainer 2026-11-25 (group c renamed, group b
       readers removed; names decided by the lead). Done 2026-11-25: OPENCAD2D_* keys, styles OpenCAD2D, samples
       LSPINFO/PYINFO/CSINFO, old-name readers removed; test fixtures GH_ -> OC_
-- [ ] A12. Sheet Set Manager as AutoCAD 2021's (maintainer 2026-11-25; design first): the SHEETSET palette (Sheet List,
+- [x] A12. Sheet Set Manager as AutoCAD 2021's (maintainer 2026-11-25; design first): the SHEETSET palette (Sheet List,
       Sheet Views, Model Views tabs), NEWSHEETSET (the wizard: from an example sheet set or from existing drawings),
       OPENSHEETSET, sheets as layouts of drawings in the set (new sheet from a template, import layout as sheet, rename and
       renumber, subsets), sheet set and sheet properties (custom properties), fields that read them (SheetSet, CurrentSheet*
@@ -383,6 +383,18 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          tests of open/save round trips, renumbering, a field in a title block updating with the sheet.
       4. Window (Wpf): the palette and dialogs from the boards -> verify: view-model tests, screenshots against the boards.
       5. Publish and transmit -> verify: a set of three drawings published to one PDF with the pages in set order.
+      DONE 2026-11-26 (spec, decisions and probes in .claude/scratch/a12/spec.md; boards A12* on the canvas v229):
+      3a the .dst read and written as AutoCAD 2021 writes it (the 10 .dst files AutoCAD installs round-trip byte for
+      byte; a set made here opens and re-saves in AutoCAD); 3b new sets from an example or drawings, new sheets,
+      import, rename and renumber, the AcSheetSetData mark; 3c \AcSm fields as AutoCAD evaluates them (1041 fields of
+      AutoCAD's 44 sample sheets give its cached words); 3d OPENSHEETSET/NEWSHEETSET, the SS* variables, the .DBL lock,
+      the sheet list table, three shipped examples; 4a the palette; 4b the dialogs; 4c the wizard; 4d Sheet Views,
+      Model Views and Place on Sheet (an Attach xref); 4e Insert Sheet List Table; 5a publish to PDF with AutoCAD's flat
+      bookmarks (the three-drawing test: pages in set order); 5b eTransmit to one zip that opens elsewhere. Found and
+      fixed on the way: a DXF saved from our DWG refused by AutoCAD (core 13.12.1 ac9b4f96), title block fields lost by
+      WblockCloneObjects (core 331e5a69), attribute and table cell fields never updated. Left: the [mem] labels not
+      checked on AutoCAD screenshots; view label blocks and callouts; Rename & Renumber View does not rename the
+      drawing's named view; eTransmit's folder rules unprobed (no ETRANSMIT in accoreconsole); DWF/ARCHIVE left out.
 - [x] A13. Colour ribbon icons (maintainer 2026-11-25; design first): redraw the ribbon's icons of OpenCAD2D in colour,
       in the visual language of AutoCAD 2021's ribbon (the maintainer's screenshot: Home tab, dark theme: blue/teal
       accents, yellow highlights, red where AutoCAD uses red), so commands are recognised at a glance. Our own drawings:

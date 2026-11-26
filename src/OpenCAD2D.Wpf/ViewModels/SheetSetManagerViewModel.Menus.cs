@@ -204,7 +204,7 @@ namespace OpenCAD2D.Wpf
                 ),
                 Item("eTransmit…", () => _main.TransmitSheetSet(_current, Components(new[] { node }))),
                 CadMenuItemViewModel.Separator(),
-                Item("Insert Sheet List Table…", () => NotBuilt("Insert Sheet List Table", "4e"), table),
+                Item("Insert Sheet List Table…", () => _main.InsertSheetListTable(_current), table),
                 Item("Manage Page Setups…", () => _main.StartCommand("PAGESETUP")),
                 Item("Plot Stamp Settings…", () => _main.StartCommand("PLOTSTAMP")),
                 CadMenuItemViewModel.Separator(),
@@ -311,7 +311,7 @@ namespace OpenCAD2D.Wpf
                 ),
                 Item("eTransmit…", () => _main.TransmitSheetSet(_current, Components(chosen))),
                 CadMenuItemViewModel.Separator(),
-                Item("Insert Sheet List Table…", () => NotBuilt("Insert Sheet List Table", "4e"), table),
+                Item("Insert Sheet List Table…", () => _main.InsertSheetListTable(_current), table),
                 CadMenuItemViewModel.Separator(),
                 Item("Properties…", () => Ask(SheetSetDialog.Properties, chosen[0], "Sheet Properties")),
             };
@@ -376,7 +376,7 @@ namespace OpenCAD2D.Wpf
 
             if (!args.Handled)
             {
-                _main.Say("The " + name + " dialog is not built yet (A12 package 4b).");
+                _main.Say("The " + name + " dialog is shown by the window; there is none to show it here.");
             }
         }
 

@@ -37,6 +37,7 @@ namespace OpenCAD2D.Wpf
     {
         private const int PreviewWidth = 300;
         private const int PreviewHeight = 190;
+        private const string SheetListTab = "Sheet List";
 
         private readonly MainViewModel _main;
         private readonly List<CadSheetSetFile> _sets = new List<CadSheetSetFile>();
@@ -47,7 +48,7 @@ namespace OpenCAD2D.Wpf
         private CadSheetSetFile _current;
         private SheetSetNodeViewModel _root;
         private string _lockReason;
-        private string _tab = "Sheet List";
+        private string _tab = SheetListTab;
         private bool _showPreview;
         private ImageSource _preview;
         private PreviewKey _previewKey;
@@ -60,6 +61,8 @@ namespace OpenCAD2D.Wpf
         {
             _main = main ?? throw new ArgumentNullException(nameof(main));
             _main.PropertyChanged += OnMainChanged;
+            _viewsTree.Changed += OnTabTreeChanged;
+            _modelTree.Changed += OnTabTreeChanged;
         }
 
         /// <summary>Gets the rows of the tree that are shown, in order: the set, then its subsets and sheets, a collapsed subset's rows left out.</summary>
@@ -105,15 +108,16 @@ namespace OpenCAD2D.Wpf
                 {
                     Raise(nameof(ShowTree));
                     Raise(nameof(HintText));
+                    OnTabChanged();
                 }
             }
         }
 
         /// <summary>Gets whether the tree is shown: a set is open and the Sheet List tab is.</summary>
-        public bool ShowTree => _current != null && _tab == "Sheet List";
+        public bool ShowTree => _current != null && _tab == SheetListTab;
 
-        /// <summary>Gets what the body says where there is no tree: the hint for no set open, or that the tab is not built yet.</summary>
-        public string HintText => _current == null ? EmptyHint : _tab + " is not built yet (A12 package 4d).";
+        /// <summary>Gets what the body says where there is no tree: the hint for no set open; nothing where a set is open.</summary>
+        public string HintText => _current == null ? EmptyHint : string.Empty;
 
         /// <summary>Gets or sets whether the pane under the tree shows the picture of the sheet (Preview) and not its details (Details).</summary>
         public bool ShowPreview
@@ -287,6 +291,7 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(HasSet));
             Raise(nameof(ShowTree));
             Raise(nameof(HintText));
+            Raise(nameof(ShowTabBody));
             Raise(nameof(IsLocked));
             Raise(nameof(LockText));
             Raise(nameof(LockToolTip));
@@ -306,6 +311,7 @@ namespace OpenCAD2D.Wpf
         /// </summary>
         private void Rebuild()
         {
+            RebuildTabs();
             SheetSetNodeViewModel fresh = _current == null ? null : Build(_current.SheetSet, null);
 
             if (fresh != null && _root != null && SameShape(_root, fresh))
@@ -568,6 +574,14 @@ namespace OpenCAD2D.Wpf
         private void UpdateDetails()
         {
             Details.Clear();
+
+            if (_tab != SheetListTab)
+            {
+                DescribeTab();
+                UpdatePreview();
+                return;
+            }
+
             SheetSetNodeViewModel node = FirstSelected;
 
             if (node != null && _current != null)
@@ -740,7 +754,7 @@ namespace OpenCAD2D.Wpf
         {
             SheetSetNodeViewModel node = FirstSelected;
 
-            if (!_showPreview || node == null || !node.IsSheet || node.IsMissing)
+            if (!_showPreview || _tab != SheetListTab || node == null || !node.IsSheet || node.IsMissing)
             {
                 _previewKey = null;
                 Preview = null;

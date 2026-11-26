@@ -36,12 +36,32 @@
 - **NEW.** The sheet list table (A12, engine): `CadSheetListTable.Insert` puts a table of the set's sheets in set order in a layout, with the
   subsets as merged header rows where asked, the number and title cells as sheet set fields bound to their sheets with AutoCAD's
   hyperlink switch, and its settings kept in the table; `Update` lists the set again after a sheet was added or removed, in one undo step.
+- **NEW.** Insert Sheet List Table and its table's right-click items (A12): the item of the Sheet List's menus opens a dialog in the
+  design's two tabs, Table Data (the title text, a column for each line with its data type and heading, Add, Remove, Move Up and Move
+  Down; the data types include the custom properties of the sheets) and Subsets and Sheets (the set's tree with check boxes, a checked
+  subset taking in the sheets added to it later), with the table style and its preview and Include Subsets as Headers in Output; OK asks
+  "Specify insertion point:" and draws the table in the sheet's layout in one undo step. A cell of the table has Update Sheet List
+  Table (lists the set again, the cells typed by hand are lost, said on the command line) and Edit Sheet List Table Settings… (the same
+  dialog on the settings the table keeps) at the top of its right-click menu. `CadSheetListTable.Update` takes new settings and
+  `ReadSetFile` names the set a table was made from.
 - **NEW.** Example sheet sets (A12): New Sheet Set and OpenCAD2D Metric Sheet Set (the subsets General, Plans and Details, the properties
   Client, Project Address, Drawn By and Checked By) with the template OpenCAD2D-sheets-mm.dwt (an A1 layout with a frame and a title
   block of sheet set fields), in a SheetSetExamples folder beside the program; our own, not AutoCAD's.
 - **CHANGED.** New Sheet and Import Layouts as Sheets bind the `\AcSm` fields of the new sheet's layout to the sheet once the set is saved
   (the fields of a title block show the sheet's own words, and AutoCAD shows them too); the fields and the operations read a drawing's
   sheet set mark with one reader, `CadSheetSetHint`.
+- **NEW.** The Sheet Views and Model Views tabs of the Sheet Set Manager (A12): Sheet Views lists the views placed on the
+  sheets, by category or by sheet (the scale each was placed at in grey), with New View Category, Rename and Remove Category,
+  Set Category (by menu, or by dragging a view onto a category), Rename & Renumber View with Previous and Next, and Display,
+  which opens the sheet and shows the view. Model Views lists the set's resource locations (folders), the drawings in them
+  and their named model views, read from the closed files, with Add New Location, Remove Location, Refresh and Open. Place on
+  Sheet, from the menu or by dragging a view or a drawing onto the drawing area, attaches the drawing as an xref (Attach, as AutoCAD's own sample sheets do) in
+  model space of the sheet's drawing (once), makes a viewport on the current layout at a scale of the drawing's list (the
+  view's last scale, else 1:100; the Scale option changes it), saves a named view round the viewport, and records a sheet view
+  in the set (the next number on the sheet, the view's name for a title), as one undo step; the named view is what AutoCAD's
+  own sheet views point at (checked on its sample sheets). New public members: `CadSheetSetPlacement`,
+  `CadPlaceOnSheetPlan`, `CadPlaceOnSheetResult`, `CadSheetSetResources`, `CadModelView`, and a setter for
+  `CadSheetView.Category`. The label block (Place View Label Block) and callout blocks are left out.
 - **NEW.** Publish a sheet set (A12): the Publish items of the Sheet List write the sheets of the set, a subset or the
   selected sheets to one multi-sheet PDF or a PDF for each sheet, in set order, as the set's Sheet Set PDF Publish
   Options say (folder, one file or a file each, file name asked for or not). A sheet left out of publishing, and the

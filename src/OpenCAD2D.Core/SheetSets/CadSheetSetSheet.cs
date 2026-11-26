@@ -232,7 +232,12 @@ namespace OpenCAD2D.SheetSets
         /// <summary>Gets the named view of the drawing the sheet view shows; null for none.</summary>
         public CadDrawingReference NamedView => CadDstTree.ReadDrawing(CadDstTree.FindObject(Element, "NamedView"));
 
-        /// <summary>Gets the view category the view is listed under; null for none, or one that is no longer in the set.</summary>
+        /// <summary>
+        /// Gets or sets the view category the view is listed under; null for none (or, read, one that is no longer in the set).
+        /// Set from <see cref="CadSheetSet.ViewCategories"/> as it is loaded.
+        /// </summary>
+        /// <exception cref="ArgumentException">Thrown, setting, when the category is not one of this sheet set as it is loaded.</exception>
+        /// <exception cref="InvalidOperationException">Thrown, setting, outside <see cref="CadSheetSetFile.Change"/>.</exception>
         public CadViewCategory Category
         {
             get
@@ -248,6 +253,29 @@ namespace OpenCAD2D.SheetSets
                     .Document.Descendants(CadDstTree.ViewCategoryClass)
                     .FirstOrDefault(e => (string)e.Attribute("ID") == id);
                 return category == null ? null : new CadViewCategory(File, category);
+            }
+            set
+            {
+                File.RequireEditing(Element);
+                Guard.Argument(
+                    value == null || (value.File == File && value.Element.Document == Element.Document),
+                    nameof(value),
+                    "The category is not one of this sheet set as it is loaded."
+                );
+                CadDstTree.FindObject(Element, "Category")?.Remove();
+                if (value != null)
+                {
+                    XElement reference = File.NewObject(CadDstTree.ObjectReferenceClass, "Category");
+                    reference.Add(
+                        new XElement(
+                            CadDstTree.Prop,
+                            new XAttribute("propname", "ReferencedObject"),
+                            new XAttribute("vt", "-1"),
+                            value.Id
+                        )
+                    );
+                    CadDstTree.InsertNamed(Element, reference);
+                }
             }
         }
 
