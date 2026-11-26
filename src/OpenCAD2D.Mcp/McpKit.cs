@@ -58,14 +58,14 @@ namespace OpenCAD2D.Mcp
 
         /// <summary>
         /// Gives the full path a tool may write: the extension is the one asked for (added where there is none, refused where it is
-        /// another), a folder that is not there is made, and a file that is there is refused unless <paramref name="overwrite"/>.
+        /// another), a folder that is not there is made, and a file that is there is refused unless <paramref name="overwrite"/>, and the open drawing's own file always.
         /// </summary>
         /// <param name="path">The path the agent gave.</param>
         /// <param name="extension">The extension with its dot, as <c>.pdf</c>.</param>
         /// <param name="overwrite">Whether a file already there may be replaced.</param>
-        /// <param name="own">The file of the open drawing; it is named in the refusal.</param>
+        /// <param name="own">The file of the open drawing, which is never written; it is named in the refusal.</param>
         /// <returns>The full path.</returns>
-        /// <exception cref="ArgumentException">Thrown for no path, another extension, or a file that is there and not to be replaced.</exception>
+        /// <exception cref="ArgumentException">Thrown for no path, another extension, a file that is there and not to be replaced, or the open drawing's own file.</exception>
         public static string Target(string path, string extension, bool overwrite, string own)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -87,14 +87,19 @@ namespace OpenCAD2D.Mcp
 
             string full = Path.GetFullPath(given);
 
+            if (own != null && string.Equals(Path.GetFullPath(own), full, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException(
+                    "That is the open drawing's own file, "
+                        + full
+                        + ": no tool but save writes it, whatever overwrite says. Give another path."
+                );
+            }
+
             if (File.Exists(full) && !overwrite)
             {
-                bool theirs =
-                    own != null && string.Equals(Path.GetFullPath(own), full, StringComparison.OrdinalIgnoreCase);
                 throw new ArgumentException(
-                    (theirs ? "That is the open drawing's own file, " : "The file ")
-                        + full
-                        + " is there already: pass overwrite true to replace it, or give another path."
+                    "The file " + full + " is there already: pass overwrite true to replace it, or give another path."
                 );
             }
 

@@ -73,10 +73,15 @@ server may be started before the app is.
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
 - Files are written by `save` (the drawing's own file, which is in the folder it was opened from, or the path the agent gives
-  it), by `save_as`, `plot_pdf`, `export_svg` and `export_to_file` (the path the agent gives; for the first three a file that
+  it), by `save_as`, `plot_pdf`, `export_svg` and `export_to_file` (the path the agent gives; a file that
   is there is refused unless `overwrite` is true), and by `dump_drawing`, which writes only inside the debug folder.
   `render_png` makes its picture in memory (a temporary file under the system's temporary folder, deleted at once). Every
   other tool, the measuring, scoring and export tools included, reads and writes nothing.
+- No text of the agent's reaches a command line except as one answer to a prompt for words (the name of a new layout, the words of
+  a multileader): a word of a command may not start with `(`, `!` or `'`, which the command line would run as AutoLISP or as a
+  transparent command, and a block is inserted by an edit of the core and not by typing its name, so no AutoLISP runs without
+  `--allow-scripts`. Attached, a tool that types (and `undo` and `redo`) is refused while a command is running in the app, so that it
+  never answers the user's command; `UNDO Begin` and `End` are typed only when UNDO waits for them.
 - `open_drawing` and `new_drawing` refuse to replace a drawing that has changes not saved, unless the call says
   `discard: true`.
 - The server listens on no port. It speaks only on its standard input and output, and writes nothing else on standard output.
@@ -109,7 +114,7 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 | `fits(candidate, kinds=, margin=, layout=, tolerance=)` | whether one place is free, tested on the real lines, arcs, fills and word frames and not on their boxes. `candidate` is a box `[minX, minY, maxX, maxY]` or a frame `[x, y, width, height, rotation]` as the `measure_*` tools give it |
 | `check_standard(standard, model_scale=, tolerance=)` | scores the drawing against a company standard: a score from 0 to 1 for each rule, the total `score` and the violations (rule, handle, place, found, allowed), a page at a time. `standard` is a JSON object of the schema `docs/schemas/opencad2d-standard-v1.schema.json` or the path of a file of one |
 | `export_json(layout=)`, `export_graph(layout=, tolerance=, part=)` | what [`to_json` and `to_graph`](../python.md#batch-and-ai-pipelines) write: a summary (the members that are not lists, how many rows each list has, how many entities or edges of each kind) and a page of the entities, or of the edges or nodes of the graph (`part`) |
-| `export_to_file(what, path, layout=, tolerance=)` | writes the whole JSON (`json`) or graph (`graph`) to `path`, for a program that reads the file and not the agent; refused by `--read-only` |
+| `export_to_file(what, path, layout=, tolerance=, overwrite=)` | writes the whole JSON (`json`) or graph (`graph`) to the `.json` file `path` (`.json` is added where there is no extension, another extension is refused), for a program that reads the file and not the agent. A file that is there is refused unless `overwrite` is `true`, the folder is made where it is not there, and the drawing's own file is never written; refused by `--read-only` |
 | `add_layer(name, color=, linetype=, lineweight=, on=, frozen=, locked=)` | a layer with the look given (a colour index, a linetype of the drawing, a lineweight in hundredths of a millimetre such as 25); refused for a name the drawing has (either case), a name AutoCAD refuses, or a look it does not take |
 | `add_line`, `add_polyline`, `add_circle`, `add_arc` | geometry; `layer`, `color` (a colour index) and `linetype` for each |
 | `add_text`, `add_mtext` | words, with a `text_style` of the drawing |
@@ -187,7 +192,8 @@ error as well.
 | `audit(fix=)` | the errors AUDIT finds, counted by kind with its first sentences; with `fix` it also fixes what it can as one undo step and audits again (`found`, `remaining`). The check alone writes nothing |
 | `zoom_extents`, `zoom_window(box)`, `zoom_object(handles)` | attached: ZOOM Extents, Window and Object on the app's window, moving what the user sees. On a file: the view `render_png` and `export_svg` draw when they are given no `box`, kept for the layout in this server (a `box` given still wins). They answer the part of the drawing now shown, `[minX, minY, maxX, maxY]` |
 
-- A file that is there is refused unless `overwrite` is `true`; the drawing's own file is named in the refusal. The folder is made
+- A file that is there is refused unless `overwrite` is `true`; the drawing's own file is refused whatever `overwrite` says (only `save`
+  writes it) and is named in the refusal. The folder is made
   where it is not there. An extension other than the tool's is refused (`plot_pdf` writes `.pdf`, `export_svg` `.svg`).
 - Attached, `plot_pdf`, `export_svg` and `save_as` work on a copy of the app's drawing as it stands (the request `database`, [unsaved
   changes included](remote.md#the-drawing-as-the-app-has-it)), made in the server's process; the app's drawing, its file and its

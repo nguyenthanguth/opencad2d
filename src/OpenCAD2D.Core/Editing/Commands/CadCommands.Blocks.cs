@@ -765,7 +765,7 @@ namespace OpenCAD2D
         }
 
         /// <summary>The definitions of a block that give an INSERT an ATTRIB, those not constant, in the order of the block.</summary>
-        private static List<DxfAttributeDefinition> Definitions(DxfBlockTableRecord record) =>
+        internal static List<DxfAttributeDefinition> Definitions(DxfBlockTableRecord record) =>
             record.OfType<DxfAttributeDefinition>().Where(d => !d.Constant).ToList();
 
         /// <summary>
@@ -1541,23 +1541,7 @@ namespace OpenCAD2D
 
                 if (!explode)
                 {
-                    AddAttributes(insert, block, values);
-
-                    // An INSERT of an annotative block is shown at the annotation scale it is made at, as AutoCAD 2021's -INSERT makes
-                    // it: its factors multiplied by that scale's (50 for 1 at 1:50), a context of the scale, and one for each attribute.
-                    DxfAnnotationScale current =
-                        block.Annotative == DxfAnnotativeStates.True ? CurrentScale(s.Database, space.IsModel) : null;
-
-                    if (current != null)
-                    {
-                        foreach (DxfAttributeReference attribute in insert.AttributeCollection)
-                        {
-                            attribute.AddFirstAttributeContext(current);
-                        }
-
-                        insert.AddContext(current);
-                    }
-
+                    FillInsert(s, space, insert, block, values);
                     return;
                 }
 
@@ -1579,6 +1563,34 @@ namespace OpenCAD2D
             if (result.Succeeded)
             {
                 c.Session.LastBlock = name;
+            }
+        }
+
+        /// <summary>
+        /// Gives an INSERT just placed its attributes (<see cref="AddAttributes"/>), and, for an annotative block, the annotation
+        /// scale it is made at, as AutoCAD 2021's -INSERT makes it: its factors multiplied by that scale's (50 for 1 at 1:50), a
+        /// context of the scale, and one for each attribute.
+        /// </summary>
+        internal static void FillInsert(
+            CadEditScope s,
+            CadSpace space,
+            DxfBlockReference insert,
+            DxfBlockTableRecord block,
+            IReadOnlyList<string> values
+        )
+        {
+            AddAttributes(insert, block, values);
+            DxfAnnotationScale current =
+                block.Annotative == DxfAnnotativeStates.True ? CurrentScale(s.Database, space.IsModel) : null;
+
+            if (current != null)
+            {
+                foreach (DxfAttributeReference attribute in insert.AttributeCollection)
+                {
+                    attribute.AddFirstAttributeContext(current);
+                }
+
+                insert.AddContext(current);
             }
         }
 
@@ -1687,7 +1699,7 @@ namespace OpenCAD2D
             string.IsNullOrEmpty(definition.Prompt) ? definition.Tag : definition.Prompt;
 
         /// <summary>The factor that takes a block's units to the drawing's, as AutoCAD's INSERT scales by it: 1 where either gives none.</summary>
-        private static double UnitFactor(DxfDatabase database, DxfBlockTableRecord record)
+        internal static double UnitFactor(DxfDatabase database, DxfBlockTableRecord record)
         {
             double from = UnitMillimetres(record.Units);
             double to = UnitMillimetres(database.Insunits);

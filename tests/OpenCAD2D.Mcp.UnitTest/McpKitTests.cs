@@ -57,6 +57,10 @@ namespace OpenCAD2D.Mcp.UnitTest
                 "own file",
                 Assert.Throws<ArgumentException>(() => McpKit.Target(full, ".pdf", false, full)).Message
             );
+            Assert.Contains(
+                "own file",
+                Assert.Throws<ArgumentException>(() => McpKit.Target(full, ".pdf", true, full)).Message
+            );
         }
 
         [Fact]

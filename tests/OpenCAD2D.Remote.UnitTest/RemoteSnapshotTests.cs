@@ -95,6 +95,32 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        public void TheSnapshotsOfADrawingAreForgotten_WhenItIsClosed_NotOnlyAtTheNextSnapshot()
+        {
+            var harness = new Harness();
+            var host = new TestHost();
+            host.Add(Plan());
+            host.Add(Plan());
+            CadRemoteServer server = harness.Serve(host);
+
+            using (harness)
+            {
+                CadApplication app = harness.Connect();
+                CadRemoteDocument first = app.Documents.First();
+                CadRemoteDocument second = app.Documents.Last();
+                first.TakeSnapshot();
+                first.TakeSnapshot();
+                CadRemoteSnapshot kept = second.TakeSnapshot();
+                Assert.Equal(3, server.SnapshotsKept);
+
+                first.Close();
+
+                Assert.Equal(1, server.SnapshotsKept);
+                second.Reset(kept);
+            }
+        }
+
+        [Fact]
         public void ASnapshotIsOfOneDrawing_AndNullIsRefused()
         {
             var (harness, remote) = Start(Plan(), Plan());

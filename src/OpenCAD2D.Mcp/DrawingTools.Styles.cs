@@ -22,12 +22,15 @@ namespace OpenCAD2D.Mcp
 
             if (
                 string.IsNullOrEmpty(trimmed)
+                || trimmed.Length > 255
                 || trimmed.IndexOfAny(new[] { '<', '>', '/', '\\', '"', ':', ';', '?', '*', '|', '=', '`', ',' }) >= 0
                 || trimmed.Any(char.IsControl)
             )
             {
                 throw new ArgumentException(
-                    "A " + what + " needs a name without any of < > / \\ \" : ; ? * | = ` , in it."
+                    "A "
+                        + what
+                        + " needs a name of up to 255 characters without any of < > / \\ \" : ; ? * | = ` , in it."
                 );
             }
 

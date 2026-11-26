@@ -705,17 +705,36 @@ namespace OpenCAD2D.Mcp.UnitTest
                 await harness.FailAsync("export_to_file", ("what", "csv"), ("path", json))
             );
             Assert.Contains(
-                "does not exist",
+                "Give the path",
+                await harness.FailAsync("export_to_file", ("what", "json"), ("path", " "))
+            );
+
+            // A folder that is not there is made; a file that is there, the drawing's own file and another extension are refused.
+            string deeper = Path.Combine(folder, "made", "x");
+            Assert.Equal(
+                deeper + ".json",
+                (string)(await harness.CallAsync("export_to_file", ("what", "json"), ("path", deeper)))["path"]
+            );
+            Assert.Contains(
+                "is there already",
+                await harness.FailAsync("export_to_file", ("what", "json"), ("path", json))
+            );
+            await harness.CallAsync("export_to_file", ("what", "json"), ("path", json), ("overwrite", true));
+            byte[] own = File.ReadAllBytes(plate);
+            Assert.Contains(
+                "The file is .json, not .dxf",
+                await harness.FailAsync("export_to_file", ("what", "json"), ("path", plate), ("overwrite", true))
+            );
+            Assert.Contains(
+                "not .txt",
                 await harness.FailAsync(
                     "export_to_file",
                     ("what", "json"),
-                    ("path", Path.Combine(folder, "missing", "x.json"))
+                    ("path", Path.Combine(folder, "x.txt")),
+                    ("overwrite", true)
                 )
             );
-            Assert.Contains(
-                "needs the path",
-                await harness.FailAsync("export_to_file", ("what", "json"), ("path", " "))
-            );
+            Assert.Equal(own, File.ReadAllBytes(plate));
         }
 
         [Fact]

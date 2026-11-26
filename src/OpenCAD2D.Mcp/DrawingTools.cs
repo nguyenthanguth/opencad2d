@@ -459,6 +459,15 @@ namespace OpenCAD2D.Mcp
             );
         }
 
+        /// <summary>A box of the caller's as <c>[minX, minY, maxX, maxY]</c> in that order, whichever corners it was given by; null for none.</summary>
+        private static double[] Normalised(string name, double[] box)
+        {
+            DisplayBox? checkedBox = Box(name, box);
+            return checkedBox.HasValue
+                ? new[] { checkedBox.Value.MinX, checkedBox.Value.MinY, checkedBox.Value.MaxX, checkedBox.Value.MaxY }
+                : null;
+        }
+
         private static DisplayBox Row(double[] boxes, int row) =>
             new DisplayBox(boxes[4 * row], boxes[4 * row + 1], boxes[4 * row + 2], boxes[4 * row + 3]);
 

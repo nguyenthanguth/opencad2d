@@ -105,6 +105,7 @@ namespace OpenCAD2D
     /// <item><term>handles</term><description><c>layout</c> (Model where left out); the handles of every object of the layout in the order it draws them, those of kinds a query cannot carry (a viewport) among them.</description></item>
     /// <item><term>set_transparency</term><description><c>handles</c>, <c>percent</c> (0 solid to 90, or -1 for ByLayer); the handles.</description></item>
     /// <item><term>set_attribute</term><description><c>handle</c> of a block reference, <c>tag</c>, <c>value</c>; the handle.</description></item>
+    /// <item><term>insert_block</term><description><c>name</c> of a block, <c>at</c> ([x, y]), <c>scale</c> (above 0; 1 where left out), <c>rotation</c> (degrees, counter-clockwise; 0 where left out) and <c>rows</c> (pairs of an attribute's tag and its words; an attribute left out or given no words keeps its default): an INSERT in the working space as the command makes it, with no prompt and no dialog; the handle of the INSERT.</description></item>
     /// <item><term>current_layer</term><description><c>name</c>; the name.</description></item>
     /// <item><term>current_style</term><description><c>kind</c> (<c>mleader</c> or <c>table</c>) and <c>name</c>; the name.</description></item>
     /// </list>
@@ -168,6 +169,8 @@ namespace OpenCAD2D
                     );
                 case "set_attribute":
                     return SetAttribute(document, args);
+                case "insert_block":
+                    return InsertBlock(document, args);
                 case "set_transparency":
                     return SetTransparency(document, args);
                 case "handles":
@@ -659,6 +662,72 @@ namespace OpenCAD2D
                 )
             );
             return new[] { handle };
+        }
+
+        private static IReadOnlyList<string> InsertBlock(CadDocument document, CadMakeArgs args)
+        {
+            string name = Required(args, "name");
+            IReadOnlyList<double> at = args.Numbers("at");
+            double scale = args.Number("scale") ?? 1.0;
+            double rotation = args.Number("rotation") ?? 0.0;
+
+            if (at.Count != 2 || at.Any(v => double.IsNaN(v) || double.IsInfinity(v)))
+            {
+                throw new ArgumentException("The edit needs at as [x, y].");
+            }
+
+            if (!(scale > 0.0) || double.IsInfinity(scale) || double.IsNaN(rotation) || double.IsInfinity(rotation))
+            {
+                throw new ArgumentException("The scale is above nought and the rotation a number.");
+            }
+
+            DxfBlockTableRecord block =
+                name.StartsWith("*", StringComparison.Ordinal) || !document.Database.BlockTable.Has(name)
+                    ? throw new ArgumentException("The drawing has no block " + name + ".")
+                    : document.Database.BlockTable[name];
+            List<DxfAttributeDefinition> definitions = CadCommands.Definitions(block);
+            var given = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string[] row in args.Rows("rows"))
+            {
+                if (
+                    row.Length != 2
+                    || !definitions.Any(d => string.Equals(d.Tag, row[0], StringComparison.OrdinalIgnoreCase))
+                )
+                {
+                    throw new ArgumentException(
+                        "The block "
+                            + block.Name
+                            + " has no attribute "
+                            + (row.Length > 0 ? row[0] : string.Empty)
+                            + "."
+                    );
+                }
+
+                given[row[0]] = row[1];
+            }
+
+            // The words of each attribute that is asked for, in the order of the block; a preset one keeps its own, as the command's.
+            List<string> values = definitions
+                .Select(d =>
+                    !d.Preset && given.TryGetValue(d.Tag, out string v) && !string.IsNullOrEmpty(v) ? v : d.TextString
+                )
+                .ToList();
+            CadSpace space = document.WorkingSpace;
+            var point = new GeoPoint3(at[0], at[1], 0.0);
+            CadEditResult result = document.ApplyEdit(Step, null, scope =>
+            {
+                DxfBlockTableRecord live = scope.Document.Database.BlockTable[block.Name];
+                var insert = new DxfBlockReference(point, live);
+                insert.SetDatabaseDefaults(scope.Document.Database);
+                scope.Append(space, insert);
+                double factor = CadCommands.UnitFactor(scope.Document.Database, live);
+                insert.ScaleFactors = new GeoVector3(scale * factor, scale * factor, scale * factor);
+                insert.Rotation = rotation * Math.PI / 180.0;
+                CadCommands.FillInsert(scope, space, insert, live, values);
+            });
+            Check(result);
+            return new[] { CadCommands.AddedHandle(result) };
         }
 
         private static IReadOnlyList<string> CurrentStyle(CadDocument document, CadMakeArgs args)

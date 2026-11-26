@@ -275,7 +275,7 @@ namespace OpenCAD2D.Mcp
                 double dpi = 0.0
         ) => _session.Run("render_png", false, drawing =>
             {
-                Box("box", box);
+                double[] part = Normalised("box", box);
 
                 if (width < 0 || height < 0 || dpi < 0.0 || double.IsNaN(dpi))
                 {
@@ -286,7 +286,7 @@ namespace OpenCAD2D.Mcp
                     new RenderRequest
                     {
                         Layout = Layout(drawing, layout),
-                        Box = box,
+                        Box = part,
                         Width = width,
                         Height = height,
                         Dpi = dpi,

@@ -8,7 +8,7 @@ namespace OpenCAD2D.Remote
         /// <summary>
         /// Asks the app to keep the drawing as it stands, with the changes not saved, to put it back to with
         /// <see cref="Reset"/>: for a program that tries edits on the drawing again and again from the same start. What the user
-        /// did before can still be undone after a reset; what came after the snapshot is the episode.
+        /// did before can still be undone after a reset while the app's undo list holds the point of the snapshot; where it does not (a reset to a later snapshot after a reset to an earlier one) the app reads the drawing back from the snapshot's bytes and starts its undo list afresh. What came after the snapshot is the episode.
         /// </summary>
         /// <returns>The snapshot.</returns>
         /// <exception cref="CadRemoteException">Thrown when the drawing is closed, or a command is running in it.</exception>

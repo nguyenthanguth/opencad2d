@@ -375,41 +375,48 @@ namespace OpenCAD2D.Mcp
                         string was = string.IsNullOrWhiteSpace(style)
                             ? null
                             : Convert.ToString(drawing.Variable("CMLEADERSTYLE"), CultureInfo.InvariantCulture);
+                        object wasScale = scale.HasValue ? drawing.Variable("MLEADERSCALE") : null;
 
-                        if (was != null)
+                        // The style and the scale the note is made in are put back whatever comes of it.
+                        try
                         {
-                            editing.Make(
-                                "current_style",
-                                new CadMakeArgs().Set("kind", "mleader").Set("name", style.Trim())
-                            );
-                        }
-
-                        object wasScale = null;
-
-                        if (scale.HasValue)
-                        {
-                            if (!(scale.Value > 0.0) || double.IsInfinity(scale.Value))
+                            if (was != null)
                             {
-                                throw new ArgumentException("The scale is a number above nought.");
+                                editing.Make(
+                                    "current_style",
+                                    new CadMakeArgs().Set("kind", "mleader").Set("name", style.Trim())
+                                );
                             }
 
-                            wasScale = drawing.Variable("MLEADERSCALE");
-                            editing.SetVariable("MLEADERSCALE", scale.Value);
+                            if (scale.HasValue)
+                            {
+                                if (!(scale.Value > 0.0) || double.IsInfinity(scale.Value))
+                                {
+                                    throw new ArgumentException("The scale is a number above nought.");
+                                }
+
+                                editing.SetVariable("MLEADERSCALE", scale.Value);
+                            }
+
+                            made = Script(drawing, new List<string>(), true, () =>
+                                new CommandScript().Word("MLEADER").Point(a.X, a.Y).Point(b.X, b.Y).Text(text)
+                            );
+                            Look(editing, made.Created, layer, color);
                         }
-
-                        made = Script(drawing, new List<string>(), true, () =>
-                            new CommandScript().Word("MLEADER").Point(a.X, a.Y).Point(b.X, b.Y).Text(text)
-                        );
-                        Look(editing, made.Created, layer, color);
-
-                        if (wasScale != null)
+                        finally
                         {
-                            editing.SetVariable("MLEADERSCALE", wasScale);
-                        }
+                            if (wasScale != null)
+                            {
+                                editing.SetVariable("MLEADERSCALE", wasScale);
+                            }
 
-                        if (!string.IsNullOrEmpty(was))
-                        {
-                            editing.Make("current_style", new CadMakeArgs().Set("kind", "mleader").Set("name", was));
+                            if (!string.IsNullOrEmpty(was))
+                            {
+                                editing.Make(
+                                    "current_style",
+                                    new CadMakeArgs().Set("kind", "mleader").Set("name", was)
+                                );
+                            }
                         }
                     }));
                 return Added(made, "MULTILEADER");
@@ -475,56 +482,62 @@ namespace OpenCAD2D.Mcp
                             ? null
                             : Convert.ToString(drawing.Variable("CTABLESTYLE"), CultureInfo.InvariantCulture);
 
-                        if (was != null)
+                        // The style the table is made in is put back whatever comes of it.
+                        try
                         {
-                            editing.Make(
-                                "current_style",
-                                new CadMakeArgs().Set("kind", "table").Set("name", style.Trim())
-                            );
-                        }
-
-                        made = Script(drawing, new List<string>(), true, () =>
-                        {
-                            CommandScript script = new CommandScript()
-                                .Word("-TABLE")
-                                .Word(columns.ToString(CultureInfo.InvariantCulture))
-                                .Word(rows.ToString(CultureInfo.InvariantCulture));
-
-                            if (column_width.HasValue)
+                            if (was != null)
                             {
-                                script.Word("W").Number(column_width.Value);
+                                editing.Make(
+                                    "current_style",
+                                    new CadMakeArgs().Set("kind", "table").Set("name", style.Trim())
+                                );
                             }
 
-                            if (row_lines != 1)
+                            made = Script(drawing, new List<string>(), true, () =>
                             {
-                                script.Word("H").Word(row_lines.ToString(CultureInfo.InvariantCulture));
+                                CommandScript script = new CommandScript()
+                                    .Word("-TABLE")
+                                    .Word(columns.ToString(CultureInfo.InvariantCulture))
+                                    .Word(rows.ToString(CultureInfo.InvariantCulture));
+
+                                if (column_width.HasValue)
+                                {
+                                    script.Word("W").Number(column_width.Value);
+                                }
+
+                                if (row_lines != 1)
+                                {
+                                    script.Word("H").Word(row_lines.ToString(CultureInfo.InvariantCulture));
+                                }
+
+                                return script.Point(p.X, p.Y);
+                            });
+                            string handle = made.Created.FirstOrDefault()
+                                ?? throw new InvalidOperationException(
+                                    "The table was not made. The command line said: " + made.Output
+                                );
+
+                            if (cells != null && cells.Length > 0)
+                            {
+                                editing.Make(
+                                    "table_cells",
+                                    new CadMakeArgs()
+                                        .Set("handle", handle)
+                                        .Set(
+                                            "cells",
+                                            cells.Select(r => r.Select(c => c ?? string.Empty).ToArray()).ToArray()
+                                        )
+                                );
                             }
 
-                            return script.Point(p.X, p.Y);
-                        });
-                        string handle = made.Created.FirstOrDefault()
-                            ?? throw new InvalidOperationException(
-                                "The table was not made. The command line said: " + made.Output
-                            );
-
-                        if (cells != null && cells.Length > 0)
-                        {
-                            editing.Make(
-                                "table_cells",
-                                new CadMakeArgs()
-                                    .Set("handle", handle)
-                                    .Set(
-                                        "cells",
-                                        cells.Select(r => r.Select(c => c ?? string.Empty).ToArray()).ToArray()
-                                    )
-                            );
+                            Look(editing, new[] { handle }, layer, color);
                         }
-
-                        Look(editing, new[] { handle }, layer, color);
-
-                        if (!string.IsNullOrEmpty(was))
+                        finally
                         {
-                            editing.Make("current_style", new CadMakeArgs().Set("kind", "table").Set("name", was));
+                            if (!string.IsNullOrEmpty(was))
+                            {
+                                editing.Make("current_style", new CadMakeArgs().Set("kind", "table").Set("name", was));
+                            }
                         }
                     }));
                 return Added(made, "ACAD_TABLE");

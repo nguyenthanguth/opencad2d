@@ -13,8 +13,23 @@ namespace OpenCAD2D.Mcp
         /// <summary>The line that stands for the Esc key in a command sent to the app.</summary>
         private const string EscapeLine = "\u001b";
 
+        /// <summary>
+        /// Refuses before a tool types anything where a command already waits for the user's answer: what the tool typed would be
+        /// answers to the user's command (a U at the next point of LINE takes the user's last segment back).
+        /// </summary>
+        private void RefuseWhileRunning()
+        {
+            if (Document.GetHistory(1).IsRunning)
+            {
+                throw new InvalidOperationException(
+                    "A command is running in the app: end it (answer it or press Esc) before this tool types its own."
+                );
+            }
+        }
+
         public string Run(CommandScript script)
         {
+            RefuseWhileRunning();
             var output = new List<string>();
             var lines = new List<string>();
             bool completed = true;
@@ -120,17 +135,44 @@ namespace OpenCAD2D.Mcp
         private static string Said(List<string> output) =>
             "The command line said: " + string.Join(" | ", output.Skip(Math.Max(0, output.Count - 6)));
 
+        /// <summary>Types the lines of an UNDO option, as typed words with no command running: the option is not typed unless UNDO waits for it.</summary>
+        private void Undoing(string option)
+        {
+            CadRemoteTyped sent = Document.TypeScript("UNDO\n" + option + "\n", false);
+
+            if (sent.Skipped > 0 || !sent.Completed)
+            {
+                if (!sent.Completed)
+                {
+                    Document.SendCommand(EscapeLine + "\n", TimeSpan.Zero);
+                }
+
+                throw new InvalidOperationException("UNDO " + option + " was not taken. " + Said(sent.Output.ToList()));
+            }
+        }
+
         public void Group(Action work)
         {
-            Document.SendCommand("UNDO" + "\n" + "BE" + "\n", TimeSpan.Zero);
+            RefuseWhileRunning();
+            Undoing("BE");
+
+            bool failed = true;
 
             try
             {
                 work();
+                failed = false;
             }
             finally
             {
-                Document.SendCommand("UNDO" + "\n" + "E" + "\n", TimeSpan.Zero);
+                try
+                {
+                    Undoing("E");
+                }
+                catch (InvalidOperationException) when (failed)
+                {
+                    // The work's own failure is what the tool says.
+                }
             }
         }
 
@@ -179,7 +221,12 @@ namespace OpenCAD2D.Mcp
                 throw new ArgumentException("The drawing has no layer " + look.Name + ".");
             }
 
-            layer.Color = DxfColor.FromColorIndex(DxfColorMethod.ByAci, (short)look.Color);
+            // A colour the tool did not change stays as it is: a true colour is not an index.
+            if (layer.Color.ColorIndex != look.Color)
+            {
+                layer.Color = DxfColor.FromColorIndex(DxfColorMethod.ByAci, (short)look.Color);
+            }
+
             layer.Linetype = look.Linetype;
             layer.LineWeight = (DxfLineWeight)look.LineWeight;
             layer.IsOn = look.IsOn;
@@ -196,6 +243,11 @@ namespace OpenCAD2D.Mcp
 
         public void SetCurrentLayout(string name) => Document.CurrentLayout = name;
 
-        public bool Redo() => Document.SendCommand("REDO").Completed;
+        public bool Redo()
+        {
+            RefuseWhileRunning();
+            CadRemoteTyped sent = Document.TypeScript("REDO\n", false);
+            return sent.Completed && TookBack(sent.Output, "Nothing to redo");
+        }
     }
 }

@@ -96,7 +96,7 @@ what `Undo` does for one step, done once over all the steps since. The drawing i
 (`DxfDatabase.Open` of the bytes is lazy: 2 ms for 10 000 entities), only the entities the steps touched are drawn again, as after
 an undo, and the display lists, the cached `CadSpatialIndex` and the pictures of dimensions come out as a REGEN would make them.
 The steps made since are then forgotten, as a new edit after an undo forgets the steps undone, so a thousand episodes hold no more
-steps than one, and the steps before the snapshot stay undoable. The reset after the first is faster still: it reads ahead, on a
+steps than one, and the steps before the snapshot stay undoable as long as the undo list holds the point of the snapshot. Where it does not (a snapshot A, edits, a snapshot B, a reset to A, then a reset to B: the first reset cut B's point off the list) the reset reads the drawing back from the snapshot's bytes and the undo list starts afresh, so that what the user did before is no longer undoable. The reset after the first is faster still: it reads ahead, on a
 worker thread, the drawing the next reset goes to while the episode runs, with its index of handles, as an undo reads its
 neighbours ahead; unlike those readings an edit does not stop it.
 

@@ -175,6 +175,34 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void PiecesOfABlockThatTieOnEverythingButTheirPlaceInTheBlock_AreOrderedByThatPlaceNumerically()
+        {
+            var db = new DxfDatabase("AC1027");
+            var block = new DxfBlockTableRecord { Name = "TWELVE" };
+            db.BlockTable.Add(block);
+
+            for (int i = 0; i < 12; i++)
+            {
+                block.AppendEntity(new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(10, 0, 0)));
+            }
+
+            db.ModelSpace.AppendEntity(new DxfBlockReference(new GeoPoint3(0, 0, 0), block));
+            CadDocument a = CadDocument.From(db, "twelve.dxf");
+            CadDocument b = Copy(a);
+            DxfBlockReference top = b.ModelSpace.Block.OfType<DxfBlockReference>().First(e => !e.IsErased);
+            top.Position = new GeoPoint3(25, 0, 0);
+
+            CadDrawingDiffResult diff = CadDrawingDiff.Compare(a, b, Mm);
+
+            Assert.Equal(12, diff.Changed.Count);
+            string[] orders = diff.Changed.Select(c => c.Order).ToArray();
+            Assert.Equal(orders.OrderBy(o => o, StringComparer.Ordinal), orders);
+            Assert.Equal(12, orders.Distinct().Count());
+            Assert.StartsWith("0000000002", orders[2], StringComparison.Ordinal);
+            Assert.StartsWith("0000000010", orders[10], StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ANullDrawingIsRefused()
         {
             CadDocument a = Plate();

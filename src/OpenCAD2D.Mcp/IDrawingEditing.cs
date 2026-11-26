@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using GeometryHelper.Dxf;
 
 namespace OpenCAD2D.Mcp
@@ -46,10 +47,15 @@ namespace OpenCAD2D.Mcp
             if (
                 string.IsNullOrWhiteSpace(word)
                 || word.IndexOfAny(new[] { ' ', '\t', '\r', '\n', '"', ';', '\u001b' }) >= 0
+                || word[0] == '(' // AutoLISP
+                || word[0] == '!' // the value of a LISP symbol
+                || word[0] == '\'' // a transparent command
             )
             {
                 throw new ArgumentException(
-                    "A word of a command is not empty and holds no space or quote: \"" + word + "\"."
+                    "A word of a command is not empty, holds no space or quote and does not start with ( ! or ': \""
+                        + word
+                        + "\"."
                 );
             }
 
@@ -60,9 +66,9 @@ namespace OpenCAD2D.Mcp
         /// <summary>Answers a prompt for words with a whole line, spaces and all.</summary>
         public CommandScript Text(string text)
         {
-            if (string.IsNullOrEmpty(text) || text.IndexOfAny(new[] { '\r', '\n', '\u001b' }) >= 0)
+            if (string.IsNullOrEmpty(text) || text.Any(char.IsControl))
             {
-                throw new ArgumentException("The words are one line and not empty.");
+                throw new ArgumentException("The words are one line, not empty and hold no control character.");
             }
 
             _steps.Add(new ScriptStep("text", text, null, null, null));

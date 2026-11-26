@@ -25,7 +25,7 @@ namespace OpenCAD2D.Mcp.UnitTest
         public McpHarness Harness { get; }
 
         /// <summary>Starts a server on a new blank drawing, in the mode: <c>file</c> or <c>app</c>.</summary>
-        public static async Task<Bench> Start(string mode, bool readOnly = false)
+        public static async Task<Bench> Start(string mode, bool readOnly = false, bool scripts = false)
         {
             if (mode == "file")
             {
@@ -41,6 +41,7 @@ namespace OpenCAD2D.Mcp.UnitTest
                     Attach = true,
                     RemoteFolder = app.Folder,
                     ReadOnly = readOnly,
+                    AllowScripts = scripts,
                 }
             );
             await harness.CallAsync("new_drawing");
