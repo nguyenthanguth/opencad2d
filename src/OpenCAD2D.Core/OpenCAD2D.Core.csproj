@@ -22,6 +22,10 @@
             Include="..\..\docs\schemas\opencad2d-drawing-v1.schema.json"
             LogicalName="OpenCAD2D.opencad2d-drawing-v1.schema.json"
         />
+        <EmbeddedResource
+            Include="..\..\docs\schemas\opencad2d-standard-v1.schema.json"
+            LogicalName="OpenCAD2D.opencad2d-standard-v1.schema.json"
+        />
     </ItemGroup>
 
     <!--

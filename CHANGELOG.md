@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **NEW.** A drawing standards checker, for the reward of a program that lays a drawing out (PW7.2). A company writes its standard once
+  as a JSON file (`docs/schemas/opencad2d-standard-v1.schema.json`, `opencad2d.standard` version 1, with an example beside it) and
+  `drawing.check(standard)` scores any drawing against it: a score from 0 to 1 for each of 14 rules (`layer-name`, `layer-properties`,
+  `layer-zero`, `by-layer-color`, `by-layer-linetype`, `by-layer-lineweight`, `text-style`, `text-font`, `dim-style`, `dim-font`,
+  `text-height`, `gap-word-line`, `gap-word-word`, `dim-chain`), a total with the weights of the file, and every violation with its rule,
+  objects, box, the number found and the number allowed, in a fixed order. A rule scores `1 - offenders / subjects`; a rule the file
+  does not mention is not run. Words are measured on paper: in a layout as drawn, in model space through each viewport that shows
+  them at its scale (annotative objects at the annotation scale the viewport draws them at), or at the `model_scale` given (`0.01`
+  or `"1:100"`); gaps are exact distances between a word's frame and a line, an arc, a hatch or another word, found through the
+  spatial index; a chain is dimensions of one direction that meet end to end, whose dimension lines should lie on one line. 10 000
+  objects are checked against every rule in about 0.4 s on .NET Framework 4.8. Python gives a `CheckResult` (`scores`, `total`,
+  `rules`, `violations`, NumPy `boxes`) on a file, in the app and from outside it. In C#: `CadStandard`, `CadStandards.Check`,
+  `CadStandardResult`, and `CadRemoteDocument.CheckStandard` (the request `check`).
 - **NEW.** Python measures before it places, for a program that lays a drawing out: `drawing.measure_text`, `measure_mtext`,
   `measure_dimension` and `measure_leader` give the box a thing would take and the frame of each of its words (a `Measurement`:
   `box` and `frames`, each a `Frame` of a first corner, a width, a height and an angle), without adding it, by the code that draws

@@ -180,6 +180,9 @@ namespace OpenCAD2D.Remote
 
         /// <summary>Whether a candidate place is free (<c>layout</c>, <c>candidate</c>, <c>kinds</c>, <c>margin</c>, <c>tolerance</c>): <c>fits</c>.</summary>
         public const string Fits = "fits";
+
+        /// <summary>A drawing checked against a drawing standard (<c>standard</c>, its JSON text; <c>modelScale</c>, <c>tolerance</c>): <c>name</c>, <c>total</c>, <c>rules</c> and <c>violations</c>.</summary>
+        public const string CheckStandard = "check";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

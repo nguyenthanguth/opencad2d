@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencad2d.com/schemas/opencad2d-standard-v1.schema.json",
+  "schema": "opencad2d.standard",
+  "version": 1,
+  "name": "Example company standard",
+  "layers": {
+    "allowed": [
+      { "name": "A-WALL*", "color": 3, "linetype": "Continuous", "lineweight": 0.35 },
+      { "name": "A-DOOR*", "color": 4, "linetype": "Continuous", "lineweight": 0.25 },
+      { "name": "A-DIMS", "color": 2, "linetype": "Continuous", "lineweight": 0.18 },
+      { "name": "A-TEXT", "color": 7, "linetype": "Continuous", "lineweight": 0.18 },
+      { "name": "A-AXIS", "color": 1, "linetype": "CENTER", "lineweight": 0.13 },
+      { "name": "G-VIEWPORT" },
+      { "name": "Defpoints" }
+    ],
+    "allowLayer0": false
+  },
+  "byLayer": { "color": true, "linetype": true, "lineweight": true },
+  "textStyles": [
+    { "name": "NOTE", "font": "simplex.shx" },
+    { "name": "TITLE", "font": "romans.shx" }
+  ],
+  "dimStyles": [{ "name": "COMPANY-*", "font": "romans.shx" }],
+  "textHeights": { "paper": [2.5, 3.5, 5, 7], "tolerance": 0.01 },
+  "gaps": { "wordLine": 0.5, "wordWord": 0.5 },
+  "dimensionChains": { "tolerance": 0.5, "reach": 10 },
+  "weights": { "text-height": 2, "gap-word-line": 2, "gap-word-word": 2 }
+}

@@ -864,6 +864,99 @@ over 3 000 by 3 000) answers `fits` in 0.2 ms a call, a TEXT in 0.6 ms and a dim
 frame (4 900 of them) in 0.4 s, and those at least 20 by 20 of the whole drawing (34) in 1 s, on .NET Framework 4.8. The C# calls are
 [`CadMeasure`, `CadSpatial.FreeSpace` and `CadSpatial.Fits`](presenter/display.md#measuring-before-placing).
 
+### Checking a drawing against a company standard
+
+A company writes its drawing standard once, as a JSON file, and `drawing.check(standard)` scores any drawing against it: a number
+from 0 to 1 for each rule, a total, and every place the drawing breaks a rule, with the objects, a box and the number found against
+the number allowed. It is meant as the reward of a program that lays a drawing out, and as the report of a person who wants to know
+what to mend. The work is C# in the core on the display lists the canvas draws, so it is the same on a file, in the app and from
+outside; a drawing of 10 000 objects is checked against every rule in 0.2 to 0.4 s on .NET Framework 4.8 and 0.1 s on .NET 8, and
+again in the same time (the index of the display list is kept). Python makes the `Violation` objects when `violations` is first read (0.15 s for 27 000 of them), so a reward that reads `total` and `scores` alone does not pay for them.
+
+The file is described by
+[`docs/schemas/opencad2d-standard-v1.schema.json`](https://github.com/nguyenthanguth/OpenCAD2D/blob/main/docs/schemas/opencad2d-standard-v1.schema.json)
+(`schema` `opencad2d.standard`, `version` 1), and
+[`docs/schemas/opencad2d-standard-example.json`](https://github.com/nguyenthanguth/OpenCAD2D/blob/main/docs/schemas/opencad2d-standard-example.json)
+is one to start from. Every member but those two is optional, a rule whose member is absent is not run, and a member the schema does
+not know is refused, so that a misspelt rule is not skipped without a word. A name is an AutoCAD wild-card pattern, in either case
+(`A-WALL*`, `A-DOOR-??`).
+
+| Member | What it asks | Rules |
+|---|---|---|
+| `layers.allowed` | the layers allowed: a name pattern and, where given, the `color` (an AutoCAD number or `"#RRGGBB"`), `linetype` and `lineweight` (mm) every layer of that name has | `layer-name` (an object on a layer no entry names), `layer-properties` (a layer whose look differs from its entry's) |
+| `layers.allowLayer0` | `false`: no object on layer 0 | `layer-zero` |
+| `byLayer` | `color`, `linetype`, `lineweight`: `true` makes an object that sets its own a violation | `by-layer-color`, `by-layer-linetype`, `by-layer-lineweight` |
+| `textStyles`, `dimStyles` | the styles allowed, each with the `font` its style (a dimension style's text style) must use: a font file or a typeface, compared without folder, extension or case | `text-style`, `dim-style` (an object in another style), `text-font`, `dim-font` (a style in another font) |
+| `textHeights.paper` | the heights words may have on paper, in mm: `[2.5, 3.5, 5, 7]`, within `tolerance` (0.01) | `text-height` |
+| `gaps` | the least gap on paper in mm between a word and a line (`wordLine`) and between two words (`wordWord`) | `gap-word-line`, `gap-word-word` |
+| `dimensionChains` | dimensions of one direction that meet end to end must share a dimension line, within `tolerance` mm (0.5); lines more than `reach` mm (10) apart are separate rows | `dim-chain` |
+| `weights` | the weight of each rule in the total, by id; 1 where not given, 0 to keep a rule out of the total | |
+
+A rule scores `1 - offenders / subjects`: the objects (or, for a table rule, the layers and styles) that offend over those it looked at,
+1 where it looked at none; so 4 words of which 1 is the wrong height score 0.75. The total is the mean of the scores weighted by
+`weights`. The words are measured as they are on paper: in a layout as drawn, in model space through each viewport that shows them,
+at the viewport's scale (a word a viewport does not show is not looked at, and one two viewports show at two scales is checked at
+both and reported at the worse). An annotative object is measured at the annotation scale the viewport draws it at. Where no layout
+has a viewport, or `model_scale` is given, model space is measured on its own at that scale, the paper millimetres of one unit of the
+model (`0.01` or `"1:100"` for a drawing in millimetres plotted at 1:100); with neither, a drawing is taken as plotted 1:1. A gap is the
+distance between a word's frame and a line, an arc or the edge of a hatch (0 where they cross), or between two frames, never
+between two parts of one object.
+
+```python
+from opencad2d.cad import new_file
+
+drawing = new_file()
+drawing.layers.add("A-WALL", color=3)
+drawing.layers.add("JUNK", color=1)
+drawing.text_styles.add("NOTE", font="simplex.shx")
+drawing.commit()
+drawing.add_line((0, 0), (5000, 0), layer="A-WALL")
+drawing.add_text("GENERAL NOTES", (100, 300), 350, text_style="NOTE", layer="A-WALL")    # 3.5 mm on paper at 1:100
+revision = drawing.add_text("REVISION A", (100, 1000), 310, text_style="NOTE", layer="A-WALL")   # 3.1 mm: not a listed height
+stray = drawing.add_line((0, 2000), (5000, 2000), layer="JUNK")                         # on a layer the standard does not list
+drawing.commit()
+
+standard = {
+    "schema": "opencad2d.standard",
+    "version": 1,
+    "layers": {"allowed": [{"name": "A-*", "color": 3}], "allowLayer0": False},
+    "textStyles": [{"name": "NOTE", "font": "simplex.shx"}],
+    "textHeights": {"paper": [2.5, 3.5, 5, 7]},
+    "gaps": {"wordLine": 0.5, "wordWord": 0.5},
+}
+result = drawing.check(standard, model_scale="1:100")
+result.scores["layer-name"]                          # 0.75
+result.scores["text-height"]                         # 0.5
+result.total                                         # 0.90625
+[(v.rule, v.handle == stray.handle) for v in result.violations if v.rule == "layer-name"]   # [('layer-name', True)]
+height = [v for v in result.violations if v.rule == "text-height"][0]
+(height.handle == revision.handle, height.measured, height.allowed)   # (True, '3.1 mm', '2.5, 3.5, 5, 7 mm')
+(round(height.value, 6), height.limit)               # (3.1, 3.5)
+result.boxes.shape                                   # (2, 4)
+```
+
+One of the four objects is on JUNK, a layer no entry names, so `layer-name` scores 0.75; one of the two words is 3.1 mm high on paper at
+1:100, which is not a listed height (3.5 is the nearest, the `limit`), so `text-height` scores 0.5; every other rule found nothing, and
+the total is the mean of the eight rules run, 7.25 over 8. The example file asks for every rule, so a drawing checked against it has a score for each, in the order the rules are listed above:
+
+```python
+example = drawing.check("docs/schemas/opencad2d-standard-example.json", model_scale="1:100")
+list(example.scores)                                 # ['layer-name', 'layer-properties', 'layer-zero', 'by-layer-color', 'by-layer-linetype', 'by-layer-lineweight', 'text-style', 'text-font', 'dim-style', 'dim-font', 'text-height', 'gap-word-line', 'gap-word-word', 'dim-chain']
+example.scores["layer-zero"]                         # 1.0
+```
+
+`check(standard, model_scale=None, tolerance=0.001)` takes the standard as a path to the JSON file (a `str` or a `Path`) or as the same
+`dict`. A `CheckResult` has `name`, `total`, `scores` (a `dict` by rule id), `rules` (a `RuleScore` for each: `rule`, `score`, `subjects`,
+`offenders`, `weight`), `violations` and `boxes`, a NumPy array of n by 4 with NaN for a violation that has no place (without
+numpy it is `None`). A `Violation` has `rule`, `handle` (the object, or the record of the layer or style for a table rule), `other` (the line a word is too
+near, the second word, the dimension a chain follows), `space` (`"Model"` or a layout), `through` (the handle of the viewport a model
+object was measured through), `box`, `measured` and `allowed` (sentences) and `value` and `limit` (the numbers, in millimetres on
+paper, NaN for a name). The violations are sorted by rule, then by handle read as a number, then by the other handle, so the same
+drawing gives the same result on every run and every backend; a standard that is not one, or a scale that is not one, is a `ValueError`
+that names the member. The box of a violation is that of the object, or, for a gap, of the word's frame stretched to the nearest point of
+what it is too near. A tolerance (`0.001` mm) is how near a gap may come to the one allowed and still pass.
+The C# calls are [`CadStandards.Check`](presenter/display.md#checking-a-drawing-against-a-standard).
+
 ## Rendering without a window
 
 A drawing of a file, from `open_file` or `new_file`, can be drawn to a picture with no app and no window: a PNG, an SVG, a PDF

@@ -708,6 +708,20 @@ class _LocalBackend:
         )
         return [str(w) for w in table.Words], [str(o) for o in table.Others], table.Boxes
 
+    # ---- a drawing against a company standard (PW7.2) --------------------------------------------------------------
+
+    def check(
+        self, standard: str, model_scale: float, tolerance: float
+    ) -> Any:
+        """The scores and violations of the core's check of the drawing against the standard (its JSON text)."""
+        try:
+            result = _cad.CadStandards.Check(
+                self.document, _cad.CadStandard.Parse(standard), model_scale, _geometry.Tolerance(tolerance, 1e-5)
+            )
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+        return result
+
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 
     def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:

@@ -330,6 +330,14 @@ class _RemoteBackend:
         table = self._document.GetOverlaps(layout, names(words), names(over), names(handles), tolerance)
         return [str(w) for w in table.Words], [str(o) for o in table.Others], table.Boxes
 
+    # ---- a drawing against a company standard (PW7.2) --------------------------------------------------------------
+
+    def check(
+        self, standard: str, model_scale: float, tolerance: float
+    ) -> Any:
+        """The scores and violations of the app's check of the drawing against the standard (its JSON text)."""
+        return self._document.CheckStandard(standard, model_scale, tolerance)
+
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 
     def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
