@@ -165,6 +165,9 @@ namespace OpenCAD2D.Remote
 
         /// <summary>The entities whose words overlap what is drawn near them (<c>layout</c>, <c>words</c>, <c>over</c>, <c>handles</c>, <c>tolerance</c>): <c>words</c>, <c>others</c> and <c>boxes</c>.</summary>
         public const string Overlaps = "overlaps";
+
+        /// <summary>A drawing checked against a drawing standard (<c>standard</c>, its JSON text; <c>modelScale</c>, <c>tolerance</c>): <c>name</c>, <c>total</c>, <c>rules</c> and <c>violations</c>.</summary>
+        public const string CheckStandard = "check";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

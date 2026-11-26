@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencad2d.com/schemas/opencad2d-standard-v1.schema.json",
+  "title": "OpenCAD2D drawing standard, version 1",
+  "description": "A company's drawing standard, which drawing.check() scores a drawing against. Every member but schema and version is optional, and a rule whose member is absent is not run. Lengths on paper are millimetres.",
+  "type": "object",
+  "required": ["schema", "version"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema": { "const": "opencad2d.standard" },
+    "version": { "const": 1 },
+    "name": { "type": "string", "description": "The name of the standard, copied into the result." },
+    "layers": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The layers a drawing may use (rules layer-name, layer-properties, layer-zero).",
+      "properties": {
+        "allowed": {
+          "type": "array",
+          "description": "The layers allowed: a name or an AutoCAD wild-card pattern (WALL*, A-DOOR-??, case-blind) and, where given, the look every layer of that name has in the layer table. The first entry that matches a layer is the one used.",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "color": { "$ref": "#/$defs/color" },
+              "linetype": { "type": "string", "minLength": 1 },
+              "lineweight": { "type": "number", "minimum": 0, "description": "Millimetres, as the layer's lineweight is (0.25, 0.35, 0.5 ...)." }
+            }
+          }
+        },
+        "allowOthers": { "type": "boolean", "description": "True turns the layer-name rule off: objects may be on layers the list does not name. False by default." },
+        "allowLayer0": { "type": "boolean", "description": "False turns the layer-zero rule on: no object of a space may be on layer 0. The layer-name rule leaves layer 0 to it where this is given." }
+      }
+    },
+    "byLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Looks an object must leave to its layer; true turns the rule on.",
+      "properties": {
+        "color": { "type": "boolean" },
+        "linetype": { "type": "boolean" },
+        "lineweight": { "type": "boolean" }
+      }
+    },
+    "textStyles": { "$ref": "#/$defs/styles", "description": "The text styles allowed (rules text-style, text-font)." },
+    "dimStyles": { "$ref": "#/$defs/styles", "description": "The dimension styles allowed (rules dim-style, dim-font); the font is that of the style's text style." },
+    "textHeights": {
+      "type": "object",
+      "required": ["paper"],
+      "additionalProperties": false,
+      "description": "The heights words may have on paper (rule text-height).",
+      "properties": {
+        "paper": { "type": "array", "minItems": 1, "items": { "type": "number", "exclusiveMinimum": 0 }, "description": "The allowed heights in millimetres on paper: 2.5, 3.5, 5, 7." },
+        "tolerance": { "type": "number", "minimum": 0, "description": "How far from a listed height still counts as it, in millimetres. 0.01 by default." }
+      }
+    },
+    "gaps": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The least gap on paper, in millimetres, around a word (rules gap-word-line, gap-word-word); each is run when it is given.",
+      "properties": {
+        "wordLine": { "type": "number", "minimum": 0 },
+        "wordWord": { "type": "number", "minimum": 0 }
+      }
+    },
+    "dimensionChains": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Dimensions of one direction that meet end to end must share a dimension line (rule dim-chain).",
+      "properties": {
+        "tolerance": { "type": "number", "minimum": 0, "description": "How far, on paper in millimetres, a dimension line may lie from the line of its chain. 0.5 by default." },
+        "reach": { "type": "number", "exclusiveMinimum": 0, "description": "How far apart sideways two dimension lines may be and still be meant for one chain; further apart they are separate rows. 10 by default." }
+      }
+    },
+    "weights": {
+      "type": "object",
+      "description": "The weight of each rule in the total score, by rule id; 1 where not given, 0 to keep a rule out of the total.",
+      "additionalProperties": false,
+      "properties": {
+        "layer-name": { "type": "number", "minimum": 0 },
+        "layer-properties": { "type": "number", "minimum": 0 },
+        "layer-zero": { "type": "number", "minimum": 0 },
+        "by-layer-color": { "type": "number", "minimum": 0 },
+        "by-layer-linetype": { "type": "number", "minimum": 0 },
+        "by-layer-lineweight": { "type": "number", "minimum": 0 },
+        "text-style": { "type": "number", "minimum": 0 },
+        "text-font": { "type": "number", "minimum": 0 },
+        "dim-style": { "type": "number", "minimum": 0 },
+        "dim-font": { "type": "number", "minimum": 0 },
+        "text-height": { "type": "number", "minimum": 0 },
+        "gap-word-line": { "type": "number", "minimum": 0 },
+        "gap-word-word": { "type": "number", "minimum": 0 },
+        "dim-chain": { "type": "number", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "color": {
+      "description": "An AutoCAD colour number from 1 to 255, or a true colour as \"#RRGGBB\".",
+      "oneOf": [
+        { "type": "integer", "minimum": 1, "maximum": 255 },
+        { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
+      ]
+    },
+    "styles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "description": "A style name or a wild-card pattern." },
+          "font": { "type": "string", "minLength": 1, "description": "The font the style must use: a font file (simplex.shx, simplex) or a typeface (Arial), compared without folder, extension or case." }
+        }
+      }
+    }
+  }
+}

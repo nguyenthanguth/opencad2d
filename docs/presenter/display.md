@@ -801,6 +801,52 @@ each change pays for the entities the edit drew again. A drawing of 100 000 obje
 overlaps in 0.3 to 0.6 s on .NET Framework 4.8 and 0.25 to 0.35 s on .NET 10, and the pairs one entity stands in in a millisecond;
 `handles` makes the question of one entity cheap, since its answer is not cut from the whole one.
 
+## Checking a drawing against a standard
+
+A company's drawing standard is a JSON file, [`CadStandard`](xref:OpenCAD2D.CadStandard) (schema
+`docs/schemas/opencad2d-standard-v1.schema.json`, `CadStandard.Schema`), and [`CadStandards.Check`](xref:OpenCAD2D.CadStandards)
+scores a drawing against it: the layers allowed with their colour, linetype and lineweight, the text and dimension styles with their
+fonts, the heights words may have on paper, the least gap on paper between words and lines and between words, how a chain of
+dimensions lines up, and whether an object may be on layer 0 or set its own colour or linetype. Every member but `schema` and `version`
+is optional and a rule whose member is absent is not run; a member the schema does not know is an `ArgumentException` naming it.
+
+```csharp
+CadStandard standard = CadStandard.Parse(File.ReadAllText("company.json"));
+CadStandardResult result = CadStandards.Check(document, standard, 0.0, new Tolerance(1E-3, 1E-5));
+result.Total;                                      // 0.906: the weighted mean of the scores of the rules run
+result.Rules[0];                                   // a CadRuleScore: Rule "layer-name", Score 0.75, Subjects 4, Offenders 1, Weight 1
+CadViolation first = result.Violations[0];         // Rule, Handle, Other, Space, Through, Box, Measured, Allowed, Value, Limit
+result.Boxes;                                      // four numbers a violation (NaN for one with no place), the order of Violations
+```
+
+The rules are the ids of `CadStandards.RuleIds`: `layer-name`, `layer-properties`, `layer-zero`, `by-layer-color`,
+`by-layer-linetype`, `by-layer-lineweight`, `text-style`, `text-font`, `dim-style`, `dim-font`, `text-height`, `gap-word-line`,
+`gap-word-word`, `dim-chain`. A rule scores `1 - offenders / subjects`, where the subjects are the objects it looked at (the
+layers or styles for a rule about a table) and an offender is one with a violation, counted once however many it has; a rule that
+looked at nothing scores 1. The total is `sum(weight * score) / sum(weight)` over the rules run, the weights from the standard's
+`weights` (1 where not given), and 1 where no rule ran.
+
+The words are measured on paper, from the display lists the canvas draws. The paper height of a word is the height its display item
+has times the paper length of a unit of the list: 1 (times the plot paper units) in a layout, a viewport's scale for model space seen
+through it (a word the viewport does not show, by its frame and its frozen layers, is not looked at; a word two viewports show is
+checked in both and reported at the worse), and where no layout has a viewport, or a model scale is given (`modelScale`, the paper
+millimetres of one model unit: 0.01 for 1:100 in millimetres), model space on its own at that scale, or at 1:1 with none. The display
+list of an annotative object is drawn at the annotation scale of its viewport (CANNOSCALE in model space), so its paper height is the
+size it was made at. A gap is the exact distance between the frame of a word and a line, an arc, the edge of a hatch or another
+frame, found through the same R-tree as `CadSpatial.Overlaps` with each frame's box stretched by the gap, and a distance under the
+gap by more than the tolerance (`Tolerance.EqualPoint`, in millimetres on paper) is a violation; two parts of one entity are never
+compared. Dimensions in a chain are rotated and aligned dimensions of one direction (within 0.1 degrees) whose extension-line
+origins meet end to end, within the tolerance of the standard, and whose dimension lines are less than `reach` apart sideways: the
+chain's line is the lower median of their offsets and one further from it than the tolerance is a violation, naming the dimension
+that holds the line as `Other`.
+
+The violations are sorted by rule, then by handle read as a hexadecimal number, then by the other handle, the space, the viewport, the
+value and the sentence, a total order, so the result is the same on every run and does not follow the order of a table. A drawing of
+10 000 objects (2 500 texts, 5 000 lines, 1 500 circles and 1 000 inserts at random over 1 000 by 1 000, a third of them on layers the
+standard does not list) is checked against every rule in 0.2 to 0.4 s on .NET Framework 4.8 and 0.1 s on .NET 8 (27 000 violations are found; the index of the display list is made on the first call), and
+again in the same time. Python's `drawing.check()` ([the guide](../python.md#checking-a-drawing-against-a-company-standard)) and
+`CadRemoteDocument.CheckStandard` give the same result on a file, in the app and from outside it.
+
 ## The view
 
 [`CadView`](xref:OpenCAD2D.CadView) is what part of a space the canvas shows and at what zoom: the point of

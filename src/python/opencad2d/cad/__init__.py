@@ -480,6 +480,7 @@ from ._drawing import (  # noqa: E402
     Blocks as Blocks,
     BoundsTable as BoundsTable,
     Box as Box,
+    CheckResult as CheckResult,
     DimensionStyles as DimensionStyles,
     Documents as Documents,
     Drawing as Drawing,
@@ -487,7 +488,9 @@ from ._drawing import (  # noqa: E402
     Layer as Layer,
     Linetypes as Linetypes,
     OverlapTable as OverlapTable,
+    RuleScore as RuleScore,
     TextStyles as TextStyles,
+    Violation as Violation,
 )
 from ._local import (  # noqa: E402
     active_drawing as active_drawing,

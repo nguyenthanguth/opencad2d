@@ -251,6 +251,8 @@ namespace OpenCAD2D
                     return Bounds(Find(request), request);
                 case RemoteOps.Overlaps:
                     return Overlaps(Find(request), request);
+                case RemoteOps.CheckStandard:
+                    return CheckStandard(Find(request), request);
                 default:
                     throw new Refusal("OpenCAD2D does not know the request " + op + ": it is of an older version.");
             }

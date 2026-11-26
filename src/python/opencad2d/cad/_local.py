@@ -15,7 +15,18 @@ from collections.abc import Callable
 from typing import Any
 
 from . import _tool
-from ._drawing import Box, Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color, names_of, provide
+from ._drawing import (
+    Box,
+    Documents,
+    Drawing,
+    Entity,
+    Look,
+    Op,
+    dxf_type_of,
+    look_color,
+    names_of,
+    provide,
+)
 
 _net: Any = importlib.import_module("System")
 _cad: Any = importlib.import_module("OpenCAD2D")
@@ -665,6 +676,20 @@ class _LocalBackend:
             self.document, self._space(layout), options, _geometry.Tolerance(tolerance, 1e-5)
         )
         return [str(w) for w in table.Words], [str(o) for o in table.Others], table.Boxes
+
+    # ---- a drawing against a company standard (PW7.2) --------------------------------------------------------------
+
+    def check(
+        self, standard: str, model_scale: float, tolerance: float
+    ) -> Any:
+        """The scores and violations of the core's check of the drawing against the standard (its JSON text)."""
+        try:
+            result = _cad.CadStandards.Check(
+                self.document, _cad.CadStandard.Parse(standard), model_scale, _geometry.Tolerance(tolerance, 1e-5)
+            )
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+        return result
 
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 

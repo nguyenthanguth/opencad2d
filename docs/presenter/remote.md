@@ -120,6 +120,17 @@ answers of `CadSpatial` in the app, whose [guide](display.md#where-things-are-dr
 are the whole answer, which a program copies as it does: Python gives them as NumPy arrays (`drawing.bounds()`,
 `drawing.overlaps()`, `entity.bounds`). A layout that is not there is a `CadRemoteException`.
 
+## Checking a drawing against a standard
+
+`drawing.CheckStandard(standard, modelScale, tolerance)` scores the drawing against a drawing standard as the app does, as a
+`CadRemoteStandardResult`: `Total`, `Rules` (`CadRemoteRuleScore`: `Rule`, `Score`, `Subjects`, `Offenders`, `Weight`) and `Violations`
+(`CadRemoteViolation`: `Rule`, `Handle`, `Other`, `Space`, `Through`, `Box`, `Measured`, `Allowed`, `Value`, `Limit`), with `Boxes`
+as the one array of four numbers a violation. `standard` is the JSON text of the file (schema
+`docs/schemas/opencad2d-standard-v1.schema.json`); `modelScale` is the paper millimetres of one model unit where model space is checked on
+its own, 0 for none; `tolerance` the millimetres on paper within which a gap passes (0.001). It is the request `check` and the answer
+of `CadStandards.Check` in the app, whose [guide](display.md#checking-a-drawing-against-a-standard) says what each rule measures; a
+standard the app cannot read is a `CadRemoteException` that names the member. Python's `drawing.check()` gives it as a `CheckResult`.
+
 ## The drawing as JSON and as a graph
 
 A program that learns from drawings (a model that lays them out, a dataset of real projects) reads them better with the blocks opened

@@ -17,8 +17,9 @@ import importlib
 import json
 import math
 import os
-from collections.abc import Callable, Iterator, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from dataclasses import dataclass, field
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Protocol, TypeVar, cast, overload
 
 
@@ -239,6 +240,11 @@ class Backend(Protocol):
         handles: list[str] | None,
         tolerance: float,
     ) -> tuple[list[str], list[str], Any]: ...
+
+    # ---- a drawing against a company standard (PW7.2) ----
+    def check(
+        self, standard: str, model_scale: float, tolerance: float
+    ) -> Any: ...
 
 
 def dxf_type_of(net: Any) -> str:
@@ -2374,6 +2380,58 @@ class Drawing:
         text, native = self._backend.export("graph", layout, tolerance)
         return _export_graph(text, native)
 
+    # ---- checking a drawing against a company standard (PW7.2) ----------------------------------------------------
+
+    def check(
+        self,
+        standard: str | os.PathLike[str] | Mapping[str, Any],
+        model_scale: float | str | None = None,
+        tolerance: float = 0.001,
+    ) -> CheckResult:
+        """Check the drawing against a company standard and score it, as a ``CheckResult``: a score from 0 to 1 for each rule
+        the standard runs (``scores``), a ``total`` (the weighted mean, the weights from the standard), and every
+        ``Violation`` with its rule, the object (and the second object where the rule is about two), the place as a box, the
+        number found and the number allowed, sorted by rule and then by handle, the same on every run and every backend.
+        ``standard`` is a JSON file of the schema ``docs/schemas/opencad2d-standard-v1.schema.json`` (a path) or the same as a
+        ``dict``; it lists the layers allowed with their colour, linetype and lineweight, the text and dimension styles with
+        their fonts, the heights words may have on paper in millimetres, the least gap on paper between words and lines and
+        between words, how dimensions of a chain must line up, and whether an object may sit on layer 0 or have a colour or
+        linetype of its own. A rule the standard does not mention is not run. A rule scores ``1 - offenders / subjects`` (the
+        objects that offend over those it looked at), 1 where it looked at none.
+
+        Words are measured on paper: in a layout as drawn, in model space through each viewport that shows them at the
+        scale of the viewport (an annotative object at the annotation scale the viewport draws it at). Where no layout has a
+        viewport, or ``model_scale`` is given, model space is measured on its own at that scale: the paper millimetres of one
+        unit of the model, ``0.01`` or ``"1:100"`` for a drawing of millimetres plotted at 1:100; a drawing with neither is
+        taken as plotted 1:1. ``tolerance`` is the millimetres on paper within which a gap counts as the one allowed. A
+        drawing of 10 000 objects is checked in 0.1 to 0.4 s. Not committed: what is queued is not in it. ``boxes`` needs
+        numpy and is None without it.
+
+        Example:
+            result = drawing.check({"schema": "opencad2d.standard", "version": 1, "textHeights": {"paper": [2.5, 3.5]}})
+            result.total                                  # 0.5 when one of two texts is 3.1 high on paper
+            result.scores                                 # {'text-height': 0.5}
+            result.violations[0].measured                 # '3.1 mm', with .allowed '2.5, 3.5 mm' and .handle '102'
+            drawing.check("company.json", model_scale="1:100").total   # a file, model space plotted at 1:100
+        """
+        if not (math.isfinite(tolerance) and tolerance >= 0.0):
+            raise ValueError(f"The tolerance is a finite number of nought or more, not {tolerance!r}.")
+        if isinstance(standard, Mapping):
+            text = json.dumps(dict(standard))
+        else:
+            with open(os.fspath(standard), encoding="utf-8") as stream:
+                text = stream.read()
+        native = self._backend.check(text, _model_scale(model_scale), float(tolerance))
+        try:
+            numbers: NDArray[np.float64] | None = _rows(native.Boxes)  # pyright: ignore[reportAny]
+        except ImportError:
+            numbers = None
+        rules = [
+            RuleScore(str(r.Rule), float(r.Score), int(r.Subjects), int(r.Offenders), float(r.Weight))  # pyright: ignore[reportAny]
+            for r in native.Rules  # pyright: ignore[reportAny]
+        ]
+        return CheckResult(str(native.Name), float(native.Total), rules, numbers, native)  # pyright: ignore[reportAny]
+
     def __repr__(self) -> str:
         return f"<Drawing {self.name}>"
 
@@ -2496,3 +2554,131 @@ class OverlapTable:
 
     def __len__(self) -> int:
         return len(self.words)
+
+
+# ---- what a check of a drawing against a standard gives (PW7.2) --------------------------------------------------------------
+
+
+def _model_scale(scale: float | str | None) -> float:
+    """The paper millimetres of one model unit a ``model_scale`` means: a number as it is, ``"1:100"`` as 0.01, ``"50:1"`` as 50,
+    None as 0 (none given)."""
+    if scale is None:
+        return 0.0
+    if isinstance(scale, str):
+        paper, colon, model = scale.partition(":")
+        try:
+            number = float(paper) / float(model) if colon else float(paper)
+        except (ValueError, ZeroDivisionError):
+            raise ValueError(f"A model scale is a number or a ratio such as '1:100', not {scale!r}.") from None
+    else:
+        number = float(scale)
+    if not (math.isfinite(number) and number > 0.0):
+        raise ValueError(f"A model scale is a number above nought or a ratio such as '1:100', not {scale!r}.")
+    return number
+
+
+@dataclass(frozen=True)
+class RuleScore:
+    """How one rule of a standard fared (``drawing.check().rules``): ``rule``, its id (``"text-height"``, ``"gap-word-line"``,
+    ``"layer-name"``, ``"layer-properties"``, ``"layer-zero"``, ``"by-layer-color"``, ``"by-layer-linetype"``,
+    ``"by-layer-lineweight"``, ``"text-style"``, ``"text-font"``, ``"dim-style"``, ``"dim-font"``, ``"gap-word-word"`` or
+    ``"dim-chain"``), ``score`` from 0 to 1, ``subjects`` (how many things it looked at), ``offenders`` (how many of them
+    offend) and ``weight`` (its weight in the total).
+
+    Example:
+        score = drawing.check(standard).rules[0]
+        (score.rule, score.subjects, score.offenders, score.score)   # ('text-height', 4, 1, 0.75)
+    """
+
+    rule: str
+    score: float
+    subjects: int
+    offenders: int
+    weight: float
+
+
+@dataclass(frozen=True)
+class Violation:
+    """One place a drawing breaks a rule of a standard (``drawing.check().violations``): ``rule``, ``handle`` (the object, or the
+    layer or style record of a rule about a table), ``other`` (the second object of a rule about two, a line a word is too
+    near or the dimension a chain follows; else None), ``space`` (``"Model"``, a layout, or ``""`` for a record), ``through``
+    (the handle of the viewport a model object was measured through, else None), ``box`` ((min_x, min_y, max_x, max_y) in the
+    space, or None for a record), ``measured`` and ``allowed`` (sentences: ``'3.1 mm'`` against ``'2.5, 3.5, 5, 7 mm'``) and
+    ``value`` and ``limit`` (the number found and the number allowed where the rule is about a number, millimetres on paper,
+    else NaN).
+
+    Example:
+        found = drawing.check(standard).violations[0]
+        (found.rule, found.handle, found.measured, found.allowed)    # ('text-height', '102', '3.1 mm', '2.5, 3.5, 5, 7 mm')
+        (found.value, found.limit)                                   # (3.1, 3.5)
+    """
+
+    rule: str
+    handle: str
+    other: str | None
+    space: str
+    through: str | None
+    box: tuple[float, float, float, float] | None
+    measured: str
+    allowed: str
+    value: float
+    limit: float
+
+
+@dataclass(frozen=True, eq=False)
+class CheckResult:
+    """What ``drawing.check()`` gives: ``name`` (of the standard), ``total`` (0 to 1), ``rules`` (a ``RuleScore`` for each rule
+    run), ``violations`` (sorted) and ``boxes``, a NumPy array of shape (n, 4) whose row ``i`` is the box of
+    ``violations[i]`` (NaN for a violation with none), or None without numpy. ``scores`` is the score of each rule by id.
+
+    Example:
+        result = drawing.check("company.json")
+        result.total                                  # 0.82
+        result.scores["gap-word-line"]                # 0.6: two of five words are too near a line
+        result.boxes[0]                               # array([10., 20., 31.2, 22.5]): where the first violation is
+    """
+
+    name: str
+    total: float
+    rules: list[RuleScore]
+    boxes: NDArray[np.float64] | None
+    _native: Any = field(repr=False)
+
+    @property
+    def scores(self) -> dict[str, float]:
+        """The score of each rule the standard runs, by id, in the order of the rules.
+
+        Example:
+            result.scores                                 # {'layer-name': 1.0, 'text-height': 0.75}
+        """
+        return {each.rule: each.score for each in self.rules}
+
+    @cached_property
+    def violations(self) -> list[Violation]:
+        """The violations, sorted by rule, then by handle, then by the other handle. They are made from the core's answer when first
+        asked for, so a reward that reads ``total`` and ``scores`` alone does not pay for the thousands of objects a bad drawing has.
+
+        Example:
+            [(v.rule, v.handle) for v in result.violations]   # [('layer-name', '102'), ('text-height', '103')]
+        """
+        found: list[Violation] = []
+        for v in self._native.Violations:  # pyright: ignore[reportAny]
+            box = v.Box  # pyright: ignore[reportAny]
+            found.append(
+                Violation(
+                    str(v.Rule),  # pyright: ignore[reportAny]
+                    str(v.Handle),  # pyright: ignore[reportAny]
+                    None if v.Other is None else str(v.Other),  # pyright: ignore[reportAny]
+                    str(v.Space),  # pyright: ignore[reportAny]
+                    None if v.Through is None else str(v.Through),  # pyright: ignore[reportAny]
+                    None if box is None else (float(box[0]), float(box[1]), float(box[2]), float(box[3])),  # pyright: ignore[reportAny]
+                    str(v.Measured),  # pyright: ignore[reportAny]
+                    str(v.Allowed),  # pyright: ignore[reportAny]
+                    float(v.Value),  # pyright: ignore[reportAny]
+                    float(v.Limit),  # pyright: ignore[reportAny]
+                )
+            )
+        return found
+
+    def __len__(self) -> int:
+        return int(self._native.Violations.Count)  # pyright: ignore[reportAny]
