@@ -3583,7 +3583,7 @@ to the first of them on the tab shown, else the first in tab order, switching th
 view. In the Managers the tooltip names the part and nothing else.
 
 The Modify Table Style dialog (940 by 660, resizable) has the same links, in its own two previews, both WPF vectors on white
-paper and drawn to scale ([`TableStylePreview`](xref:OpenCAD2D.Wpf.TableStylePreview)): the table, five columns of 25 mm, a title, a
+paper and drawn to scale (`TableStylePreview` in `OpenCAD2D.Wpf`): the table, five columns of 25 mm, a title, a
 header and three rows of data as tall as their text with the margins (4.5 high words and margins of 1.5 make a row 9 high, the
 table 125 by 47, 2.5 pixels to a millimetre in 330 by 240), and, under the Cell styles box, one row of the cell style picked in
 three columns (7.2 pixels to a millimetre in 560 by 120). The words are drawn at their text height times that scale, 11 pixels
