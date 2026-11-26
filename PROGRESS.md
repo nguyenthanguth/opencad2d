@@ -71,7 +71,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       1. Headless render from Python: drawing.render_png(path, box=, dpi=), render_svg, render_pdf, no window. Spec and
          rulings in `.claude/scratch/pw6/render-spec.md`, in four parts:
          P1 (done, 2ce58ef5) the `OpenCAD2D.Rendering` netstandard2.0 assembly, the nine Skia/PDF files moved, types forwarded
-         from `OpenCAD2D.Wpf`; P2 (done, 5ee2b298) the `CadRender` facade (PNG, SVG, PDF) and `--screenshot --canvas`; P3 (running) Python; P4 docs and example.
+         from `OpenCAD2D.Wpf`; P2 (done, 5ee2b298) the `CadRender` facade (PNG, SVG, PDF) and `--screenshot --canvas`;
+         P3 and P4 (done, c32811ac) Python and the guide.
          -> verify: the same pixels as the app's --screenshot for 10 drawings; SVG and PDF read back; time per page.
       2. DONE 2026-11-26 (d7dc6b09). Spatial queries: entity.bounds as drawn (SHX/TTF words, dimension and block pictures, MTEXT columns), and
          overlaps (text or dimension over lines, over each other) with a spatial index, fast enough for a reward

@@ -16,7 +16,7 @@ import importlib
 from types import TracebackType
 from typing import Any
 
-from ._drawing import Backend, Box, Documents, Drawing, Entity, Look, Op, look_color
+from ._drawing import Backend, Box, Documents, Drawing, Entity, Look, Op, RenderOptions, look_color
 
 _net: Any = importlib.import_module("System")
 _dxf: Any = importlib.import_module("GeometryHelper.Dxf")
@@ -337,6 +337,14 @@ class _RemoteBackend:
         if what == "graph":
             return str(self._document.ExportGraph(layout, tolerance)), None
         return str(self._document.ExportJson(layout)), None
+
+    def render(self, kind: str, path: str | None, options: RenderOptions) -> Any:
+        """Refuses: the drawing is in the app, and the Python process holds no ``CadDocument`` to draw. Save it
+        (``save_as``) and render ``open_file`` of the copy."""
+        raise RuntimeError(
+            f"render_{kind} works on a drawing of a file: this drawing is in the app. Call save_as(path) and "
+            "render open_file(path) instead."
+        )
 
 
 class App:

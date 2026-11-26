@@ -25,6 +25,12 @@ namespace OpenCAD2D.PyStubs
         internal static readonly string[] Roots = { "GeometryHelper", "OpenCAD2D" };
 
         /// <summary>
+        /// The namespace of the presenter, whose types OpenCAD2D.Rendering holds for the app's canvas and plots (the renderer, the
+        /// PDF writer): they are not for a script and are left out, as everything of OpenCAD2D.Wpf is.
+        /// </summary>
+        internal const string PresenterNamespace = "OpenCAD2D.Wpf";
+
+        /// <summary>
         /// Reads every <c>GeometryHelper*.dll</c> of <paramref name="libFolder"/> (with its <c>.xml</c> beside it, for the
         /// docstrings) and writes the stubs to <c>GeometryHelper-stubs</c> inside <paramref name="outFolder"/>, deleting
         /// what was there first.
@@ -88,7 +94,7 @@ namespace OpenCAD2D.PyStubs
             var byNamespace = new SortedDictionary<string, List<Type>>(StringComparer.Ordinal);
             foreach (Assembly assembly in assemblies)
             {
-                foreach (Type type in assembly.GetTypes().Where(t => t.IsVisible))
+                foreach (Type type in assembly.GetTypes().Where(t => t.IsVisible && t.Namespace != PresenterNamespace))
                 {
                     string skip = Skipped(type);
                     if (skip != null)

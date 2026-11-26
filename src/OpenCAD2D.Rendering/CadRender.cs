@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using GeometryHelper.Dxf;
 using OpenCAD2D.Wpf;
 using SkiaSharp;
 
@@ -20,10 +21,11 @@ namespace OpenCAD2D
     /// The size of a picture, where <see cref="CadRenderOptions.Width"/> and <see cref="CadRenderOptions.Height"/> do not
     /// give it: one of the two given, the other follows the aspect of the part drawn, rounded (800 wide of a part 400 by
     /// 300 is 600 high); neither, a layout is its part in millimetres times <see cref="CadRenderOptions.Dpi"/> over 25.4 (an
-    /// A3 sheet at 96 dpi is 1 587 by 1 123 pixels), and model space is 1 600 pixels along the longer side (a drawing 400
-    /// by 300 mm is 1 600 by 1 200 pixels). A picture of more than 16 384 pixels a side or 100 000 000 pixels in all is
-    /// refused: it would hold 400 MB. One picture is drawn at a time in a process; the renderer's caches are not locked
-    /// against two threads drawing at once.
+    /// A3 sheet at 96 dpi is 1 587 by 1 123 pixels; a layout whose paper units are inches is its part in inches times the dpi,
+    /// so its A3 sheet of 16.54 by 11.69 inches is the same 1 587 by 1 123), and model space is 1 600 pixels along the longer
+    /// side (a drawing 400 by 300 mm is 1 600 by 1 200 pixels). A picture of more than 16 384 pixels a side or 100 000 000
+    /// pixels in all is refused: it would hold 400 MB. One picture is drawn at a time in a process; the renderer's caches are
+    /// not locked against two threads drawing at once.
     /// </remarks>
     public static class CadRender
     {
@@ -206,7 +208,9 @@ namespace OpenCAD2D
         /// <summary>
         /// Plots a space of a drawing to a PDF file of one page, replacing a file of the name, as EXPORTPDF does: the page setup
         /// of the layout (its sheet, scale and plot style), the lines at the lineweights of the plot, text as text, and for
-        /// model space the extents. An A3 sheet on its side is 1 190.5512 by 841.8898 points.
+        /// model space the extents. An A3 sheet on its side is 1 190.5512 by 841.8898 points. A space with no sheet recorded in
+        /// its plot settings (a drawing made in code, never set up) is fitted to the default sheet, ISO A3, as AutoCAD fits a
+        /// page setup it has not been given; one with a sheet is plotted at the scale it records.
         /// </summary>
         /// <param name="path">The file.</param>
         /// <param name="document">The drawing.</param>
@@ -227,7 +231,29 @@ namespace OpenCAD2D
             Prepare(document);
             CadPlotSettings settings = CadPlotSettings.Read(document, space);
             settings.UseDevice(CadPlotSettings.PdfDevice);
+
+            // A space never set up (a drawing made in code, or by a program that writes no plot settings) has no sheet recorded and
+            // would plot at 1 inch to the unit, off the page: it is fitted to the sheet, as AutoCAD's page setup starts out.
+            if (!HasSheet(document, space))
+            {
+                settings.FitToPaper = true;
+            }
+
             return CadPdfWriter.Write(path, document, space, settings, DisplayBox.Empty);
+        }
+
+        /// <summary>Whether the sheet of a layout is drawn in inches: its plot settings say inches and give a paper size.</summary>
+        private static bool HasInches(CadSpace space) =>
+            space.Layout != null
+            && space.Layout.PlotPaperUnits == DxfPlotPaperUnit.Inches
+            && space.Layout.PlotPaperSize.X > 0.0
+            && space.Layout.PlotPaperSize.Y > 0.0;
+
+        /// <summary>Whether a space has a sheet of paper in its plot settings: a layout's, or model space's in the layout of its name.</summary>
+        private static bool HasSheet(CadDocument document, CadSpace space)
+        {
+            DxfLayout layout = CadPlotSettings.LayoutOf(document, space);
+            return layout != null && layout.PlotPaperSize.X > 0.0 && layout.PlotPaperSize.Y > 0.0;
         }
 
         /// <summary>Prepares the drawing and finds the space, the view fitted to the picture and the options of the canvas.</summary>
@@ -327,8 +353,9 @@ namespace OpenCAD2D
             }
             else if (!space.IsModel)
             {
-                pixelsWide = Pixels(w * options.Dpi / 25.4);
-                pixelsHigh = Pixels(h * options.Dpi / 25.4);
+                double perInch = HasInches(space) ? 1.0 : 25.4;
+                pixelsWide = Pixels(w * options.Dpi / perInch);
+                pixelsHigh = Pixels(h * options.Dpi / perInch);
             }
             else if (w >= h)
             {

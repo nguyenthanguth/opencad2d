@@ -14,8 +14,10 @@ the files, never from the library, and the first line of the error of a file tha
 import csv
 import hashlib
 import re
+import struct
 import subprocess
 import sys
+import xml.etree.ElementTree as ElementTree
 from pathlib import Path
 from typing import Any
 
@@ -524,6 +526,49 @@ def test_a_drawing_converted_to_dwg_and_back_to_dxf_keeps_its_six_objects_on_fou
     assert sorted(entity.Area for entity in closed) == pytest.approx([282743.3388230814, 12_000_000.0], abs=1e-3)
 
 
+# ---- render_views.py ---------------------------------------------------------------------------------------------
+
+
+def test_render_views_writes_two_pngs_an_svg_and_a_pdf_and_says_how_large_the_pictures_are(
+    plan_dxf: Path, tmp_path: Path, work: Path
+) -> None:
+    out = tmp_path / "views"
+    before = _sha256(plan_dxf)
+
+    process = _run("render_views.py", plan_dxf, out, cwd=work)
+
+    assert process.returncode == 0, process.stderr
+    # The objects of S span 4 000 by 6 500, so a picture 800 wide is 1 300 high, and so is the quarter fitted to 800.
+    assert process.stdout.splitlines() == [
+        "whole.png 800 by 1300 pixels",
+        "detail.png 800 by 1300 pixels",
+        "whole.svg and plan.pdf written to views",
+    ]
+    assert sorted(p.name for p in out.iterdir()) == ["detail.png", "plan.pdf", "whole.png", "whole.svg"]
+    for name in ("whole.png", "detail.png"):
+        data = (out / name).read_bytes()
+        assert data[:8] == b"\x89PNG\r\n\x1a\n"
+        assert struct.unpack(">II", data[16:24]) == (800, 1300)
+    root = ElementTree.parse(out / "whole.svg").getroot()
+    assert (root.get("width"), root.get("height")) == ("800", "1300")
+    assert (out / "plan.pdf").read_bytes().startswith(b"%PDF-")
+    assert _sha256(plan_dxf) == before
+    assert list(work.iterdir()) == []
+
+
+def test_render_views_of_a_drawing_with_nothing_in_model_space_says_so_and_exits_with_one(
+    tmp_path: Path, work: Path
+) -> None:
+    empty = tmp_path / "empty.dxf"
+    DxfDatabase.Parse(DxfWriter().ToString()).Save(str(empty))
+
+    process = _run("render_views.py", empty, tmp_path / "views", cwd=work)
+
+    assert process.returncode == 1
+    assert "nothing in model space to draw" in process.stderr
+    assert not (tmp_path / "views").exists()
+
+
 # ---- wrong arguments ---------------------------------------------------------------------------------------------
 
 
@@ -536,6 +581,10 @@ def test_a_drawing_converted_to_dwg_and_back_to_dxf_keeps_its_six_objects_on_fou
         ("coordinates_numpy.py", ["one.dxf", "two.dxf"]),
         ("make_drawing.py", []),
         ("make_drawing.py", ["one.dxf", "two.dxf"]),
+        ("render_views.py", []),
+        ("render_views.py", ["one.dxf"]),
+        ("render_views.py", ["one.txt", "folder"]),
+        ("render_views.py", ["one.dxf", "folder", "extra"]),
         ("batch_folder.py", []),
         ("batch_folder.py", ["folder"]),
         ("batch_folder.py", ["folder", "report.csv", "extra"]),

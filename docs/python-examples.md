@@ -1,7 +1,7 @@
 # Python examples
 
-Fourteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
-drawing in code, cut one solid from another, number points in the app, draw in an app that is running. They are in
+Fifteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
+drawing in code, draw one to pictures with no window, cut one solid from another, number points in the app, draw in an app that is running. They are in
 `src/python/examples` of the repository, in three folders for the three places Python works with the library (a tool of the
 app is a folder of its own), and this page shows each as it is, with what it prints. A test of the repository runs every file, on .NET 8 and on .NET Framework
 4.8, against a drawing the test builds, and a type check (pyright) finds no error in any of them, so what the page shows
@@ -22,6 +22,7 @@ is what the files do.
 | [`solids.py`](#a-box-with-a-hole-measured) | a box with a hole cut through it: volume, surface area and centroid |
 | [`batch_folder.py`](#a-csv-report-of-a-folder) | one CSV row for each DXF and DWG file of a folder |
 | [`convert.py`](#convert-between-dxf-and-dwg) | a drawing read and written again as DXF or DWG, in a version |
+| [`render_views.py`](#pictures-of-a-drawing-with-no-window) | a drawing drawn to two PNGs, an SVG and a PDF with no window |
 | [`number_points`](#number-the-points-you-pick) | a number written at each point you pick |
 | [`drawing_tools`](#commands-of-your-own) | the commands RECTC and LAYERCOUNT |
 | [`selection_lengths`](#the-length-of-a-selection) | the length and closed area of the selected objects |
@@ -187,9 +188,29 @@ holds: MTEXT 1.` The DWG writer says nothing of what it leaves out: it logs it.
 
 [!code-python[](../src/python/examples/library/convert.py)]
 
+### Pictures of a drawing with no window
+
+`render_views.py DRAWING OUT_FOLDER` opens a DXF or DWG, finds the box that holds every object of model space, and writes
+`whole.png` (the whole drawing, 800 pixels wide with the margin ZOOM Extents leaves), `detail.png` (the lower left quarter of
+that box, fitted to a picture 800 wide with no margin), `whole.svg` and `plan.pdf` (one page, fitted to the sheet where the
+drawing has none) into the folder, and prints the size of each picture. The test drawing spans 4 000 by 6 500, so a picture
+800 wide is 1 300 high:
+
+```text
+$ python render_views.py plan.dxf views
+whole.png 800 by 1300 pixels
+detail.png 800 by 1300 pixels
+whole.svg and plan.pdf written to views
+```
+
+The pictures are the canvas of the app's, drawn by the same renderer with no window ([Rendering without a window](python.md#rendering-without-a-window)).
+A drawing with nothing in model space says so on the standard error and exits with 1.
+
+[!code-python[](../src/python/examples/library/render_views.py)]
+
 ## Tools of the app
 
-The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the fourteen: they
+The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the fifteen: they
 are in the app's `Pythons` folder and in `examples\Pythons` of the repository, and [Python commands and
 tools](presenter/python.md#where-tools-load-from) shows what they write. Each tool below is run in a `python.exe` of its own, with a
 venv of its own that its `requirements.txt` fills (these need no package, so their files are empty).

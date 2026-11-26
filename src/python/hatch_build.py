@@ -12,6 +12,8 @@ _PROPS = Path("..") / ".." / "Directory.Build.props"
 # What the build scripts leave in the project folder; the wheel is not built without them.
 _INPUTS = (
     ("opencad2d/lib/GeometryHelper.dll", "tools/python/build-wheel.sh"),
+    ("opencad2d/lib/OpenCAD2D.Rendering.dll", "tools/python/build-wheel.sh"),
+    ("opencad2d/lib/libSkiaSharp.dll", "tools/python/build-wheel.sh"),
     ("GeometryHelper-stubs/__init__.pyi", "tools/python/make-stubs.sh"),
     ("OpenCAD2D-stubs/__init__.pyi", "tools/python/make-stubs.sh"),
     ("LICENSE", "tools/python/build-wheel.sh"),
