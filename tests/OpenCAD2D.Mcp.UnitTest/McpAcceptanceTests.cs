@@ -637,7 +637,6 @@ namespace OpenCAD2D.Mcp.UnitTest
 
             // What the DWG writer and reader of the core do not yet keep (findings 1 and 2 of the acceptance: the viewports of a sheet read
             // back off, and the MULTILEADER left out), which the server cannot fix: said in the output, and no failure.
-            var known = new List<string>();
 
             // 1. A blank drawing, then everything that needs no answer first.
             await d.Call("new_drawing");
@@ -930,8 +929,8 @@ namespace OpenCAD2D.Mcp.UnitTest
 
             if (viewportsWas != viewportsNow)
             {
-                known.Add(
-                    "KNOWN GAP (core DWG writer or reader, finding 1): The viewports were "
+                late.Add(
+                    "The viewports were "
                         + viewportsWas
                         + " and are "
                         + viewportsNow
@@ -945,8 +944,8 @@ namespace OpenCAD2D.Mcp.UnitTest
 
             if (wordsAgain != words)
             {
-                known.Add(
-                    "KNOWN GAP (core DWG writer or reader, finding 1: the viewports read back off, so no model content): The PDF of the sheet read "
+                late.Add(
+                    "The PDF of the sheet read "
                         + words
                         + " and, of the drawing opened again from the DWG, "
                         + wordsAgain
@@ -1005,10 +1004,8 @@ namespace OpenCAD2D.Mcp.UnitTest
 
                     if (was != now)
                     {
-                        // The MULTILEADER is the one kind the DWG writer leaves out (finding 2); any other that differs is a failure.
-                        (kind == "MULTILEADER" ? known : late).Add(
-                            (kind == "MULTILEADER" ? "KNOWN GAP (core DWG writer, finding 2): " : string.Empty)
-                                + space
+                        late.Add(
+                            space
                                 + " has "
                                 + was
                                 + " "
@@ -1042,11 +1039,6 @@ namespace OpenCAD2D.Mcp.UnitTest
 
             // 7. The debug pass: a second client, read-only, on the finished drawing.
             await ReadOnlyPass(mode, d, dwg, late);
-            foreach (string gap in known)
-            {
-                _output.WriteLine(gap);
-            }
-
             Assert.True(late.Count == 0, "What does not hold:\n" + string.Join("\n", late));
         }
 
