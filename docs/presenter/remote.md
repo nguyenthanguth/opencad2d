@@ -131,6 +131,18 @@ its own, 0 for none; `tolerance` the millimetres on paper within which a gap pas
 of `CadStandards.Check` in the app, whose [guide](display.md#checking-a-drawing-against-a-standard) says what each rule measures; a
 standard the app cannot read is a `CadRemoteException` that names the member. Python's `drawing.check()` gives it as a `CheckResult`.
 
+## Keeping a drawing and putting it back
+
+`drawing.TakeSnapshot()` asks the app to keep the drawing as it stands, with the changes not saved, and gives a `CadRemoteSnapshot`;
+`drawing.Reset(snapshot)` puts the drawing back to it, and `drawing.Release(snapshot)` lets the app forget it (the app holds the
+drawing, about 0.2 MB compressed for 10 000 entities, until then or until the drawing is closed; a second release is no error). They
+are the requests `snapshot`, `reset` and `releaseSnapshot` and the `CadDocument.TakeSnapshot` and `Reset` of the app, whose
+[guide](editing.md#snapshot-and-reset-of-a-drawing-in-memory) says what comes back and what it costs. The reset is not one more undo
+step: the steps made since the snapshot are forgotten, so that a program that resets a thousand times does not fill the app's memory
+with the steps of every episode, and what the user did before the snapshot stays undoable. Both are refused with the command's name
+while a command runs in the drawing (as a commit is), a snapshot of another drawing is an `ArgumentException`, and one released is a
+`CadRemoteException`, "OpenCAD2D has no snapshot ...". Python's `drawing.snapshot()` and `drawing.reset()` give it.
+
 ## The drawing as JSON and as a graph
 
 A program that learns from drawings (a model that lays them out, a dataset of real projects) reads them better with the blocks opened

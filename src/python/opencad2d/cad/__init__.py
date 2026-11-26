@@ -493,6 +493,7 @@ from ._drawing import (  # noqa: E402
     OverlapTable as OverlapTable,
     RenderMasks as RenderMasks,
     RuleScore as RuleScore,
+    Snapshot as Snapshot,
     TextStyles as TextStyles,
     Violation as Violation,
 )

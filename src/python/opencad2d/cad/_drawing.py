@@ -298,6 +298,11 @@ class Backend(Protocol):
         self, standard: str, model_scale: float, tolerance: float
     ) -> Any: ...
 
+    # ---- a snapshot and reset of a drawing in memory (PW7.3) ----
+    def snapshot(self) -> Any: ...
+    def reset(self, snapshot: Any) -> None: ...
+    def release(self, snapshot: Any) -> None: ...
+
 
 def dxf_type_of(net: Any) -> str:
     """The DXF name of an entity (``LINE``, ``LWPOLYLINE``): its ``DxfName``, the type its record is written under."""
@@ -2936,6 +2941,52 @@ class Drawing:
         ]
         return CheckResult(str(native.Name), float(native.Total), rules, numbers, native)  # pyright: ignore[reportAny]
 
+    # ---- a snapshot and reset of the drawing in memory (PW7.3) ----------------------------------------------------
+
+    def snapshot(self) -> Snapshot:
+        """Keep the drawing as it stands, to put it back to with ``reset``: for a program that runs an episode of edits on a
+        drawing many times from the same start (training a model, trying layouts) and cannot read the file again each time.
+        Taking one costs a few milliseconds (the drawing compressed, about 0.2 MB for 10 000 objects, is held until it is
+        released or the drawing is let go). Not committed: what is queued is not in it. ``RuntimeError`` while a command runs
+        in the drawing, as a tool does, and while the Block Editor is open.
+
+        Example:
+            start = drawing.snapshot()                    # the plan as it is now
+            drawing.add_line((0, 0), (100, 0))
+            drawing.commit()                              # an episode ...
+            drawing.reset(start)                          # ... and the plan is back, the line gone
+        """
+        return Snapshot(self, self._backend.snapshot())
+
+    def reset(self, snapshot: Snapshot) -> None:
+        """Put the drawing back as ``snapshot`` kept it, to the byte: its objects, handles (the next object made gets the
+        handle it got the first time), layers, styles, blocks, layouts and the header variables, the current layer and styles
+        and the handle seed among them. What is queued and not committed is dropped; an ``Entity`` read before is a copy and
+        keeps what it had. The steps made since are forgotten, not made one more step: what was done before the snapshot can
+        still be undone, and a thousand resets use no more memory than one. The same snapshot can be reset to again and again.
+        The display, the spatial tables and the pictures of dimensions are drawn again only where the episode touched them:
+        a reset of 10 000 objects after 100 edits takes about 1 ms and the display after it 1 to 3 ms, where opening the file
+        and drawing it takes 20 to 40 ms; the first reset to a snapshot takes about 4 ms, as the next one's drawing is read
+        while the episode runs. ``ValueError`` for a snapshot of another drawing or one that was released; ``RuntimeError``
+        while a command runs in the drawing.
+
+        Example:
+            start = drawing.snapshot()
+            for episode in range(1000):
+                drawing.add_circle((50, 50), 25)
+                drawing.commit()                          # the same handle every time, '102'
+                drawing.reset(start)
+            len(drawing.entities())                       # as many as when the snapshot was taken
+        """
+        if not isinstance(snapshot, Snapshot):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(f"A snapshot is what drawing.snapshot() gives, not {snapshot!r}.")
+        if snapshot.drawing is not self:
+            raise ValueError("The snapshot is of another drawing.")
+        if snapshot._native is None:  # pyright: ignore[reportPrivateUsage]
+            raise ValueError("The snapshot was released.")
+        self._discard()
+        self._backend.reset(snapshot._native)  # pyright: ignore[reportPrivateUsage]
+
     def __repr__(self) -> str:
         return f"<Drawing {self.name}>"
 
@@ -3408,3 +3459,45 @@ class CheckResult:
 
     def __len__(self) -> int:
         return int(self._native.Violations.Count)  # pyright: ignore[reportAny]
+
+
+class Snapshot:
+    """A drawing as it stood when ``drawing.snapshot()`` kept it, to ``drawing.reset(snapshot)`` it to. Hold it as long as the
+    episodes go on and ``release()`` it after: on a drawing of a file it is let go with the drawing; the app holds one until it
+    is released or the drawing is closed.
+
+    Example:
+        start = drawing.snapshot()
+        start.drawing is drawing                      # True
+        drawing.reset(start)                          # as often as wanted
+        start.release()                               # the app forgets it; resetting to it is then a ValueError
+    """
+
+    def __init__(self, drawing: Drawing, native: Any) -> None:
+        self._drawing = drawing
+        self._native: Any = native
+
+    @property
+    def drawing(self) -> Drawing:
+        """The drawing the snapshot is of.
+
+        Example:
+            drawing.snapshot().drawing is drawing         # True
+        """
+        return self._drawing
+
+    def release(self) -> None:
+        """Let the snapshot go: the app forgets the drawing it kept, and a drawing of a file lets go of the drawing it read ahead
+        for the next reset; one already released is no error.
+
+        Example:
+            start = drawing.snapshot()
+            start.release()
+            drawing.reset(start)                          # ValueError: The snapshot was released.
+        """
+        native, self._native = self._native, None
+        if native is not None:
+            self._drawing._backend.release(native)  # pyright: ignore[reportPrivateUsage]
+
+    def __repr__(self) -> str:
+        return f"<Snapshot of {self._drawing.name}{'' if self._native is not None else ', released'}>"

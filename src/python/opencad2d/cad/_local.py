@@ -728,6 +728,28 @@ class _LocalBackend:
             raise _refused(error) from None
         return result
 
+    # ---- a snapshot and reset of the drawing in memory (PW7.3) ------------------------------------------------------
+
+    def snapshot(self) -> Any:
+        """The core's snapshot of the drawing: the point of its undo list it stands at."""
+        try:
+            return self.document.TakeSnapshot()
+        except _net.InvalidOperationException as error:
+            raise RuntimeError(str(error.Message)) from None
+
+    def reset(self, snapshot: Any) -> None:
+        """Puts the drawing back as the core's snapshot kept it."""
+        try:
+            self.document.Reset(snapshot)
+        except _net.InvalidOperationException as error:
+            raise RuntimeError(str(error.Message)) from None
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+
+    def release(self, snapshot: Any) -> None:
+        """Lets the core go of the drawing it read ahead for the snapshot; the snapshot itself is a managed object."""
+        self.document.ReleaseSnapshot(snapshot)
+
     # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
 
     def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
