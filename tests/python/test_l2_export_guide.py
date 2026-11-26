@@ -12,12 +12,14 @@ import pytest
 
 GUIDE = Path(__file__).resolve().parents[2] / "docs" / "python.md"
 FIRST = "### Preparing real drawings for AI: flatten, JSON and graph"
-LAST = "## Inside OpenCAD2D"
 
 
 def _blocks() -> list[str]:
     text = GUIDE.read_text(encoding="utf-8")
-    section = text[text.index(FIRST) : text.index(LAST)]
+    start = text.index(FIRST)
+    following = re.search(r"^##", text[start + len(FIRST) :], flags=re.MULTILINE)
+    end = len(text) if following is None else start + len(FIRST) + following.start()
+    section = text[start:end]  # up to the next heading: the sections after it are not this one's
     return re.findall(r"```python\n(.*?)```", section, flags=re.DOTALL)
 
 
