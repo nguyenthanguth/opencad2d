@@ -743,15 +743,17 @@ class _LocalBackend:
         self, what: str, layout: str | None, tolerance: float, max_edges: int | None = None
     ) -> tuple[str, Any]:
         """The JSON text of the drawing (``what`` is ``"json"``) or of its graph (``"graph"``, with the ``CadDrawingGraph``
-        too, whose edge array is copied in one piece); the core does the work."""
+        too, whose edge array is copied in one piece); the core does the work. The boxes are as drawn, so the drawing
+        is prepared as the app prepares it first, as for bounds."""
         try:
+            document = self._as_drawn
             if what == "graph":
                 if max_edges is None:
-                    graph = _cad.CadDrawingGraph.Build(self.document, layout, tolerance)
+                    graph = _cad.CadDrawingGraph.Build(document, layout, tolerance)
                 else:
-                    graph = _cad.CadDrawingGraph.Build(self.document, layout, tolerance, max_edges)
+                    graph = _cad.CadDrawingGraph.Build(document, layout, tolerance, max_edges)
                 return str(graph.ToJson()), graph
-            return str(_cad.CadDrawingJson.Write(self.document, layout)), None
+            return str(_cad.CadDrawingJson.Write(document, layout)), None
         except _net.ArgumentException as error:
             raise _refused(error) from None
 
