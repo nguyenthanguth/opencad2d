@@ -40,7 +40,7 @@ jobs:
         # and run on the developer's machine.
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          $filter = 'FullyQualifiedName!~Speed&FullyQualifiedName!~DisplayPatchPlaces&FullyQualifiedName!~TableCommandTests&FullyQualifiedName!~SelectObjectsOptions'
+          $filter = 'FullyQualifiedName!~Speed&FullyQualifiedName!~DisplayPatchPlaces&FullyQualifiedName!~TableCommandTests&FullyQualifiedName!~SelectObjectsOptions&FullyQualifiedName!~Timed'
           dotnet test tests/OpenCAD2D.UnitTest/OpenCAD2D.UnitTest.csproj -c Release --no-build --filter $filter
           dotnet test tests/OpenCAD2D.Wpf.UnitTest/OpenCAD2D.Wpf.UnitTest.csproj -c Release --no-build --filter $filter
           dotnet test tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj -c Release --no-build
