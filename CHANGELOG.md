@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **FIXED.** MTEXT line spacing set by a paragraph (`\pxsm`, `\pxsa`, `\pxse`) is laid out as AutoCAD 2021 lays it (accoreconsole, 1 000+ cases of
+  lines and heights within 1E-4). A multiple is the factor times 5/4 of the line's box, so a tall run in the middle of three lines at
+  2x moved the next line 6.67 too little (57.30 against 50.63 apart); "at least" puts the first baseline at (4 x factor - 1) / 3
+  of the height (23.33 at 2, 36.67 at 3, not 13.33 and 33.33) and the leading at a quarter of the line's box; the MTEXT's own
+  line spacing factor and style no longer scale a paragraph that sets its own; the last line of a multiple under 0.8 and of
+  exactly at a factor under 1 ends at its cell.
+- **FIXED.** The mask and the frame of an MTEXT reach the defined height where it is taller than the lines (a mask 5 beyond a box
+  60 high was 33 high), and an MTEXT in columns has a mask box for each column, as high as the column is set or its lines are
+  and hung by its own height, as AutoCAD draws it.
+- **FIXED.** An MTEXT in dynamic columns of their own heights puts the lines the columns do not hold in one column more with no
+  height, as AutoCAD does (they all went in the last column), counts as many columns as the lines fill, and hangs each column by
+  its own lines at the middle and the bottom (the columns shorter than the tallest were 5 and 10 too high). That column has a
+  height grip at the height of its lines, and dragging it sets its height.
 - **NEW.** The previews of the dimension and multileader style dialogs are readable and linked to the fields (A14, the presenter
   half). They are drawn at the real size of their frame and the real scale of the display, sharp at 150 %, every line at least 1.5
   pixels wide, with a black or a white ground, a wheel zoom about the pointer and Fit. The field being edited or hovered lights its

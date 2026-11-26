@@ -89,6 +89,16 @@ namespace OpenCAD2D
         /// <summary>The box the words are set in, by the defined width (the widest line with none) and the actual height: left, bottom, right, top. A frame and a mask are this box grown.</summary>
         internal double[] TextBox { get; private set; }
 
+        /// <summary>How high the lines of each column are, from its top to below its last line: one for each column the lines stand in.</summary>
+        internal IReadOnlyList<double> ColumnLines { get; private set; }
+
+        /// <summary>
+        /// The boxes a mask is drawn in, each left, bottom, right, top: the <see cref="TextBox"/>, and for an MTEXT in columns
+        /// one for each column, as wide as the column and as high as the column is set or its lines are, put at the
+        /// attachment point as the lines of the column are.
+        /// </summary>
+        internal IReadOnlyList<double[]> MaskBoxes { get; private set; }
+
         /// <summary>The box the MTEXT is defined by: its width, all its columns, and the greater of its defined and its actual height, put at the attachment point: left, bottom, right, top.</summary>
         internal double[] Box { get; private set; }
 
@@ -1398,9 +1408,9 @@ namespace OpenCAD2D
                 double third = _h / 3.0;
                 double natural = exactly ? factor * 5.0 * third : factor * (before.BoxHigh + third);
                 double cell =
-                    g.Mode == 'm' ? g.Factor * natural
+                    g.Mode == 'm' ? Multiple(before)
                     : g.Mode == 'e' ? g.Factor * 5.0 * third
-                    : g.Mode == 'a' ? Math.Max(natural, g.Factor * 5.0 * third)
+                    : g.Mode == 'a' ? 1.25 * AtLeast(before)
                     : natural;
                 Format own = line.Format;
                 return cell
@@ -1410,12 +1420,25 @@ namespace OpenCAD2D
                     + (line.First ? own.Before : 0.0);
             }
 
+            /// <summary>
+            /// The cell of a line set by a multiple (<c>\pxsm2;</c>): the factor times five fourths of its box, the box its
+            /// tallest letters and their ink and a third of their height. The MTEXT's own factor and style do not count.
+            /// </summary>
+            private static double Multiple(Line line) => line.Format.Factor * 1.25 * line.BoxHigh;
+
+            /// <summary>
+            /// The box of a line set "at least" (<c>\pxsa2;</c>): as high as the line's own, or four thirds of the MTEXT's height
+            /// times the factor, whichever is more. Its cell is five fourths of it.
+            /// </summary>
+            private double AtLeast(Line line) => Math.Max(line.BoxHigh, line.Format.Factor * 4.0 * _h / 3.0);
+
             /// <summary>How far below the top of its cell the baseline of a line lies.</summary>
             private double Fall(Line line, bool exactly)
             {
                 Format g = line.Format;
                 return g.Mode == 'e' ? g.Factor * _h
-                    : g.Mode == 'a' ? Math.Max(line.Top, (g.Factor * _h) + (_h / 3.0))
+                    : g.Mode == 'a' ? AtLeast(line) - (line.BoxHigh - line.Top)
+                    : g.Mode == 'm' ? line.Top
                     : exactly ? _h
                     : line.Top;
             }
@@ -1427,8 +1450,12 @@ namespace OpenCAD2D
                 double factor = _text.LineSpacingFactor > 0.0 ? _text.LineSpacingFactor : 1.0;
                 DxfColumnType type = _columns ? _text.ColumnType : DxfColumnType.NoColumns;
                 bool manual = type == DxfColumnType.DynamicColumns && !_text.ColumnAutoHeight;
+
+                // Columns of their own heights are as many as are set, and one more, as high as its lines, takes what they do not hold.
                 int fixedCount =
-                    type == DxfColumnType.StaticColumns || manual ? Math.Max(1, _text.ColumnCount) : int.MaxValue;
+                    type == DxfColumnType.StaticColumns ? Math.Max(1, _text.ColumnCount)
+                    : manual ? Math.Max(1, _text.ColumnCount) + 1
+                    : int.MaxValue;
                 int column = 0;
                 Line before = null;
                 var highs = new List<double>();
@@ -1476,7 +1503,10 @@ namespace OpenCAD2D
                 }
 
                 highs.Add(before == null ? 0.0 : High(before, depth, exactly));
-                int count = _columns ? (fixedCount != int.MaxValue ? fixedCount : highs.Count) : 1;
+                int count =
+                    !_columns ? 1
+                    : fixedCount != int.MaxValue && !manual ? fixedCount
+                    : highs.Count;
                 double gutter = _columns ? Math.Max(0.0, _text.ColumnGutterWidth) : 0.0;
                 double total = (count * box) + ((count - 1) * gutter);
                 double actualHigh = 0.0;
@@ -1507,7 +1537,8 @@ namespace OpenCAD2D
 
                 for (int c = 0; c < highs.Count; c++)
                 {
-                    double room = _columns && defined > 0.0 ? ColumnHigh(type, manual, c) : hung;
+                    // Columns of their own heights hang by the greatest, as those of one height by their own.
+                    double room = _columns && defined > 0.0 && !manual ? ColumnHigh(type, manual, c) : hung;
                     room = room > 0.0 ? room : hung;
                     shifts[c] =
                         top
@@ -1569,24 +1600,56 @@ namespace OpenCAD2D
                     : down == 1 ? high / 2.0
                     : high;
                 _layout.LineCount = _lines.Count;
+                _layout.ColumnLines = highs;
                 _layout.ColumnCount = count;
                 _layout.ActualWidth = widest;
                 _layout.ActualHeight = actualHigh;
                 _layout.FirstLineDepth = _lines.Count > 0 ? _lines[0].Depth : 0.0;
                 _layout.Ink = new[] { inkLeft, inkBottom, inkRight, inkTop };
-                _layout.TextBox = new[]
-                {
-                    left,
-                    top - (_columns && defined > 0.0 ? defined : actualHigh),
-                    left + total,
-                    top,
-                };
+                _layout.TextBox = _columns
+                    ? new[] { left, top - (defined > 0.0 ? defined : actualHigh), left + total, top }
+                    : new[] { left, boxTop - high, left + total, boxTop };
                 _layout.Box = new[] { left, boxTop - high, left + total, boxTop };
+                _layout.MaskBoxes = _columns
+                    ? ColumnBoxes(type, manual, count, highs, left, box, gutter, down)
+                    : new[] { _layout.TextBox };
 
                 if (_editing)
                 {
                     Fill();
                 }
+            }
+
+            /// <summary>
+            /// The box of each column a mask is drawn in: as wide as the column, as high as it is set or its lines are, whichever is
+            /// more (the lines of the column which holds the rest), and at the attachment as the lines of that column are, the top
+            /// of it on the location, its middle or its bottom.
+            /// </summary>
+            private List<double[]> ColumnBoxes(
+                DxfColumnType type,
+                bool manual,
+                int count,
+                List<double> highs,
+                double left,
+                double box,
+                double gutter,
+                int down
+            )
+            {
+                var boxes = new List<double[]>(count);
+
+                for (int c = 0; c < count; c++)
+                {
+                    double high = Math.Max(ColumnHigh(type, manual, c), c < highs.Count ? highs[c] : 0.0);
+                    double top =
+                        down == 0 ? 0.0
+                        : down == 1 ? high / 2.0
+                        : high;
+                    double x = left + (c * (box + gutter));
+                    boxes.Add(new[] { x, top - high, x + box, top });
+                }
+
+                return boxes;
             }
 
             /// <summary>Sets where the places of a line's atoms stand, letter by letter, as <see cref="Write"/> sets the letters.</summary>
@@ -1686,8 +1749,11 @@ namespace OpenCAD2D
 
             /// <summary>
             /// How high a column of lines is, from its top to below its last line: the ink below it, or a third of the MTEXT's
-            /// height where the lines are set by a rule; under a paragraph set exactly, a third of the height for each of its
-            /// factor and four more below the top of the last cell (5.833 for letters 2.5 high at 3).
+            /// height where the lines are set by a rule. Under a paragraph set exactly it is the box of the last line and a third
+            /// of the height for each of its factor below the top of the last cell, or the cell where that is less (5.833 for
+            /// letters 2.5 high at 3). Under one set by a multiple it is the box of the last line, or its cell where that is
+            /// less (a multiple under 0.8); under one set "at least", the third of the last line's tallest letters below its
+            /// baseline.
             /// </summary>
             private double High(Line last, double depth, bool exactly)
             {
@@ -1695,10 +1761,22 @@ namespace OpenCAD2D
 
                 if (g.Mode == 'e')
                 {
-                    return depth - (g.Factor * _h) + ((g.Factor + 4.0) * _h / 3.0);
+                    return depth
+                        - (g.Factor * _h)
+                        + Math.Min(g.Factor * 5.0 * _h / 3.0, last.BoxHigh + (g.Factor * _h / 3.0));
                 }
 
-                return depth + (exactly || g.Mode == 'm' || g.Mode == 'a' ? _h / 3.0 : last.Depth);
+                if (g.Mode == 'm')
+                {
+                    return depth - last.Top + Math.Min(last.BoxHigh, Multiple(last));
+                }
+
+                if (g.Mode == 'a')
+                {
+                    return depth + (last.BoxHigh - last.Top);
+                }
+
+                return depth + (exactly ? _h / 3.0 : last.Depth);
             }
 
             /// <summary>The height a column holds its lines in; nought for no bound.</summary>
@@ -1711,7 +1789,13 @@ namespace OpenCAD2D
 
                 if (manual)
                 {
-                    double own = column < _text.ColumnCount ? _text.ColumnHeight(column) : 0.0;
+                    // The column past those set has no bound.
+                    if (column >= _text.ColumnCount)
+                    {
+                        return 0.0;
+                    }
+
+                    double own = _text.ColumnHeight(column);
                     return own > 0.0 ? own : _text.Height;
                 }
 

@@ -4251,7 +4251,7 @@ grip keeps the columns 120 wide and makes the gutter 70, the total 310, and drag
 corner does that and sets the height; the height grip sets the height of the columns. Dynamic columns have the same
 grips, the corner and the gutter grip at the last column the words fill, but the column width grip keeps the gutter, the
 total following, and so does the corner. Dynamic columns of their own heights have no corner and no height grip: a
-triangle under the middle of each column sets that column's height. Attached at the right or the bottom, the grips stand
+triangle under the middle of each column sets that column's height. The column past those set, which holds the lines they do not, has its own triangle at the height of its lines, and dragging it sets that column's height (heights 50 and 90, the third column 94.18 high, dragged 10 further down: 104.18). Attached at the right or the bottom, the grips stand
 at the other side and grow the other way: attached bottom right the column width grip is at (-120, 0), and 50 to the
 right makes the columns 70 wide. A width or a height stops at the text height and a gutter at nought.
 

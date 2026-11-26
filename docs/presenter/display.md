@@ -509,17 +509,31 @@ AutoCAD 2021 was found to follow on 155 MTEXTs of 536 lines:
 - **Paragraphs.** In a `\p` code, `i`, `l` and `r` indent the first line, the left and the right; `ql`, `qc`, `qr`,
   `qj` and `qd` align left, centre, right, justified and distributed; `t` sets tab stops (left, centre, right, decimal;
   with none a stop every 4 heights); `b` and `a` give space before and after the paragraph, and `sm`, `se` and `sa` a
-  line spacing of the paragraph's own (a multiple, exactly, at least).
+  line spacing of the paragraph's own (a multiple, exactly, at least), which the MTEXT's own factor (44) and style (73) do
+  not scale. In letters 10 high a line's box is 4/3 of its tallest letters and its cell 5/4 of its box: `\pxsm2;` sets the cell
+  at twice that (the lines of "A", "B" and "C" 33.33 apart, 43.33 and 57.30 where the middle one is 20 high); `\pxsa2;` makes
+  the box at least 2 x 4/3 x 10 high and puts the first baseline 23.33 down (`\pxsa3;` 36.67) with the leading a quarter of the
+  box; the last line of a multiple under 0.8 ends at its cell (25.39 high for three lines at 0.5), and the last of exactly at
+  the box and a third of the height for each of its factor, or its cell where that is less.
 - **Columns.** Static and dynamic columns take the lines that fit their height, each column its width and the gutter
-  on from the last; `\N` starts the next column.
-- **Mask and frame.** The background mask reaches the scale factor (45) less 1 of a text height beyond the lines, and
-  the frame (R2018) stands where a mask of its scale would, 1.5 for a frame with no mask.
+  on from the last; `\N` starts the next column. Dynamic columns of their own heights (manual) take the lines that fit each, and
+  what is left goes in one column more with no height, as AutoCAD sets it (two columns 50 and 90 high and 14 lines of letters 10
+  high make three columns, the last of six lines); they are as many as the lines fill. Each column is hung at the attachment by
+  its own lines, so at the middle or the bottom the shorter columns stand on the location's line, not under the tallest.
+- **Mask and frame.** The background mask reaches the scale factor (45) less 1 of a text height beyond the box, and
+  the frame (R2018) stands where a mask of its scale would, 1.5 for a frame with no mask. The box is as high as the defined
+  height or the lines, whichever is more (a mask 5 beyond a box 60 high over lines 27.93 high is 70 high; with a defined height
+  of 15 it is 37.93 high), and as wide as the width given or the widest line. In columns the mask is a box for each column,
+  as high as the column is set or its lines are, hung at the attachment by its own height; the frame is still one box (AutoCAD
+  draws a stepped outline round the columns, not built).
 
 "II II II" 20 wide in letters 10 high, whose I is inked 1 in and moves the pen 4, is set as "II II" and, 16.67 below it,
 "II": an item whose box is 20 wide and 26.67 high. The box of an MTEXT's item is that of its parts, so picking, window
-selection and the highlight follow the lines as they are drawn. Not as AutoCAD: a flow direction (72) of top to bottom
-is set left to right, `\pxsm` with a factor is 0.05 of a height off on one line in 536, and `\M+` codes are shown as
-written.
+selection and the highlight follow the lines as they are drawn. Not as AutoCAD: a flow direction (72) of top to bottom,
+right to left or bottom to top is set left to right as 1 (AutoCAD, in a font that is not vertical, sets all three alike: each paragraph
+a column, the columns side by side on one baseline row, their ink 2/3 of the height apart, the runs of a column stepping down by
+their ink heights, and a line breaking where the words, each counted as one height, reach the width; not built), the wrap at a
+width a line reaches exactly is kept where AutoCAD breaks it, and `\M+` codes are shown as written.
 
 The MTEXT editor (TEXTEDIT, MTEXT) sets the words being typed by this same layout, as AutoCAD's in-place editor shows
 them as they will look:

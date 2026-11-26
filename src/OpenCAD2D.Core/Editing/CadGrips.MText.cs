@@ -249,11 +249,13 @@ namespace OpenCAD2D
                 return true;
             }
 
-            /// <summary>The height of a column of its own height: its own, with none that of the lines.</summary>
+            /// <summary>The height of a column of its own height: its own, with none (the column past those set) that of its lines.</summary>
             internal double HeightOf(int column)
             {
                 double own = _text.GetColumnHeight(column);
-                return own > 0.0 ? own : _layout.ActualHeight;
+                return own > 0.0 ? own
+                    : column < _layout.ColumnLines.Count ? _layout.ColumnLines[column]
+                    : _layout.ActualHeight;
             }
 
             /// <summary>
