@@ -46,6 +46,7 @@ jobs:
           dotnet test tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj -c Release --no-build
           dotnet test tests/OpenCAD2D.Remote.UnitTest/OpenCAD2D.Remote.UnitTest.csproj -c Release --no-build
           dotnet test tests/OpenCAD2D.PyStubs.UnitTest/OpenCAD2D.PyStubs.UnitTest.csproj -c Release --no-build
+          dotnet test tests/OpenCAD2D.Mcp.UnitTest/OpenCAD2D.Mcp.UnitTest.csproj -c Release --no-build
 
   python:
     # The Python package opencad2d (src/python): the stubs, the wheel, and tests/python run against the wheel installed
@@ -73,9 +74,10 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
 
-      - name: Build the libraries, the stub generator and the remote test server
+      - name: Build the libraries (the renderer too), the stub generator and the remote test server
         run: |
           dotnet build src/OpenCAD2D.Core/OpenCAD2D.Core.csproj -c Release -warnaserror
+          dotnet build src/OpenCAD2D.Rendering/OpenCAD2D.Rendering.csproj -c Release -warnaserror
           dotnet build tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj -c Release -warnaserror
           dotnet build tests/OpenCAD2D.Remote.TestServer/OpenCAD2D.Remote.TestServer.csproj -c Release -warnaserror
 
