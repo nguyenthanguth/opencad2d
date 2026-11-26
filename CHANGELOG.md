@@ -11,6 +11,16 @@
   uninstaller removes the folder with the `__pycache__` folders Python writes in it.
 - **CHANGED.** The core library is GeometryHelper 13.13.0 (on nuget.org), which holds the core fixes and members
   2.0.0 shipped in Lib under 13.12.1; the NuGet packages of OpenCAD2D name it as their dependency.
+- **FIXED.** A layout viewport whose view direction is not the world's Z (a viewport set up in AutoCAD to a south-east
+  isometric, a front or a view from below, group 16) was drawn and plotted as a plan: its direction was read nowhere. Model
+  space is now taken through such a viewport along its direction as AutoCAD's display coordinates take it (TRANS 0 to 2:
+  the view's target, the arbitrary axis algorithm for the X and Y axes, the depth dropped, then the twist), as a parallel
+  wire-frame projection, in the display, on paper and in the PDF, printer and raster plots: seen from (1, -1, 1), the box
+  100 by 60 by 40 from the origin has its corner (100, 60, 40) at (113.137, 16.330) in the view. Lines, arcs, circles,
+  polylines, ellipses, splines, points and faces keep their heights; text, hatches, dimensions and blocks stay where the
+  plan of the world puts them. A viewport looking straight down is drawn as before, item for item. Such a viewport is
+  still not entered (MSPACE says so on the command line) and nothing is snapped through it. New public members:
+  `CadViewports.HasPlanView` and `CadViewports.ToView(DxfViewport, GeoPoint3)`.
 
 ## 2.0.0 (2026-11-26)
 

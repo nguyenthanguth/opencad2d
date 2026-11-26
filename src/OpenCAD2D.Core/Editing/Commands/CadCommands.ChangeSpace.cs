@@ -103,7 +103,11 @@ namespace OpenCAD2D
 
             if (!CadViewports.CanWorkThrough(viewport))
             {
-                c.Write("Cannot use viewports that are turned off or have perspective view on.");
+                c.Write(
+                    viewport.On && viewport.Number > 1 && !CadViewports.HasPlanView(viewport)
+                        ? CadViewports.ThreeDViewRefusal
+                        : "Cannot use viewports that are turned off or have perspective view on."
+                );
                 yield break;
             }
 
