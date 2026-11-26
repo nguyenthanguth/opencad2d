@@ -143,6 +143,26 @@ with the steps of every episode, and what the user did before the snapshot stays
 while a command runs in the drawing (as a commit is), a snapshot of another drawing is an `ArgumentException`, and one released is a
 `CadRemoteException`, "OpenCAD2D has no snapshot ...". Python's `drawing.snapshot()` and `drawing.reset()` give it.
 
+## The palette, the entities in an area, and LIST
+
+`drawing.GetProperties(handles)` asks the app what its Properties palette shows for some entities, as it would with them selected:
+a `CadRemoteProperties` with a `Label` (`Line (1)`, `All (2)` for several kinds, `No selection`) and `Groups` (`CadRemotePropertyGroup`:
+`Title`, `Rows` of `CadRemotePropertyRow`: `Label`, `Value` as the palette writes it, `IsReadOnly`). For a line from (0, 0) to
+(300, 400) the group Geometry has `Length` `500.0000`; for two lines that differ the value is `*Varies*`. The selection is not changed.
+
+`drawing.GetHandlesIn(layout, how, points, tolerance)` gives the handles of the entities of model space (null) or a layout that lie in
+an area, in the order the space draws them. `how` is `window` or `crossing` (two corners), `fence` (two points or more), `wpolygon` or
+`cpolygon` (three or more) or `point` (one point; `tolerance` is how far an entity may pass from it, the one picked first leading).
+Unlike `SelectWindow` and `SelectCrossingWindow` it is **not held to the view** of the app's window, so a drawing gives the same
+handles with a window or without; and it leaves the user's selection alone. It is the answer of `CadSpatial.Select` in the app.
+`drawing.ListObjects(handles)` gives the lines AutoCAD's `LIST` writes for some entities (`Length = 500.0000`, `Handle = 2f`), from a
+command session the app makes for the purpose, so the app's command line, selection and undo list are as they were.
+
+The requests are `properties`, `selectGeometry` and `list`: new words of protocol version 1, answered by an older app with
+`OpenCAD2D does not know the request properties: it is of an older version.` An area that does not fit its selection (a window of
+one point, a polygon of two) or a layout that is not there is a `CadRemoteException`. The MCP tools `get_entity`, `select`,
+`id_point` and `list_properties` ([MCP](mcp.md)) are made of them.
+
 ## The drawing as JSON and as a graph
 
 A program that learns from drawings (a model that lays them out, a dataset of real projects) reads them better with the blocks opened

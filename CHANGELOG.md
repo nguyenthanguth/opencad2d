@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- **NEW.** The MCP server reads and queries a drawing in depth, and an agent can try a layout and roll it back (MCP phase 2, group A:
+  25 tools). `get_entity` gives one entity in full (its values by kind, its drawn
+  box and the rows of the Properties palette), `count_entities` and `aggregate` count and add up lengths and areas by kind, layer,
+  block or colour, `get_texts` and `get_dimensions` list the words and the dimensions with their places and measured values,
+  `get_block` and `get_attributes` read a block's definition and a reference's attributes, `list_layouts` gives each layout's sheet
+  size and its viewports with their scale and view centre, `list_linetypes`, `list_multileader_styles` and `list_table_styles` the
+  styles, `measure_distance`, `measure_area`, `measure_length`, `list_properties` (LIST) and `id_point` (ID) the inquiry commands,
+  `select` (window, crossing, fence, polygon, crossing polygon, all, previous) and `select_similar` the handles by where and how
+  they are drawn, `get_variables` and `set_variable` the system variables (38 documented, set only for the ones the drawing keeps),
+  `server_status` and `describe_kinds` how the server stands and what it reads and writes. `snapshot`, `reset` and
+  `release_snapshot` keep the drawing, put it back (a writer: refused with `--read-only`; the handles come back too) and let it go,
+  in a file and in the app. Three new requests of [Remote](docs/presenter/remote.md#the-palette-the-entities-in-an-area-and-list) make
+  the app answer for itself: `properties` (`CadRemoteDocument.GetProperties`), `selectGeometry` (`GetHandlesIn`: window, crossing,
+  fence, polygons and a point, whole and not held to the app's window, as the new `CadSpatial.Select`) and `list`
+  (`ListObjects`: LIST run in a command session of its own, as the new `CadInquiry.List`). The guide is
+  [MCP](docs/presenter/mcp.md).
 - **NEW.** The MCP server's `run_plan(steps, dry_run, stop_on_error)` runs a list of tool calls in one call and gives each step's answer
   (`{id, tool, ok, result or error}` and totals), which cuts an agent's round trips: the place, render, score, refine loop of a plate takes 4
   calls as plans where it took 19 as single calls, over a file and over an app, with the same result. A step may name any tool the server

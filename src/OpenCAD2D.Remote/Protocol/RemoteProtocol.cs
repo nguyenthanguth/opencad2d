@@ -198,6 +198,15 @@ namespace OpenCAD2D.Remote
 
         /// <summary>Answers the object prompt of the command that is running with objects of the drawing (<c>handles</c>), as a pick does: <c>taken</c>, <c>completed</c> and <c>output</c>.</summary>
         public const string FeedSelection = "feedSelection";
+
+        /// <summary>What the Properties palette shows for entities (<c>handles</c>): <c>label</c> and <c>groups</c>, each with a <c>title</c> and <c>rows</c> of <c>label</c>, <c>value</c> and <c>readOnly</c>.</summary>
+        public const string Properties = "properties";
+
+        /// <summary>The handles an area takes in a space, whole and not held to the view (<c>layout</c>, <c>how</c> as window, crossing, fence, wpolygon, cpolygon or point, <c>points</c>, <c>tolerance</c>): <c>handles</c>.</summary>
+        public const string SelectGeometry = "selectGeometry";
+
+        /// <summary>The lines LIST writes for entities (<c>handles</c>), run in a command session of its own: <c>lines</c>.</summary>
+        public const string List = "list";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>

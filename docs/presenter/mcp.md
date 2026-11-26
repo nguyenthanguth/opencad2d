@@ -69,7 +69,7 @@ server may be started before the app is.
 
 | Flag | Effect |
 |---|---|
-| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `redo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `export_to_file`, `purge`, `audit` with `fix`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts; `run_plan` when a step of the plan writes; attached, also the three `zoom_*` tools, which move the view the user has on screen. Opening, rendering, the reading, measuring and checking tools, the check of `audit`, `dump_drawing` and the debug tools still work, and so does a plan of such tools |
+| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `set_variable`, `reset`, `undo`, `redo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `export_to_file`, `purge`, `audit` with `fix`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts; `run_plan` when a step of the plan writes; attached, also the three `zoom_*` tools, which move the view the user has on screen. Opening, rendering, the reading, measuring and checking tools, the check of `audit`, `dump_drawing` and the debug tools, selecting and taking or releasing a snapshot still work, and so does a plan of such tools |
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
 - Files are written by `save` (the drawing's own file, which is in the folder it was opened from, or the path the agent gives
@@ -102,6 +102,18 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 | `query_entities(kinds=, layers=, box=, layout=, page=, page_size=)` | handle, kind, layer, key geometry and drawn box of each entity, in the order the drawing draws them |
 | `bounds(handles=, layout=)` | the box each entity takes as it is drawn: the letters of a text and not its insertion point, a dimension's picture, a block however deep |
 | `overlaps(kinds=, over=, of=, layout=, tolerance=)` | the words (TEXT, MTEXT, dimension text, multileader text) that overlap a line, an arc, a polyline, a hatch edge, a filled area or another word, with the box of each meeting |
+| `get_entity(handle)` | one entity in full: layer, colour, linetype, lineweight, its drawn box, the values of its kind (text and height, polyline vertices with bulges, a dimension's measurement and text, an INSERT's block and attributes, a hatch's pattern, an MTEXT's width and columns) and the Properties palette rows |
+| `count_entities(group_by=, kinds=, layers=, colors=, linetypes=, box=, layout=)` | counts by `kind`, `layer`, `block` (the block references, by block name) or `color` (the colour each is drawn in); filters narrow what is counted |
+| `aggregate(measure, group_by=, ...)` | the sum, smallest, largest and average of the `length` (mm) or `area` (mm²) of the entities in each group, and how many had no such measure; the filters of `count_entities` |
+| `list_layouts`, `list_linetypes`, `list_multileader_styles`, `list_table_styles` | the layouts in tab order with the sheet's paper size and units and each viewport's place, view centre and scale (`1:10`); the linetypes with their dashes; the multileader and table styles with their key settings. Attached, these read a copy of the app's drawing |
+| `get_variables(names=)`, `set_variable(name, value)` | system variables as `getvar` and `setvar` give and take them (an angle in degrees). `get_variables` reads any variable the engine knows, or the 38 documented ones where no names are given; `set_variable` sets only the documented ones the drawing keeps (units, scales, the current layer and styles, point look: the list is in `get_variables`), as one undo step |
+| `get_texts(contains=, styles=, layers=, box=, layout=)`, `get_dimensions(types=, styles=, layers=, box=, layout=)` | the words of a layout (TEXT, MTEXT, multileader text and the values of block attributes) with place, height, rotation, style and drawn box; the dimensions with type, style, measured value, the words drawn, the text typed over it and the defining points |
+| `get_block(name)`, `get_attributes(handle)` | a block's definition (base point, attribute definitions, its entities); the attributes of a block reference with the tags the block defines that it has no value for |
+| `measure_distance(a, b)`, `measure_area(points= or handle=)`, `measure_length(handle)` | DIST (distance, angle in the XY plane, changes in x and y), AREA (area and perimeter of points or of a closed shape) and the length of a curve |
+| `list_properties(handles)`, `id_point(point, aperture=)` | the lines AutoCAD's LIST writes; ID, with the entities that pass within the aperture of the point, the one on top first |
+| `select(mode, points=, kinds=, layers=, colors=, linetypes=, layout=)`, `select_similar(handle, match=)` | handles by `window`, `crossing`, `fence`, `polygon`, `crossing_polygon`, `all` or `previous` (what is selected in the drawing now: the user's selection in the app), not held to the app's view and never changing the user's selection; the entities like one by kind, layer, colour, linetype, text style or block |
+| `snapshot`, `reset(snapshot)`, `release_snapshot(snapshot)` | keeps the drawing as it stands under an id (`s1`), puts it back to that (the steps since are forgotten, not made one more undo step; a writer, refused when read-only) and lets go of it; the drawing's snapshots go when it is closed or replaced |
+| `server_status`, `describe_kinds` | how the server stands (mode, flags in force, version, the drawing, the snapshots held; works with no drawing open) and the kinds of entity it reads and writes, with the fields and the tool that makes each |
 | `render_png(box=, layout=, width=, height=, dpi=)` | the layout, or a part of it, as a picture the agent sees (an MCP image) |
 | `measure_text(text, at, height, rotation=, text_style=, justify=)`, `measure_mtext(text, at, height, width=, rotation=, text_style=, justify=)` | the box a text would take and the frame of its words, found by the code that draws it in the drawing's own text style and fonts, **before it is added**: nothing is added, no undo step is made |
 | `measure_dimension(kind, points, dim_style=, text=, angle=)`, `measure_leader(arrow, landing, text, style=, scale=)` | the same for a dimension (`linear`, `aligned`, `radial`, `diameter`, `angular`) and for the multileader MLEADER would make |
@@ -387,10 +399,23 @@ Four calls where the single-call loop makes 19, with the same result (0 overlaps
 an app. Each call is one of the model's turns, which is where the time goes: the 3 writing steps of the first example take 5 ms in a
 plan and 5.6 ms as three calls on a file, 9.5 ms and 8.7 ms attached, so a plan does not cost time of its own; it saves the turns.
 
+## Trying a layout and rolling it back
+
+```
+snapshot                                  -> { "snapshot": "s1", "entities": 7 }
+add_text text "NOTE A" at [80,48] height 5   -> { "handle": "114" }
+add_text text "NOTE B" at [82,49] height 5   -> { "handle": "115" }
+overlaps                                  -> { "total": 1, ... }      the two notes lie over each other
+reset snapshot "s1"                       -> { "done": "reset", "entities": 7 }
+query_entities kinds ["TEXT"]             -> only the text that was there
+add_text text "NOTE A" at [80,48] height 5   -> { "handle": "114" }   the handle comes back too
+release_snapshot snapshot "s1"
+```
+
 ## Limits
 
 - One drawing at a time: the tools work on the one `open_drawing`, `new_drawing`, `--file` or the app's active drawing names.
-- `query_entities` gives a handful of numbers a kind, not every property: read one entity in full with the Python or C#
+- `query_entities` gives a handful of numbers a kind, not every property: read one entity in full with `get_entity`, or with the Python or C#
   API ([Driving the app from another program](remote.md), [Python](../python.md)).
 - Attached, the modify tools send their command, with the objects picked by handle, to the app and end it with Esc where it is still
   asking. A tool of several steps (a table and its cells, a viewport and its scale) is one undo step, made with `UNDO Begin` and
@@ -412,3 +437,13 @@ plan and 5.6 ms as three calls on a file, 9.5 ms and 8.7 ms attached, so a plan 
 - Attached, `render_png` draws a copy of the app's drawing taken at the call: the header, tables, blocks, layouts and objects as the
   app has them (a 10 000-entity drawing is 1 MB of text and the request takes about 20 ms); what the app shows beyond the drawing
   (its grid, grips, selection) is not in the picture, as on a file.
+- Attached, `list_layouts`, `list_linetypes`, `list_multileader_styles` and `list_table_styles` read a copy of the app's drawing, as
+  `render_png` does (changes not saved included); `get_entity`, `select`, `id_point` and `list_properties` ask the app for the
+  Properties palette, the entities in an area and LIST (the requests `properties`, `selectGeometry` and `list` of
+  [Remote](remote.md#the-palette-the-entities-in-an-area-and-list)), and leave the app's command line and selection as they were.
+- `select` is not held to what the app's window shows: a `window` takes every entity wholly inside the box, on screen or not.
+- The attributes of a block reference and the parts of a block's definition have no handle of their own in the answers (the
+  attributes are listed under the block reference's handle): an app answers from copies, whose numbers for them are not the app's.
+- A `snapshot` is tied to the drawing it was taken of. In a server on a file it is let go when another drawing is opened or made;
+  attached, the app keeps it until `release_snapshot` or until the drawing is closed. A `reset` is not an undo step: `undo` after it
+  takes back what was done before the snapshot, not the reset.

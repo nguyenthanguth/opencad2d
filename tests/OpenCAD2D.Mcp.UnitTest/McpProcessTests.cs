@@ -39,7 +39,7 @@ namespace OpenCAD2D.Mcp.UnitTest
             Assert.Equal("OpenCAD2D", client.ServerInfo.Name);
             Assert.Contains("millimetres", client.ServerInstructions);
             var tools = await client.ListToolsAsync();
-            Assert.Equal(104, tools.Count);
+            Assert.Equal(129, tools.Count);
 
             CallToolResult info = await client.CallToolAsync("info");
             Assert.Contains(

@@ -274,6 +274,12 @@ namespace OpenCAD2D
                     return Make(Find(request), request);
                 case RemoteOps.FeedSelection:
                     return FeedSelection(Find(request), request);
+                case RemoteOps.Properties:
+                    return PropertiesOf(Find(request), request);
+                case RemoteOps.SelectGeometry:
+                    return SelectGeometry(Find(request), request);
+                case RemoteOps.List:
+                    return ListOf(Find(request), request);
                 default:
                     return OtherRequest(op, request);
             }

@@ -11,7 +11,7 @@ namespace OpenCAD2D.Mcp
     /// The state of one server: the options it was started with, the drawing the tools work on, and the rules of safety
     /// every tool goes through. One tool runs at a time, so a drawing is never touched by two calls at once.
     /// </summary>
-    internal sealed class McpSession : IDisposable
+    internal sealed partial class McpSession : IDisposable
     {
         private readonly object _gate = new object();
         private readonly McpFailures _failures = new McpFailures();
@@ -213,6 +213,7 @@ namespace OpenCAD2D.Mcp
                 );
             }
 
+            Snapshots.ReleaseAll();
             _file?.Dispose();
             _file = next;
         }
@@ -249,6 +250,7 @@ namespace OpenCAD2D.Mcp
         /// <summary>Closes the connection to the app and the open file; the app keeps its drawings.</summary>
         public void Dispose()
         {
+            Snapshots.ReleaseAll();
             _file?.Dispose();
             _app?.Dispose();
         }
