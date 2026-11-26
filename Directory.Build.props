@@ -6,7 +6,7 @@
   -->
 
     <PropertyGroup>
-        <OpenCAD2DVersion>1.0.0</OpenCAD2DVersion>
+        <OpenCAD2DVersion>2.0.0</OpenCAD2DVersion>
     </PropertyGroup>
 
     <PropertyGroup>

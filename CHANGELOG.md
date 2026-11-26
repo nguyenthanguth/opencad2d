@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.0.0 (2026-11-26)
+
 - **NEW.** eTransmit of a sheet set (A12): the eTransmit item of the Sheet List's set, subset and sheet menus opens
   Create Transmittal, the reduced dialog of AutoCAD's. Its Sheets tab ticks the sheets to send, its Files Table lists
   what they need (the .dst, the drawings, their external references, images, PDF underlays and data-link files, the

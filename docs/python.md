@@ -36,13 +36,13 @@ bash tools/python/make-stubs.sh
 bash tools/python/build-wheel.sh
 ```
 
-The wheel is `artifacts/python/opencad2d-1.0.0-py3-none-win_amd64.whl` (the version is OpenCAD2D's, the one
+The wheel is `artifacts/python/opencad2d-2.0.0-py3-none-win_amd64.whl` (the version is OpenCAD2D's, the one
 `Directory.Build.props` carries, so the app and a wheel of one number hold the same code). Install it into a
 virtual environment, with the `numpy` extra if you want [the array helpers](#numpy-in-blocks):
 
 ```
 python -m venv .venv
-.venv\Scripts\python -m pip install "artifacts\python\opencad2d-1.0.0-py3-none-win_amd64.whl[numpy]"
+.venv\Scripts\python -m pip install "artifacts\python\opencad2d-2.0.0-py3-none-win_amd64.whl[numpy]"
 ```
 
 The wheel is 10 332 832 bytes. It holds the three assemblies (`GeometryHelper.dll`, `OpenCAD2D.Core.dll` and
@@ -63,7 +63,7 @@ from OpenCAD2D import CadCommandSession, CadDocument
 from GeometryHelper.Dxf import DxfDatabase, DxfWriter
 from GeometryHelper.Geometry import GeoPoint3
 
-print(opencad2d.__version__, opencad2d.runtime())      # 1.0.0 coreclr
+print(opencad2d.__version__, opencad2d.runtime())      # 2.0.0 coreclr
 print(GeoPoint3(0, 0, 0).DistanceTo(GeoPoint3(3, 4, 0)))         # 5.0
 
 document = CadDocument.From(DxfDatabase.Parse(DxfWriter().ToString()))   # an empty drawing
