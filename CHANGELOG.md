@@ -27,6 +27,14 @@
 - **NEW.** The sheet list table (A12, engine): `CadSheetListTable.Insert` puts a table of the set's sheets in set order in a layout, with the
   subsets as merged header rows where asked, the number and title cells as sheet set fields bound to their sheets with AutoCAD's
   hyperlink switch, and its settings kept in the table; `Update` lists the set again after a sheet was added or removed, in one undo step.
+- **NEW.** Insert Sheet List Table and its table's right-click items (A12): the item of the Sheet List's menus opens a dialog in the
+  design's two tabs, Table Data (the title text, a column for each line with its data type and heading, Add, Remove, Move Up and Move
+  Down; the data types include the custom properties of the sheets) and Subsets and Sheets (the set's tree with check boxes, a checked
+  subset taking in the sheets added to it later), with the table style and its preview and Include Subsets as Headers in Output; OK asks
+  "Specify insertion point:" and draws the table in the sheet's layout in one undo step. A cell of the table has Update Sheet List
+  Table (lists the set again, the cells typed by hand are lost, said on the command line) and Edit Sheet List Table Settings… (the same
+  dialog on the settings the table keeps) at the top of its right-click menu. `CadSheetListTable.Update` takes new settings and
+  `ReadSetFile` names the set a table was made from.
 - **NEW.** Example sheet sets (A12): New Sheet Set and OpenCAD2D Metric Sheet Set (the subsets General, Plans and Details, the properties
   Client, Project Address, Drawn By and Checked By) with the template OpenCAD2D-sheets-mm.dwt (an A1 layout with a frame and a title
   block of sheet set fields), in a SheetSetExamples folder beside the program; our own, not AutoCAD's.

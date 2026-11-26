@@ -255,12 +255,22 @@ namespace OpenCAD2D.SheetSets
         /// <param name="document">The drawing.</param>
         /// <param name="handle">The handle of the table.</param>
         /// <param name="file">The sheet set; null to open the one the table names.</param>
+        /// <param name="settings">
+        /// The settings to list from, as Edit Sheet List Table Settings gives them; copied and kept in the new table. Null to use the
+        /// ones the table keeps. A column that stays at its place with the same data type keeps its width; any other takes the
+        /// width of its data type.
+        /// </param>
         /// <returns>The handle of the new table.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the document or the handle is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when the handle is not that of a sheet list table of the drawing.</exception>
+        /// <exception cref="ArgumentException">Thrown when the handle is not that of a sheet list table of the drawing, or the settings have no column.</exception>
         /// <exception cref="FileNotFoundException">Thrown when the table names a set whose file is no longer there and none is given.</exception>
         /// <exception cref="InvalidOperationException">Thrown when the table could not be made again (the message says why).</exception>
-        public static string Update(CadDocument document, string handle, CadSheetSetFile file = null)
+        public static string Update(
+            CadDocument document,
+            string handle,
+            CadSheetSetFile file = null,
+            CadSheetListTableSettings settings = null
+        )
         {
             if (document == null)
             {
@@ -289,12 +299,48 @@ namespace OpenCAD2D.SheetSets
                 file = CadSheetSetFile.Open(kept.SetFile);
             }
 
+            if (settings != null)
+            {
+                Guard.Argument(settings.Columns.Count > 0, nameof(settings), "A sheet list table needs a column.");
+            }
+
             CadTableStyleEditor.EnsureStandard(document.Database);
             DxfTableStyle style = CadTableStyleEditor.Find(document.Database, old.TableStyleName ?? "Standard")
                 ?? CadTableStyleEditor.Find(document.Database, "Standard");
-            double[] widths = Enumerable.Range(0, old.NumColumns).Select(old.ColumnWidth).ToArray();
+            CadSheetListTableSettings listed = settings == null ? kept.Settings : Copy(settings);
+            double[] widths = Enumerable
+                .Range(0, listed.Columns.Count)
+                .Select(c =>
+                    c < old.NumColumns
+                    && c < kept.Settings.Columns.Count
+                    && kept.Settings.Columns[c].Data == listed.Columns[c].Data
+                        ? old.ColumnWidth(c)
+                        : WidthOf(listed.Columns[c].Data)
+                )
+                .ToArray();
             GeoPoint3 position = old.Position;
-            return Make(document, file, kept.Settings, new GeoPoint2(position.X, position.Y), style, widths, old);
+            return Make(document, file, listed, new GeoPoint2(position.X, position.Y), style, widths, old);
+        }
+
+        /// <summary>Reads the path of the sheet set a sheet list table was made from.</summary>
+        /// <param name="document">The drawing.</param>
+        /// <param name="handle">The handle of the table.</param>
+        /// <returns>The full path of the .dst; null where the object is not a sheet list table of this program.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the document or the handle is null.</exception>
+        public static string ReadSetFile(CadDocument document, string handle)
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (handle == null)
+            {
+                throw new ArgumentNullException(nameof(handle));
+            }
+
+            DxfTable table = document.FindEntity(handle) as DxfTable;
+            return table == null ? null : Read(table)?.SetFile;
         }
 
         /// <summary>Reads the settings a sheet list table keeps.</summary>

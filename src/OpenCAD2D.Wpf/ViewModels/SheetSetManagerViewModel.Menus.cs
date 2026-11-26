@@ -204,7 +204,7 @@ namespace OpenCAD2D.Wpf
                 ),
                 Item("eTransmit…", () => NotBuilt("eTransmit", "5b")),
                 CadMenuItemViewModel.Separator(),
-                Item("Insert Sheet List Table…", () => NotBuilt("Insert Sheet List Table", "4e"), table),
+                Item("Insert Sheet List Table…", () => _main.InsertSheetListTable(_current), table),
                 Item("Manage Page Setups…", () => _main.StartCommand("PAGESETUP")),
                 Item("Plot Stamp Settings…", () => _main.StartCommand("PLOTSTAMP")),
                 CadMenuItemViewModel.Separator(),
@@ -311,7 +311,7 @@ namespace OpenCAD2D.Wpf
                 ),
                 Item("eTransmit…", () => NotBuilt("eTransmit", "5b")),
                 CadMenuItemViewModel.Separator(),
-                Item("Insert Sheet List Table…", () => NotBuilt("Insert Sheet List Table", "4e"), table),
+                Item("Insert Sheet List Table…", () => _main.InsertSheetListTable(_current), table),
                 CadMenuItemViewModel.Separator(),
                 Item("Properties…", () => Ask(SheetSetDialog.Properties, chosen[0], "Sheet Properties")),
             };

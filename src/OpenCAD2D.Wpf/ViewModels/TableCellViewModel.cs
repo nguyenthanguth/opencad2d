@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
+using OpenCAD2D.SheetSets;
 
 namespace OpenCAD2D.Wpf
 {
@@ -432,7 +433,7 @@ namespace OpenCAD2D.Wpf
                 alignments.Add(new CadMenuItemViewModel(name, () => Align(chosen), isChecked: name == shared));
             }
 
-            return new[]
+            IReadOnlyList<CadMenuItemViewModel> cells = new[]
             {
                 Item("Cut", () => CutCommand.Execute(null), table != null, "Ctrl+X"),
                 Item("Copy", () => CopyCommand.Execute(null), table != null, "Ctrl+C"),
@@ -520,6 +521,21 @@ namespace OpenCAD2D.Wpf
                     "Not built: Quick Properties shows the properties of objects, not those of cells; the Table Cell tab sets them."
                 ),
             };
+
+            if (table == null || CadSheetListTable.ReadSettings(_model.Document, Handle) == null)
+            {
+                return cells;
+            }
+
+            // A sheet list table (A12 4e) has its two items ahead of the others, as the board draws them.
+            return new[]
+            {
+                Item("Update Sheet List Table", () => _model.UpdateSheetListTable(Handle)),
+                Item("Edit Sheet List Table Settings…", () => _model.EditSheetListTable(Handle)),
+                Line(),
+            }
+                .Concat(cells)
+                .ToList();
         }
 
         /// <summary>The Cell Style submenu of the right-click menu: By Row/Column, each cell style (the one the first cell takes checked), then Create New Cell Style… and Manage Cell Styles….</summary>

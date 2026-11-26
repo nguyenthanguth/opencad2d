@@ -36,6 +36,9 @@ namespace OpenCAD2D.Wpf
             "renumber-open",
             "importlayouts",
             "importlayouts-listed",
+            "sheetlist",
+            "sheetlist-sheets",
+            "sheetlist-edit",
         };
 
         private const string Locked = "The sheet set is locked by h.le on WS-07.";
@@ -163,6 +166,11 @@ namespace OpenCAD2D.Wpf
                         new SheetSetImportLayoutsViewModel(file, Subset(file, "Structural"))
                     );
                     break;
+                case "sheetlist":
+                case "sheetlist-sheets":
+                case "sheetlist-edit":
+                    dialog = new SheetListTableWindow(ListTable(file, kind));
+                    break;
                 default:
                     var listed = new SheetSetImportLayoutsViewModel(file, Subset(file, "Structural"));
                     listed.Load(Path.Combine(folder, "Drawings", "S-201 Slab.dwg"));
@@ -173,6 +181,58 @@ namespace OpenCAD2D.Wpf
             window = dialog;
             root = dialog.Body;
             return true;
+        }
+
+        /// <summary>
+        /// Insert Sheet List Table as the board A12SheetListTable draws it: the sample set with the cover sheet G-001, the sheets A-501
+        /// and S-501 added, the columns Sheet No., Sheet Title, Rev. and Drawn, the subsets as headers; the second picture is the
+        /// Subsets and Sheets tab with S-501 unchecked, the third the dialog on a table's settings.
+        /// </summary>
+        private static SheetListTableViewModel ListTable(CadSheetSetFile file, string kind)
+        {
+            file.Change(set =>
+            {
+                set.NewSheet("G-001", "Cover Sheet");
+                set.Subsets.Single(s => s.Name == "Architectural")
+                    .Subsets.Single(s => s.Name == "Details")
+                    .NewSheet("A-501", "Wall Sections");
+                set.Subsets.Single(s => s.Name == "Structural").NewSheet("S-501", "Typical Details");
+            });
+            var settings = new CadSheetListTableSettings { Title = "Sheet List", IncludeSubsetHeaders = true };
+            settings.Columns.Clear();
+            settings.Columns.Add(CadSheetListColumn.Of(CadSheetListData.SheetNumber, "Sheet No."));
+            settings.Columns.Add(CadSheetListColumn.Of(CadSheetListData.SheetTitle));
+            settings.Columns.Add(CadSheetListColumn.Of(CadSheetListData.RevisionNumber, "Rev."));
+            settings.Columns.Add(CadSheetListColumn.Custom("Drawn By", "Drawn"));
+            var document = CadDocument.From(new DxfDatabase("AC1032"), "Example Tower sheets.dwg");
+            var dialog = new SheetListTableViewModel(file, document, kind == "sheetlist-edit" ? settings : null);
+
+            if (kind != "sheetlist-edit")
+            {
+                dialog.TitleText = settings.Title;
+                dialog.IncludeSubsetHeaders = true;
+                dialog.Columns.Clear();
+
+                foreach (CadSheetListColumn column in settings.Columns)
+                {
+                    dialog.AddColumn();
+                    SheetListColumnRow row = dialog.Columns.Last();
+                    row.DataType = dialog.DataTypes.Single(d =>
+                        d.Data == column.Data && d.CustomName == column.CustomName
+                    );
+                    row.Heading = column.Heading;
+                }
+            }
+
+            dialog.SelectedColumn = dialog.Columns[2];
+
+            if (kind == "sheetlist-sheets")
+            {
+                dialog.IsSubsetsTab = true;
+                dialog.Nodes.Single(n => n.Text == "S-501 - Typical Details").IsChecked = false;
+            }
+
+            return dialog;
         }
 
         private static CadSheetSubset Subset(CadSheetSetFile file, string name) =>

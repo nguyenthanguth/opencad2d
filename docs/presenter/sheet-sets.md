@@ -82,13 +82,13 @@ Right-click a row: a row outside the selection is selected first; a row inside i
 **Publish ▸** holds Publish to PDF, Publish to Plotter, Publish Using Page Setup Override ▸ (the page setups of the set's
 overrides file, grey where the set names none), then the check of the row (Publish in Reverse Order on the set; Publish
 Sheets in Subset and Publish in Reverse Order on a subset; Include for Publish on a sheet), Sheet Set PDF Publish Options…
-(the set) and Publish Dialog Box… (the Publish dialog over the set's sheets; see [Publish](#publish)). Insert Sheet List Table… and eTransmit… say on the command line that they are not built yet;
+(the set) and Publish Dialog Box… (the Publish dialog over the set's sheets; see [Publish](#publish)). eTransmit… says on the command line that it is not built yet;
 the dialogs are shown by the window, and with none (a program driving the palette) the command line says so.
 
 - **Remove Subset** is grey while the subset holds sheets or subsets: move or remove them first.
 - **Remove Sheet** asks first and never deletes the sheet's drawing: the sheet leaves the set and the drawing stays on disk.
 - **Include for Publish** puts a sheet in or out of publishing (the sheet's words go grey, struck, where it is out).
-- **Insert Sheet List Table…** is grey on Model and on a layout that is not a sheet of the current set.
+- **Insert Sheet List Table…** is grey on Model and on a layout that is not a sheet of the current set; it opens the dialog described in [The sheet list table](#the-sheet-list-table).
 - **Resave All Sheets** opens every sheet's drawing and saves it again so that the drawings and the set agree.
 
 ### A set that is read-only
@@ -303,8 +303,38 @@ listed is a list of checked parts: a sheet checked is listed, and so is every sh
 The settings are kept in the table itself, in its extension dictionary under the xrecord `OPENCAD2D_SHEETLISTTABLE`, our own: to AutoCAD
 the table is a plain one whose fields still update. `CadSheetListTable.Update` lists the set again from them, after a sheet was added or
 removed: it makes the table anew in the same corner, style and column widths and takes the old one's place, as one undo step (the new
-table has a new handle, and what was typed in the old table's cells by hand is gone). The Insert Sheet List Table dialog and the table's
-right-click items follow in a later package.
+table has a new handle, and what was typed in the old table's cells by hand is gone).
+
+### Insert Sheet List Table
+
+Right-click the set (or a sheet) in the Sheet List and pick **Insert Sheet List Table…** while the layout current is a sheet of the
+set. The dialog has the table style at the left (its name, **...** for the Table Style dialog, a preview) with **Include Subsets as
+Headers in Output**, and two tabs at the right.
+
+- **Table Data.** **Title Text** is the first row of the table ("Sheet List Table" to begin with). The list has one line for each
+  column, the top line being the left column: its **Data type** and its **Heading text**. A new table starts with Sheet Number and
+  Sheet Title. Click a line to change them in place. The Data type list offers Sheet Number, Sheet Title, Sheet Description, Subset
+  name, Revision number, Revision date, Issue purpose, Category, Drawing file name and Layout name, then the custom properties the
+  sheets hold (Drawn By, Checked By); a heading follows the data type until you type one. **Add** puts a Sheet Number column at the
+  end; **Remove**, **Move Up** and **Move Down** act on the selected line.
+- **Subsets and Sheets.** The tree of the set, each part with a check box, all checked to begin with. Checking a subset checks
+  everything in it; a subset with only some parts checked shows a square. A checked subset takes in the sheets added to it later
+  when the table is updated; a sheet checked alone stays alone. **Populate From Sheet Selection** is shown grey: sheet selections
+  are left out.
+
+A table with no column, or with no sheet checked, is refused in the dialog's words and OK is grey. **OK** asks "Specify insertion
+point:" on the command line and draws the table there in the layout current, as one undo step.
+
+Right-click a cell of a sheet list table and its two items come first:
+
+- **Update Sheet List Table** lists the set again as it is now, by the settings the table keeps: a sheet added since is listed, one
+  removed is not. The table is made anew in the same place, style and column widths (one undo step, and a new handle). A cell typed
+  in by hand is lost, and the command line says so: "Sheet list table updated from Example Tower: cells edited by hand were
+  replaced." The set is read from the one open in the palette, else from the `.dst` the table names; where that file is gone the
+  command line says so and the table stays.
+- **Edit Sheet List Table Settings…** opens the same dialog, titled so, on the settings the table keeps. The table style is fixed
+  (it is the table's own). OK lists the set by the new settings and keeps them in the table; a column left where it was keeps its
+  width, a new one takes the width of its data type.
 
 ## From a program
 
@@ -321,7 +351,7 @@ SSLOCATE (the set found, and whether to show the palette), and SSMSTATE (answere
 is shown). `CadCommandSession.SheetSetOptions` holds the variables (the app gives every session one), `CadCommandSession.LocateSheetSet`
 is SSLOCATE and `CadCommandSession.SheetSetFound` SSFOUND. `CadSheetSetFile.OpenForEditing` opens a set the way the palette does, taking the
 lock (`CadSheetSetLock`) or opening read-only (`IsReadOnly`, `ReadOnlyReason`, `LockedBy`), and `ReleaseLock` lets it go; `Change` refuses a
-read-only set. `CadSheetSetExamples` lists the examples and `CadSheetListTable` makes and updates the table.
+read-only set. `CadSheetSetExamples` lists the examples and `CadSheetListTable` makes and updates the table (`Update` takes new settings, as Edit Sheet List Table Settings gives them, and `ReadSetFile` says which set a table was made from); the window shows the table's dialog through `MainViewModel.ShowSheetListTable`.
 
 The dialogs (New Sheet, Import, Rename & Renumber, the Properties and the Create
 Sheet Set wizard), publishing and eTransmit are added by the packages that build them.
