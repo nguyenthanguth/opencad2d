@@ -195,7 +195,10 @@ namespace OpenCAD2D
         /// <summary>Gets the point, in drawing units.</summary>
         public GeoPoint2 Point { get; }
 
-        /// <summary>Gets the handle of the object snapped to, or null for a grid, ortho, polar or no snap.</summary>
+        /// <summary>
+        /// Gets the handle of the object snapped to, or null for a grid, ortho, polar or no snap; for a snap on a layout through a
+        /// viewport, the object of model space the viewport shows, <see cref="Point"/> being where the viewport shows the point.
+        /// </summary>
         public string Handle { get; }
 
         /// <summary>
@@ -210,6 +213,16 @@ namespace OpenCAD2D
 
         /// <summary>The object an Extended Apparent Intersection offers, kept for <see cref="ObjectSnap.TakeFirstObject"/>.</summary>
         internal object Source { get; }
+
+        /// <summary>
+        /// The handle of the viewport a snap of the paper was taken through, with <see cref="Handle"/> the object of model space
+        /// it was taken on and <see cref="ModelPoint"/> the point there, <see cref="Point"/> being the paper's; null for a snap
+        /// of the space itself. A dimension tied through it is AutoCAD's trans-spatial association.
+        /// </summary>
+        internal string ViewportHandle { get; set; }
+
+        /// <summary>The point of model space a snap through a viewport was taken at; of no meaning where <see cref="ViewportHandle"/> is null.</summary>
+        internal GeoPoint2 ModelPoint { get; set; }
 
         /// <inheritdoc/>
         public override string ToString() => Kind + " " + Point;

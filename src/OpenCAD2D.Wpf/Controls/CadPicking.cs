@@ -190,7 +190,10 @@ namespace OpenCAD2D.Wpf
             }
 
             snap.Ucs = document.Ucs.WorkingOf(space);
-            return snap.Acquire(document.GetPickIndex(space), cursor, aperture, basePoint);
+
+            // On the paper, a point of the model space a viewport shows is acquired too, where none of the paper's is.
+            return snap.Acquire(document.GetPickIndex(space), cursor, aperture, basePoint)
+                || CadViewportSnap.AcquireThrough(document, space, snap, cursor, aperture);
         }
 
         /// <summary>A left click at a point of the drawing.</summary>

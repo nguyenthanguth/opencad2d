@@ -753,6 +753,7 @@ namespace OpenCAD2D.Wpf
             ["DIMCONTINUE"] = "Dimensions end to end",
             ["DIMDISASSOCIATE"] = "Free dimensions from their objects",
             ["DIMEDIT"] = "Edit dimension text and extension lines",
+            ["DIMREGEN"] = "Update dimensions tied through viewports",
             ["DIMINSPECT"] = "Add inspection data to dimensions",
             ["DIMJOGGED"] = "Jogged radius dimension",
             ["DIMJOGLINE"] = "Jog a linear dimension line",

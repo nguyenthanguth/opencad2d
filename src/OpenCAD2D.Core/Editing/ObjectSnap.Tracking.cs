@@ -129,6 +129,53 @@ namespace OpenCAD2D
         }
 
         /// <summary>
+        /// The point of model space a viewport shows under the cursor that object snap tracking would acquire, as
+        /// <see cref="Acquire"/> finds it in a space but for the points of Extension and Parallel: the snap point near the
+        /// cursor of the objects of the model index (the layers of <c>HiddenLayers</c> left out), the cursor and the aperture
+        /// those of model space, the point taken to the sheet by <paramref name="toSheet"/>. Nothing is acquired.
+        /// </summary>
+        /// <param name="model">The index of model space.</param>
+        /// <param name="cursor">The cursor, in model units.</param>
+        /// <param name="aperture">The aperture, in model units.</param>
+        /// <param name="scale">The sheet units to a model unit, which turns the distance from the cursor into sheet units.</param>
+        /// <param name="toSheet">The viewport's mapping of a point of model space to the sheet.</param>
+        /// <param name="reach">How far the point lies from the cursor, in sheet units.</param>
+        /// <returns>The point to acquire, on the sheet; null where object snap tracking is off or no snap point is near.</returns>
+        internal CadAcquiredPoint TrackingPointThrough(
+            PickIndex model,
+            GeoPoint2 cursor,
+            double aperture,
+            double scale,
+            Func<GeoPoint2, GeoPoint2> toSheet,
+            out double reach
+        )
+        {
+            reach = double.MaxValue;
+            _active = Override ?? (IsOn ? Modes : CadSnapModes.None);
+
+            if (_active == CadSnapModes.None || !(aperture > 0.0) || !Tracking)
+            {
+                return null;
+            }
+
+            var found = new Found();
+            Gather(model, cursor, aperture, null, found);
+            Candidate point = Best(found.Near);
+
+            if (point == null)
+            {
+                return null;
+            }
+
+            reach = point.Reach * scale;
+            return new CadAcquiredPoint(point.Kind, toSheet(point.Point), point.Handle);
+        }
+
+        /// <summary>Acquires a point found by <see cref="TrackingPointThrough"/>, the oldest of seven let go as for any other.</summary>
+        /// <param name="acquired">The point.</param>
+        internal void AcquireFound(CadAcquiredPoint acquired) => Add(acquired);
+
+        /// <summary>
         /// Acquires a point given rather than rested on, as AutoCAD's temporary track point (TT): while OTRACK is on, tracking
         /// lines run from it as from any point acquired, so that TT at (2 000, 0) holds the cursor near (2 000.3, 700) at
         /// (2 000, 700). It is drawn as a small cross and counts among the seven, the oldest let go first.

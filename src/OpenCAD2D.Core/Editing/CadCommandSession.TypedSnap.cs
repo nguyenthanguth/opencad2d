@@ -177,6 +177,12 @@ namespace OpenCAD2D
                 }
             }
 
+            // On a layout, the model space its viewports show is snapped to as well, the point taken to the sheet.
+            foreach (GeoPoint2 shown in CadViewportSnap.TypedPoints(this, kind, point, from))
+            {
+                Consider(shown, point, ref best, ref nearest);
+            }
+
             if (best.HasValue)
             {
                 point = best.Value;
