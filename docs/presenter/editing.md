@@ -4044,7 +4044,7 @@ registry and writes none into a drawing (probe GhDb1), and the window keeps it i
 (`"gripDynamicColor": 140`). GRIPSIZE, 1 to 255 and 5 by default, is the size of the grips (`"gripSize": 5`): a plain grip is a
 square 2 × size + 5 pixels across, 15 at 5 and 25 at 10 (see [Hover menus](#hover-menus)).
 GRIPMULTIFUNCTIONAL, 0 to 3 and 3 by default (`"gripMultifunctional": 3`), turns the hover menu of a multi-functional
-grip on with its bit 2; bit 1 is AutoCAD's Ctrl cycling, which the presenter keeps in the variable but does not act on.
+grip on with its bit 2, and its bit 1 turns on Ctrl cycling (see [Hover menus](#hover-menus)): 3 has both, 2 the menu alone, 1 Ctrl alone, 0 neither.
 The window keeps PICKBOX, GRIPSIZE, APERTURE, LWDISPLAY and POLARANG in
 the settings file as it keeps DYN and the snaps, POLARANG 30 written `"polarAngle": 30`, and POLARMODE too: its 2 runs
 the lines of object snap tracking on every polar angle (0, AutoCAD's default, runs them level and upright alone), and its 8
@@ -4850,9 +4850,27 @@ undo step named GRIP, and Esc at its prompt changes nothing:
   and SPLINESEGS, so that a quadratic one is refitted as a cubic where SPLINETYPE is 6): the second vertex of that frame
   dragged to (107, 5) fits the curve through it, the first arc of its biarc bulging 0.2976 as AutoCAD's does.
 
+**Ctrl cycling.** With GRIPMULTIFUNCTIONAL's bit 1 set (1 or 3), a grip clicked and hot, and the grip edit still waiting for its
+first point, each tap of Ctrl (pressed and let go with no other key and no mouse button pressed between, the cycle made at the key up) goes on to the next item of the grip's menu and back to the first after the last, as AutoCAD
+2021's help says of a multi-functional grip: the command line names the option and asks its own question, the grip stays hot, and nothing
+is written to the drawing until a point is given. A vertex of a polyline cycles Stretch (`** STRETCH **`), Add Vertex
+(`** ADD VERTEX **`), Remove Vertex (`** REMOVE VERTEX **`, `Pick to remove vertex:`) and Stretch again; the middle of a
+straight segment Stretch, Add Vertex, Convert to Arc (`** CONVERT TO ARC **`, `Specify midpoint of arc segment:`), and that of an
+arc segment Stretch, Add Vertex, Convert to Line (`** CONVERT TO LINE **`, `Pick to convert to line segment:`). The other
+grips with a menu cycle their own items the same way (a line's end Stretch and Lengthen, a spline's point its fit point or
+vertex words), and a grey item is skipped: a polyline of two vertices cycles Stretch and Add Vertex. Remove Vertex and Convert to Line
+wait for a pick when reached with Ctrl, so that the next press can leave them (the hover menu does them at once); any point
+picked does the edit, and Esc leaves the drawing as it was. A grip with a menu of one item, a grip edit of several hot grips, and
+a grip edit that has made a vertex already (Add Vertex with Copy on) do not cycle. Space still goes on to MOVE, ROTATE, SCALE and
+MIRROR, and a first point picked with Ctrl held still turns Copy on: Ctrl held for the click is no tap, and Ctrl+Z or any other
+shortcut never cycles. The window gives each tap of Ctrl to
+[`session.CycleGripOption()`](xref:OpenCAD2D.CadCommandSession), once, a key held down not repeating it. The order of the options,
+the command line texts and the pick prompts of Remove Vertex and Convert to Line are those of AutoCAD 2021's help and string table
+(the same table the hover menu is read from); what a tap of Ctrl does at a prompt other than the first, and whether AutoCAD
+cycles Remove Vertex as a pick, are not checked in its window.
+
 The static members are `CadGrips.AddVertex`, `RemoveVertex`, `ConvertToArc`, `ConvertToLine`, `Lengthen`, `ChangeRadius`,
-`ChangeHatchScale`, `ChangeHatchAngle` and `SetHatchOrigin`, each one undo step. A spline's fit/control switch has no menu yet;
-Ctrl cycling through a grip's options is not built: Ctrl held as the first point is picked still turns Copy on.
+`ChangeHatchScale`, `ChangeHatchAngle` and `SetHatchOrigin`, each one undo step. A spline's fit/control switch has no menu yet.
 
 ## Properties
 

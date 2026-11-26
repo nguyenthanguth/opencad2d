@@ -127,6 +127,12 @@ namespace OpenCAD2D
         // A point a modifier gave is picking at "Select objects:": its line is written already, so the pick writes none of its own.
         private bool _quietPick;
         private CadCommand _gripCommand;
+
+        // The grip whose options Ctrl cycles through while its grip command runs (its handle, its index and the place of the option
+        // now on in the enabled items of its menu); null for none, as for several hot grips or a grip with one option.
+        private string _cycleHandle;
+        private int _cycleGrip;
+        private int _cycleAt;
         private bool _grouped;
         private List<string> _script;
 
@@ -478,7 +484,8 @@ namespace OpenCAD2D
         /// the first hot grip until Base point gives another; the other modes move, turn, scale or mirror the objects selected.
         /// Copy leaves the originals and asks again until eXit, Enter or Esc, as does a first point picked with Ctrl held
         /// (<see cref="Feed(GeoPoint2, bool, bool)"/>). The whole grip edit is one undo step; the command run last stays the one
-        /// Enter runs again.
+        /// Enter runs again. With one hot grip that has a menu of two items or more, <see cref="CycleGripOption"/> goes on to its
+        /// next option.
         /// </summary>
         /// <param name="hotGrips">The hot grips, each the handle of an entity and the index of its grip as <see cref="CadGrips.Of"/> gives it.</param>
         /// <returns>False, starting nothing, where a command is running or no grip given is one of an entity of the drawing.</returns>
@@ -517,7 +524,17 @@ namespace OpenCAD2D
                 return false;
             }
 
+            // One hot grip with a menu of two or more items can be cycled with Ctrl, from its Stretch, the first item.
             _gripCommand = new CadCommand("GRIP", c => CadCommands.GripEdit(c, hot));
+            _cycleHandle = null;
+
+            if (hot.Count == 1 && EnabledGripItems(hot[0].Key, hot[0].Value).Count >= 2)
+            {
+                _cycleHandle = hot[0].Key;
+                _cycleGrip = hot[0].Value;
+                _cycleAt = 0;
+            }
+
             Run(_gripCommand, Array.Empty<string>());
             return true;
         }
@@ -550,25 +567,73 @@ namespace OpenCAD2D
                 return false;
             }
 
-            bool offered = false;
-
-            foreach (CadGripMenuItem item in CadGripMenus.Of(Document, handle, gripIndex))
-            {
-                offered |= item.Action == action && item.Enabled;
-            }
-
-            if (!offered)
-            {
-                return false;
-            }
-
-            _gripCommand = new CadCommand("GRIP", c => CadCommands.GripAction(c, handle, gripIndex, action));
-            Run(_gripCommand, Array.Empty<string>());
-            return true;
+            List<CadGripMenuItem> items = EnabledGripItems(handle, gripIndex);
+            int at = items.FindIndex(item => item.Action == action);
+            return at >= 0 && StartGripOption(handle, gripIndex, action, at, false);
         }
 
         /// <summary>Gets whether the command running is a grip edit (<see cref="StartGripEdit"/>), whose hot grips the canvas keeps showing.</summary>
         public bool IsGripEditing => Current != null && ReferenceEquals(Current, _gripCommand);
+
+        /// <summary>
+        /// Ctrl cycling of a multi-functional grip, as AutoCAD 2021's help describes it: with the grip hot and the first point not
+        /// yet given, each press goes to the next option of the grip's menu (<see cref="CadGripMenus.Of"/>, the grey items
+        /// left out) and back to the first after the last. The vertex of a polyline goes from Stretch ("** STRETCH **") to Add
+        /// Vertex ("** ADD VERTEX **"), Remove Vertex ("** REMOVE VERTEX **", "Pick to remove vertex:") and Stretch again; the
+        /// middle of a straight segment from Stretch to Add Vertex, Convert to Arc and Stretch (Convert to Line, "Pick to
+        /// convert to line segment:", for an arc segment). The option left is dropped as Esc would drop it, writing nothing,
+        /// and the grip stays hot. Nothing cycles once the grip edit has changed the drawing (Add Vertex with Copy on, a vertex
+        /// made), with several hot grips, or for a grip whose menu has fewer than two items; the host decides whether Ctrl is
+        /// heard (the canvas by GRIPMULTIFUNCTIONAL's bit 1).
+        /// </summary>
+        /// <returns>False where nothing cycled.</returns>
+        public bool CycleGripOption()
+        {
+            if (!IsGripEditing || _cycleHandle == null || _grouped || Prompt == null || Prompt.IsWaiting)
+            {
+                return false;
+            }
+
+            string handle = _cycleHandle;
+            int grip = _cycleGrip;
+            List<CadGripMenuItem> items = EnabledGripItems(handle, grip);
+
+            if (items.Count < 2)
+            {
+                return false;
+            }
+
+            int next = (_cycleAt + 1) % items.Count;
+            Finish(CadCommandOutcome.Cancelled);
+            return StartGripOption(handle, grip, items[next].Action, next, true);
+        }
+
+        /// <summary>The items of a grip's menu that can be chosen, in the order of the menu.</summary>
+        private List<CadGripMenuItem> EnabledGripItems(string handle, int gripIndex)
+        {
+            var items = new List<CadGripMenuItem>();
+
+            foreach (CadGripMenuItem item in CadGripMenus.Of(Document, handle, gripIndex))
+            {
+                if (item.Enabled)
+                {
+                    items.Add(item);
+                }
+            }
+
+            return items;
+        }
+
+        /// <summary>Runs an item of a grip's menu as the grip command, and keeps the grip for Ctrl to cycle from the item's place.</summary>
+        private bool StartGripOption(string handle, int gripIndex, CadGripAction action, int at, bool cycled)
+        {
+            _gripCommand = new CadCommand("GRIP", c => CadCommands.GripAction(c, handle, gripIndex, action, cycled));
+            _cycleHandle = handle;
+            _cycleGrip = gripIndex;
+            _cycleAt = at;
+            Run(_gripCommand, Array.Empty<string>());
+            return true;
+        }
 
         /// <summary>
         /// Goes on with the body of the command running, as if its prompt had been answered with nothing and no word written:

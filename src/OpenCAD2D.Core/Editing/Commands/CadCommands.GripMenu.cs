@@ -12,14 +12,29 @@ namespace OpenCAD2D
     /// </summary>
     internal static partial class CadCommands
     {
-        /// <summary>Runs one item of a grip's menu; all the edits it makes are one undo step.</summary>
+        /// <summary>
+        /// Runs one item of a grip's menu; all the edits it makes are one undo step. Reached by Ctrl cycling
+        /// (<see cref="CadCommandSession.CycleGripOption"/>, <paramref name="cycled"/>), Remove Vertex and Convert to Line wait
+        /// for a pick as the grip mode of AutoCAD 2021's table does, so that the next Ctrl press can go on to the next option.
+        /// </summary>
         internal static IEnumerable<CadPrompt> GripAction(
             CadCommandContext c,
             string handle,
             int gripIndex,
-            CadGripAction action
+            CadGripAction action,
+            bool cycled = false
         )
         {
+            if (cycled && (action == CadGripAction.RemoveVertex || action == CadGripAction.ConvertToLine))
+            {
+                foreach (CadPrompt prompt in GripPicked(c, handle, gripIndex, action))
+                {
+                    yield return prompt;
+                }
+
+                yield break;
+            }
+
             switch (action)
             {
                 case CadGripAction.Stretch:
@@ -80,6 +95,52 @@ namespace OpenCAD2D
                     }
 
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Remove Vertex or Convert to Line reached by Ctrl: "** REMOVE VERTEX **" and "Pick to remove vertex:" ("** REMOVE FIT
+        /// POINT **" and "Pick to remove fit point:" of a spline's fit point, "** REMOVE CONTROL VERTEX **" of its control
+        /// vertex), or "** CONVERT TO LINE **" and "Pick to convert to line segment:", as AutoCAD 2021's string table words them:
+        /// any point picked makes the edit, Enter or Esc leaves everything as it was.
+        /// </summary>
+        private static IEnumerable<CadPrompt> GripPicked(
+            CadCommandContext c,
+            string handle,
+            int gripIndex,
+            CadGripAction action
+        )
+        {
+            DxfSpline spline = c.Document.FindEntity(handle) as DxfSpline;
+            bool fit = spline != null && spline.HasFitData;
+
+            if (action == CadGripAction.ConvertToLine)
+            {
+                c.Write("** CONVERT TO LINE **");
+                yield return CadPrompt.ForPoint("Pick to convert to line segment");
+            }
+            else
+            {
+                c.Write(
+                    fit ? "** REMOVE FIT POINT **"
+                    : spline != null ? "** REMOVE CONTROL VERTEX **"
+                    : "** REMOVE VERTEX **"
+                );
+                yield return CadPrompt.ForPoint(fit ? "Pick to remove fit point" : "Pick to remove vertex");
+            }
+
+            if (!c.Input.IsPoint)
+            {
+                yield break;
+            }
+
+            if (action == CadGripAction.ConvertToLine)
+            {
+                GripConvertToLine(c, handle, gripIndex);
+            }
+            else
+            {
+                GripRemoveVertex(c, handle, gripIndex);
             }
         }
 

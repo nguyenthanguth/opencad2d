@@ -430,6 +430,12 @@ namespace OpenCAD2D.Wpf
         private bool _gripEditing;
         private Point? _gripPress;
 
+        // Ctrl cycling is going on: the grip command ends and the next option starts, which does not make the hot grips cold.
+        private bool _cyclingGrip;
+
+        // Ctrl is down and nothing else has been pressed with it.
+        private bool _controlTap;
+
         // Through a viewport: its view in model units as the picture was drawn, and as the wheel or the middle button has
         // moved it since, written into the viewport as one undo step once the view is still.
         private CadView _throughDrawn;
@@ -848,7 +854,8 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Gets or sets which ways to the options of a multi-functional grip are on, 0 to 3: 3 by default, as AutoCAD's
         /// GRIPMULTIFUNCTIONAL. Bit 2 shows the hover menu once the cursor has rested <see cref="GripMenuDelay"/> on the grip;
-        /// bit 1, Ctrl cycling, is not acted on.
+        /// bit 1 is Ctrl cycling: each tap of Ctrl while a grip edit of one hot grip waits for its first point goes on to the
+        /// grip's next option (<see cref="OnControlUp"/>).
         /// </summary>
         public int GripMultifunctional
         {
@@ -1716,6 +1723,7 @@ namespace OpenCAD2D.Wpf
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
             base.OnMouseDown(e);
+            _controlTap = false;
             Focus();
             Point p = e.ChangedButton == MouseButton.Left ? OnLegacyGrid(PositionOf(e)) : PositionOf(e);
 
@@ -2147,6 +2155,45 @@ namespace OpenCAD2D.Wpf
             }
         }
 
+        /// <summary>Ctrl pressed, not repeating: a tap begins, which any other key or a mouse button pressed before Ctrl is let go ends.</summary>
+        internal void OnControlDown() => _controlTap = true;
+
+        /// <summary>Another key or a mouse button pressed: Ctrl held with it is a shortcut or a click, not a tap.</summary>
+        internal void OnOtherInput() => _controlTap = false;
+
+        /// <summary>
+        /// Ctrl let go: a lone tap (no other key and no mouse button pressed while it was held) goes on, with GRIPMULTIFUNCTIONAL's
+        /// bit 1 set and a grip edit of one hot grip waiting for its first point, to the next option of the grip
+        /// (<see cref="CadCommandSession.CycleGripOption"/>), the hot grip staying hot. Ctrl held for a click (Copy) or for a
+        /// shortcut (Ctrl+Z) never cycles.
+        /// </summary>
+        /// <returns>Whether an option was cycled to.</returns>
+        internal bool OnControlUp()
+        {
+            bool tap = _controlTap;
+            _controlTap = false;
+            return tap && CycleGrip();
+        }
+
+        private bool CycleGrip()
+        {
+            if ((_gripMultifunctional & 1) == 0 || !_gripEditing || Session == null)
+            {
+                return false;
+            }
+
+            _cyclingGrip = true;
+
+            try
+            {
+                return Session.CycleGripOption();
+            }
+            finally
+            {
+                _cyclingGrip = false;
+            }
+        }
+
         /// <summary>Shift pressed or released: a preview that follows it, as TRIM's, is drawn anew.</summary>
         internal void OnShiftChanged()
         {
@@ -2332,7 +2379,7 @@ namespace OpenCAD2D.Wpf
             _markedDirty = true;
 
             // The hot grips go cold once their grip edit has ended, as AutoCAD's.
-            if (_gripEditing && Session != null && !Session.IsGripEditing)
+            if (_gripEditing && !_cyclingGrip && Session != null && !Session.IsGripEditing)
             {
                 _gripEditing = false;
                 _hot.Clear();

@@ -364,6 +364,20 @@ namespace OpenCAD2D.Wpf
                 CanvasView.OnShiftChanged();
             }
 
+            // A tap of Ctrl (down and up with no other key or mouse button between) takes a hot grip on to its next option; a
+            // repeat of Ctrl does not begin one, and any other key ends it.
+            if (key == Key.LeftCtrl || key == Key.RightCtrl)
+            {
+                if (!e.IsRepeat)
+                {
+                    CanvasView.OnControlDown();
+                }
+            }
+            else
+            {
+                CanvasView.OnOtherInput();
+            }
+
             ModifierKeys modifiers = Keyboard.Modifiers;
             bool inEditor =
                 (Keyboard.FocusedElement is TextBoxBase box && box != CommandBox)
@@ -609,6 +623,18 @@ namespace OpenCAD2D.Wpf
             {
                 CanvasView.OnShiftChanged();
             }
+
+            if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
+            {
+                CanvasView.OnControlUp();
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
+        {
+            base.OnPreviewMouseDown(e);
+            CanvasView.OnOtherInput();
         }
 
         /// <inheritdoc/>
