@@ -11,8 +11,10 @@ namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Python the tools' environments are made from, found before anything is made. It is the one named in Global settings;
-    /// failing that the newest 64-bit CPython 3.11 to 3.15 registered under PEP 514 (HKCU before HKLM at the same version). A
-    /// tool's process needs only its <c>python.exe</c>, so nothing but that file is looked at. A setting that does not work is a
+    /// failing that the newest 64-bit CPython 3.11 to 3.15 registered under PEP 514 (HKCU before HKLM at the same version);
+    /// failing that the Python the setup carries, <c>python\runtime\python.exe</c> beside the app's exe (a machine with no
+    /// Python of its own runs the tools on it). A tool's process needs only its <c>python.exe</c>, so nothing but that file is
+    /// looked at, except that the bundled one and a setting are run once to ask their version. A setting that does not work is a
     /// problem to show, never silently replaced by another Python.
     /// </summary>
     internal sealed class PythonInstallation
@@ -34,7 +36,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the version, <c>3.14.4</c> as the interpreter or the registry gives it, else <c>3.14</c> from the registry's tag; null where no Python was found.</summary>
         public string Version { get; private set; }
 
-        /// <summary>Gets where it came from: <c>Global settings</c> or <c>Registry (PEP 514)</c>; null where no Python was found.</summary>
+        /// <summary>Gets where it came from: <c>Global settings</c>, <c>Registry (PEP 514)</c> or <c>Bundled with OpenCAD2D</c>; null where no Python was found.</summary>
         public string Source { get; private set; }
 
         /// <summary>Gets what the app shows when no Python can be used, or null when one can.</summary>
@@ -49,20 +51,26 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the tag of the Python's wheels and of its folder of the shared base: <c>cp314</c> for Python 3.14; null where no Python was found.</summary>
         public string Tag => Version == null ? null : "cp3" + MinorOf(Version).ToString(CultureInfo.InvariantCulture);
 
-        /// <summary>Finds the Python to use, as the class describes.</summary>
+        /// <summary>Finds the Python to use, as the class describes: the bundled one is <c>python\runtime</c> beside the app's exe.</summary>
         /// <param name="configured">The <c>python.exe</c> (or its folder) set in Global settings; empty or null for the automatic order.</param>
         /// <returns>The installation, with a <see cref="Problem"/> where none can be used.</returns>
-        public static PythonInstallation Find(string configured) => Find(configured, ReadRegistry());
+        public static PythonInstallation Find(string configured) =>
+            Find(configured, ReadRegistry(), Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "python", "runtime"));
 
-        /// <summary>Finds the Python from the given setting and registry entries, which a test feeds.</summary>
-        internal static PythonInstallation Find(string configured, IReadOnlyList<PythonRegistration> registered)
+        /// <summary>Finds the Python from the given setting, registry entries and bundled folder, which a test feeds.</summary>
+        internal static PythonInstallation Find(
+            string configured,
+            IReadOnlyList<PythonRegistration> registered,
+            string bundledFolder = null
+        )
         {
             var found = new PythonInstallation();
             string setting = (configured ?? string.Empty).Trim().Trim('"').Trim();
 
             if (setting.Length == 0)
             {
-                return found.FromRegistry(registered ?? new PythonRegistration[0]);
+                found.FromRegistry(registered ?? new PythonRegistration[0]);
+                return found.IsUsable || bundledFolder == null ? found : found.FromBundled(bundledFolder);
             }
 
             found.Source = "Global settings";
@@ -149,6 +157,31 @@ namespace OpenCAD2D.Wpf
 
             version = parts[0];
             return null;
+        }
+
+        /// <summary>Takes the Python of the bundled folder where there is one that runs; where it does not run, says so in <see cref="PassedOver"/> and leaves the problem of the registry.</summary>
+        private PythonInstallation FromBundled(string folder)
+        {
+            string exe = Path.Combine(folder, "python.exe");
+
+            if (!File.Exists(exe))
+            {
+                return this;
+            }
+
+            string reason = Ask(exe, out string version);
+
+            if (reason != null)
+            {
+                _passedOver.Add("Bundled: " + reason.Replace("{path}", exe));
+                return this;
+            }
+
+            Executable = Path.GetFullPath(exe);
+            Version = version;
+            Source = "Bundled with OpenCAD2D";
+            Problem = null;
+            return this;
         }
 
         private PythonInstallation FromRegistry(IReadOnlyList<PythonRegistration> registered)

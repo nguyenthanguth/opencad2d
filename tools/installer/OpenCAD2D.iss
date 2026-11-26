@@ -58,7 +58,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "associate"; Description: "Associate .dxf and .dwg files with {#AppName}"; GroupDescription: "File types:"
 
 [Files]
-; Everything dotnet publish wrote: the exe, the .NET runtime, the libraries, the support folders, Plugins\DrawingInfo, Plugins\DrawRandom and Plugins\HelloWorld.
+; Everything dotnet publish wrote: the exe, the .NET runtime, the libraries, the support folders, Plugins\DrawingInfo, Plugins\DrawRandom and Plugins\HelloWorld; and python\runtime, the Python 3.12 that make-installer.ps1 laid out (with its
+; LICENSE.txt), which Python tools run on where the machine has no Python of its own.
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; The notices of the libraries and wheels the app carries (NuGet client, Newtonsoft.Json, pythonnet, clr_loader, cffi, pycparser), as their licences ask.
 Source: "..\..\src\OpenCAD2D.Core\THIRD-PARTY-NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
@@ -76,6 +77,8 @@ Filename: "{app}\{#AppExe}"; Parameters: "--register"; Flags: runhidden; Tasks: 
 ; setup, so the uninstaller would leave them (and the python folder) behind.
 Type: filesandordirs; Name: "{app}\python\opencad2d\__pycache__"
 Type: filesandordirs; Name: "{app}\python\opencad2d\cad\__pycache__"
+; The bundled Python writes __pycache__ folders through its Lib the first time a tool runs on it: the whole folder goes.
+Type: filesandordirs; Name: "{app}\python\runtime"
 
 [UninstallRun]
 ; Takes the association out, but only where it names this install: an OpenCAD2D registered from another folder (a copy

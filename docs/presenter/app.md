@@ -955,24 +955,24 @@ folder share it; Global settings' "Allow other programs to connect" has no part 
 
 ### Installing with the setup
 
-`OpenCAD2D-Setup-<version>.exe` (79.8 MB for the next version; 76.2 MB before it carried the C# compiler, the NuGet client and the Python tool support) installs the
+`OpenCAD2D-Setup-<version>.exe` (89.8 MB with the Python it carries, 94 125 007 bytes; 83.9 MB, 83 886 219 bytes, without it) installs the
 app with the .NET 8 runtime inside it, so a machine with no .NET needs nothing else. It installs for the current user
 alone: no administrator is asked for, and the app goes to `%LocalAppData%\Programs\OpenCAD2D` unless another folder is
 chosen. The setup is built with `tools\installer\make-installer.ps1` (Inno Setup 6 needed; `winget install --id
 JRSoftware.InnoSetup -e --scope user`), which publishes the app self-contained for win-x64 and writes
-`artifacts\installer\OpenCAD2D-Setup-<version>.exe`. It is not signed, so Windows SmartScreen warns on the first run.
+`artifacts\installer\OpenCAD2D-Setup-<version>.exe`; it fetches the Python package from nuget.org once (checked against a pinned SHA-512, kept in `artifacts\cache`), so the first build needs the network. It is not signed, so Windows SmartScreen warns on the first run.
 
 | Item | What setup does |
 |---|---|
 | Start menu | an OpenCAD2D shortcut, always |
 | Desktop shortcut | a task, not ticked |
 | Associate .dxf and .dwg files with OpenCAD2D | a task, ticked: runs `OpenCAD2D.exe --register` once the files are copied |
-| Python | not included: a Python tool runs on the Python of the machine or the one in Global settings, in a process and a venv of its own (see [Python in the window](#python-in-the-window)); the app has no CPython inside it |
+| Python | included, for a machine that has none: python.org's Python 3.12.10 (64-bit, with `venv`, `pip` and its `LICENSE.txt`; the `python` package of nuget.org, pinned by version and SHA-512, 41 MB installed, 1 322 files) in `python\runtime` beside the exe. A Python tool runs on the Python of Global settings, else the machine's, else this one, in a process and a venv of its own (see [Python in the window](#python-in-the-window)); the app has no CPython inside its own process. Uninstalling removes the folder, with the `__pycache__` folders Python wrote in it |
 | Python tool support | included: the `opencad2d` package and the wheels of pythonnet 3.2.1, clr_loader 0.3.1, cffi 2.1.1 and pycparser 3.12 (Python 3.11 to 3.15; `python` beside the exe, 8 wheels, 1 273 451 bytes), from which a Python's base is installed once with no network |
 | C# compiler | included, for plugins given as source: Roslyn 4.14.0 (`Microsoft.CodeAnalysis.dll` and `Microsoft.CodeAnalysis.CSharp.dll`, 9.3 MB installed) |
 | NuGet client | included, for the packages a plugin's `.csproj` names: `NuGet.Protocol` 7.9.0 (Apache-2.0), its five libraries and `Newtonsoft.Json`, 7 files and 2.9 MB installed; it downloads nothing without a yes ([a plugin as C# source](plugins.md#a-plugin-as-c-source)) |
 | Samples | `Plugins\HelloWorld`, `Plugins\DrawingInfo` and `Plugins\DrawRandom` (C# source) and `Pythons\HelloWorld`, `Pythons\DrawingInfo` and `Pythons\DrawRandom` (Python tools); delete a folder to remove its sample |
-| Notices | `THIRD-PARTY-NOTICES.md` beside the exe: the fonts, the word list, NuGet, and the four Python wheels |
+| Notices | `THIRD-PARTY-NOTICES.md` beside the exe: the fonts, the word list, NuGet, and the four Python wheels and the bundled Python |
 
 A second setup of the same or a newer version installs over the first, after closing a running OpenCAD2D. Uninstalling
 (Settings, Apps, or `unins000.exe` in the install folder) removes the files setup copied, its shortcuts and, through

@@ -173,5 +173,113 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.Equal("Global settings", byFile.Source);
             Assert.Equal("cp3" + byFile.Version.Split('.')[1], byFile.Tag);
         }
+
+        /// <summary>A folder that holds a <c>python.exe</c> that is only a file, as the app's <c>python\runtime</c> would hold the real one.</summary>
+        private string FakeBundled()
+        {
+            string exe = Exe("bundled-fake");
+            return Path.GetDirectoryName(exe);
+        }
+
+        [Fact]
+        public void TheBundledPython_IsLast_AMachinePythonOfTheRegistryIsChosenOverIt_WithoutRunningIt()
+        {
+            PythonInstallation found = PythonInstallation.Find(
+                null,
+                new[] { Registered("HKCU", "3.13", "3.13.1", Exe("p313")) },
+                FakeBundled()
+            );
+
+            Assert.True(found.IsUsable, found.Problem);
+            Assert.Equal(Path.Combine(_folder, "p313", "python.exe"), found.Executable);
+            Assert.Equal("Registry (PEP 514)", found.Source);
+            Assert.Empty(found.PassedOver);
+        }
+
+        [Fact]
+        public void TheBundledPython_IsLast_ASettingIsChosenOverIt_AndAMissingSettingIsNotReplacedByIt()
+        {
+            string real = PythonEnvTestSupport.MachinePython.Executable;
+            string missing = Path.Combine(_folder, "nowhere", "python.exe");
+            var registered = new PythonRegistration[0];
+
+            PythonInstallation set = PythonInstallation.Find(real, registered, FakeBundled());
+            PythonInstallation gone = PythonInstallation.Find(missing, registered, Path.GetDirectoryName(real));
+
+            Assert.Equal(real, set.Executable);
+            Assert.Equal("Global settings", set.Source);
+            Assert.False(gone.IsUsable);
+            Assert.Equal("The Python set in Global settings (" + missing + ") was not found.", gone.Problem);
+        }
+
+        [Fact]
+        public void WithNoSettingAndNoMachinePython_TheBundledPython_IsTheOneChosen()
+        {
+            string real = PythonEnvTestSupport.MachinePython.Executable;
+            PythonRegistration unusable = Registered("HKCU", "3.10", "3.10.9", Exe("p310"));
+
+            PythonInstallation found = PythonInstallation.Find(" ", new[] { unusable }, Path.GetDirectoryName(real));
+
+            Assert.True(found.IsUsable, found.Problem);
+            Assert.Equal(real, found.Executable);
+            Assert.StartsWith("3.", found.Version, StringComparison.Ordinal);
+            Assert.Equal("cp3" + found.Version.Split('.')[1], found.Tag);
+            Assert.Equal("Bundled with OpenCAD2D", found.Source);
+            Assert.Equal(new[] { "3.10: Python 3.10 is outside 3.11 to 3.15" }, found.PassedOver);
+        }
+
+        [Fact]
+        public void ABundledFolderWithNoPythonExe_IsNothing_ABundledFileThatDoesNotRun_IsSaidToBePassedOver()
+        {
+            string empty = Path.Combine(_folder, "empty");
+            Directory.CreateDirectory(empty);
+
+            PythonInstallation none = PythonInstallation.Find(null, new PythonRegistration[0], empty);
+            PythonInstallation broken = PythonInstallation.Find(null, new PythonRegistration[0], FakeBundled());
+
+            Assert.False(none.IsUsable);
+            Assert.Equal(NoPython, none.Problem);
+            Assert.Empty(none.PassedOver);
+            Assert.False(broken.IsUsable);
+            Assert.Equal(NoPython, broken.Problem);
+            Assert.Equal(
+                new[]
+                {
+                    "Bundled: "
+                        + Path.Combine(_folder, "bundled-fake", "python.exe")
+                        + " did not run: it is not a Python program.",
+                },
+                broken.PassedOver
+            );
+        }
+
+        [Fact]
+        public void AVenvIsMadeFromTheBundledPython_WhereItIsTheOneChosen_AndRunsOnIt()
+        {
+            string real = PythonEnvTestSupport.MachinePython.Executable;
+            string root = Path.Combine(_folder, "venv");
+            Directory.CreateDirectory(root);
+            PythonInstallation bundled = PythonInstallation.Find(
+                null,
+                new PythonRegistration[0],
+                Path.GetDirectoryName(real)
+            );
+
+            PythonEnvironment environment = PythonEnvTestSupport
+                .Environments(root, Path.Combine(root, "wheelhouse"))
+                .Prepare(PythonEnvTestSupport.Tool(root, "Plain", ""), bundled);
+
+            Assert.True(environment.IsReady, environment.Error);
+            Assert.Equal("Bundled with OpenCAD2D", bundled.Source);
+            Assert.Contains(
+                "home = " + Path.GetDirectoryName(real),
+                File.ReadAllText(Path.Combine(environment.Folder, "pyvenv.cfg")),
+                StringComparison.OrdinalIgnoreCase
+            );
+            Assert.Equal(
+                "True",
+                PythonEnvTestSupport.Run(environment.Python, "import pythonnet, clr_loader; print(True)")
+            );
+        }
     }
 }

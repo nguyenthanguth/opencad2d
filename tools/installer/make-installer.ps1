@@ -5,7 +5,9 @@ Builds the setup of OpenCAD2D, artifacts\installer\OpenCAD2D-Setup-<version>.exe
 .DESCRIPTION
 Publishes src\OpenCAD2D.App self-contained for win-x64 in Release (the .NET runtime comes with it; not single-file and
 not trimmed, since plugins, Python and the support folders find their files beside the exe) into artifacts\publish\app,
-then compiles tools\installer\OpenCAD2D.iss with Inno Setup 6. The version is OpenCAD2DVersion of Directory.Build.props.
+adds the Python the setup carries as python\runtime of that folder (tools\installer\fetch-python-runtime.ps1: python.org's
+package from nuget.org, pinned by version and hash, kept in artifacts\cache), then compiles tools\installer\OpenCAD2D.iss
+with Inno Setup 6. The version is OpenCAD2DVersion of Directory.Build.props.
 ISCC.exe is looked for on the PATH, then in the Program Files and %LocalAppData%\Programs folders of Inno Setup 6; install
 it with: winget install --id JRSoftware.InnoSetup -e --scope user
 
@@ -53,6 +55,10 @@ dotnet publish (Join-Path $root 'src\OpenCAD2D.App\OpenCAD2D.App.csproj') -c Rel
 if ($LASTEXITCODE -ne 0) {
     throw 'The publish failed.'
 }
+
+# The Python the setup carries, beside the opencad2d package the publish wrote into python: Python tools run on it where the
+# machine has no Python of its own.
+& (Join-Path $PSScriptRoot 'fetch-python-runtime.ps1') -Destination (Join-Path $publish 'python\runtime')
 
 & $Iscc /Q "/DAppVersion=$version" "/DPublishDir=$publish" (Join-Path $PSScriptRoot 'OpenCAD2D.iss')
 if ($LASTEXITCODE -ne 0) {

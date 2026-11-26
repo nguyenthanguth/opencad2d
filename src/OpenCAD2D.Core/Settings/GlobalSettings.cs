@@ -842,8 +842,8 @@ namespace OpenCAD2D
         /// <summary>
         /// Gets or sets the Python the app runs scripts with: the <c>python.exe</c> of a virtual environment or of an
         /// installation, or the folder that holds it. Empty by default, which finds the newest 64-bit CPython 3.11 to 3.15
-        /// registered on the machine (PEP 514). It takes effect at the next start of the app once Python has started. Saved in
-        /// the settings file.
+        /// registered on the machine (PEP 514), and where there is none the Python the setup carries. It takes effect at the
+        /// next start of the app once Python has started. Saved in the settings file.
         /// </summary>
         public string PythonPath
         {

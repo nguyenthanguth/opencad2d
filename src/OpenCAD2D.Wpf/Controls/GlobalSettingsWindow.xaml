@@ -844,7 +844,7 @@
                                     Margin="18,0,0,4"
                                     Foreground="{StaticResource GhTextMuted}"
                                     TextWrapping="Wrap"
-                                    Text="The CPython 3.11 to 3.15 (64-bit) that each Python tool and PYRUN make their own environment from. Empty: found automatically (the Python launcher’s registry, newest first). Each tool has its own packages in an environment of its own, never those of this Python."
+                                    Text="The CPython 3.11 to 3.15 (64-bit) that each Python tool and PYRUN make their own environment from. Empty: found automatically (the Python launcher’s registry, newest first, else the Python the setup carries). Each tool has its own packages in an environment of its own, never those of this Python."
                                 />
                                 <Grid Margin="18,3,0,3">
                                     <Grid.ColumnDefinitions>

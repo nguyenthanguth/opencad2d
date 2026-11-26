@@ -21,7 +21,8 @@ permissions:
 jobs:
   build:
     # The app is published self-contained for win-x64 and compiled into the setup by Inno Setup, through the same script
-    # a developer runs.
+    # a developer runs. The script also fetches python.org's Python package from nuget.org (pinned by version and SHA-512)
+    # for the setup to carry, so the runner needs the network, as for the NuGet restore.
     runs-on: windows-latest
     defaults:
       run:
