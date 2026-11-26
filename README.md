@@ -48,6 +48,7 @@ Geometry, DXF and DWG come from the GeometryHelper library
 - [Python](docs/presenter/python.md)
 - [Plugins](docs/presenter/plugins.md)
 - [Remote](docs/presenter/remote.md)
+- [MCP server for AI agents](docs/presenter/mcp.md)
 
 ## Licence
 

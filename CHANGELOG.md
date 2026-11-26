@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **NEW.** `OpenCAD2D.Mcp.exe`, an MCP server over stdio, installed beside `OpenCAD2D.exe`: an AI agent (Claude Desktop, Claude
+  Code, Cursor) opens a DXF or DWG file (`--file`, or `open_drawing`, in the server's own process, no app and no window) or
+  attaches to the running app through its Remote channel (`--attach`), and reads (`info`, `list_layers`, `list_text_styles`,
+  `list_dimension_styles`, `list_blocks`, `query_entities`, `bounds`, `overlaps`), draws (`add_line`, `add_polyline`, `add_circle`,
+  `add_arc`, `add_text`, `add_mtext`, the five `add_*_dim`, `add_hatch`, `add_insert`), changes (`move`, `rotate`, `scale`,
+  `erase`, `set_properties`, `undo`), looks at the result (`render_png`, an image drawn as the app's canvas draws it) and saves.
+  Each writing call is one undo step. `--read-only` refuses every tool that writes, and `run_command`, which types free
+  command or AutoLISP text, is refused unless the server was started with `--allow-scripts`; only `save` writes a file. It is a
+  project of its own, `src/OpenCAD2D.Mcp` on .NET 8, with the official C# SDK `ModelContextProtocol.Core` 2.4.0 (Apache-2.0),
+  which stays out of `OpenCAD2D.Core`, its NuGet package and the Python wheel. `add_layer` makes a layer with a look. Attached,
+  `render_png` draws the app's drawing as it is now, unsaved changes included, and never writes its file. See
+  [Letting an AI agent drive OpenCAD2D](docs/presenter/mcp.md).
+- **NEW.** `CadRemoteDocument.GetDatabase()` gives a copy of the whole drawing of a running app as it is now, unsaved changes included
+  (header, tables, blocks, layouts with their viewports, every object), read from the DXF text the app writes of its database: the new
+  request `database` of the channel. The app's file is not written. 10 000 entities, 1 070 KB of text: about 20 ms.
 - **NEW.** Real drawings read for AI pipelines (PW6.3). `drawing.flatten()` walks every block reference of a drawing, nested ones and
   arrays of them (MINSERT) included, to the objects it draws, in world coordinates and millimetres, each with its handle, the path of
   block names it came out of, the 4 by 4 matrix that placed it, and the layer, colour and linetype it is drawn with (what is on layer 0

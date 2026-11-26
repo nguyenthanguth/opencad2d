@@ -140,6 +140,15 @@ lacks, or a tolerance that is not above nought, is refused in words. The JSON is
 and Python's `drawing.flatten()`, `to_json()`, `to_dict()` and `to_graph()` ([the guide](../python.md#preparing-real-drawings-for-ai-flatten-json-and-graph))
 read the same text on a file, in the app and from outside it.
 
+## The drawing as the app has it
+
+`drawing.GetDatabase()` gives a copy of the whole drawing as the app has it now, with the changes not saved: the header, the tables,
+the blocks, the layouts with their viewports and every object, as a `DxfDatabase` read from the DXF text the app writes of its own
+database (the request `database`). The file of the drawing is not written and the app's undo is not touched. A program that draws or
+checks the drawing in its own process opens the copy with `CadDocument.From(database)` and works on it as on a file: the MCP server
+renders an attached app's drawing so. The copy is a snapshot; a change made in the app afterwards is not in it. A drawing of 10 000
+entities (1 070 KB of text) is asked in about 20 ms and read into a document in about 5 to 25 ms.
+
 ## Layers and layouts
 
 `drawing.Layers` lists the layers in the order of the table, each a [`CadRemoteLayer`](xref:OpenCAD2D.Remote.CadRemoteLayer)

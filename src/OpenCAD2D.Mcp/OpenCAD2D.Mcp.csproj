@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <RootNamespace>OpenCAD2D.Mcp</RootNamespace>
+        <AssemblyName>OpenCAD2D.Mcp</AssemblyName>
+        <AssemblyTitle>OpenCAD2D MCP server</AssemblyTitle>
+        <Description>An MCP server over stdio for OpenCAD2D: an AI agent (Claude Desktop, Claude Code, Cursor) opens a drawing file, or attaches to the running app, and reads, draws, edits, checks and renders it.</Description>
+        <IsPackable>false</IsPackable>
+        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
+        <ProjectReference Include="..\OpenCAD2D.Remote\OpenCAD2D.Remote.csproj" />
+        <ProjectReference Include="..\OpenCAD2D.Rendering\OpenCAD2D.Rendering.csproj" />
+        <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ModelContextProtocol.Core" Version="2.4.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="OpenCAD2D.Mcp.UnitTest" />
+    </ItemGroup>
+</Project>

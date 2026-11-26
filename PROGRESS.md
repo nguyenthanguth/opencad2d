@@ -95,7 +95,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          -> verify: reset time for a 10 000-entity drawing; state equal after reset.
       4. Labelled renders: the world-to-pixel matrix, class masks (words, dimensions, lines, hatches), COCO boxes.
          -> verify: a box drawn back from the matrix covers the entity's pixels.
-      5. (running) An MCP server so an LLM agent drives OpenCAD2D (open, read, place, render, check), in C# (decided
+      5. DONE 2026-11-26 (fabc8d7c, 6961615e): 33 tools, file and attach modes, an attached render of the app's
+         drawing as it is (the Remote database request). An MCP server so an LLM agent drives OpenCAD2D (open, read, place, render, check), in C# (decided
          2026-11-26): a project of its own, `src/OpenCAD2D.Mcp`, a net8.0 console exe `OpenCAD2D.Mcp.exe` installed
          beside the app (the SDK's packages stay out of Core, its NuGet and the wheel; no WPF loaded, no window);
          headless on a file, or `--attach` to a running app through Remote; the official .NET MCP SDK; stdio only,

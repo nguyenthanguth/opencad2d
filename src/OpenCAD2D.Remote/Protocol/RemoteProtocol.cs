@@ -165,6 +165,9 @@ namespace OpenCAD2D.Remote
 
         /// <summary>The entities whose words overlap what is drawn near them (<c>layout</c>, <c>words</c>, <c>over</c>, <c>handles</c>, <c>tolerance</c>): <c>words</c>, <c>others</c> and <c>boxes</c>.</summary>
         public const string Overlaps = "overlaps";
+
+        /// <summary>The whole drawing as the app has it now, with changes not saved: <c>text</c>, the DXF text of its database.</summary>
+        public const string Database = "database";
     }
 
     /// <summary>One app that has announced itself in the instance folder.</summary>
