@@ -171,29 +171,51 @@ namespace OpenCAD2D
                 }
             }
 
-            // The page setup's own device where it is one of the presenter's, else the PDF one.
-            string device = settings.IsRaster ? settings.DeviceName : CadPlotSettings.PdfDevice;
+            // The printers of Windows the window has, by name: none where nothing answers, as a host with no printers.
+            var printers = new List<CadPlotPrinter>();
+            c.Session.Ask("PLOTPRINTERS", c.Document, printers);
+
+            // The page setup's own device where it is one of the presenter's or a printer this computer has, else the PDF one.
+            CadPlotPrinter chosen = PrinterNamed(
+                printers,
+                settings.IsPrinter ? settings.DeviceName
+                    : settings.IsRaster ? null
+                    : settings.SavedPlotter
+            );
+            string device =
+                chosen != null ? chosen.Name
+                : settings.IsRaster ? settings.DeviceName
+                : CadPlotSettings.PdfDevice;
 
             while (true)
             {
-                yield return CadPrompt.ForKeywordOrText("Enter an output device name or", new[] { "?" }, device);
+                yield return CadPrompt
+                    .ForKeywordOrText("Enter an output device name or", new[] { "?" }, device)
+                    .AllowingSpaces();
 
                 if (c.Input.Is("?"))
                 {
                     c.Write(CadPlotSettings.PdfDevice);
                     c.Write(CadPlotSettings.PngDevice);
                     c.Write(CadPlotSettings.JpgDevice);
+
+                    foreach (CadPlotPrinter each in printers)
+                    {
+                        c.Write(each.Name);
+                    }
+
                     continue;
                 }
 
                 if (c.Input.Kind == CadInputKind.Text)
                 {
                     string typed = c.Input.Text.Trim();
+                    bool builtIn =
+                        string.Equals(typed, CadPlotSettings.PdfDevice, StringComparison.OrdinalIgnoreCase)
+                        || CadPlotSettings.IsRasterDevice(typed);
+                    CadPlotPrinter printer = builtIn ? null : PrinterNamed(printers, typed);
 
-                    if (
-                        !string.Equals(typed, CadPlotSettings.PdfDevice, StringComparison.OrdinalIgnoreCase)
-                        && !CadPlotSettings.IsRasterDevice(typed)
-                    )
+                    if (!builtIn && printer == null)
                     {
                         c.Write(
                             "Printer/plotter \""
@@ -202,41 +224,84 @@ namespace OpenCAD2D
                                 + CadPlotSettings.PdfDevice
                                 + ", "
                                 + CadPlotSettings.PngDevice
-                                + " or "
-                                + CadPlotSettings.JpgDevice
-                                + "."
+                                + (
+                                    printers.Count == 0
+                                        ? " or " + CadPlotSettings.JpgDevice + "."
+                                        : ", " + CadPlotSettings.JpgDevice + " or a printer of Windows, which ? lists."
+                                )
                         );
                         continue;
                     }
 
+                    chosen = printer;
                     device = typed;
+                }
+                else
+                {
+                    chosen = PrinterNamed(printers, device);
                 }
 
                 break;
             }
 
-            settings.UseDevice(device);
+            IReadOnlyList<CadPaper> sheets = null;
+
+            if (chosen != null)
+            {
+                // The sheets are the printer's own, and the plot stays on a sheet of its size where it has one.
+                sheets = chosen.Papers();
+                settings.UsePrinter(chosen.Name);
+                settings.Paper = CadPaper.ClosestIn(
+                    sheets,
+                    settings.Paper.IsPixels ? CadPaper.Default : settings.Paper
+                );
+            }
+            else
+            {
+                settings.UseDevice(device);
+            }
+
             WithOutputOptions(c, settings);
 
             if (detailed)
             {
-                foreach (CadPrompt prompt in PlotDetails(c, space, settings))
+                foreach (CadPrompt prompt in PlotDetails(c, space, settings, sheets))
                 {
                     yield return prompt;
                 }
             }
 
-            string extension = PlotExtension(settings.DeviceName);
-            string offered = Path.ChangeExtension(PlotFileName(c.Document, space), extension);
-            yield return CadPrompt.ForString("Enter file name", offered);
-            string file =
-                c.Input.Kind == CadInputKind.Text && c.Input.Text.Trim().Length > 0
-                    ? c.Input.Text.Trim().Trim('"')
-                    : offered;
+            string file = null;
 
-            if (!file.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+            if (chosen != null)
             {
-                file += extension;
+                // A printer prints; a file is not written through a printer's driver, as the Plot dialog says.
+                while (true)
+                {
+                    yield return CadPrompt.ForKeyword("Write the plot to a file", PlotYesNo, "No");
+
+                    if (!c.Input.Is("Yes"))
+                    {
+                        break;
+                    }
+
+                    c.Write("Plot to file is not supported for this printer.");
+                }
+            }
+            else
+            {
+                string extension = PlotExtension(settings.DeviceName);
+                string offered = Path.ChangeExtension(PlotFileName(c.Document, space), extension);
+                yield return CadPrompt.ForString("Enter file name", offered);
+                file =
+                    c.Input.Kind == CadInputKind.Text && c.Input.Text.Trim().Length > 0
+                        ? c.Input.Text.Trim().Trim('"')
+                        : offered;
+
+                if (!file.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+                {
+                    file += extension;
+                }
             }
 
             yield return CadPrompt.ForKeyword("Save changes to page setup", PlotYesNo, "No");
@@ -263,6 +328,27 @@ namespace OpenCAD2D
                 yield break;
             }
 
+            string area =
+                "Effective plotting area:  "
+                + Mm(page.Area.Width * page.Scale)
+                + " wide by "
+                + Mm(page.Area.Height * page.Scale)
+                + " high"
+                + (settings.IsRaster ? " (pixels)" : string.Empty);
+
+            if (chosen != null)
+            {
+                // The window prints it and says where it went, or why it did not.
+                c.Write(area);
+
+                if (!c.Session.Request("-PLOT", c.Document, new CadPlotJob(space, settings, display, null)))
+                {
+                    c.Write("Printing needs the window's printers: nothing was printed.");
+                }
+
+                yield break;
+            }
+
             if (!c.Session.Request("-PLOT", c.Document, new CadPlotJob(space, settings, display, file)))
             {
                 c.Write(
@@ -273,21 +359,38 @@ namespace OpenCAD2D
                 yield break;
             }
 
-            c.Write(
-                "Effective plotting area:  "
-                    + Mm(page.Area.Width * page.Scale)
-                    + " wide by "
-                    + Mm(page.Area.Height * page.Scale)
-                    + " high"
-                    + (settings.IsRaster ? " (pixels)" : string.Empty)
-            );
+            c.Write(area);
             c.Write("Plot written to " + file + ".");
         }
 
-        /// <summary>The prompts of -PLOT's detailed configuration after the device, each setting what it asks.</summary>
-        private static IEnumerable<CadPrompt> PlotDetails(CadCommandContext c, CadSpace space, CadPlotSettings settings)
+        /// <summary>The printer of Windows of a name, letters of either case the same; null for none, or where the name is empty.</summary>
+        private static CadPlotPrinter PrinterNamed(IReadOnlyList<CadPlotPrinter> printers, string name)
         {
-            foreach (CadPrompt prompt in PlotPaperSize(c, settings))
+            if (string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            foreach (CadPlotPrinter printer in printers)
+            {
+                if (string.Equals(printer.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return printer;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>The prompts of -PLOT's detailed configuration after the device, each setting what it asks.</summary>
+        private static IEnumerable<CadPrompt> PlotDetails(
+            CadCommandContext c,
+            CadSpace space,
+            CadPlotSettings settings,
+            IReadOnlyList<CadPaper> sheets
+        )
+        {
+            foreach (CadPrompt prompt in PlotPaperSize(c, settings, sheets))
             {
                 yield return prompt;
             }
@@ -437,18 +540,28 @@ namespace OpenCAD2D
             }
         }
 
-        /// <summary>"Enter paper size or [?]", a sheet for the PDF device, an image's size for a raster one.</summary>
-        private static IEnumerable<CadPrompt> PlotPaperSize(CadCommandContext c, CadPlotSettings settings)
+        /// <summary>"Enter paper size or [?]", a sheet for the PDF device, an image's size for a raster one, a sheet of the printer's own list (by its name, as AutoCAD lists it) for a printer of Windows.</summary>
+        private static IEnumerable<CadPrompt> PlotPaperSize(
+            CadCommandContext c,
+            CadPlotSettings settings,
+            IReadOnlyList<CadPaper> sheets = null
+        )
         {
             while (true)
             {
-                yield return CadPrompt.ForKeywordOrText("Enter paper size or", new[] { "?" }, settings.Paper.Label);
+                yield return CadPrompt
+                    .ForKeywordOrText(
+                        "Enter paper size or",
+                        new[] { "?" },
+                        sheets == null ? settings.Paper.Label : settings.Paper.Name
+                    )
+                    .AllowingSpaces();
 
                 if (c.Input.Is("?"))
                 {
-                    foreach (CadPaper each in settings.IsRaster ? CadPaper.PixelSizes : CadPaper.Standard)
+                    foreach (CadPaper each in sheets ?? (settings.IsRaster ? CadPaper.PixelSizes : CadPaper.Standard))
                     {
-                        c.Write(each.Label);
+                        c.Write(sheets == null ? each.Label : each.Name);
                     }
 
                     continue;
@@ -459,7 +572,7 @@ namespace OpenCAD2D
                     // A raster device takes an image's size, the listed ones or the user's own "2480 x 1754".
                     CadPaper paper = settings.IsRaster
                         ? PixelsNamed(c.Input.Text.Trim())
-                        : PaperNamed(c.Input.Text.Trim());
+                        : PaperNamed(c.Input.Text.Trim(), sheets ?? CadPaper.Standard);
 
                     if (paper == null)
                     {
@@ -610,9 +723,9 @@ namespace OpenCAD2D
         }
 
         /// <summary>A sheet of the list by its label, its name, or the name a DXF keeps, letters of either case the same.</summary>
-        private static CadPaper PaperNamed(string typed)
+        private static CadPaper PaperNamed(string typed, IReadOnlyList<CadPaper> sheets)
         {
-            foreach (CadPaper paper in CadPaper.Standard)
+            foreach (CadPaper paper in sheets)
             {
                 if (
                     string.Equals(typed, paper.Label, StringComparison.OrdinalIgnoreCase)

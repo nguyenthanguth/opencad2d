@@ -265,8 +265,22 @@ lays out, with the same scale, offset, centring, turn, plot style table and line
 file is asked. "Plot sent to Office printer." is written on the command line, or "The plot was not printed:" and the
 printer's reason where it does not take the job. Save changes to layout writes the printer's name as the layout's plotter (group 2),
 so that the next PLOT opens on that printer where the computer has it, and chooses OpenCAD2D PDF where it has not.
-PREVIEW and the preview's Plot print too when the page setup names an installed printer. -PLOT still names the three built-in
-devices only.
+PREVIEW and the preview's Plot print too when the page setup names an installed printer.
+
+-PLOT takes a printer of Windows by name at "Enter an output device name or [?]", letters of either case the same, and `?`
+lists the printers after OpenCAD2D PDF, PNG and JPG (a name with spaces, `Microsoft Print to PDF`, is typed as it is). The
+prompt offers the printer the page setup names where the computer has it. A printer's sheets are its own: `Enter paper size or
+[?]` lists them by the names the driver gives (`A4`, `A3`, `Letter`), takes one by name, and starts on the sheet of the size
+the plot was on (ISO A3 on its side, 420 by 297, becomes the printer's A3 upright, still on its side). No file is asked:
+"Write the plot to a file [Yes/No] <No>:" answers Yes with "Plot to file is not supported for this printer." and asks again,
+since a printer's driver writes no file of ours. After Proceed, the effective plotting area is written and then "Plot sent to
+Office printer." or "The plot was not printed:" and the printer's reason; one copy is printed, -PLOT having no prompt for
+copies.
+
+Checked on this computer's "Microsoft Print to PDF" up to the print queue, not to the PDF it makes: that printer's port
+opens a Save Print Output As dialog, which WPF's print queue gives no way to answer beforehand, so no test of the repository
+prints to it unless a person sets the environment variable `OPENCAD2D_PRINT_TO_PDF_TEST` to 1 (the test then answers the
+dialog of its own process by UI Automation and reads the MediaBox back). A paper printer has not been tried.
 
 The page goes to the printer as pixels, not vectors: SkiaSharp's XPS writer stops the process ("Must set a PNG encoder"), so
 the plot is drawn at up to 300 dots to the inch in bands of at most 4 million pixels and set into a WPF visual that WPF

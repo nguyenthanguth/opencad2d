@@ -1243,7 +1243,11 @@ namespace OpenCAD2D.Wpf
             else
             {
                 // A line of AutoLISP goes in whole: its spaces are its own, and no word of it is an object snap.
-                if (session.Prompt?.Kind == CadPromptKind.String || session.IsLispInput(line))
+                if (
+                    session.Prompt?.Kind == CadPromptKind.String
+                    || session.Prompt?.TakesSpaces == true
+                    || session.IsLispInput(line)
+                )
                 {
                     session.Feed(line);
                 }
@@ -2281,6 +2285,9 @@ namespace OpenCAD2D.Wpf
                     break;
                 case "-PLOT":
                     OnPlotFileRequested(sender, e);
+                    break;
+                case "PLOTPRINTERS":
+                    OnPlotPrintersRequested(e);
                     break;
                 case "PNGOUT":
                 case "JPGOUT":

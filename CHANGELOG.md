@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **NEW.** -PLOT chooses a printer of Windows by name, as AutoCAD's command-line PLOT does: `?` at "Enter an output device
+  name or [?]" lists the installed printers after the three OpenCAD2D plotters, a name (letters of either case, spaces
+  allowed) chooses one, `Enter paper size or [?]` lists and takes the printer's own sheets by name, no file is asked
+  ("Write the plot to a file" answered Yes is refused as the Plot dialog refuses it), and the plot is printed as the Plot
+  dialog's OK prints it ("Plot sent to Office printer."). The prompts of the device and the paper size now take a space as
+  part of the name in the window too. Not run on a paper printer.
 - **NEW.** Python in the setup (S13): the setup carries python.org's own Python 3.12.10 (64-bit, with `venv`, `pip` and its
   PSF licence; the `python` package of nuget.org, pinned by version and SHA-512, fetched once into `artifacts\cache` by
   `tools\installer\fetch-python-runtime.ps1` and never held in the repository) in `python\runtime` beside the exe, so Python

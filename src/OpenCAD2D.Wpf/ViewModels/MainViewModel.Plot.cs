@@ -176,6 +176,26 @@ namespace OpenCAD2D.Wpf
             var book = e.Payload as CadPlotBook;
             string file = book?.FileName ?? job?.FileName;
 
+            if (document != null && job != null && file == null && job.Settings.IsPrinter)
+            {
+                // -PLOT named a printer of Windows: no file, the page goes to the printer as the Plot dialog's OK sends it.
+                var dialog = new PlotDialogViewModel(document, job, false, Printers());
+                e.Handled = true;
+
+                if (dialog.IsPrinter)
+                {
+                    Printed(sender, dialog);
+                }
+                else
+                {
+                    ((CadCommandSession)sender).Write(
+                        "The printer " + job.Settings.DeviceName + " is no longer there."
+                    );
+                }
+
+                return;
+            }
+
             if (document == null || file == null)
             {
                 return;
@@ -203,6 +223,43 @@ namespace OpenCAD2D.Wpf
             {
                 GeometryHelperLog.Warn("MainViewModel: the plot to " + file + " was not written.", exception);
                 ((CadCommandSession)sender).Write("The plot was not written: " + exception.Message);
+            }
+        }
+
+        /// <summary>
+        /// -PLOT's question of the printers of Windows: each is added, by name and with the sheets it lists, to the list the
+        /// command gave. None are added where the window has no printers.
+        /// </summary>
+        private void OnPlotPrintersRequested(CadUiRequestEventArgs e)
+        {
+            if (!(e.Payload is List<CadPlotPrinter> list))
+            {
+                return;
+            }
+
+            foreach (IPlotPrinter printer in Printers() ?? Array.Empty<IPlotPrinter>())
+            {
+                IPlotPrinter each = printer;
+                list.Add(new CadPlotPrinter(each.Name, () => SheetsOf(each)));
+            }
+
+            e.Handled = true;
+        }
+
+        /// <summary>The sheets a printer lists; none where it cannot say, which the Plot dialog and -PLOT read as the PDF plotter's.</summary>
+        private static IReadOnlyList<CadPaper> SheetsOf(IPlotPrinter printer)
+        {
+            try
+            {
+                return printer.GetPapers() ?? Array.Empty<CadPaper>();
+            }
+            catch (Exception exception)
+            {
+                GeometryHelperLog.Warn(
+                    "MainViewModel: the sheets of " + printer.Name + " could not be listed.",
+                    exception
+                );
+                return Array.Empty<CadPaper>();
             }
         }
 
