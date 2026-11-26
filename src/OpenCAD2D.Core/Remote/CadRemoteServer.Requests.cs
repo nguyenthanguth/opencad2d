@@ -221,6 +221,8 @@ namespace OpenCAD2D
                     return Linetypes(Find(request));
                 case RemoteOps.CurrentDimStyle:
                     return CurrentDimStyle(Find(request), request.GetString("name"));
+                case RemoteOps.Export:
+                    return Export(Find(request), request);
                 case RemoteOps.Layouts:
                     return Layouts(Find(request));
                 case RemoteOps.CurrentLayout:

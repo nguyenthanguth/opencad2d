@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **NEW.** Real drawings read for AI pipelines (PW6.3). `drawing.flatten()` walks every block reference of a drawing, nested ones and
+  arrays of them (MINSERT) included, to the objects it draws, in world coordinates and millimetres, each with its handle, the path of
+  block names it came out of, the 4 by 4 matrix that placed it, and the layer, colour and linetype it is drawn with (what is on layer 0
+  or ByBlock takes the reference's, as BURST gives it); the shapes are the ones EXPLODE gives, so a circle under a scale unlike along
+  its axes is an ellipse, and the drawing is not changed. `drawing.to_json()` (and `to_dict()`) is the whole drawing as one document
+  of schema `opencad2d.drawing`, version 1, with a JSON Schema in `docs/schemas`, validated by a test: entities in handle order,
+  tables by name, numbers to a nanometre, the same text on every run and on both runtimes. `drawing.to_graph(tolerance=0.001)` is
+  the drawing as a graph for a GNN or a transformer, a node for each object and edges that `touches` (ends within the tolerance, or
+  crossing), `contains`, `dimensions` (DIMASSOC, else the points of the dimension) and `annotates` (a leader's arrow), found with a
+  grid over the boxes (10 000 objects in 0.25 s on .NET 8, 0.4 s on .NET Framework), with `edge_index` and `edge_kind` numpy arrays. Units are normalised to millimetres
+  from INSUNITS (paper space from the plot paper units); a drawing of no unit is left as it is and says so; a block drawn in another
+  unit, a clipped or external reference and a reference that could not be walked are listed in the document's `report`. The same on a
+  file, in the app and from outside it. In C#: `CadFlatten`, `CadUnitScale`, `CadDrawingJson` and `CadDrawingGraph` of the core,
+  and `CadRemoteDocument.ExportJson` and `ExportGraph` (the request `export`).
 - **FIXED.** On a drawing file with no app, a layer switched off or frozen by Python (`drawing.layers["Steel"].is_on = False`, then
   `commit()`) left the drawing's display list as it was, so what the display list feeds (`entity.bounds`, `drawing.bounds()`,
   `drawing.overlaps()`, picks) still counted the layer's objects: the commit wrote the layer but told the document nothing for a

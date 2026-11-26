@@ -684,6 +684,87 @@ reward function that asks after each change pays for what the change touched. Fr
 which a large drawing makes the slower part of the call ([Driving a running app](#driving-a-running-app)). The C# calls are
 [`CadSpatial.Bounds` and `CadSpatial.Overlaps`](presenter/display.md#where-things-are-drawn).
 
+### Preparing real drawings for AI: flatten, JSON and graph
+
+A drawing from a real project is not what a model should read as it stands: its shapes are hidden inside blocks inside blocks,
+turned, scaled and mirrored, in the unit its author chose. Three calls of a `Drawing` give it in the form a pipeline wants. The work
+is C# in the core, so a drawing of 10 000 entities (13 800 once its blocks are opened) takes about 0.1 s for `flatten` and `to_json` and 0.25 s
+for `to_graph` on .NET 8 (0.2 s and 0.4 s on .NET Framework 4.8), and a script gets the same text on a file, in the app and from outside it.
+
+- `flatten(layout=None)` walks every block reference, nested ones and arrays of them (MINSERT) included, and gives the objects they
+  draw as a list of `dict`, in world coordinates and millimetres. The drawing is not changed. A piece of a block has `path` (the
+  names of the blocks it came out of, outermost first), `indexPath` and `matrix` (4 by 4, block coordinates to world millimetres), and
+  the layer, colour and linetype it is drawn with: what is on layer 0 or ByBlock takes the look of the reference it is in, all the
+  way down, as BURST gives it. The shapes are the ones EXPLODE gives, repeated down the nest, so a circle under a scale unlike along
+  its axes comes out an ellipse. The attributes of a reference are objects of their own (`kind` `ATTRIB`, with `tag` and `text`), and
+  so is a constant attribute definition of a block (`constant: true`); a variable definition is left out.
+- `to_json(layout=None)` is the whole drawing as one JSON text, `to_dict()` the same read: `schema` `opencad2d.drawing`, `version` 1,
+  the tables of layers, text styles, dimension styles, linetypes and blocks, a `report`, and the `entities` of `flatten`, in the order
+  of their handles read as numbers, so the same drawing gives the same text every time, on both runtimes. Numbers are rounded to
+  a nanometre. Every entity has `box` (its extents) whatever its `kind`; LINE, CIRCLE, ARC, ELLIPSE, LWPOLYLINE, POLYLINE, SPLINE,
+  POINT, TEXT, ATTRIB, MTEXT, DIMENSION, LEADER, MULTILEADER, HATCH, SOLID, TRACE and 3DFACE carry their geometry and words as well.
+  The JSON Schema is [`docs/schemas/opencad2d-drawing-v1.schema.json`](https://github.com/nguyenthanguth/OpenCAD2D/blob/main/docs/schemas/opencad2d-drawing-v1.schema.json),
+  and a test validates the text against it.
+- `to_graph(layout=None, tolerance=0.001)` is a graph for a GNN or a transformer: a node for each entity of `flatten`, in its order, and
+  edges of four kinds. `touches`: two curves that come within `tolerance` millimetres of each other (their ends meet, an end lies on the other, they
+  cross, or they run along each other; `at` is the place). `contains`: a closed curve (a closed polyline, a circle, a whole ellipse) that holds the other inside it, a line
+  along its side not counted. `dimensions`: from a dimension to the objects its DIMASSOC ties it to, else to the curves its definition
+  points lie on. `annotates`: from a leader to what its arrow tip lies on. With numpy installed the dict also has `edge_index` (2, E)
+  and `edge_kind` (E,), int64, the shapes a graph library takes.
+
+```python
+import json
+
+from GeometryHelper.Dxf import DxfCircle, DxfLine
+from GeometryHelper.Geometry import GeoPoint3, GeoVector3
+from opencad2d.cad import new_file
+
+drawing = new_file()
+drawing.blocks.add("BOLT", [DxfCircle(GeoPoint3(0, 0, 0), GeoVector3(0, 0, 1), 4.0), DxfLine(GeoPoint3(0, 0, 0), GeoPoint3(30, 0, 0))])
+drawing.add_insert("BOLT", (100, 50))
+drawing.add_insert("BOLT", (200, 50), scale=2.0)
+drawing.add_circle((100, 50), 20)
+drawing.add_line((0, 0), (100, 0))
+drawing.add_line((100, 0), (100, 50))
+len(drawing.commit())                                  # 5
+
+flat = drawing.flatten()
+len(flat)                                              # 7: two BOLTs of two shapes, a circle and two lines
+[(e["kind"], e["path"]) for e in flat][:2]             # [('CIRCLE', ['BOLT']), ('LINE', ['BOLT'])]
+flat[0]["matrix"][0]                                   # [1, 0, 0, 100]: the first BOLT at (100, 50), not turned
+flat[0]["box"]                                         # [96, 46, 104, 54]: its circle of radius 4
+json.loads(drawing.to_json())["schema"]                # 'opencad2d.drawing'
+drawing.to_dict()["units"]["toMillimetres"]            # 1
+
+graph = drawing.to_graph()
+len(graph["nodes"])                                    # 7
+[(e["source"], e["target"], e["kind"]) for e in graph["edges"] if e["kind"] == "contains"]  # [(4, 0, 'contains')]
+graph["edge_index"].shape                              # (2, 8)
+graph["edge_kind"].tolist()                            # [0, 0, 0, 0, 0, 0, 0, 1]
+```
+
+The numbers are from a run of the built wheel on .NET 8: the circle of radius 20 holds the first bolt's circle (node 4 holds node 0),
+and the seven `touches` are the shapes that meet or cross: each bolt's line and circle, the first bolt's circle and line with the
+line at x = 100, its line with the big circle, the big circle with the line at x = 100, and the two lines drawn.
+
+Units are millimetres. The unit is the drawing's INSUNITS (a drawing of inches has `units.toMillimetres` 25.4, and every length,
+radius, height and coordinate is written 25.4 times larger), and the plot paper units for a layout's paper space. A drawing that
+says no unit (INSUNITS 0) is left as it is and says so, `units.normalised` false: decide what its numbers are before you train on it.
+A block reference read from a file already has the unit ratio in its scale (AutoCAD writes it in when the block is inserted), so it
+is not scaled again; a block drawn in a unit other than the drawing's is listed in `report.blockUnits` with the factor INSERT would
+have used, for you to decide on.
+
+What the walk leaves alone is in `report`, and nothing is lost silently. A reference with a clip (XCLIP) is walked unclipped, its
+objects marked `clipped: true`; an external reference is one object of kind INSERT, its content not read; a reference that places
+itself, is nested more than 64 deep or would give more than two million objects is one INSERT too, with the reason in
+`report.refused`. A dynamic block is walked as the anonymous block it draws and named by the dynamic block in `path`
+(`dynamic: true`). Where a block cannot hold its placing, a block turned within one scaled unlike along its axes, EXPLODE breaks it
+in its turn and the pieces come out with the path of the block around it. `to_graph` finds `touches` and `contains` only between
+objects of one layout.
+
+From outside the app, and in a tool of the app, the same three calls ask the app for the text (`CadRemoteDocument.ExportJson` and
+`ExportGraph`), and C# gets it from `CadDrawingJson.Write`, `CadFlatten.Walk` and `CadDrawingGraph.Build` of the core.
+
 ## Inside OpenCAD2D
 
 The same library runs in the app's tools. OpenCAD2D loads a Python tool, a folder with a `requirements.txt`, an `__init__.py`

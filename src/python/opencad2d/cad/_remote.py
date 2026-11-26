@@ -330,6 +330,14 @@ class _RemoteBackend:
         table = self._document.GetOverlaps(layout, names(words), names(over), names(handles), tolerance)
         return [str(w) for w in table.Words], [str(o) for o in table.Others], table.Boxes
 
+    # ---- the export for AI pipelines (PW6.3) ------------------------------------------------------------------------
+
+    def export(self, what: str, layout: str | None, tolerance: float) -> tuple[str, Any]:
+        """The JSON text of the drawing or of its graph, as the app writes it; there is no .NET graph on this side."""
+        if what == "graph":
+            return str(self._document.ExportGraph(layout, tolerance)), None
+        return str(self._document.ExportJson(layout)), None
+
 
 class App:
     """A running OpenCAD2D, to use as ``with connect() as app``: ``documents``, ``active_drawing``, ``open``,
