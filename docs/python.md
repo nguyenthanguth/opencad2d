@@ -45,15 +45,16 @@ python -m venv .venv
 .venv\Scripts\python -m pip install "artifacts\python\opencad2d-2.0.0-py3-none-win_amd64.whl[numpy]"
 ```
 
-The wheel is 10 332 832 bytes. It holds the three assemblies (`GeometryHelper.dll`, `OpenCAD2D.Core.dll` and
-`OpenCAD2D.Remote.dll`) with the `Fonts`, `Hatches` and `Linetypes` folders the presenter finds beside them (9
-files, 15 965 074 bytes unpacked), the Python module (10 files, 117 906 bytes), and the stubs (14 files, 3 475 779 bytes
-for `GeometryHelper`, 4 files, 1 032 316 bytes for `OpenCAD2D`, 8 files, 9 162 bytes for `System`). It holds no XML documentation and no PDB: the XML is read once,
-when the stubs are written.
+The wheel is 16 404 573 bytes. It holds the three assemblies (`GeometryHelper.dll`, `OpenCAD2D.Core.dll` and
+`OpenCAD2D.Remote.dll`) and the seven files that draw with no window ([Rendering without a window](#rendering-without-a-window):
+`OpenCAD2D.Rendering.dll`, `SkiaSharp.dll`, the native `libSkiaSharp.dll` and four `System.*` libraries for .NET Framework), with the
+`Fonts`, `Hatches` and `Linetypes` folders the presenter finds beside them (16 files, 30 256 970 bytes unpacked), the Python module
+(13 files, 226 602 bytes), and the stubs (14 files, 3 478 850 bytes for `GeometryHelper`, 5 files, 1 192 157 bytes for `OpenCAD2D`,
+8 files, 9 162 bytes for `System`). It holds no XML documentation and no PDB: the XML is read once, when the stubs are written.
 
 `bash tools/python/verify-python.sh` does all of it, then makes a fresh virtual environment, installs the wheel there and
 runs `tests/python` against it, once on each runtime; the `python` job of `.github/workflows/build.yml` runs the same
-script on Python 3.11 and 3.14, and nothing else of Python: the app no longer embeds it. On the test machine, 656 tests pass on .NET 8 (93.4 s), and 643 on .NET Framework 4.8 (88.3 s) with 13 skipped: the tests of a tool's process, which always runs on .NET 8.
+script on Python 3.11 and 3.14, and nothing else of Python: the app no longer embeds it. On the test machine, 1 283 tests pass on .NET 8 (191 s) with 1 skipped (PyInstaller is not installed there), and 1 240 on .NET Framework 4.8 (161 s) with 44 skipped: the tests of a tool's process, which always runs on .NET 8, and that one.
 
 ## A first script
 
@@ -605,6 +606,99 @@ there. The numbers come from a run of the built wheel on .NET 8 (a line, a
 circle of radius 25 and a closed polyline), and the two forms are the `ok_typed_entities.py` and `bad_typed_entities.py` of
 the typecheck tests.
 
+## Rendering without a window
+
+A drawing of a file, from `open_file` or `new_file`, can be drawn to a picture with no app and no window: a PNG, an SVG, a PDF
+or a numpy array. The picture is the canvas of the app's: the same renderer draws it, with the same fonts and colours, on
+the app's default settings and never the settings file of the user, so a picture is the same on every machine that has the same
+fonts. The grid, the UCS icon and the grips are the canvas's and not the drawing's, so they are not drawn.
+
+```python
+from opencad2d.cad import new_file
+
+drawing = new_file()
+drawing.add_line((0, 0), (400, 300))
+drawing.add_circle((200, 150), 60, color=1)
+drawing.commit()                                   # ['100', '101']; a render commits what is queued too, as save() does
+drawing.render_png("plan.png")                     # 1 600 by 1 200 pixels, white and red on black
+drawing.render_svg("plan.svg", width=800)          # the same picture in vectors, 800 by 600
+drawing.render_pdf("plan.pdf")                     # one A3 page, the drawing fitted to the sheet
+picture = drawing.render_image(width=400)          # the pixels as a numpy array, with no file
+picture.shape                                      # (300, 400, 3)
+str(picture.dtype)                                 # 'uint8'
+```
+
+`render_image` needs numpy (`pip install opencad2d[numpy]`) and gives red, green and blue, rows from the top: the bytes
+`render_png` writes, which has no alpha channel (PNG colour type 2). The three file calls and the array take the same
+arguments, `render_pdf` only the layout:
+
+| Argument | Meaning |
+|---|---|
+| `box` | the part drawn, a `Box` or a tuple of four numbers in the units of the space (millimetres of paper on a layout), the corners in either order, fitted to the picture with no margin; None, the extents of the space with the 5 per cent margin ZOOM Extents leaves, a layout's sheet of paper among them |
+| `width`, `height` | the size in pixels; one given, the other follows the aspect of the part drawn, rounded; both, the part is fitted and centred |
+| `dpi` | pixels to the inch of paper, 96 by default, for a layout drawn at no size of its own |
+| `ground` | `"black"`, the canvas's, or `"white"`, on which colour 7 is drawn black; a layout's paper is white whatever it is |
+| `layout` | a layout's name (letters of either case) or `"Model"`; None, the space the drawing was left in |
+
+With neither `width` nor `height` a layout is its part in millimetres times `dpi` over 25.4 (an A3 sheet, 420 by 297, is
+1 587 by 1 123 pixels at 96 and 4 961 by 3 508 at 300; a layout whose paper units are inches is its part in inches times
+`dpi`, so a sheet of 16.54 by 11.69 inches gives the same), and model space is 1 600 pixels along the longer side, whatever
+`dpi` is. Lines keep the widths the canvas gives them, in pixels, so the picture is the app's whatever the size. A picture of
+more than 16 384 pixels a side or 100 000 000 pixels in all (400 MB) raises `ValueError` naming the size and the cap, as do a
+`ground` other than the two, a `dpi` that is not above nought, a size that is not a whole number or is negative, a
+box with a number that is not finite and a layout the drawing does not have.
+
+### The three forms
+
+- **PNG and the array** are the same pixels: `render_image` of a drawing equals `render_png` decoded, byte for byte, and equals
+  the canvas of the Release app (`--screenshot ... --canvas`) on the same file, on .NET 8 and on .NET Framework 4.8.
+- **SVG** is the picture of the PNG in vectors: its `width`, `height` and `viewBox` are the pixels of that picture, and an
+  image is in it as PNG data. The renderer of the canvas draws it, so the canvas's level of detail holds at the picture's
+  size: an item under half a pixel is one dot, a text under 3 pixels high is left out and a hatch whose lines come closer than
+  2 pixels is a tint. Draw at a larger `width` to keep more, or use the PDF.
+- **PDF** is the plot of EXPORTPDF with every detail: one page of the layout's sheet, its scale and plot style, lines at the
+  lineweights of the plot, text as text. An A3 sheet on its side is 1 190.55 by 841.89 points. A space that was never given a
+  sheet, which is a drawing made in code, is fitted to ISO A3, as AutoCAD fits a page setup it has not been given; one that has
+  a sheet is plotted at the scale it records. A space with nothing to plot raises the .NET `InvalidOperationException`.
+
+### Where it works
+
+Only a drawing of a file draws: a drawing of the app (`active_drawing()` inside a tool, `connect()` from outside) raises
+`RuntimeError("render_png works on a drawing of a file ...")`, because the Python process holds no drawing to draw, only a
+connection to the app that does. Save the drawing from the app (`drawing.save_as("copy.dxf")`) and render `open_file("copy.dxf")`.
+Rendering a drawing through the app waits for the MCP server of the road map. One picture is drawn at a time in a process; the
+renderer's caches are not locked against two threads drawing at once, so use processes to draw in parallel.
+
+`import opencad2d` does not load the renderer. The first render call loads `OpenCAD2D.Rendering`, SkiaSharp and, by its full
+path, the native `libSkiaSharp.dll` (13 MB) from the `lib` folder of the wheel, on .NET 8 and on .NET Framework 4.8 alike; on
+.NET Framework it also loads the `System.Memory` family from there. They add 5 851 400 bytes zipped to the wheel (16 404 573 bytes in all) and 13 932 296 unpacked to its `lib` folder (16 324 162 to 30 256 970). A `lib` folder without `libSkiaSharp.dll` raises `ImportError` naming it. A script that never renders
+does not pay for any of it.
+
+### What it costs
+
+Seconds for 1 600 by 960 pixels, as `first call / median of 5 after`, from the run of
+`test_the_first_call_and_the_median_of_five_after_it_stay_far_below_a_hang` of `tests/python/test_k1_render_headless.py` with
+`-s`, on the machine and commit named below the table. The first call of the first drawing carries the load of the native
+library and the scan of the fonts; a display list is built by the first call of a drawing and kept.
+
+| Drawing | Runtime | `render_png` | `render_svg` | `render_pdf` | `render_image` |
+|---|---|---|---|---|---|
+| curves: 40 lines, 40 circles, 40 texts | .NET 8 | 0.089 / 0.031 | 0.011 / 0.005 | 0.019 / 0.007 | 0.072 / 0.006 |
+| | .NET Framework 4.8 | 0.184 / 0.032 | 0.012 / 0.005 | 0.038 / 0.008 | 0.090 / 0.006 |
+| paragraphs: 30 MTEXT that wrap | .NET 8 | 0.057 / 0.030 | 0.024 / 0.024 | 0.039 / 0.022 | 0.007 / 0.006 |
+| | .NET Framework 4.8 | 0.062 / 0.029 | 0.023 / 0.023 | 0.024 / 0.022 | 0.008 / 0.007 |
+| hatches: 20 ANSI31 hatches in 20 squares | .NET 8 | 0.041 / 0.028 | 0.001 / 0.001 | 0.002 / 0.002 | 0.006 / 0.005 |
+| | .NET Framework 4.8 | 0.071 / 0.032 | 0.002 / 0.002 | 0.001 / 0.001 | 0.006 / 0.006 |
+| dimensions: 20 linear dimensions | .NET 8 | 0.032 / 0.026 | 0.002 / 0.002 | 0.003 / 0.003 | 0.007 / 0.005 |
+| | .NET Framework 4.8 | 0.041 / 0.029 | 0.004 / 0.003 | 0.003 / 0.003 | 0.006 / 0.008 |
+
+The numbers are from the second of two runs on 26 November 2026, an Intel Core i9-12900F with 64 GB, on commit `8caa88a6` and the
+working tree of PW6.1 P3 (the first run was the first of the day, with the files of the wheel not yet in the system's cache: the
+first call of `render_png` was 0.354 s on .NET 8 and 0.451 s on .NET Framework, the cold start of the native library and the scan
+of the fonts). A PNG is dominated by its encoding, 25 to 30 ms for 1 600 by 960 pixels; a picture of a few dozen objects is
+drawn in 5 to 10 ms; the SVG and the PDF of a drawing of lines and hatches take 1 to 25 ms. The test asserts only a ceiling of 10 seconds
+a call, against a hang.
+
 ## Inside OpenCAD2D
 
 The same library runs in the app's tools. OpenCAD2D loads a Python tool, a folder with a `requirements.txt`, an `__init__.py`
@@ -710,7 +804,7 @@ the block, also when it raises. A tool of the app uses `opencad2d.cad`, whose `c
 | Page | What it covers |
 |---|---|
 | [How do I](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
-| [Python examples](python-examples.md) | fourteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
+| [Python examples](python-examples.md) | fifteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
 | [Python API](../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
 | [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md), [Reading and writing DWG files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) | the drawing, its tables and entities, read and written |
 | [The 2D presenter](presenter/index.md), [Editing as AutoCAD does](presenter/editing.md) | `CadDocument`, its command session and undo |

@@ -18,10 +18,13 @@ import math
 import os
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Protocol, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, Generic, Literal, NamedTuple, Protocol, TypeVar, cast, overload
 
 if TYPE_CHECKING:
+    import numpy as np
     import typing_extensions
+    from numpy.typing import NDArray
+    from System.Collections.Generic import IEnumerable
     from GeometryHelper.Dxf import (
         DxfAlignedDimension,
         DxfArc,
@@ -146,6 +149,19 @@ class Box(NamedTuple):
     max_y: float
 
 
+@dataclass
+class RenderOptions:
+    """What a render call was given, checked: the part drawn (None for the extents), the picture's size (None for the default),
+    the ground as 0xRRGGBB, and the layout (None for the space the drawing was left in)."""
+
+    box: Box | None = None
+    dpi: float = 96.0
+    width: int | None = None
+    height: int | None = None
+    background: int = 0
+    layout: str | None = None
+
+
 class Backend(Protocol):
     """What a ``Drawing`` asks of the drawing underneath it; ``_local`` and ``_remote`` each give it."""
 
@@ -223,6 +239,7 @@ class Backend(Protocol):
     def select_all(self) -> list[tuple[str, Any, Any]]: ...
     def select_window(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
     def select_crossing(self, first: Any, second: Any) -> list[tuple[str, Any, Any]]: ...
+    def render(self, kind: str, path: str | None, options: RenderOptions) -> Any: ...
 
 
 def dxf_type_of(net: Any) -> str:
@@ -2172,6 +2189,121 @@ class Drawing:
             entities = drawing.pick_objects("Select objects")   # the objects selected, as a list of Entity
         """
         return [Entity(self, handle, net, source) for handle, net, source in self._backend.pick_objects(message)]
+
+    # ---- rendering: pictures with no window -----------------------------------------------------------------------
+
+    def _render_options(
+        self,
+        box: Box | tuple[float, float, float, float] | None,
+        dpi: float,
+        width: int | None,
+        height: int | None,
+        ground: str,
+        layout: str | None,
+    ) -> RenderOptions:
+        """Check what a render call was given and commit what is queued, as ``save`` does."""
+        if ground not in ("black", "white"):
+            raise ValueError(f"ground is 'black' or 'white', not {ground!r}.")
+        positive("dpi", dpi)
+        if box is not None:
+            finite("box", *box)
+        for what, pixels in (("width", width), ("height", height)):
+            if pixels is not None and (isinstance(pixels, bool) or not isinstance(pixels, int)):  # pyright: ignore[reportUnnecessaryIsInstance]
+                raise ValueError(f"{what} is a whole number of pixels, not {pixels!r}.")
+        self.commit()
+        corners = None if box is None else Box(min(box[0], box[2]), min(box[1], box[3]), max(box[0], box[2]), max(box[1], box[3]))
+        return RenderOptions(corners, float(dpi), width, height, 0xFFFFFF if ground == "white" else 0, layout)
+
+    def render_png(
+        self,
+        path: str,
+        box: Box | tuple[float, float, float, float] | None = None,
+        dpi: float = 96.0,
+        width: int | None = None,
+        height: int | None = None,
+        ground: Literal["black", "white"] = "black",
+        layout: str | None = None,
+    ) -> None:
+        """Draw the drawing to a PNG file with no window, as the canvas of the app draws it: the same renderer, fonts and colours
+        (the grid, the UCS icon and the grips, which belong to the canvas, are not drawn), on the app's default settings. What is
+        queued is committed first, as ``save`` does. The picture shows the extents of the space with the margin ZOOM Extents
+        leaves, or ``box`` (a ``Box`` or a tuple of 4 numbers, in the units of the space) fitted with none. The size is ``width``
+        by ``height`` pixels; with one of them given the other follows the aspect of the part; with neither, a layout is its sheet
+        at ``dpi`` pixels to the inch (A3, 420 by 297 mm, is 1 587 by 1 123 at 96) and model space is 1 600 pixels along its longer
+        side. A picture over 16 384 pixels a side or 100 000 000 pixels in all raises ``ValueError``. ``ground`` is the colour of
+        model space (the paper of a layout is white), on which white draws colour 7 black. ``layout`` is a layout's name or
+        ``"Model"``; None draws the space the drawing was left in. It works on a drawing of a file (``open_file``, ``new_file``);
+        a drawing of the app raises ``RuntimeError``. One picture at a time per process.
+
+        Example:
+            drawing = new_file()
+            drawing.add_line((0, 0), (100, 0))
+            drawing.add_circle((50, 50), 25)
+            drawing.render_png("plan.png")                # 1 600 by 1 200 pixels, white lines on black
+            drawing.render_png("sheet.png", layout="Layout1", dpi=150, ground="white")   # the sheet of the layout at 150 pixels to the inch (an A3 sheet: 2 480 by 1 754)
+        """
+        options = self._render_options(box, dpi, width, height, ground, layout)
+        self._backend.render("png", os.path.abspath(path), options)
+
+    def render_svg(
+        self,
+        path: str,
+        box: Box | tuple[float, float, float, float] | None = None,
+        dpi: float = 96.0,
+        width: int | None = None,
+        height: int | None = None,
+        ground: Literal["black", "white"] = "black",
+        layout: str | None = None,
+    ) -> None:
+        """Draw the drawing to an SVG file: the picture ``render_png`` makes, in vectors, its ``width`` and ``height`` the pixels of
+        that picture and its ``viewBox`` the same, images inlined as PNG data. It is drawn by the renderer of the canvas, so it keeps
+        the canvas's level of detail at that size: an item under half a pixel is one dot, a text under 3 pixels high is left out and
+        a hatch whose lines come closer than 2 pixels is a tint. ``render_pdf`` is the form with every detail. The arguments and
+        the refusals are those of ``render_png``.
+
+        Example:
+            drawing.render_svg("plan.svg", width=800)     # 800 by 600 for the line and circle of render_png
+        """
+        options = self._render_options(box, dpi, width, height, ground, layout)
+        self._backend.render("svg", os.path.abspath(path), options)
+
+    def render_pdf(self, path: str, layout: str | None = None) -> None:
+        """Plot a layout, or model space, to a PDF file of one page, as EXPORTPDF does: the page setup of the layout (its sheet,
+        scale and plot style), lines at the lineweights of the plot, text as text, and for model space the extents. What is queued
+        is committed first. An A3 sheet on its side is 1 190.55 by 841.89 points. A space that was never given a sheet (a drawing
+        made in code) is fitted to ISO A3. ``layout`` is as in ``render_png``. A space with nothing to plot raises the .NET
+        ``InvalidOperationException``; a drawing of the app raises ``RuntimeError``.
+
+        Example:
+            drawing.render_pdf("plan.pdf")                # one A3 page of the line and circle, fitted to the sheet
+            drawing.render_pdf("sheet.pdf", layout="Layout1")
+        """
+        self.commit()
+        self._backend.render("pdf", os.path.abspath(path), RenderOptions(layout=layout))
+
+    def render_image(
+        self,
+        box: Box | tuple[float, float, float, float] | None = None,
+        dpi: float = 96.0,
+        width: int | None = None,
+        height: int | None = None,
+        ground: Literal["black", "white"] = "black",
+        layout: str | None = None,
+    ) -> NDArray[np.uint8]:
+        """Draw the drawing and give the picture as a numpy array of shape ``(height, width, 3)``, ``uint8``, red, green and blue,
+        rows from the top: the pixels ``render_png`` writes, with no file. The arguments are those of ``render_png``. Needs numpy
+        (``pip install opencad2d[numpy]``).
+
+        Example:
+            image = drawing.render_image(width=400)       # shape (300, 400, 3) for the line and circle of render_png
+            image[150, 200]                               # the red, green and blue of the pixel at row 150, column 200
+        """
+        options = self._render_options(box, dpi, width, height, ground, layout)
+        picture: Any = self._backend.render("image", None, options)
+        from .. import arrays
+
+        rgb: IEnumerable[int] = picture.Rgb
+        return arrays.to_numpy(rgb).reshape(int(picture.Height), int(picture.Width), 3)
 
     # ---- the file -------------------------------------------------------------------------------------------------
 

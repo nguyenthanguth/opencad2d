@@ -16,6 +16,20 @@
   `OpenCAD2D.Rendering.dll` (netstandard2.0, no WPF), so they can draw without a window. Their namespace stays
   `OpenCAD2D.Wpf` and `OpenCAD2D.Wpf.dll` forwards the five public types (`CanvasOptions`, `SkiaCanvasRenderer`,
   `CadPdfWriter`, `CadPdfBookmark`, `CadRasterWriter`), so no plugin, built or given as source, breaks.
+- **NEW.** `drawing.render_png(path)`, `render_svg(path)`, `render_pdf(path)` and `render_image()` of `opencad2d.cad` draw a drawing of a
+  file (`open_file`, `new_file`) with no app and no window, as the app's canvas draws it, on .NET 8 and on .NET Framework 4.8: a part
+  of the space (`box`), a size in pixels (`width`, `height`) or pixels to the inch of a layout's sheet (`dpi`), a `"black"` or
+  `"white"` ground, a layout; `render_image` gives a numpy array of shape `(height, width, 3)`, `uint8`. A drawing of the app
+  (`active_drawing()`, `connect()`) raises `RuntimeError`: save it and render the file. The renderer, SkiaSharp and its native
+  library load at the first render call and not at `import opencad2d`; they add 5.85 MB zipped to the wheel (16.4 MB).
+  `opencad2d.arrays.to_numpy` also copies a .NET `Byte` array, as `uint8`. The stubs carry `CadRender`, `CadRenderOptions` and
+  `CadRenderImage` and leave out the `OpenCAD2D.Wpf` namespace of `OpenCAD2D.Rendering`. The example `render_views.py` writes two
+  PNGs, an SVG and a PDF of a drawing; the guide has "Rendering without a window".
+- **FIXED.** `CadRender.WritePdf` of a space that was never given a sheet (a drawing made in code, `new_file()`) plotted at 1 inch to
+  the unit and ran off the page: it is fitted to ISO A3, as AutoCAD fits a page setup it has not been given (a 400 by 300 drawing is
+  at 0.9567 millimetres to the unit, not 25.4); a space with a page setup keeps its scale.
+- **FIXED.** `CadRender` sized the picture of a layout whose paper units are inches as if they were millimetres: a sheet of 16.54 by
+  11.69 inches at 96 dpi was 63 by 44 pixels and is 1 587 by 1 123, the size of the same sheet in millimetres.
 - **FIXED.** `drawing.add(entity)` of a text, an MTEXT or a line that names a text style or a linetype the drawing has failed at
   `commit()` (`The text style NOTE is not in the file's text style table.`, `The linetype DASHED is not in the file's linetype
   table`), on a file, in the app and from outside: the commit appended the copy to a small drawing that had none of the

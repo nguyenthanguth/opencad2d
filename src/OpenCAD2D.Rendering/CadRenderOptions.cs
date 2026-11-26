@@ -34,8 +34,9 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Gets or sets the pixels to an inch of paper, 96 by default, for a layout drawn at no size of its own: a sheet of
-        /// A3, 420 by 297 mm, is 1 587 by 1 123 pixels at 96 and 4 961 by 3 508 at 300. It has no effect in model space, nor
-        /// where <see cref="Width"/> or <see cref="Height"/> is given; the widths of lines stay the canvas's, in pixels.
+        /// A3, 420 by 297 mm, is 1 587 by 1 123 pixels at 96 and 4 961 by 3 508 at 300 (a layout whose paper units
+        /// are inches, 16.54 by 11.69, the same). It has no effect in model space, nor where <see cref="Width"/> or
+        /// <see cref="Height"/> is given; the widths of lines stay the canvas's, in pixels.
         /// </summary>
         public double Dpi { get; set; } = 96.0;
 

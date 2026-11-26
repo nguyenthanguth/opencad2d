@@ -14,8 +14,20 @@ import re
 from collections.abc import Callable
 from typing import Any
 
-from . import _tool
-from ._drawing import Box, Documents, Drawing, Entity, Look, Op, dxf_type_of, look_color, names_of, provide
+from . import _render, _tool
+from ._drawing import (
+    Box,
+    Documents,
+    Drawing,
+    Entity,
+    Look,
+    Op,
+    RenderOptions,
+    dxf_type_of,
+    look_color,
+    names_of,
+    provide,
+)
 
 _net: Any = importlib.import_module("System")
 _cad: Any = importlib.import_module("OpenCAD2D")
@@ -609,6 +621,35 @@ class _LocalBackend:
             self._editor.SetVariable(name, value)
         except _net.ArgumentException as error:
             raise _refused(error) from None
+
+    # ---- rendering --------------------------------------------------------------------------------------------------
+
+    def render(self, kind: str, path: str | None, options: RenderOptions) -> Any:
+        """Draws the drawing with no window through ``CadRender``: ``png``, ``svg`` and ``pdf`` write ``path`` and give nothing;
+        ``image`` gives the ``CadRenderImage``. A refusal of the options is a ``ValueError``."""
+        facade = _render.load()
+        document = self.document
+        if kind == "pdf":
+            try:
+                facade.CadRender.WritePdf(path, document, options.layout)
+            except _net.ArgumentException as error:
+                raise _refused(error) from None
+            return None
+        shown = facade.CadRenderOptions()
+        shown.Layout = options.layout
+        if options.box is not None:
+            shown.Box = _cad.DisplayBox(options.box.min_x, options.box.min_y, options.box.max_x, options.box.max_y)
+        shown.Width = options.width or 0
+        shown.Height = options.height or 0
+        shown.Dpi = options.dpi
+        shown.Background = options.background
+        try:
+            if kind == "image":
+                return facade.CadRender.Draw(document, shown)
+            (facade.CadRender.WritePng if kind == "png" else facade.CadRender.WriteSvg)(path, document, shown)
+        except _net.ArgumentException as error:
+            raise _refused(error) from None
+        return None
 
     def _taken(self, handles: Any) -> list[tuple[str, Any, Any]]:
         entities = [self.document.FindEntity(handle) for handle in handles]

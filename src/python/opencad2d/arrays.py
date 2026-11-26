@@ -12,7 +12,7 @@ from __future__ import annotations
 import ctypes
 import importlib
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload
 
 from opencad2d import _DISTRIBUTION  # pyright: ignore[reportPrivateUsage]
 
@@ -32,16 +32,18 @@ _interop: Any = importlib.import_module("System.Runtime.InteropServices")
 _linq: Any = importlib.import_module("System.Linq")
 _geometry: Any = importlib.import_module("GeometryHelper.Geometry")
 
-# The element types the functions handle, by their .NET full name: the Python class and the doubles per element.
-_KINDS: dict[str, tuple[Any, int]] = {
-    "System.Double": (_system.Double, 1),
-    "GeometryHelper.Geometry.GeoPoint2": (_geometry.GeoPoint2, 2),
-    "GeometryHelper.Geometry.GeoPoint3": (_geometry.GeoPoint3, 3),
+# The element types the functions handle, by their .NET full name: the Python class, the numbers per element and the dtype
+# they are copied as (a Byte is the one element that is not a double: the pixels of a render).
+_KINDS: dict[str, tuple[Any, int, Any]] = {
+    "System.Double": (_system.Double, 1, np.float64),
+    "System.Byte": (_system.Byte, 1, np.uint8),
+    "GeometryHelper.Geometry.GeoPoint2": (_geometry.GeoPoint2, 2, np.float64),
+    "GeometryHelper.Geometry.GeoPoint3": (_geometry.GeoPoint3, 3, np.float64),
 }
 _ENUMERABLE = "System.Collections.Generic.IEnumerable`1"
 # numpy.typing.ArrayLike is not used: with Python 3.11 pyright reads part of it as Unknown, which strict mode refuses.
 _Numbers = NDArray[Any] | Sequence[float] | Sequence[Sequence[float]]
-_ACCEPTED = "a .NET array or IEnumerable of Double, GeoPoint2 or GeoPoint3"
+_ACCEPTED = "a .NET array or IEnumerable of Double, Byte, GeoPoint2 or GeoPoint3"
 
 
 def _kind_of(net_type: Any) -> str | None:
@@ -57,10 +59,17 @@ def _kind_of(net_type: Any) -> str | None:
     return None
 
 
-def to_numpy(values: IEnumerable[float] | IEnumerable[GeoPoint2] | IEnumerable[GeoPoint3]) -> NDArray[np.float64]:
-    """Copy a .NET array of Double, GeoPoint2 or GeoPoint3 into a new numpy array that the caller owns.
+# A Byte is an int, which a float takes, so the two overloads overlap: the first, for bytes, is the one a Byte array reaches.
+@overload
+def to_numpy(values: IEnumerable[int]) -> NDArray[np.uint8]: ...  # pyright: ignore[reportOverlappingOverload]
+@overload
+def to_numpy(values: IEnumerable[float] | IEnumerable[GeoPoint2] | IEnumerable[GeoPoint3]) -> NDArray[np.float64]: ...
+def to_numpy(values: IEnumerable[Any]) -> NDArray[Any]:
+    """Copy a .NET array of Double, Byte, GeoPoint2 or GeoPoint3 into a new numpy array that the caller owns.
 
-    Double gives shape ``(n,)``, GeoPoint2 ``(n, 2)`` and GeoPoint3 ``(n, 3)``, always float64. A .NET array is
+    Double gives shape ``(n,)``, GeoPoint2 ``(n, 2)`` and GeoPoint3 ``(n, 3)``, always float64; Byte gives shape ``(n,)``
+    and uint8 (the pixels of ``Drawing.render_image`` come so). The type checker reads an ``IEnumerable[int]`` as bytes: any
+    other integer type (an ``Int32[]``) raises a TypeError at run time. A .NET array is
     pinned and copied by one memmove. Any other IEnumerable of those (an IReadOnlyList such as GeoPolygon2.Vertices, a
     List) first goes through one ``Enumerable.ToArray`` call. Another element type, or a Python list, raises a
     TypeError.
@@ -70,10 +79,10 @@ def to_numpy(values: IEnumerable[float] | IEnumerable[GeoPoint2] | IEnumerable[G
     kind = _kind_of(net_type) if hasattr(values, "GetType") else None
     if kind is None:
         raise TypeError(f"to_numpy takes {_ACCEPTED}, not {type(values).__name__}.")
-    element, width = _KINDS[kind]
+    element, width, dtype = _KINDS[kind]
     net_array = values if net_type.IsArray else _linq.Enumerable.ToArray[element](values)
     count = _linq.Enumerable.Count[element](net_array)
-    result = np.empty(count if width == 1 else (count, width), dtype=np.float64)
+    result = np.empty(count if width == 1 else (count, width), dtype=dtype)
     if count:
         handle = _interop.GCHandle.Alloc(net_array, _interop.GCHandleType.Pinned)
         try:
