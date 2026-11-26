@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- **BREAKING.** A `CadApplication` (and the app of a Python `with connect()`) used after `Dispose` raises
+  `ObjectDisposedException` and opens no new pipe; it once reconnected without a word. A connection the app lost is still
+  opened again. Make a new `CadApplication` to work on.
+- **CHANGED.** The Python stubs say where `None` is allowed. A settable reference-type property takes `None` unless its comment
+  documents `ArgumentNullException` (or `ArgumentException` with a summary that does not speak of null): 306 setters, from 140.
+  A property whose summary says it can give null is `T | None` (359 more getters), so `CadApplication.ActiveDocument` is
+  `CadRemoteDocument | None` and pyright asks a Remote script to check it. An optional parameter whose default is null takes
+  `None` (152 more). The rule was measured on 223 properties set to null: none of the 91 that refused it is typed to take `None`.
+- **NEW.** Global settings, Folder preference, shows the Pythons folder (with Open folder) and the Python Startup Suite, one tool
+  to a line, where the app uses Python; the Remove tooltip and hint of Load/Unload Applications name the Pythons folder too.
+- **NEW.** A script that imports `opencad2d` freezes with PyInstaller with no option given: the package brings a hook that names
+  pythonnet and clr_loader and takes the .NET libraries into the frozen folder.
+- **FIXED.** A failed edit inside a Python run took the run's whole undo group back without a word when the tool caught the
+  error; the command line now says `<COMMAND>: an edit failed, and what this command changed so far was taken back: <why>`.
+- **FIXED.** The title the app announces to other programs follows its window; it stayed the one at start, before the drawing
+  given on the command line opened, until the window was next activated.
 - **NEW.** -PLOT chooses a printer of Windows by name, as AutoCAD's command-line PLOT does: `?` at "Enter an output device
   name or [?]" lists the installed printers after the three OpenCAD2D plotters, a name (letters of either case, spaces
   allowed) chooses one, `Enter paper size or [?]` lists and takes the printer's own sheets by name, no file is asked

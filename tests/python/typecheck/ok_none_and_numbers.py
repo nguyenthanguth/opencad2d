@@ -12,7 +12,7 @@ everything.Layer = None
 everything.Layout = None
 everything.Kind = DxfLine
 everything.Kind = None
-layer_set: str = everything.Layer
+layer_set: str | None = everything.Layer
 
 # a delegate property takes None, which puts the default back
 GeometryHelperLog.Writer = None

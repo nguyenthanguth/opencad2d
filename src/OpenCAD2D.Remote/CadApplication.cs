@@ -384,7 +384,11 @@ namespace OpenCAD2D.Remote
             return document;
         }
 
-        /// <summary>Closes the connection; the app keeps running and its drawings open.</summary>
+        /// <summary>
+        /// Closes the connection; the app keeps running and its drawings open. A call on this object or on a drawing of it after
+        /// that raises <see cref="ObjectDisposedException"/> and opens no new pipe (a connection lost by the app is opened
+        /// again; one closed here is not): make a new <see cref="CadApplication"/>. Calling it again does nothing.
+        /// </summary>
         public void Dispose() => _connection.Dispose();
     }
 }

@@ -5,6 +5,7 @@ from OpenCAD2D.Remote import CadApplication, CadObjectFilter
 
 with CadApplication() as app:
     doc = app.ActiveDocument
+    assert doc is not None
 
     # a Python list is not an IEnumerable<string> for pythonnet: it takes a .NET array
     doc.Select(["1A"])  # expect: reportArgumentType|reportCallIssue

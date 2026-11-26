@@ -411,6 +411,16 @@ namespace OpenCAD2D.Wpf
             remote.Apply();
             model.SettingsApplied += (s, e) => remote.Apply();
             window.Activated += (s, e) => remote.NoteActivated();
+
+            // The drawing given on the command line opens after the server starts, and the title of the window follows it:
+            // announced again once the binding has put it on the window.
+            model.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(MainViewModel.Title))
+                {
+                    window.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(remote.NoteTitleChanged));
+                }
+            };
             return remote;
         }
 

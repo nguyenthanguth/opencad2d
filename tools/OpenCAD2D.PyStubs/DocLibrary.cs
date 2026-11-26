@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace OpenCAD2D.PyStubs
@@ -47,16 +48,83 @@ namespace OpenCAD2D.PyStubs
         public IReadOnlyList<string> Of(MemberInfo member) => Of(member, 0);
 
         /// <summary>
-        /// Whether the comment of a member says it throws <see cref="ArgumentNullException"/>: a property whose summary says
-        /// "null where the file has none" describes what it gives, and refuses null when set.
+        /// Whether the comment of a member says it throws <see cref="ArgumentNullException"/>, or <see cref="ArgumentException"/>
+        /// without its summary speaking of null (<c>Kind</c> of a filter throws the second for a type that is not an entity
+        /// and takes null for every kind), as one that an <c>&lt;inheritdoc/&gt;</c> takes from its base member says it too: a
+        /// setter whose comment says so refuses null, where one that does not takes it.
         /// </summary>
-        public bool ThrowsWhenNull(MemberInfo member) =>
-            _members.TryGetValue(DocIds.Of(member), out XElement element)
-            && element
-                .Elements("exception")
-                .Any(e =>
-                    ((string)e.Attribute("cref") ?? "").EndsWith(".ArgumentNullException", StringComparison.Ordinal)
+        public bool ThrowsWhenNull(MemberInfo member) => ThrowsWhenNull(member, 0);
+
+        /// <summary>
+        /// Whether the summary or the returns of a member says its value can be null: "null where the file has none", "a
+        /// block, or null", "gives null", but not "never null", nor a null that is only a value the member takes
+        /// ("null sets an empty list"). Where the comment says nothing the member counts as never null.
+        /// </summary>
+        public bool GivesNull(MemberInfo member)
+        {
+            var text = new List<string>(Of(member));
+            if (_members.TryGetValue(DocIds.Of(member), out XElement element))
+            {
+                text.AddRange(element.Elements("returns").SelectMany(DocText.Paragraphs));
+            }
+
+            return text.Any(paragraph => GivesNullPhrase.IsMatch(paragraph) && !NeverNullPhrase.IsMatch(paragraph));
+        }
+
+        private static readonly Regex GivesNullPhrase = new Regex(
+            @"(?<!\bnot )(?<!\bnever )(?<!non-)(\b(or|else|otherwise) null\b"
+                + @"|\bnull (where|when|if|for|until|before|unless|otherwise|after|once)\b"
+                + @"|\b(returns|gives|giving|returning|yields) null\b"
+                + @"|(^|[;:.,] ?)null\b(?! (sets|is taken|reads|keeps|takes|means|stays|clears)))",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled
+        );
+
+        private static readonly Regex NeverNullPhrase = new Regex(
+            @"\b(never|not|non-?)\s*null|cannot be null",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled
+        );
+
+        private bool ThrowsWhenNull(MemberInfo member, int depth)
+        {
+            if (depth > MaxDepth || !_members.TryGetValue(DocIds.Of(member), out XElement element))
+            {
+                return false;
+            }
+
+            if (Refuses(element))
+            {
+                return true;
+            }
+
+            XElement inherit = element.Element("inheritdoc");
+            if (inherit == null)
+            {
+                return false;
+            }
+
+            string cref = (string)inherit.Attribute("cref");
+            return cref != null
+                ? _members.TryGetValue(cref, out XElement target) && Refuses(target)
+                : BaseMembers(member).Any(m => ThrowsWhenNull(m, depth + 1));
+        }
+
+        private static bool Refuses(XElement member)
+        {
+            List<string> thrown = member.Elements("exception").Select(e => (string)e.Attribute("cref") ?? "").ToList();
+            return thrown.Any(cref => cref.EndsWith(".ArgumentNullException", StringComparison.Ordinal))
+                || (
+                    thrown.Any(cref => cref.EndsWith(".ArgumentException", StringComparison.Ordinal))
+                    && !member
+                        .Elements("summary")
+                        .SelectMany(DocText.Paragraphs)
+                        .Any(paragraph => NullWord.IsMatch(paragraph))
                 );
+        }
+
+        private static readonly Regex NullWord = new Regex(
+            @"\bnull\b",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled
+        );
 
         private IReadOnlyList<string> Of(Type type, int depth)
         {

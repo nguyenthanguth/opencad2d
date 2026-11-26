@@ -86,9 +86,19 @@ namespace OpenCAD2D.Remote
             }
         }
 
-        /// <summary>Walks the drawings open now.</summary>
+        /// <summary>
+        /// Walks the drawings open now. The app is asked when the walk takes its first step, not when the enumerator is made, so
+        /// that a refusal (the connection disposed, the app gone) is raised from the walk, which pythonnet turns into a Python
+        /// exception; raised from here it ends the Python process.
+        /// </summary>
         /// <returns>The enumerator.</returns>
-        public IEnumerator<CadRemoteDocument> GetEnumerator() => Read().GetEnumerator();
+        public IEnumerator<CadRemoteDocument> GetEnumerator()
+        {
+            foreach (CadRemoteDocument document in Read())
+            {
+                yield return document;
+            }
+        }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

@@ -192,6 +192,20 @@ namespace GeometryHelper.Fixture
         /// <exception cref="ArgumentNullException">Thrown when the style set is null.</exception>
         public string Style { get; set; }
 
+        /// <summary>Gets or sets the block; null for the closed filled arrow.</summary>
+        /// <exception cref="ArgumentException">Thrown when the block is not one of the drawing's.</exception>
+        public string Block { get; set; }
+
+        /// <summary>Gets or sets the preset: Part or Assembly.</summary>
+        /// <exception cref="ArgumentException">Thrown when the value is not one of the presets.</exception>
+        public string Preset { get; set; }
+
+        /// <summary>Gets the handle, or null where the file gives none.</summary>
+        public string Handle { get; }
+
+        /// <summary>Gets the tag, which is never null.</summary>
+        public string Tag { get; }
+
         /// <summary>Gets or sets the nullable thing, a word that only contains one.</summary>
         public string Nullable { get; set; }
 
@@ -229,6 +243,20 @@ namespace GeometryHelper.Fixture
         public Action<int> Listener;
         public Action<int> Fixed { get; }
         public string Plain { get; set; }
+    }
+
+    /// <summary>Optional parameters, by their default.</summary>
+    public class OptionalNulls
+    {
+        public void Fill(
+            string name = null,
+            Session session = null,
+            int count = 0,
+            int? limit = null,
+            object any = null
+        ) { }
+
+        public void Required(string name, string note = "none") { }
     }
 
     /// <summary>Overloads that differ only by an out parameter at the end.</summary>

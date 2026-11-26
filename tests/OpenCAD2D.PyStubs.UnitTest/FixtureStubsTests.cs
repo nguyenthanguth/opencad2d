@@ -25,7 +25,7 @@ namespace OpenCAD2D.PyStubs.UnitTest
             Assert.Equal(new[] { "GeometryHelper.Fixture", "GeometryHelper.Fixture.Other" }, report.Modules);
             AssemblyStubs assembly = Assert.Single(report.Assemblies);
             Assert.Equal("GeometryHelper.Fixture", assembly.Name);
-            Assert.Equal(31, assembly.Types);
+            Assert.Equal(32, assembly.Types);
             Assert.Equal(2, assembly.Modules);
         }
 
@@ -356,13 +356,13 @@ namespace OpenCAD2D.PyStubs.UnitTest
         }
 
         [Fact]
-        public void ASettableReferenceMember_WhoseSummarySaysNull_TakesNone_AndSoDoesADelegateOne()
+        public void ASettableReferenceMember_TakesNone_AndSoDoesADelegateOne_AndAGetterThatSaysNullGivesIt()
         {
-            // A property takes None where it is set, and gives what it gave before.
+            // A property takes None where it is set, and its summary says it gives null, so the getter has it too.
             Assert.Contains("    @Layer.setter\n    def Layer(self, value: str | None) -> None: ...\n", Fixture);
             Assert.Contains("    @Limit.setter\n    def Limit(self, value: int | None) -> None: ...\n", Fixture);
             Assert.Contains(
-                "    @property\n    def Layer(self) -> str:\n        \"\"\"Gets or sets the layer; null for every layer.\"\"\"\n",
+                "    @property\n    def Layer(self) -> str | None:\n        \"\"\"Gets or sets the layer; null for every layer.\"\"\"\n",
                 Fixture
             );
             Assert.Contains(
@@ -396,20 +396,57 @@ namespace OpenCAD2D.PyStubs.UnitTest
         }
 
         [Fact]
-        public void ASummaryThatSaysNull_IsNotEnough_WhereTheCommentSaysNullIsRefused_OrNothingCanBeSet()
+        public void ASetterWhoseCommentSaysNullIsRefused_DoesNotTakeNone_AndOneWithNoWordOfItDoes()
         {
-            // The summary describes what the property gives, and the comment says setting null throws.
+            // The comment says setting null throws, though the summary says the property gives null.
             Assert.Contains("    @Style.setter\n    def Style(self, value: str) -> None: ...\n", Fixture);
 
-            // No word of null; a word that only contains it; a value type; a property that cannot be set; an object.
-            Assert.Contains("    @Name.setter\n    def Name(self, value: str) -> None: ...\n", Fixture);
-            Assert.Contains("    @Nullable.setter\n    def Nullable(self, value: str) -> None: ...\n", Fixture);
+            // ArgumentException refuses a null too, unless the summary speaks of null: "null for the closed filled arrow".
+            Assert.Contains("    @Preset.setter\n    def Preset(self, value: str) -> None: ...\n", Fixture);
+            Assert.Contains("    @Block.setter\n    def Block(self, value: str | None) -> None: ...\n", Fixture);
+
+            // No comment that refuses it, so it takes None, whatever the summary says: a word that only contains null, no word of it.
+            Assert.Contains("    @Name.setter\n    def Name(self, value: str | None) -> None: ...\n", Fixture);
+            Assert.Contains("    @Nullable.setter\n    def Nullable(self, value: str | None) -> None: ...\n", Fixture);
+            Assert.Contains("    @Plain.setter\n    def Plain(self, value: str | None) -> None: ...\n", Fixture);
+
+            // A value type, and an object, which is Any already, take no None; a property that cannot be set has no setter.
             Assert.Contains("    @Count.setter\n    def Count(self, value: int) -> None: ...\n", Fixture);
-            Assert.Contains("    @Plain.setter\n    def Plain(self, value: str) -> None: ...\n", Fixture);
             Assert.Contains("    @Thing.setter\n    def Thing(self, value: object) -> None: ...\n", Fixture);
             string members = StubRun.ClassOf(Fixture, "NullableMembers");
             Assert.DoesNotContain("@Owner.setter", members);
             Assert.DoesNotContain("@Fixed.setter", members);
+        }
+
+        [Fact]
+        public void AGetter_IsTypedWithNone_OnlyWhereItsSummaryOrReturnsSaysItGivesNull()
+        {
+            // "Gets the owner; null where it has none", "or null where the file gives none", a getter that says never null, no word of it.
+            Assert.Contains("    def Owner(self) -> str | None:\n", Fixture);
+            Assert.Contains("    def Handle(self) -> str | None:\n", Fixture);
+            Assert.Contains("    def Tag(self) -> str:\n", Fixture);
+            Assert.Contains("    def Plain(self) -> str: ...\n", Fixture);
+            Assert.Contains("    def Count(self) -> int: ...\n", Fixture);
+        }
+
+        [Fact]
+        public void AnOptionalParameterWhoseDefaultIsNull_TakesNone_AndAnotherDoesNot()
+        {
+            Assert.Contains(
+                "    def Fill(\n"
+                    + "        self,\n"
+                    + "        name: str | None = ...,\n"
+                    + "        session: Session | None = ...,\n"
+                    + "        count: int = ...,\n"
+                    + "        limit: int | None = ...,\n"
+                    + "        any: object = ...,\n"
+                    + "    ) -> None: ...\n",
+                StubRun.ClassOf(Fixture, "OptionalNulls")
+            );
+            Assert.Contains(
+                "    def Required(self, name: str, note: str = ...) -> None: ...\n",
+                StubRun.ClassOf(Fixture, "OptionalNulls")
+            );
         }
 
         [Fact]
@@ -500,7 +537,7 @@ namespace OpenCAD2D.PyStubs.UnitTest
                     "    @property",
                     "    def Kind(self) -> System.Type: ...",
                     "    @Kind.setter",
-                    "    def Kind(self, value: System.Type | type[Any]) -> None: ..."
+                    "    def Kind(self, value: System.Type | type[Any] | None) -> None: ..."
                 ),
                 box
             );

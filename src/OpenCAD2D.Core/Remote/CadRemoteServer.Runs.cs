@@ -518,31 +518,46 @@ namespace OpenCAD2D
             return Dispatch(() =>
             {
                 CadRemoteToolRun run = LiveRun(request, token);
+                bool takenBack = run.Document.IsGroupTakenBack;
 
-                switch (op)
+                // An edit of the run that fails takes back everything the run's command did so far (CadDocument.ApplyEdit): a
+                // tool that catches the error and goes on is told on the command line what became of its work.
+                try
                 {
-                    case RemoteOps.Write:
-                        run.Session.Write(request.GetString("text") ?? string.Empty);
-                        return new JsonObject();
-                    case RemoteOps.End:
-                        return Leave(run, CadRemoteToolRunOutcome.Completed);
-                    case RemoteOps.Fail:
-                        string line = request.GetString("message") ?? run.Name + " failed.";
-                        run.Error = line;
-                        run.Session.Write(line);
-                        return Leave(run, CadRemoteToolRunOutcome.Failed);
-                    case RemoteOps.Pick:
-                    case RemoteOps.Command:
-                        throw new Refusal(
-                            "The request " + op + " cannot be made inside a run: the run asks the user with ask."
-                        );
-                    case RemoteOps.Commit:
-                        return Commit(Find(request), request, run);
-                    case RemoteOps.Save:
-                    case RemoteOps.SaveAs:
-                        return SavedInRun(run, op, request);
-                    default:
-                        return Execute(op, request);
+                    switch (op)
+                    {
+                        case RemoteOps.Write:
+                            run.Session.Write(request.GetString("text") ?? string.Empty);
+                            return new JsonObject();
+                        case RemoteOps.End:
+                            return Leave(run, CadRemoteToolRunOutcome.Completed);
+                        case RemoteOps.Fail:
+                            string line = request.GetString("message") ?? run.Name + " failed.";
+                            run.Error = line;
+                            run.Session.Write(line);
+                            return Leave(run, CadRemoteToolRunOutcome.Failed);
+                        case RemoteOps.Pick:
+                        case RemoteOps.Command:
+                            throw new Refusal(
+                                "The request " + op + " cannot be made inside a run: the run asks the user with ask."
+                            );
+                        case RemoteOps.Commit:
+                            return Commit(Find(request), request, run);
+                        case RemoteOps.Save:
+                        case RemoteOps.SaveAs:
+                            return SavedInRun(run, op, request);
+                        default:
+                            return Execute(op, request);
+                    }
+                }
+                catch (Refusal refusal) when (!takenBack && run.Document.IsGroupTakenBack)
+                {
+                    run.Session.Write(
+                        run.Name
+                            + ": an edit failed, and what this command changed so far was taken back: "
+                            + refusal.Message
+                    );
+                    throw;
                 }
             });
         }

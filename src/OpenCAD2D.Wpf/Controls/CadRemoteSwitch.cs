@@ -94,6 +94,9 @@ namespace OpenCAD2D.Wpf
         /// <summary>Has the running server write its file again with the time now as the time the window was last activated.</summary>
         public void NoteActivated() => _server?.NoteActivated();
 
+        /// <summary>Has the running server write its file again with the window's title as it is now, the time of the last activation left as it was.</summary>
+        public void NoteTitleChanged() => _server?.NoteTitleChanged();
+
         /// <summary>Stops the server if one runs.</summary>
         public void Stop()
         {

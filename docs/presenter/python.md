@@ -213,7 +213,11 @@ name; what it returns is ignored. An `alias` is taken when no command or alias h
 return the objects selected before the command started, without asking, as MOVE does, and ask only when none were. The
 module-level code of `__init__.py` runs when the process starts, before the first command, outside any run; a function marked
 `@on_unload` is the twin of a plugin's `Terminate` and runs when the tool is unloaded or the app closes (an error in it is one
-line and the unload goes on).
+line and the unload goes on). A prompt asked at module level (`get_point` and the others) raises
+`RuntimeError: get_point works only while a command of the tool runs.` and the tool is not loaded: its first command writes
+`STAIRSPY: the tool Stairs could not be loaded: RuntimeError: get_point works only while a command of the tool runs.` AutoLISP
+answers such a prompt from the command line, since a routine loads in the session itself; a tool's process has no run to ask in
+until a command begins one, and loading a tool in APPLOAD starts no Python at all.
 
 Loading a tool again replaces its commands, the old ones taken out first. A name that is a command already, and not this tool's,
 is refused and the rest of the tool's commands are kept: `PYLOAD: LINE is a command already; Stairs did not define it.`
@@ -652,6 +656,12 @@ traceback goes to the log, and the changes are taken back. A tool that exits dur
 `STAIRSPY: the tool Stairs ended unexpectedly (exit code 3).` and the last five lines of its standard error, and the run is
 cancelled. In both the drawing is as it was and the next command works. `sys.exit(3)` in a command is a failed run; `exit()`,
 `quit()` and `sys.exit(0)` end it well.
+
+An edit that fails inside a run (a delete of an object the same commit erased already, say) takes
+back what the run changed so far, as an error of the tool does, and the command line says so at once:
+`STAIRSPY: an edit failed, and what this command changed so far was taken back: <why>`. The call that made the edit raises, and
+every later edit of the run is refused with `The command was taken back after an edit of it failed.`, so a tool that catches the
+error and goes on is not left to find out from the drawing.
 
 These are written, and the run does not start:
 

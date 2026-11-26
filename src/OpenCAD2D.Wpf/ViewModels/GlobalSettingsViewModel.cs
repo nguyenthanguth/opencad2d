@@ -441,7 +441,7 @@ namespace OpenCAD2D.Wpf
 
     /// <summary>
     /// A default support folder beside OpenCAD2D.Core.dll, as the Folder preference page shows it, read-only: its kind
-    /// (Fonts, Hatch patterns, Linetypes, Lisps, Drawing templates), its full path, whether it is there, and Open folder.
+    /// (Fonts, Hatch patterns, Linetypes, Lisps, Pythons, Drawing templates), its full path, whether it is there, and Open folder.
     /// </summary>
     public sealed class DefaultFolderRow : ObservableObject
     {
@@ -453,7 +453,7 @@ namespace OpenCAD2D.Wpf
             OpenCommand = open;
         }
 
-        /// <summary>Gets the kind of file the folder holds: Fonts, Hatch patterns, Linetypes, Lisps or Drawing templates.</summary>
+        /// <summary>Gets the kind of file the folder holds: Fonts, Hatch patterns, Linetypes, Lisps, Pythons or Drawing templates.</summary>
         public string Kind { get; }
 
         /// <summary>Gets the full path of the folder.</summary>
@@ -1165,9 +1165,22 @@ namespace OpenCAD2D.Wpf
         public ObservableCollection<DefaultFolderRow> DefaultFontFolders { get; } =
             new ObservableCollection<DefaultFolderRow>();
 
-        /// <summary>Gets the Hatches, Linetypes, Lisps and DrawingTemplates folders beside the dll, read-only rows that are not saved into the settings.</summary>
+        /// <summary>Gets the Hatches, Linetypes, Lisps and DrawingTemplates folders beside the dll, read-only rows that are not saved into the settings (the Pythons folder is a row of the Python section, <see cref="DefaultPythonFolders"/>).</summary>
         public ObservableCollection<DefaultFolderRow> DefaultSupportFolders { get; } =
             new ObservableCollection<DefaultFolderRow>();
+
+        /// <summary>Gets the Pythons folder beside the dll, a read-only row of the Python section that is not saved into the settings.</summary>
+        public ObservableCollection<DefaultFolderRow> DefaultPythonFolders { get; } =
+            new ObservableCollection<DefaultFolderRow>();
+
+        /// <summary>
+        /// Gets the Python Startup Suite as the settings hold it, one tool of it to a line, in the order they load, or a line
+        /// that says it is empty and where it is filled. Read-only: Load/Unload Applications changes the suite, by At start.
+        /// </summary>
+        public string PythonStartupSuiteText =>
+            _working.PythonStartupSuite.Count == 0
+                ? "None. Tick At start of a Python tool in Load/Unload Applications (APPLOAD) to load it at every start."
+                : string.Join("\n", _working.PythonStartupSuite);
 
         /// <summary>Gets the command of Open folder on a default folder, given its row; off where the folder is missing.</summary>
         public ICommand OpenDefaultFolderCommand { get; }
@@ -1202,6 +1215,7 @@ namespace OpenCAD2D.Wpf
         {
             DefaultFontFolders.Clear();
             DefaultSupportFolders.Clear();
+            DefaultPythonFolders.Clear();
             DefaultFontFolders.Add(
                 new DefaultFolderRow("Fonts", _roots.FolderOf(CadSupportKind.Fonts), OpenDefaultFolderCommand)
             );
@@ -1224,6 +1238,9 @@ namespace OpenCAD2D.Wpf
                     _roots.FolderOf(CadSupportKind.DrawingTemplates),
                     OpenDefaultFolderCommand
                 )
+            );
+            DefaultPythonFolders.Add(
+                new DefaultFolderRow("Pythons", _roots.FolderOf(CadSupportKind.Pythons), OpenDefaultFolderCommand)
             );
         }
 
@@ -2102,6 +2119,7 @@ namespace OpenCAD2D.Wpf
             RaiseSecurity();
             Raise(nameof(IsPythonUsed));
             Raise(nameof(PythonPath));
+            Raise(nameof(PythonStartupSuiteText));
             _python = null;
             RaisePython();
             RaiseErrors();

@@ -31,6 +31,9 @@ def main(argv: list[str]) -> int:
     source, target = Path(argv[0]), Path(argv[1])
     database = open_drawing(source)
     version = version or database.Version
+    if version is None:
+        print(f"error: {source.name} names no version of AutoCAD: give one with --version", file=sys.stderr)
+        return 1
     warnings: list[str] = []
     try:
         if target.suffix.lower() == ".dwg":

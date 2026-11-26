@@ -148,6 +148,12 @@ namespace OpenCAD2D
         public bool IsInGroup => _groupDepth > 0;
 
         /// <summary>
+        /// Gets whether the open group of edits was taken back because an edit of it failed (<see cref="ApplyEdit"/> reads the
+        /// drawing back as it stood before the group): every edit after it is refused until the group ends.
+        /// </summary>
+        internal bool IsGroupTakenBack => _groupFailed;
+
+        /// <summary>
         /// Applies one edit: the one way the presenter changes the drawing. The gate (<see cref="EditGate"/>) is asked about
         /// every planned change of an existing entity first, and one refusal refuses the whole edit with nothing written. Then
         /// <paramref name="apply"/> writes the change; if it throws, the drawing is read back as it stood before and the edit
