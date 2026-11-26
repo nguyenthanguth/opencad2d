@@ -1175,6 +1175,118 @@ tree of PW7.4 (the third ran while other builds did and is not used). The pictur
 of the same drawing took 0.047 and 0.045 s on .NET 8 and 0.044 and 0.040 s on .NET Framework before, against 0.049 and 0.047 s and
 0.042 and 0.041 s after, the spread of the runs.
 
+## Batch and AI pipelines
+
+A program that trains a model on drawings, or lets one lay a drawing out, does the same four things whether the model reads
+(a graph network, a transformer, an LLM) or acts (a vision-language model, an agent trained by reinforcement): it reads many
+files, turns each into data, evaluates a drawing, and changes it and evaluates again. Each is a call of `Drawing`, described in
+the sections above; this one says how they fit, and two examples run them end to end.
+
+| Step | Call | What comes back | Described in |
+|---|---|---|---|
+| Read | `open_file(path)`; `drawing.net.Database` of `GeometryHelper.Dxf` | the drawing, and its own header: `Insunits`, `Version`, the reader's `Warnings` | [A first script](#a-first-script), [The Drawing API](#the-drawing-api) |
+| Normalise | `flatten()`, `to_json()`, `to_dict()` | every block opened with its matrix, in millimetres, as dicts or one JSON text | [Preparing real drawings for AI](#preparing-real-drawings-for-ai-flatten-json-and-graph) |
+| Feed a network | `to_graph()` (`edge_index`, `edge_kind`), `bounds()`, `opencad2d.arrays` | NumPy arrays: edges, one box a row, vertices copied from .NET in one block | [numpy in blocks](#numpy-in-blocks) |
+| Show a model | `render_png`, `render_image`, `render_masks`, `to_coco` | a picture, the class of each pixel, COCO boxes | [Labelled renders](#labelled-renders-for-training-vision-models) |
+| Evaluate | `overlaps()`, `check(standard)` | the pairs of words and what they meet; a score from 0 to 1 and its violations | [Where things are drawn](#where-things-are-drawn-bounds-and-overlaps), [Checking against a standard](#checking-a-drawing-against-a-company-standard) |
+| Place | `measure_text`, `measure_dimension`, `free_space`, `fits` | the box and word frames a note would have, and whether a place is free | [Measuring before placing](#measuring-before-placing-measure-free-space-and-fits) |
+
+The calls take a drawing of a file (`open_file`, `new_file`), need numpy where they give arrays, and read the drawing as it was
+last committed: a script that adds or moves something calls `commit()` before it evaluates, which `reward` below does for you.
+The code that follows is the whole loop in small, on a circle with a text across its foot: read the drawing as data, find the
+overlap, score it, move the text to a place that is measured to be free, and score it again.
+
+```python
+from opencad2d.cad import new_file
+
+drawing = new_file()
+drawing.add_line((0, 100), (160, 100))
+drawing.add_circle((200, 100), 40)
+tag = drawing.add_text("Slab S1", (180, 57), 5.0)               # across the foot of the circle
+drawing.commit()                                                # ['100', '101', '102']
+[e["kind"] for e in drawing.flatten()]                          # ['LINE', 'CIRCLE', 'TEXT']
+graph = drawing.to_graph()
+# The line touches the circle: one edge, from node 0 to node 1, of kind 0 ("touches").
+graph["edge_index"].tolist()                                    # [[0], [1]]
+graph["edge_kind"].tolist()                                     # [0]
+hits = drawing.overlaps()
+# The text, 102, has the circle, 101, through it.
+list(zip(hits.words, hits.others))                              # [('102', '101')]
+standard = {"schema": "opencad2d.standard", "version": 1, "gaps": {"wordLine": 0.5}, "textHeights": {"paper": [2.5, 5.0]}}
+drawing.check(standard, model_scale=1.0).scores                 # {'text-height': 1.0, 'gap-word-line': 0.0}
+
+
+def reward(drawing, standard, words):
+    """Half the score of the standard, half the share of the ``words`` objects nothing overlaps: 1.0 for a clean sheet."""
+    drawing.commit()
+    checked = drawing.check(standard, model_scale=1.0)
+    clear = 1.0 - len(set(drawing.overlaps().words)) / words if words else 1.0
+    return (checked.total + clear) / 2.0
+
+
+reward(drawing, standard, 1)                                    # 0.25
+drawing.erase(tag)                                              # out of the drawing, so that it does not count against itself
+drawing.commit()                                                # []
+frame = drawing.measure_text("Slab S1", (150, 20), 5.0).frames[0]
+# Nothing is within a millimetre of where the words would stand there; where the text was, the circle runs through it.
+drawing.fits(frame, margin=1.0)                                 # True
+drawing.fits(drawing.measure_text("Slab S1", (180, 57), 5.0).frames[0], margin=1.0)   # False
+drawing.add_text("Slab S1", (150, 20), 5.0)
+reward(drawing, standard, 1)                                    # 1.0
+drawing.render_png("after.png", width=800)                      # the picture a vision model is shown
+```
+
+`reward` is the shape an agent calls after each action: a number from 0 to 1 that is the same for the same drawing on every
+run and on every backend, made from `check` (the weights of its rules are the standard's) and `overlaps`. Both read the display
+list and a spatial index, so what an agent pays is the first call on a drawing (it makes them) and a few milliseconds after for a
+sheet of hundreds of objects. The agent says how many objects with words it placed (`words`): counting them in the drawing would
+copy every object, which costs eight times the check and `overlaps` together. A call that measures changes nothing: `measure_*`, `free_space` and `fits` draw the note as `add_*`
+would, without adding it, so an agent tries a hundred places and adds one.
+
+### The examples
+
+Each is a file of `src/python/examples/library`, shown with what it prints in [Python examples](python-examples.md), and a test of
+the repository runs it on a drawing the test builds, on .NET 8 and on .NET Framework 4.8.
+
+| Example | What it shows |
+|---|---|
+| [`batch_export.py`](python-examples.md#a-folder-of-drawings-prepared-for-a-model) | a folder of DXF and DWG files made into JSON, a graph as arrays, and a picture each, with a manifest of the counts, the unit each was drawn in and the seconds of each step; a file that fails is a line and the next goes on |
+| [`layout_loop.py`](python-examples.md#a-loop-that-places-notes-and-the-reward-that-scores-it) | generate, render, evaluate, refine: twelve tags and two dimensions placed on a sheet, scored by a `reward` like the one above and moved to the nearest free place until the score stops rising; `before.png` and `after.png` |
+| [`render_views.py`](python-examples.md#pictures-of-a-drawing-with-no-window), [`coco_dataset.py`](python-examples.md#a-dataset-for-a-vision-model) | the pictures, class masks and COCO file a vision model is trained on |
+| [`coordinates_numpy.py`](python-examples.md#the-vertices-of-the-polylines-in-numpy) | the vertices of the polylines as arrays, as `opencad2d.arrays` copies them |
+
+### What it costs
+
+Seconds for one drawing of 2 000 objects (400 each of lines, circles, texts, linear dimensions and inserts of a block of two
+lines: 2 400 objects once the blocks are opened, 947 edges), as `first / median of the nine after`: the first drawing of a run
+carries the start of the renderer, the code of each call and the index. The first five rows are the steps of `batch_export.py`,
+from its own manifest; the last two are `reward` of `layout_loop.py`, on its sheet of 12 tags and 2 dimensions and on a drawing of
+10 000 objects (2 000 of each of the five), as `first / median of five after`.
+
+| Call | .NET 8 | .NET Framework 4.8 |
+|---|---|---|
+| `open_file` | 0.076 / 0.006 | 0.165 / 0.008 |
+| `flatten` | 0.236 / 0.083 | 0.194 / 0.082 |
+| `to_json` | 0.145 / 0.061 | 0.060 / 0.065 |
+| `to_graph` | 0.296 / 0.093 | 0.141 / 0.104 |
+| `render_png` | 0.121 / 0.047 | 0.186 / 0.039 |
+| `reward` (`check` and `overlaps`) of the sheet of `layout_loop.py` | 0.280 / 0.0005 | 0.461 / 0.0003 |
+| `reward` of 10 000 objects | 0.518 / 0.044 | 0.321 / 0.096 |
+
+The numbers are from the second of three runs on 26 November 2026, an Intel Core i9-12900F with 64 GB, on commit `a9ce0c8b` and the
+working tree of PW6.4, while other builds and test runs of the repository went on (in the other two runs every number is within a half of these). A drawing of 2 000 objects takes about 0.3 s
+on .NET 8 and on .NET Framework 4.8 for the whole of `batch_export.py` once it has started; the tests of the examples hold
+bounds, not these numbers.
+
+### From an LLM
+
+A language model need not run Python to do part of this: `OpenCAD2D.Mcp.exe` is a server of the Model Context Protocol that
+lets an agent (Claude Desktop, Claude Code, Cursor) open a drawing, query it, ask for `bounds` and `overlaps`, look at a
+`render_png`, and draw, move and erase, with the same engine and renderer as the library
+([Letting an AI agent drive OpenCAD2D](presenter/mcp.md)). It is the reading and doing half of the loop above; the measuring
+(`measure_*`, `free_space`, `fits`), the standard check and the exports for a network are calls of the Python library today, so a
+pipeline that trains on a score uses Python.
+
 ## Inside OpenCAD2D
 
 The same library runs in the app's tools. OpenCAD2D loads a Python tool, a folder with a `requirements.txt`, an `__init__.py`
@@ -1280,7 +1392,7 @@ the block, also when it raises. A tool of the app uses `opencad2d.cad`, whose `c
 | Page | What it covers |
 |---|---|
 | [How do I](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/howto.md) | a task, the call that does it, and the page that tells the rest: the calls are the ones a script makes |
-| [Python examples](python-examples.md) | sixteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
+| [Python examples](python-examples.md) | eighteen examples, on the library, as tools of the app and driving a running app, each shown with what it prints |
 | [Python API](../docfx/python-api/index.md) | every type of the package as a script sees it, generated from the stubs, linked to the .NET reference |
 | [DXF](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/index.md), [Reading and writing DWG files](https://github.com/nguyenthanguth/GeometryHelper/blob/main/src/GeometryHelper/docs/dxf/dwg.md) | the drawing, its tables and entities, read and written |
 | [The 2D presenter](presenter/index.md), [Editing as AutoCAD does](presenter/editing.md) | `CadDocument`, its command session and undo |

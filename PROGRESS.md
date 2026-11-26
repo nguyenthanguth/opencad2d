@@ -64,7 +64,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       3. Docs: using opencad2d.cad with GeometryHelper.Dxf for styles, dimensions, hatches, blocks and linetypes, and
          keeping direct .NET edits inside one undo step -> verify: the examples in the guide run as tests.
 
-- [ ] PW6. Python for AI drawing layout (.reports/python-ai.md, the maintainer 2026-11-26; after PW5): opencad2d as the
+- [x] PW6. Python for AI drawing layout (.reports/python-ai.md, the maintainer 2026-11-26; after PW5): opencad2d as the
       core of an AI that lays out drawings (generate -> render -> evaluate -> refine; datasets; reward functions).
       Built in C# in the core (and a netstandard rendering assembly); Python is the thin wrapper it is today, giving
       bulk results as NumPy arrays through opencad2d.arrays (decided 2026-11-26).
@@ -81,7 +81,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          coordinates), normalise units (INSUNITS -> mm), export the drawing as JSON and as a graph (nodes = entities,
          edges = touching/containing/dimensioning) for GNN, Transformer or LLM input. -> verify: JSON schema tests,
          round trip of a block tree, the graph of a sample drawing.
-      4. Docs and examples for batch and AI pipelines (opencad2d.cad + GeometryHelper.Dxf + opencad2d.arrays over a
+      4. DONE 2026-11-26 (380d4a73). Docs and examples for batch and AI pipelines (opencad2d.cad +
+         GeometryHelper.Dxf + opencad2d.arrays over a
          folder of DWG), each example run by a test.
 
 - [ ] PW7. More for AI drawing layout (proposed by the lead 2026-11-26, the maintainer: "kế hoạch em đưa ra tốt đó";

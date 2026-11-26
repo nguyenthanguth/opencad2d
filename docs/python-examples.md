@@ -1,6 +1,6 @@
 # Python examples
 
-Sixteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
+Eighteen examples, each doing one thing people do with OpenCAD2D from Python: list the layers of a drawing, make a
 drawing in code, draw one to pictures with no window, cut one solid from another, number points in the app, draw in an app that is running. They are in
 `src/python/examples` of the repository, in three folders for the three places Python works with the library (a tool of the
 app is a folder of its own), and this page shows each as it is, with what it prints. A test of the repository runs every file, on .NET 8 and on .NET Framework
@@ -24,6 +24,8 @@ is what the files do.
 | [`convert.py`](#convert-between-dxf-and-dwg) | a drawing read and written again as DXF or DWG, in a version |
 | [`render_views.py`](#pictures-of-a-drawing-with-no-window) | a drawing drawn to two PNGs, an SVG and a PDF with no window |
 | [`coco_dataset.py`](#a-dataset-for-a-vision-model) | three drawings written as pictures, class masks and one COCO file |
+| [`batch_export.py`](#a-folder-of-drawings-prepared-for-a-model) | every DXF and DWG of a folder written as JSON, graph arrays and a picture, with a manifest |
+| [`layout_loop.py`](#a-loop-that-places-notes-and-the-reward-that-scores-it) | tags and dimensions placed, scored and moved until the score stops rising |
 | [`number_points`](#number-the-points-you-pick) | a number written at each point you pick |
 | [`drawing_tools`](#commands-of-your-own) | the commands RECTC and LAYERCOUNT |
 | [`selection_lengths`](#the-length-of-a-selection) | the length and closed area of the selected objects |
@@ -230,9 +232,81 @@ three are of one picture ([Labelled renders](python.md#labelled-renders-for-trai
 
 [!code-python[](../src/python/examples/library/coco_dataset.py)]
 
+### A folder of drawings prepared for a model
+
+`batch_export.py FOLDER OUT_FOLDER` takes each DXF and DWG file of a folder (subfolders are not entered), in the order of
+their names with the case ignored, and writes three files named after it and one line to `manifest.jsonl`. `NAME.json` is
+`drawing.to_json()`, the drawing with its blocks opened and its units made millimetres; `NAME.npz` holds the NumPy arrays a
+network is fed with (`edge_index` of shape (2, E) and `edge_kind` from `to_graph`, and for its N nodes, in the order the edges
+number them, `node_box` of shape (N, 4), `node_kind` and `node_layer`; and the `vertices` of every polyline of model space with the
+`offsets` that say where each starts, copied from .NET by [`opencad2d.arrays`](python.md#numpy-in-blocks)); `NAME.png` is the picture, 800 pixels wide. It reads the
+drawing's own header through `GeometryHelper.Dxf` (`Database.Insunits`, `Version` and the reader's `Warnings`), which the
+`Drawing` API does not give, so the manifest says what unit each file was drawn in. A file that cannot be read is a line with
+its `error` and the next goes on, the exit code being 1 if any failed. The folder below holds a plate 400 by 300 with a circle,
+a text, a dimension and a block of two lines inserted twice (6 objects, 8 once the blocks are opened), in three files; a
+drawing in inches; one of no unit; an empty one; and a file that is no drawing:
+
+```text
+$ python batch_export.py drawings out
+Beam.dxf: 6 objects, 8 nodes, 9 edges
+broken.dxf: This is not a DXF that can be read: line 1 should be a group code, a whole number, and is 'not a drawing'.
+empty.dxf: 0 objects, 0 nodes, 0 edges
+frame.dwg: 6 objects, 8 nodes, 9 edges
+inches.dxf: 2 objects, 2 nodes, 0 edges
+plate.dxf: 6 objects, 8 nodes, 9 edges
+unitless.dxf: 1 objects, 1 nodes, 0 edges
+7 files, 1 failed
+```
+
+The line of `plate.dxf` in the manifest (the seconds vary):
+
+```text
+{"file": "plate.dxf", "version": "AC1027", "insunits": "Millimeters", "to_mm": 1, "normalised": true, "warnings": 0,
+ "entities": 6, "flat": 8, "pieces": 4, "nodes": 8, "edges": {"touches": 2, "contains": 6, "dimensions": 1, "annotates": 0},
+ "polylines": 1, "vertices": 4, "png": [800, 663], "seconds": {"open": 0.0015, "flatten": 0.001, "json": 0.0008, ...}}
+```
+
+`inches.dxf` has `"insunits": "Inches", "to_mm": 25.4` and its numbers in `inches.dxf.json` are in millimetres; `unitless.dxf` has
+`"normalised": false`, a drawing of no unit being left as it is. The same folder gives the same files (the `.npz` zip holds a
+time stamp, its arrays are equal) and the same manifest but for its seconds. A folder of 10 drawings of 2 000 objects each (2 400
+once the blocks are opened) takes 0.3 s a drawing for the five steps after the first, which carries the start of .NET and the
+index ([Batch and AI pipelines](python.md#batch-and-ai-pipelines)). It needs numpy.
+
+[!code-python[](../src/python/examples/library/batch_export.py)]
+
+### A loop that places notes, and the reward that scores it
+
+`layout_loop.py OUT_FOLDER [SEED]` is the loop of an AI that lays out annotation: generate, render, evaluate, refine. It makes a
+sheet (A3, 420 by 297 mm) with a border and a grid of beams, a tag `B1` to `B12` on twelve of the crossings and two linear
+dimensions below the grid, all put where a first attempt puts them: a tag with its middle on its crossing, so that the beams
+run through it, and four of the twelve at a height of 4 mm, which the company standard it carries does not allow. `reward`
+scores the sheet: half `check()` against the standard (the heights on paper of 2.5, 3.5, 5 and 7 mm, and 0.5 mm between a word
+and a line or another word), half the share of the objects with words that `overlaps()` finds nothing over. Each round moves
+every note that is scored down: the tag is measured (`measure_text`), `free_space` lists the empty rectangles round its anchor
+that are big enough with 1 mm to spare, and the tag goes to the point of one of them nearest the anchor; a dimension is tried
+at offsets of its line on both sides (`measure_dimension`, `fits`) and takes the nearest that fits; the height is the nearest
+the standard has. The loop stops on the round that does not raise the reward, and the exit code is 0 when no overlap is left.
+The sheet and the moves follow the seed (1 where none is given), and `before.png` and `after.png` (1 200 by 849) show them:
+
+```text
+$ python layout_loop.py loop
+round 0: reward 0.321 (standard 0.571, clear 0.071, 25 overlaps)
+round 1: moved 13, reward 1.000 (standard 1.000, clear 1.000, 0 overlaps)
+round 2: moved 0, reward 1.000 (standard 1.000, clear 1.000, 0 overlaps)
+reward 0.321 -> 1.000; before.png and after.png written to loop
+```
+
+Thirteen notes were moved: the twelve tags (a beam runs through each) and the dimension of 300, whose words stood within
+the gap of the line of the dimension of 150; the second round finds nothing to move and the loop ends. `reward` is the function an RL agent would call after each
+action; it is written to be read and copied, and [Batch and AI pipelines](python.md#batch-and-ai-pipelines) says what it
+costs. The words it moves are those of the objects the pairs name as `words`; a tag whose place is not free anywhere within 60 mm
+stays where it is, and the reward says so by not reaching 1. It needs numpy.
+
+[!code-python[](../src/python/examples/library/layout_loop.py)]
+
 ## Tools of the app
 
-The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the sixteen: they
+The three tools that ship with the app, `DrawingInfo` (PYINFO), `DrawRandom` (PYRANDOM) and `HelloWorld` (PYHELLOWORLD), are not among the eighteen: they
 are in the app's `Pythons` folder and in `examples\Pythons` of the repository, and [Python commands and
 tools](presenter/python.md#where-tools-load-from) shows what they write. Each tool below is run in a `python.exe` of its own, with a
 venv of its own that its `requirements.txt` fills (these need no package, so their files are empty).
