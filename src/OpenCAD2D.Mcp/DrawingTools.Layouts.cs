@@ -61,12 +61,13 @@ namespace OpenCAD2D.Mcp
 
                 if (
                     string.IsNullOrEmpty(label)
+                    || label.Length > 255
                     || label.IndexOfAny(LayoutNameFaults) >= 0
                     || label.Equals("Model", StringComparison.OrdinalIgnoreCase)
                 )
                 {
                     throw new ArgumentException(
-                        "A layout needs a name, not Model, without any of < > / \\ \" : ; ? * | , = ` in it."
+                        "A layout needs a name of up to 255 characters, not Model, without any of < > / \\ \" : ; ? * | , = ` in it."
                     );
                 }
 

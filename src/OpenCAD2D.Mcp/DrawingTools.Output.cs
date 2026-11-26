@@ -199,7 +199,7 @@ namespace OpenCAD2D.Mcp
             [Description(OverwriteText)] bool overwrite = false
         ) => _session.Run("export_svg", true, drawing =>
             {
-                Box("box", box);
+                double[] part = Normalised("box", box);
 
                 if (width < 0 || height < 0 || dpi < 0.0 || double.IsNaN(dpi))
                 {
@@ -212,7 +212,7 @@ namespace OpenCAD2D.Mcp
                 var request = new RenderRequest
                 {
                     Layout = space,
-                    Box = box ?? (McpKit.IsApp(drawing) ? null : McpViews.Get(document, space)),
+                    Box = part ?? (McpKit.IsApp(drawing) ? null : McpViews.Get(document, space)),
                     Width = width,
                     Height = height,
                     Dpi = dpi,
@@ -228,7 +228,7 @@ namespace OpenCAD2D.Mcp
 
         [McpServerTool(Name = "save_as", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
-            "Writes a COPY of the drawing as a DXF or a DWG of a version of AutoCAD, as the core's writers do, and leaves the open drawing as it is: its own file, its name and its unsaved changes (save with a path is the tool that moves the drawing to a new file). An attached server writes a copy of the app's drawing as it stands, changes not saved included, and never touches the app. A file that is there, the drawing's own among them, is refused unless overwrite is true. Refused with --read-only."
+            "Writes a COPY of the drawing as a DXF or a DWG of a version of AutoCAD, as the core's writers do, and leaves the open drawing as it is: its own file, its name and its unsaved changes (save with a path is the tool that moves the drawing to a new file). An attached server writes a copy of the app's drawing as it stands, changes not saved included, and never touches the app. A file that is there is refused unless overwrite is true, and the drawing's own file is always refused (save writes it). Refused with --read-only."
         )]
         public SaveAsResult SaveAs(
             [Description("The file to write.")] string path,
@@ -242,6 +242,14 @@ namespace OpenCAD2D.Mcp
             {
                 string kind = Format(path, format);
                 string code = McpKit.VersionCode(version);
+
+                if (kind == "dwg" && code == "AC1009")
+                {
+                    throw new ArgumentException(
+                        "Version 12 is a DXF version: a DWG is written as 2000 or later (2018 where left out)."
+                    );
+                }
+
                 string full = McpKit.Target(path, "." + kind, overwrite, drawing.Path);
                 IReadOnlyList<string> left = Copy(drawing, full, kind, code);
                 return new SaveAsResult

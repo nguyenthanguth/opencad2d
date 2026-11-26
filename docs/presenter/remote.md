@@ -139,7 +139,7 @@ drawing, about 0.2 MB compressed for 10 000 entities, until then or until the dr
 are the requests `snapshot`, `reset` and `releaseSnapshot` and the `CadDocument.TakeSnapshot` and `Reset` of the app, whose
 [guide](editing.md#snapshot-and-reset-of-a-drawing-in-memory) says what comes back and what it costs. The reset is not one more undo
 step: the steps made since the snapshot are forgotten, so that a program that resets a thousand times does not fill the app's memory
-with the steps of every episode, and what the user did before the snapshot stays undoable. Both are refused with the command's name
+with the steps of every episode, and what the user did before the snapshot stays undoable while the app's undo list holds the point of the snapshot (a reset to a snapshot whose point the list lost, as a reset to B after a reset to an earlier A, reads the drawing back from the snapshot's bytes and starts the undo list afresh). Both are refused with the command's name
 while a command runs in the drawing (as a commit is), a snapshot of another drawing is an `ArgumentException`, and one released is a
 `CadRemoteException`, "OpenCAD2D has no snapshot ...". Python's `drawing.snapshot()` and `drawing.reset()` give it.
 

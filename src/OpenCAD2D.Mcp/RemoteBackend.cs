@@ -291,7 +291,25 @@ namespace OpenCAD2D.Mcp
             Document.CommitChanges();
         }
 
-        public bool Undo() => Document.SendCommand("U").Completed;
+        public bool Undo()
+        {
+            RefuseWhileRunning();
+            CadRemoteTyped sent = Document.TypeScript("U\n", false);
+            return sent.Completed && TookBack(sent.Output, "Everything has been undone");
+        }
+
+        /// <summary>
+        /// Whether what the command line wrote after U or REDO says a step was taken: a line that is not the command's echo and not
+        /// the sentence that says there was none (<paramref name="none"/>).
+        /// </summary>
+        private static bool TookBack(IReadOnlyList<string> output, string none) =>
+            output.Any(l =>
+            {
+                string line = l.Trim();
+                return line.Length > 0
+                    && !line.StartsWith("Command:", StringComparison.OrdinalIgnoreCase)
+                    && line.IndexOf(none, StringComparison.OrdinalIgnoreCase) < 0;
+            });
 
         public string Save(string path)
         {

@@ -463,6 +463,7 @@ namespace OpenCAD2D
             }
 
             _host.Close(document);
+            ForgetClosedSnapshots();
             return new JsonObject();
         }
 

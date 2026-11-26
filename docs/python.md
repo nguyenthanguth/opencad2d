@@ -1025,9 +1025,9 @@ dimensions are the ones the drawing would have if it were opened again: they are
 How it works, and what it costs. The drawing already keeps itself at every undo step, so a snapshot is a point of that list and
 costs a few milliseconds the first time; a reset is one jump back to that point (what `U` does for one step, done once over all the
 steps since), and the steps made since are forgotten, not made one more step, so a thousand episodes hold no more steps than one. What
-the user did before the snapshot can still be undone. Where the list no longer holds the point (the drawing was undone below it and
+the user did before the snapshot can still be undone as long as the list holds the point. Where the list no longer holds the point (the drawing was undone below it and
 edited again, or a reset to an earlier snapshot cut it) the reset reads the drawing back from the bytes the snapshot keeps: the same
-drawing, with every display list drawn again and the undo list started afresh (the views of the spaces and the user coordinate system
+drawing, with every display list drawn again and the undo list started afresh, so that what the user did before is then no longer undoable (the views of the spaces and the user coordinate system
 are not restored on that path). A drawing of 10 000 objects, after 100 random edits, resets in about 1 ms and draws again in 1 to 3 ms
 (the first reset to a snapshot takes about 4 ms: the drawing of the next one is read while the episode runs); 1 000 episodes of 100
 edits leave the memory where the first hundred put it.

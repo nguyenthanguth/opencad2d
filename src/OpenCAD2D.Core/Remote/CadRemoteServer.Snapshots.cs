@@ -19,17 +19,7 @@ namespace OpenCAD2D
         private JsonObject TakeSnapshot(CadDocument document)
         {
             Busy(document, "take a snapshot");
-
-            foreach (
-                long gone in _snapshots
-                    .Where(p => !_host.Documents.Contains(p.Value.Document))
-                    .Select(p => p.Key)
-                    .ToList()
-            )
-            {
-                _snapshots.Remove(gone);
-            }
-
+            ForgetClosedSnapshots();
             CadSnapshot snapshot;
 
             try
@@ -45,15 +35,33 @@ namespace OpenCAD2D
             return new JsonObject().Set("snapshot", _lastSnapshot);
         }
 
+        /// <summary>The number of snapshots the server keeps, for the tests.</summary>
+        internal int SnapshotsKept => _snapshots.Count;
+
+        /// <summary>Forgets the snapshots of drawings that are closed: they hold the drawing, and the memory of its undo list, for nothing.</summary>
+        private void ForgetClosedSnapshots()
+        {
+            foreach (
+                long gone in _snapshots
+                    .Where(p => !_host.Documents.Contains(p.Value.Document))
+                    .Select(p => p.Key)
+                    .ToList()
+            )
+            {
+                _snapshots.Remove(gone);
+            }
+        }
+
         /// <summary>
         /// Answers a <c>reset</c>: puts the drawing back as the snapshot kept it (<see cref="CadDocument.Reset"/>). The steps made
         /// since are forgotten, not made one more step, so that a thousand resets leave the app's memory where one does: what the
-        /// user did before the snapshot stays undoable. Refused while a command runs in the drawing, or for a snapshot of another
+        /// user did before the snapshot stays undoable while the undo list holds the point of the snapshot (see <see cref="CadDocument.Reset"/>). Refused while a command runs in the drawing, or for a snapshot of another
         /// drawing or one released.
         /// </summary>
         private JsonObject ResetToSnapshot(CadDocument document, JsonObject request)
         {
             Busy(document, "reset it");
+            ForgetClosedSnapshots();
 
             if (!_snapshots.TryGetValue(request.GetLong("snapshot", -1), out CadSnapshot snapshot))
             {
@@ -86,6 +94,8 @@ namespace OpenCAD2D
                 snapshot.Document.ReleaseSnapshot(snapshot);
                 _snapshots.Remove(number);
             }
+
+            ForgetClosedSnapshots();
 
             return new JsonObject();
         }

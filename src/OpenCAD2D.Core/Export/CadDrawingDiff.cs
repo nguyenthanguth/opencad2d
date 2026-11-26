@@ -18,7 +18,8 @@ namespace OpenCAD2D
             IReadOnlyList<string> properties,
             double[] boxBefore,
             double[] boxAfter,
-            double[] movedBy
+            double[] movedBy,
+            string order
         )
         {
             Handle = handle;
@@ -29,7 +30,11 @@ namespace OpenCAD2D
             BoxBefore = boxBefore;
             BoxAfter = boxAfter;
             MovedBy = movedBy;
+            Order = order;
         }
+
+        /// <summary>The last tie-break of the rows of one list: the index path in the block, each number padded to ten digits, then the object's own key, which no other of the list has.</summary>
+        internal string Order { get; }
 
         /// <summary>
         /// Gets the handle of the object: its own for one that stands in a space, the handle of the block reference it came out
@@ -140,7 +145,7 @@ namespace OpenCAD2D
             {
                 if (!second.TryGetValue(pair.Key, out JsonObject other))
                 {
-                    removed.Add(Removed(pair.Value));
+                    removed.Add(Removed(pair.Key, pair.Value));
                     continue;
                 }
 
@@ -152,14 +157,14 @@ namespace OpenCAD2D
                     continue;
                 }
 
-                changed.Add(Changed(pair.Value, other, differ, epsilon));
+                changed.Add(Changed(pair.Key, pair.Value, other, differ, epsilon));
             }
 
             foreach (KeyValuePair<string, JsonObject> pair in second)
             {
                 if (!first.ContainsKey(pair.Key))
                 {
-                    added.Add(Added(pair.Value));
+                    added.Add(Added(pair.Key, pair.Value));
                 }
             }
 
@@ -173,6 +178,7 @@ namespace OpenCAD2D
                 .ThenBy(r => r.Layout, StringComparer.Ordinal)
                 .ThenBy(r => r.BoxAfter == null ? double.NegativeInfinity : r.BoxAfter[0])
                 .ThenBy(r => r.BoxBefore == null ? double.NegativeInfinity : r.BoxBefore[0])
+                .ThenBy(r => r.Order, StringComparer.Ordinal)
                 .ToList();
 
         private static long HandleNumber(string handle) =>
@@ -215,13 +221,14 @@ namespace OpenCAD2D
             return found;
         }
 
-        private static CadDrawingChange Added(JsonObject entity) =>
-            Row(entity, new List<string>(), null, Box(entity), null);
+        private static CadDrawingChange Added(string key, JsonObject entity) =>
+            Row(key, entity, new List<string>(), null, Box(entity), null);
 
-        private static CadDrawingChange Removed(JsonObject entity) =>
-            Row(entity, new List<string>(), Box(entity), null, null);
+        private static CadDrawingChange Removed(string key, JsonObject entity) =>
+            Row(key, entity, new List<string>(), Box(entity), null, null);
 
         private static CadDrawingChange Changed(
+            string key,
             JsonObject before,
             JsonObject after,
             List<string> differ,
@@ -246,10 +253,11 @@ namespace OpenCAD2D
                 }
             }
 
-            return Row(after, differ, from, to, moved);
+            return Row(key, after, differ, from, to, moved);
         }
 
         private static CadDrawingChange Row(
+            string key,
             JsonObject entity,
             List<string> differ,
             double[] before,
@@ -264,8 +272,26 @@ namespace OpenCAD2D
                 differ,
                 before,
                 after,
-                moved
+                moved,
+                Order(key, entity)
             );
+
+        /// <summary>The index path of a piece of a block, each number padded so that 2 comes before 10, then the key of the object.</summary>
+        private static string Order(string key, JsonObject entity) =>
+            (
+                entity.Get("indexPath") is JsonArray path
+                    ? string.Join(
+                        ".",
+                        path.Select(i =>
+                            Convert
+                                .ToInt64(i, CultureInfo.InvariantCulture)
+                                .ToString("D10", CultureInfo.InvariantCulture)
+                        )
+                    )
+                    : string.Empty
+            )
+            + "|"
+            + key;
 
         private static double[] Box(JsonObject entity)
         {

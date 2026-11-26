@@ -175,11 +175,37 @@ namespace OpenCAD2D.Mcp
             string tool,
             string[] handles,
             bool mustChange,
-            Func<IDrawingBackend, List<string>, CommandScript> build
+            Func<IDrawingBackend, List<string>, CommandScript> build,
+            params string[] keep
         ) => _session.Run(tool, true, drawing =>
             {
                 List<string> list = Handles(handles);
-                return Script(drawing, list, mustChange, () => build(drawing, list));
+
+                if (keep.Length == 0)
+                {
+                    return Script(drawing, list, mustChange, () => build(drawing, list));
+                }
+
+                // The command leaves the radius or the distances it was given as the ones the next command offers (the user's, in the
+                // app): they are put back, in the undo step of the command.
+                IDrawingEditing editing = Editing(drawing);
+                object[] was = keep.Select(drawing.Variable).ToArray();
+                ModifiedResult made = null;
+                editing.Group(() =>
+                {
+                    try
+                    {
+                        made = Script(drawing, list, mustChange, () => build(drawing, list));
+                    }
+                    finally
+                    {
+                        for (int i = 0; i < keep.Length; i++)
+                        {
+                            editing.SetVariable(keep[i], was[i]);
+                        }
+                    }
+                });
+                return made;
             });
 
         [McpServerTool(Name = "copy", ReadOnly = false, Destructive = false, Idempotent = false, OpenWorld = false)]
@@ -249,32 +275,39 @@ namespace OpenCAD2D.Mcp
             [Description("The distance in millimetres, above 0; leave out to offset through the point given as side.")]
                 double? distance = null,
             [Description("True to erase the curve after offsetting it.")] bool erase_source = false
-        ) => Modify("offset", new[] { handle }, true, (drawing, list) =>
-            {
-                GeoPoint3 p = Point("side", side);
-                CommandScript script = new CommandScript().Word("OFFSET");
-
-                if (erase_source)
+        ) =>
+            Modify(
+                "offset",
+                new[] { handle },
+                true,
+                (drawing, list) =>
                 {
-                    script.Word("E").Word("Y");
-                }
+                    GeoPoint3 p = Point("side", side);
+                    CommandScript script = new CommandScript().Word("OFFSET");
 
-                if (distance.HasValue)
-                {
-                    if (!(distance.Value > 0.0) || double.IsInfinity(distance.Value))
+                    if (erase_source)
                     {
-                        throw new ArgumentException("The distance is a length above nought.");
+                        script.Word("E").Word("Y");
                     }
 
-                    script.Number(distance.Value);
-                }
-                else
-                {
-                    script.Word("T");
-                }
+                    if (distance.HasValue)
+                    {
+                        if (!(distance.Value > 0.0) || double.IsInfinity(distance.Value))
+                        {
+                            throw new ArgumentException("The distance is a length above nought.");
+                        }
 
-                return script.Pick(list).Point(p.X, p.Y).Enter();
-            });
+                        script.Number(distance.Value);
+                    }
+                    else
+                    {
+                        script.Word("T");
+                    }
+
+                    return script.Pick(list).Point(p.X, p.Y).Enter();
+                },
+                "OFFSETDIST"
+            );
 
         [McpServerTool(
             Name = "array_rectangular",
@@ -504,24 +537,31 @@ namespace OpenCAD2D.Mcp
             [Description("A point [x, y] on the first object, to choose the side where two objects cross.")]
                 double[] first_point = null,
             [Description("A point [x, y] on the second object.")] double[] second_point = null
-        ) => Modify("fillet", second == null ? new[] { first } : new[] { first, second }, true, (drawing, list) =>
-            {
-                if (!(radius >= 0.0) || double.IsInfinity(radius))
+        ) =>
+            Modify(
+                "fillet",
+                second == null ? new[] { first } : new[] { first, second },
+                true,
+                (drawing, list) =>
                 {
-                    throw new ArgumentException("The radius is 0 or more.");
-                }
+                    if (!(radius >= 0.0) || double.IsInfinity(radius))
+                    {
+                        throw new ArgumentException("The radius is 0 or more.");
+                    }
 
-                CommandScript script = new CommandScript().Word("FILLET").Word("R").Number(radius);
+                    CommandScript script = new CommandScript().Word("FILLET").Word("R").Number(radius);
 
-                if (second == null)
-                {
-                    return script.Word("P").Pick(new[] { list[0] });
-                }
+                    if (second == null)
+                    {
+                        return script.Word("P").Pick(new[] { list[0] });
+                    }
 
-                Corner(drawing, script, list[0], first_point);
-                Corner(drawing, script, list[1], second_point);
-                return script;
-            });
+                    Corner(drawing, script, list[0], first_point);
+                    Corner(drawing, script, list[1], second_point);
+                    return script;
+                },
+                "FILLETRAD"
+            );
 
         /// <summary>
         /// Answers the prompt for a corner's object with a point on it: the one given, else the middle of the object, so that the
@@ -564,20 +604,28 @@ namespace OpenCAD2D.Mcp
             [Description("A point [x, y] on the first line, to choose the side where the lines cross.")]
                 double[] first_point = null,
             [Description("A point [x, y] on the second line.")] double[] second_point = null
-        ) => Modify("chamfer", new[] { first, second }, true, (drawing, list) =>
-            {
-                double d2 = distance2 ?? distance1;
-
-                if (!(distance1 >= 0.0) || !(d2 >= 0.0) || double.IsInfinity(distance1) || double.IsInfinity(d2))
+        ) =>
+            Modify(
+                "chamfer",
+                new[] { first, second },
+                true,
+                (drawing, list) =>
                 {
-                    throw new ArgumentException("The distances are 0 or more.");
-                }
+                    double d2 = distance2 ?? distance1;
 
-                CommandScript script = new CommandScript().Word("CHAMFER").Word("D").Number(distance1).Number(d2);
-                Corner(drawing, script, list[0], first_point);
-                Corner(drawing, script, list[1], second_point);
-                return script;
-            });
+                    if (!(distance1 >= 0.0) || !(d2 >= 0.0) || double.IsInfinity(distance1) || double.IsInfinity(d2))
+                    {
+                        throw new ArgumentException("The distances are 0 or more.");
+                    }
+
+                    CommandScript script = new CommandScript().Word("CHAMFER").Word("D").Number(distance1).Number(d2);
+                    Corner(drawing, script, list[0], first_point);
+                    Corner(drawing, script, list[1], second_point);
+                    return script;
+                },
+                "CHAMFERA",
+                "CHAMFERB"
+            );
 
         [McpServerTool(Name = "stretch", ReadOnly = false, Destructive = false, Idempotent = false, OpenWorld = false)]
         [Description(

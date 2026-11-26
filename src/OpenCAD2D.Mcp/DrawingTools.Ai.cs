@@ -453,15 +453,16 @@ namespace OpenCAD2D.Mcp
             OpenWorld = false
         )]
         [Description(
-            "Writes the whole of export_json (what json) or export_graph (what graph) to a file as UTF-8 text, replacing the file where there is one, and answers the path and the bytes written; for a pipeline that reads the file and not the agent. The folder must exist. Refused by a server started with --read-only."
+            "Writes the whole of export_json (what json) or export_graph (what graph) to a .json file as UTF-8 text, and answers the path and the bytes written; for a pipeline that reads the file and not the agent. .json is added where the path has no extension, another extension is refused, the folder is made where it is not there, a file that is there is refused unless overwrite is true, and the drawing's own file is always refused. Refused by a server started with --read-only."
         )]
         public ExportedResult ExportToFile(
             [Description("json or graph.")] string what,
-            [Description("The file to write.")] string path,
+            [Description("The .json file to write.")] string path,
             [Description("One layout (Model for model space); model space and every layout where left out.")]
                 string layout = null,
             [Description("For graph: how near two ends must be to touch, in millimetres, above 0.")]
-                double tolerance = 0.001
+                double tolerance = 0.001,
+            [Description(OverwriteText)] bool overwrite = false
         ) => _session.Run("export_to_file", true, drawing =>
             {
                 string kind = (what ?? string.Empty).Trim().ToLowerInvariant();
@@ -471,30 +472,15 @@ namespace OpenCAD2D.Mcp
                     throw new ArgumentException("what is json or graph, not " + what + ".");
                 }
 
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    throw new ArgumentException("export_to_file needs the path of the file to write.");
-                }
-
-                string full = Path.GetFullPath(path);
-
-                if (!Directory.Exists(Path.GetDirectoryName(full)))
-                {
-                    throw new ArgumentException("The folder of " + full + " does not exist.");
-                }
-
                 string space = ExportLayout(drawing, layout);
-                string text;
 
                 if (kind == "graph")
                 {
                     Positive("The tolerance", tolerance);
-                    text = drawing.ExportGraph(space, tolerance);
                 }
-                else
-                {
-                    text = drawing.ExportJson(space);
-                }
+
+                string full = McpKit.Target(path, ".json", overwrite, drawing.Path);
+                string text = kind == "graph" ? drawing.ExportGraph(space, tolerance) : drawing.ExportJson(space);
 
                 var encoding = new UTF8Encoding(false);
                 File.WriteAllText(full, text, encoding);

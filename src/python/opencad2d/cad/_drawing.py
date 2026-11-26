@@ -3087,7 +3087,9 @@ class Drawing:
         handle it got the first time), layers, styles, blocks, layouts and the header variables, the current layer and styles
         and the handle seed among them. What is queued and not committed is dropped; an ``Entity`` read before is a copy and
         keeps what it had. The steps made since are forgotten, not made one more step: what was done before the snapshot can
-        still be undone, and a thousand resets use no more memory than one. The same snapshot can be reset to again and again.
+        still be undone while the undo list holds the point of the snapshot (a reset to a snapshot whose point an earlier reset
+        cut off reads the drawing from the snapshot's bytes and starts the list afresh), and a thousand resets use no more
+        memory than one. The same snapshot can be reset to again and again.
         The display, the spatial tables and the pictures of dimensions are drawn again only where the episode touched them:
         a reset of 10 000 objects after 100 edits takes about 1 ms and the display after it 1 to 3 ms, where opening the file
         and drawing it takes 20 to 40 ms; the first reset to a snapshot takes about 4 ms, as the next one's drawing is read

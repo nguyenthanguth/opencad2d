@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **FIXED.** MCP server, from an independent review. (1) A block name that starts like AutoLISP (`(princ...)`, `!x`, `'x`) was typed at the
+  `-INSERT` prompt and ran as LISP without `--allow-scripts`; `insert_block_with_attributes` and `define_block` now insert through an
+  edit of the core (`CadMake` `insert_block`), so no name is typed, and a word of a command may not start with `(`, `!` or `'` nor a note
+  hold a control character; names are refused over 255 characters. (2) Attached, `add_mleader`, `add_table`, `define_block`,
+  `insert_block_with_attributes`, `create_layout`, `add_viewport`, `undo` and `redo` typed into the command the user had running (a `U`
+  took the user's last LINE segment back); they are refused while a command runs, `UNDO Begin` and `End` are typed only if UNDO waits
+  for them, and `undo` and `redo` say whether a step was taken. (3) An insert no longer depends on the block's scaling, on ATTREQ or
+  on ATTDIA, which opened the Edit Attributes dialog in the user's window; an attribute value may hold spaces in the app. (4) Attached,
+  `set_layer` no longer turns a true-colour layer into an index colour. (5) `export_to_file` writes a `.json` file only, refuses a file
+  that is there unless `overwrite` is true, and makes the folder (it refused one that was not there). (8) `save_as`, `plot_pdf`,
+  `export_svg` and `export_to_file` never write the drawing's own file, `overwrite` or not (`save_as` did with it). Also: `render_png`
+  and `export_svg` with a box given by its far corner first drew the whole drawing; `save_as` of a DWG as version 12 is refused up front;
+  `fillet`, `chamfer` and `offset` leave FILLETRAD, CHAMFERA, CHAMFERB and OFFSETDIST as they were; `add_mleader` and `add_table` put
+  their style and scale back when they fail; the rows of `CadDrawingDiff` tie-break on the index path; the Remote server forgets the
+  snapshots of a drawing when it is closed.
 - **NEW.** Two drawings compared from Python (PW7.6). `drawing.compare(other)` takes a `Drawing` of any backend (a file, the app, a running
   app, read as a copy of its database as the renders read it) or the path of a DXF or DWG file, and gives a `Diff`: the objects `other` has
   and the drawing has not (`added`), those only the drawing has (`removed`), and those both have that differ (`changed`, each with the
@@ -84,11 +99,11 @@
   styles. The display, the cached spatial index and the pictures of dimensions are drawn again only where the episode touched them: a
   drawing of 10 000 objects after 100 random edits resets in about 0.2 ms and draws again in 1 to 3 ms (the first reset to a snapshot
   takes 4 to 6 ms; opening the file and drawing it takes 20 to 40 ms), and 1 000 episodes of 100 edits each, ended by a reset, leave the
-  managed memory exactly where the first hundred put it. It works on the undo list the document already keeps: a snapshot is a point of
+  managed memory where the first hundred put it (measured: 101.7 MB after 100 episodes and 101.7 MB after 1 000; the test allows 8 MB of growth). It works on the undo list the document already keeps: a snapshot is a point of
   it and a reset one jump back to the point, the steps since forgotten (not made one more step, so memory does not grow, and what the
-  user did before the snapshot stays undoable), with the drawing of the next reset read ahead on a worker thread while the episode runs.
+  user did before the snapshot stays undoable while the list holds the point of the snapshot), with the drawing of the next reset read ahead on a worker thread while the episode runs.
   Where the list no longer holds the point (the drawing was undone below it and edited again) the reset reads the drawing back from
-  the snapshot's own bytes: as exact, every display list drawn again, the undo list started afresh. Refused while a command runs in the
+  the snapshot's own bytes: as exact, every display list drawn again, the undo list started afresh, so that what the user did before the snapshot can then no longer be undone (a snapshot A, edits, a snapshot B, a reset to A and a reset to B reach it). Refused while a command runs in the
   drawing and while the Block Editor is open. On a file, in the app and from outside it (the requests `snapshot`, `reset` and
   `releaseSnapshot`; `snapshot.release()` lets the app forget one). In C#: `CadDocument.TakeSnapshot`, `CadDocument.Reset`,
   `CadSnapshot`, and `CadRemoteDocument.TakeSnapshot`, `Reset`, `Release` with `CadRemoteSnapshot`.

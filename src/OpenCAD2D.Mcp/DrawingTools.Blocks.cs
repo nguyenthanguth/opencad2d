@@ -73,7 +73,7 @@ namespace OpenCAD2D.Mcp
                 return EntityFactory.Looks(definition, layer, color, null);
             });
 
-        /// <summary>The attribute definitions of a block that an INSERT asks for, in the order of the block.</summary>
+        /// <summary>The attribute definitions of a block that an INSERT gives its words, in the order of the block.</summary>
         private static List<DxfAttributeDefinition> AskedFor(IDrawingBackend drawing, string block)
         {
             DxfBlockTableRecord record = drawing
@@ -91,10 +91,10 @@ namespace OpenCAD2D.Mcp
         }
 
         /// <summary>
-        /// The command line of -INSERT for a block: its name, the place, the scale on both axes, the rotation, then the value of each
-        /// attribute it asks for (the one given, else Enter for the default) in the order the block holds them.
+        /// Inserts a block as one edit of the core, with the words of its attributes set and nothing typed: no name reaches a command
+        /// line, no prompt is answered, and the Edit Attributes dialog of ATTDIA is never asked for. Gives the handle of the INSERT.
         /// </summary>
-        private static CommandScript InsertScript(
+        private static string InsertBlock(
             IDrawingBackend drawing,
             string block,
             GeoPoint3 at,
@@ -134,33 +134,23 @@ namespace OpenCAD2D.Mcp
                 }
             }
 
-            CommandScript script = new CommandScript()
-                .Word("-INSERT")
-                .Word(block)
-                .Point(at.X, at.Y)
-                .Number(scale)
-                .Enter()
-                .Number(rotation);
-            var byTag = new Dictionary<string, string>(values, StringComparer.OrdinalIgnoreCase);
-
-            foreach (DxfAttributeDefinition definition in asked.Where(d => !d.Preset))
-            {
-                if (byTag.TryGetValue(definition.Tag, out string value) && value.Length > 0)
-                {
-                    script.Text(value);
-                }
-                else
-                {
-                    script.Enter();
-                }
-            }
-
-            foreach (DxfAttributeDefinition definition in asked.Where(d => !d.Preset && d.Verifiable))
-            {
-                script.Enter();
-            }
-
-            return script;
+            string[][] rows = values
+                .OrderBy(v => v.Key, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(v => v.Key, StringComparer.Ordinal)
+                .Select(v => new[] { v.Key, v.Value ?? string.Empty })
+                .ToArray();
+            return Editing(drawing)
+                .Make(
+                    "insert_block",
+                    new CadMakeArgs()
+                        .Set("name", block)
+                        .Set("at", new[] { at.X, at.Y })
+                        .Set("scale", scale)
+                        .Set("rotation", rotation)
+                        .Set("rows", rows)
+                )
+                .FirstOrDefault()
+                ?? throw new InvalidOperationException("The block " + block + " was not inserted.");
         }
 
         [McpServerTool(
@@ -197,22 +187,20 @@ namespace OpenCAD2D.Mcp
                 }
 
                 IDrawingEditing editing = Editing(drawing);
-                ModifiedResult made = null;
+                string handle = null;
                 editing.Group(() => InLayout(drawing, layout, () =>
                     {
-                        made = Script(drawing, new List<string>(), true, () =>
-                            InsertScript(
-                                drawing,
-                                name.Trim(),
-                                p,
-                                scale,
-                                rotation,
-                                values ?? new Dictionary<string, string>()
-                            )
+                        handle = InsertBlock(
+                            drawing,
+                            name.Trim(),
+                            p,
+                            scale,
+                            rotation,
+                            values ?? new Dictionary<string, string>()
                         );
-                        Look(editing, made.Created, layer, color);
+                        Look(editing, new[] { handle }, layer, color);
                     }));
-                return Added(made, "INSERT");
+                return new AddedResult { Handle = handle, Kind = "INSERT" };
             });
 
         [McpServerTool(
@@ -307,10 +295,7 @@ namespace OpenCAD2D.Mcp
 
                     if (how == "convert")
                     {
-                        ModifiedResult made = Script(drawing, new List<string>(), true, () =>
-                            InsertScript(drawing, label, b, 1.0, 0.0, new Dictionary<string, string>())
-                        );
-                        inserted = made.Created.FirstOrDefault();
+                        inserted = InsertBlock(drawing, label, b, 1.0, 0.0, new Dictionary<string, string>());
                     }
                 });
                 return new BlockResult

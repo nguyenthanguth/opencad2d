@@ -143,9 +143,8 @@ namespace OpenCAD2D.Mcp.UnitTest
             );
             Assert.Contains("delta, total or percent", message);
             Assert.Contains(
-                "name",
+                "one word",
                 await bench.Fail("define_block", ("name", "A B"), ("base_point", P), ("handles", new[] { line }))
-                    + " name"
             );
             Assert.Contains("one word", await bench.Fail("insert_block_with_attributes", ("name", "A B"), ("at", P)));
             Assert.Single(await bench.Entities());

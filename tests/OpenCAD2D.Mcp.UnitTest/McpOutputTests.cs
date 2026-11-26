@@ -247,9 +247,12 @@ namespace OpenCAD2D.Mcp.UnitTest
                 await harness.FailAsync("save_as", ("path", Path.Combine(folder, "c.dxf")), ("format", "dwg"))
             );
 
-            // Explicitly asked for, the drawing's own file is replaced.
-            await harness.CallAsync("save_as", ("path", file), ("overwrite", true));
-            Assert.NotEmpty(File.ReadAllBytes(file));
+            // Not even with overwrite: save_as writes a copy, and the drawing's own file is written by save alone.
+            Assert.Contains(
+                "open drawing's own file",
+                await harness.FailAsync("save_as", ("path", file), ("overwrite", true))
+            );
+            Assert.Equal(own, File.ReadAllBytes(file));
         }
 
         [Fact]
