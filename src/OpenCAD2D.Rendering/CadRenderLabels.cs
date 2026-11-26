@@ -9,8 +9,8 @@ namespace OpenCAD2D
     /// A pixel takes the class of the item drawn on top of it, in the order the drawing draws them. An item is a word where it
     /// is a piece of text (the letters of a TEXT, an MTEXT, an attribute, a dimension's text, a leader's) or belongs to a TEXT,
     /// an MTEXT, an ATTRIB or an ATTDEF (an MTEXT's underline); it is a dimension where it belongs to a DIMENSION and is not text
-    /// (its lines and arrowheads); it is a hatch where it belongs to a HATCH, a SOLID, a TRACE or a WIPEOUT (its pattern lines and
-    /// its fill); a block where <see cref="Blocks"/> is asked for and it belongs to an INSERT; and a line otherwise (lines, arcs,
+    /// (its lines and arrowheads); it is a hatch where it belongs to a HATCH, a SOLID or a TRACE (its pattern lines and
+    /// its fill) or is the frame of a WIPEOUT (its fill blanks what is under it, as it does in the picture, and is the ground, class 0); a block where <see cref="Blocks"/> is asked for and it belongs to an INSERT; and a line otherwise (lines, arcs,
     /// circles, polylines, splines, ellipses, leaders and table lines).
     /// </remarks>
     public static class CadLabelClass
@@ -27,7 +27,7 @@ namespace OpenCAD2D
         /// <summary>The class of lines, arcs, circles, polylines, splines and everything else that is drawn as a curve: 3.</summary>
         public const int Lines = 3;
 
-        /// <summary>The class of hatches, solids, traces and wipeouts: 4.</summary>
+        /// <summary>The class of hatches, solids and traces, and of the frame of a wipeout: 4.</summary>
         public const int Hatches = 4;
 
         /// <summary>The class of an INSERT's whole drawing, where blocks are asked for: 5.</summary>
@@ -127,7 +127,7 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Gets the category of each entity of <see cref="Handles"/>, a <see cref="CadLabelClass"/> by its kind: words for a TEXT,
-        /// an MTEXT, an ATTRIB or an ATTDEF; dimensions for a DIMENSION; hatches for a HATCH, a SOLID, a TRACE or a WIPEOUT; blocks
+        /// an MTEXT, an ATTRIB or an ATTDEF; dimensions for a DIMENSION; hatches for a HATCH, a SOLID, a TRACE or a WIPEOUT (whose frame is all of it that has pixels: its fill blanks); blocks
         /// for an INSERT; lines for the rest.
         /// </summary>
         public byte[] Categories { get; }

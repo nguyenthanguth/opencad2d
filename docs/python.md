@@ -1137,7 +1137,7 @@ over a hatch is words where the letters are and hatches where they are not; a wi
 | 1 | `words` | the letters of a TEXT, an MTEXT (its underlines too), an attribute, a dimension's text, a leader's text |
 | 2 | `dimensions` | the lines and arrowheads of a DIMENSION |
 | 3 | `lines` | lines, arcs, circles, polylines, splines, ellipses, leaders and table lines: whatever is drawn as a curve |
-| 4 | `hatches` | the pattern lines and fill of a HATCH, a SOLID, a TRACE, a WIPEOUT; a hatch too fine to show lines (under 2 pixels) is its whole area |
+| 4 | `hatches` | the pattern lines and fill of a HATCH, a SOLID, a TRACE, and the frame of a WIPEOUT (where `WIPEOUTFRAME` shows it); a hatch too fine to show lines (under 2 pixels) is its whole area. A wipeout's fill is no class: it blanks what is under it, so those pixels are 0 |
 | 5 | `blocks` | every item of an INSERT, only where `"blocks"` is among the `classes` |
 
 `classes` is a list of those names (default the first four, as `LABEL_CLASSES[:4]`); the pixels of any other class are 0. Without
@@ -1166,7 +1166,7 @@ a `dict` of the three lists COCO detection has, ready for `json.dump`. The categ
 | 5 | blocks |
 
 An annotation is made for each object that shows a pixel in the masks of `classes` and whose own kind is one of them: words for a TEXT,
-MTEXT, ATTRIB or ATTDEF, dimensions for a DIMENSION, hatches for a HATCH, SOLID, TRACE or WIPEOUT, blocks for an INSERT (so an INSERT has an
+MTEXT, ATTRIB or ATTDEF, dimensions for a DIMENSION, hatches for a HATCH, SOLID, TRACE or WIPEOUT (a wipeout has pixels only on its frame: its fill blanks), blocks for an INSERT (so an INSERT has an
 annotation only where `"blocks"` is asked for, and its pieces never have one of their own) and lines for the rest. It has `id` (the object's
 number in `masks.handles`, from 1: the same in every call and unique in one image, so renumber when the files of several images are
 joined, as `coco_dataset.py` does), `image_id`, `category_id`, `bbox`, `area` and `iscrowd` (0). The `bbox` is `[x, y, width, height]` in

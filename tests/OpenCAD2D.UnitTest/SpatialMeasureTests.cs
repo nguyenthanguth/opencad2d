@@ -471,6 +471,22 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void ALandingWithinTheTolerance_OfTheArrow_IsRefused_AsOneAtTheArrowIs()
+        {
+            CadDocument document = BlankWithMLeaderStyle();
+            var touching = new Tolerance(1E-3, 1E-5);
+
+            Assert.Throws<ArgumentException>(() => CadMeasure.Leader(document, null, P(0, 0), P(1E-12, 0), "x", null));
+            Assert.Throws<ArgumentException>(() =>
+                CadMeasure.Leader(document, null, P(5, 5), P(5, 5 + 1E-12), "x", null, touching)
+            );
+            Assert.Throws<ArgumentException>(() =>
+                CadMeasure.Leader(document, null, P(0, 0), P(0.5, 0), "x", null, new Tolerance(1.0, 1E-5))
+            );
+            Assert.NotNull(CadMeasure.Leader(document, null, P(0, 0), P(0.5, 0), "x", null, touching));
+        }
+
+        [Fact]
         public void Measuring_ChangesNothing_NoHandleNoEditNoStaleList()
         {
             CadDocument document = _drawings.Blank();

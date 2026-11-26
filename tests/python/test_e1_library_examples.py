@@ -25,6 +25,7 @@ from typing import Any
 import pytest
 
 import opencad2d  # noqa: F401  (boots .NET and loads the assemblies)
+from opencad2d.cad import new_file
 from OpenCAD2D import CadDocument
 from GeometryHelper.Dwg import DwgWriter
 from GeometryHelper.Dxf import DxfCircle, DxfDatabase, DxfLayerTableRecord, DxfLine, DxfPolyline, DxfWriter
@@ -598,6 +599,31 @@ def test_coco_dataset_writes_three_pictures_their_masks_and_one_coco_file(tmp_pa
         assert struct.unpack(">II", data[16:24]) == struct.unpack(">II", mask[16:24]) == (image["width"], image["height"])
         assert mask[24:26] == b"\x08\x00"  # 8 bits, grey
     assert list(work.iterdir()) == []
+
+
+def test_coco_dataset_ids_stay_unique_across_images_of_more_than_a_thousand_objects(work: Path) -> None:
+    """Two drawings of 1 200 lines each: an image numbers its objects from 1, so a step of 1 000 per image would clash."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("coco_dataset_example", LIBRARY / "coco_dataset.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    dataset: dict[str, Any] = {"images": [], "annotations": [], "categories": []}
+    last_id = 0
+    for number in (1, 2):
+        drawing = new_file()
+        for i in range(1200):
+            drawing.add_line((i * 10, 0), (i * 10, 5))
+        drawing.commit()
+        coco = drawing.to_coco(str(work / f"d{number}.png"), width=4000, image_id=number)
+        assert len(coco["annotations"]) > 1000
+        last_id = module.add_to_dataset(dataset, coco, last_id)
+
+    ids = [a["id"] for a in dataset["annotations"]]
+    assert len(set(ids)) == len(ids), f"{len(ids) - len(set(ids))} ids clash"
+    assert ids == list(range(1, len(ids) + 1))
+    assert last_id == len(ids)
 
 
 # ---- wrong arguments ---------------------------------------------------------------------------------------------

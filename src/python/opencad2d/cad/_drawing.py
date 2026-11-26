@@ -169,7 +169,7 @@ class RenderOptions:
 
 LABEL_CLASSES: tuple[str, ...] = ("words", "dimensions", "lines", "hatches", "blocks")
 """The classes of ``render_masks`` and the categories of ``to_coco``: the name of class number ``i + 1`` is ``LABEL_CLASSES[i]``
-(0 is the ground)."""
+(0 is the ground). A WIPEOUT blanks what is under it, and those pixels are 0; only its frame is ``"hatches"``."""
 
 
 class Backend(Protocol):
@@ -2721,8 +2721,8 @@ class Drawing:
         order the drawing draws them, so what is on top in the picture is on top in the masks; a pixel is one class exactly.
         ``classes`` are names of ``LABEL_CLASSES`` (``"words"`` 1, ``"dimensions"`` 2, ``"lines"`` 3, ``"hatches"`` 4,
         ``"blocks"`` 5), by what the item is and the kind of its entity: letters and everything of a TEXT, MTEXT or attribute
-        are words, the lines and arrowheads of a DIMENSION dimensions, the pattern and fill of a HATCH, SOLID, TRACE or
-        WIPEOUT hatches, and the rest lines. With ``"blocks"`` among the classes every item of an INSERT is class 5; without it
+        are words, the lines and arrowheads of a DIMENSION dimensions, the pattern and fill of a HATCH, SOLID or TRACE
+        and the frame of a WIPEOUT hatches (a wipeout's fill blanks what is under it, as in the picture, and is 0), and the rest lines. With ``"blocks"`` among the classes every item of an INSERT is class 5; without it
         a block's pieces are classed by what they are. A pixel of a class not asked for is 0, as is the ground. A text under 3
         pixels high, as in the picture, is left out; the paper of a layout, the frame of a viewport and raster images are not
         labelled. Letters are drawn by the font's monochrome rasteriser, so a letter's pixels can sit a pixel off the antialiased
@@ -2762,7 +2762,7 @@ class Drawing:
         the file, ``width``, ``height``), ``annotations`` and ``categories``. The categories are fixed, ids 1 to 5, ``supercategory``
         ``"drawing"``: words, dimensions, lines, hatches, blocks. There is an annotation for each object that shows a pixel in the
         masks of ``classes`` (``render_masks``) and whose own kind is one of them: the kind is words for a TEXT, MTEXT, ATTRIB or
-        ATTDEF, dimensions for a DIMENSION, hatches for a HATCH, SOLID, TRACE or WIPEOUT, blocks for an INSERT (so it has an annotation
+        ATTDEF, dimensions for a DIMENSION, hatches for a HATCH, SOLID, TRACE or WIPEOUT (a wipeout has pixels only on its frame), blocks for an INSERT (so it has an annotation
         only where ``"blocks"`` is asked for) and lines for any other. Its ``bbox`` is ``[x, y, width, height]`` in whole pixels from
         the top left, the box the drawing takes through ``render_transform`` widened to hold every pixel of the object, clipped to the
         picture; ``area`` the object's pixels in the masks; ``iscrowd`` 0; ``id`` the object's number in ``render_masks(...).handles``
@@ -2802,13 +2802,16 @@ class Drawing:
         self._backend.save()
 
     def save_as(self, path: str, version: str | None = None) -> None:
-        """Commit what is queued, then save as ``path``: a DWG where it ends in .dwg, else a DXF, of ``version`` (``"AC1027"``)
-        where given, else the drawing's own.
+        """Commit what is queued, then save as ``path``: a DWG where it ends in .dwg, a DXF where it ends in .dxf, of
+        ``version`` (``"AC1027"``) where given, else the drawing's own. A name that ends otherwise (``plan.txt``, ``plan``) is a
+        ``ValueError``, with nothing committed or written, so that a DXF is never written under the name of another kind of file.
 
         Example:
             drawing.save_as("plan.dxf")                   # a DXF of the drawing's own version (AC1027 in a new drawing)
             drawing.save_as("plan.dwg", version="AC1027") # a DWG; drawing.path and drawing.name now name plan.dwg
         """
+        if os.path.splitext(path)[1].lower() not in (".dxf", ".dwg"):
+            raise ValueError(f"save_as writes a DXF or a DWG: the name ends in .dxf or .dwg, not {path!r}.")
         self.commit()
         self._backend.save_as(os.path.abspath(path), version)
 

@@ -386,12 +386,12 @@ namespace OpenCAD2D
         /// <summary>The key of an edge within its kind: the source as the high half of a long, the target as the low.</summary>
         private static long Key(int source, int target) => ((long)source << 32) | (uint)target;
 
-        /// <summary>Compares the keys of edges as the numbers they are, hashing both halves so that near numbers spread.</summary>
+        /// <summary>Compares the keys of edges as the numbers they are, multiplying them by a large odd number so that near numbers spread.</summary>
         private sealed class KeyComparer : IEqualityComparer<long>
         {
             public bool Equals(long x, long y) => x == y;
 
-            public int GetHashCode(long key) => unchecked((int)key ^ (int)(key >> 32));
+            public int GetHashCode(long key) => unchecked((int)(((ulong)key * 0x9E3779B97F4A7C15UL) >> 32));
         }
 
         /// <summary>What the graph keeps of a node: its box, and the curve and region it may be.</summary>

@@ -6,7 +6,7 @@ namespace OpenCAD2D
     {
         /// <summary>
         /// Writes a multileader style of settings into a drawing under a name, as the style manager writes one: the scratch a
-        /// measure draws a multileader in holds the style the real drawing has (<see cref="CadMeasure.Leader"/>). The text style
+        /// measure draws a multileader in holds the style the real drawing has (<see cref="CadMeasure.Leader(CadDocument, string, GeometryHelper.Geometry.GeoPoint2, GeometryHelper.Geometry.GeoPoint2, string, double?, GeometryHelper.Tolerance)"/>). The text style
         /// the settings name, and the block of a style of block content, are the drawing's to have.
         /// </summary>
         /// <param name="database">The drawing.</param>

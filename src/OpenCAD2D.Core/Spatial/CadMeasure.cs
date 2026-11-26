@@ -99,6 +99,43 @@ namespace OpenCAD2D
             GeoPoint2 landing,
             string words,
             double? scale
+        ) =>
+            Leader(
+                document,
+                style,
+                arrow,
+                landing,
+                words,
+                scale,
+                new Tolerance(Tolerance.DefaultEqualPoint, Tolerance.DefaultEqualVector)
+            );
+
+        /// <summary>
+        /// Measures a multileader as <see cref="Leader(CadDocument, string, GeoPoint2, GeoPoint2, string, double?)"/> does, the
+        /// landing refused where it is within the tolerance of the arrow: a landing 1E-12 away from the arrow draws no leader
+        /// line, as one exactly at it does not.
+        /// </summary>
+        /// <param name="document">The drawing, whose style and fonts are used.</param>
+        /// <param name="style">The name of the multileader style; null for the current one, which a drawing with none is given as Standard, as MLEADER gives it.</param>
+        /// <param name="arrow">Where the arrowhead points.</param>
+        /// <param name="landing">Where the leader lands.</param>
+        /// <param name="words">The words, not empty.</param>
+        /// <param name="scale">The scale of the multileader; null for the one MLEADER gives a new one.</param>
+        /// <param name="tolerance">How near the landing may be to the arrow, in millimetres, before it is taken for the same point.</param>
+        /// <returns>The box and the frames.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the document is null.</exception>
+        /// <exception cref="ArgumentException">
+        /// Thrown when the words are empty, the arrow and the landing are within the tolerance of each other, the scale is not
+        /// above nought, the document has no such style, or the style is annotative or of no words (a block or none).
+        /// </exception>
+        public static CadMeasurement Leader(
+            CadDocument document,
+            string style,
+            GeoPoint2 arrow,
+            GeoPoint2 landing,
+            string words,
+            double? scale,
+            Tolerance tolerance
         )
         {
             if (document == null)
@@ -116,7 +153,9 @@ namespace OpenCAD2D
                 "The arrow and the landing of a multileader are finite points."
             );
             Guard.Argument(
-                arrow.X != landing.X || arrow.Y != landing.Y,
+                Math.Sqrt(
+                    ((arrow.X - landing.X) * (arrow.X - landing.X)) + ((arrow.Y - landing.Y) * (arrow.Y - landing.Y))
+                ) > tolerance.EqualPoint,
                 nameof(landing),
                 "The landing of a multileader is not at its arrow."
             );
