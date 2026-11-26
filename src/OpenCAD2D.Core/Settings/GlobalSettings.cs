@@ -1451,6 +1451,12 @@ namespace OpenCAD2D
             w.Value("folder", _templateFolder);
             w.Value("qnew", _qnewTemplate);
             w.Close();
+            w.Open("newSheetSet");
+            w.Value("fromDrawings", NewSheetSetFromDrawings);
+            w.Value("prefixTitles", SheetImportPrefixTitles);
+            w.Value("subsetsFromFolders", SheetImportSubsetsFromFolders);
+            w.Value("ignoreTopFolder", SheetImportIgnoreTopFolder);
+            w.Close();
             w.Open("security");
             w.Value("secureLoad", _secureLoad);
             w.Value("trustedPaths", _trustedPaths);
@@ -1658,6 +1664,10 @@ namespace OpenCAD2D
                 Text("sheetSets", "storeFolder", v => _s.SheetSetStoreFolder = v);
                 Text("templates", "folder", v => _s.TemplateFolder = v);
                 Text("templates", "qnew", v => _s.QnewTemplate = v);
+                Flag("newSheetSet", "fromDrawings", v => _s.NewSheetSetFromDrawings = v);
+                Flag("newSheetSet", "prefixTitles", v => _s.SheetImportPrefixTitles = v);
+                Flag("newSheetSet", "subsetsFromFolders", v => _s.SheetImportSubsetsFromFolders = v);
+                Flag("newSheetSet", "ignoreTopFolder", v => _s.SheetImportIgnoreTopFolder = v);
                 Number("security", "secureLoad", v => _s.SecureLoad = Whole(v));
                 Text("security", "trustedPaths", v => _s.TrustedPaths = v);
                 Flag("security", "legacyCodeSearch", v => _s.LegacyCodeSearch = v);

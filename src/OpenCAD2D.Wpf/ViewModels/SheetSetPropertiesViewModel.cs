@@ -40,7 +40,8 @@ namespace OpenCAD2D.Wpf
             AddText(
                 "Name",
                 set.Name,
-                "The name of the sheet set, shown at the top of the Sheet List and in the title of its dialogs."
+                "The name of the sheet set, shown at the top of the Sheet List and in the title of its dialogs.",
+                options != null && options.NameReadOnly
             );
             AddText(
                 "Sheet set data file",

@@ -145,6 +145,57 @@ the report says so. The fonts Windows has and the ones OpenCAD2D carries are not
 one of OpenCAD2D's own (`acad.ctb`, `monochrome.ctb` and so on). Two runs over the same files give the same zip, byte
 for byte, unless a drawing had to be saved again.
 
+## The Create Sheet Set wizard
+
+New Sheet Set… in the sheet set control (NEWSHEETSET) opens the wizard, a window of 660 by 470 with the pages of the route
+down the left and Back, Next (Finish on the last page) and Cancel under it. **Nothing is written before Finish**: Back,
+Cancel and the cross leave no file and no folder behind. Finish makes the `.dst`, opens the set in the palette (which puts it
+first in Recent and shows the palette) and keeps your choices for the next time: the route, the folder and the import options.
+
+**Begin** asks "Create a sheet set using" **An example sheet set** or **Existing drawings**, and the pages that follow depend
+on it:
+
+| Route | Pages |
+|---|---|
+| An example sheet set | Begin, Sheet Set Example, Sheet Set Details, Confirm |
+| Existing drawings | Begin, Sheet Set Details, Choose Layouts, Confirm |
+
+- **Sheet Set Example** lists the example sheet sets (the `.dst` files shipped with the program), sorted by name, or lets you
+  browse to any `.dst`, AutoCAD's included. The box under the list shows the title, description and path of the one chosen. A
+  file that is not there, or is no sheet set data file, is refused in red and Next stays grey. The new set copies the example's
+  subsets (nested as they are), custom properties, sheet creation template, publish options and the parts this program does not
+  model; its sheets are left out.
+- **Sheet Set Details** takes the name (also the name of the `.dst`), an optional description and the folder the `.dst` is
+  stored in (the last folder used, else `OpenCAD2D Sheet Sets` in Documents). The name starts as "New Sheet Set", and
+  "New Sheet Set 1", "New Sheet Set 2" where that file is there already. A name empty or holding any of `\ / : * ? " < > |`, a
+  folder that is not a whole path or is a file, and a `.dst` that exists already are each refused in red under the folder box,
+  and Next stays grey until the line is clear. On the example route **Create a folder hierarchy based on subsets** makes a folder
+  per subset (nested as the subsets are) and sets it as the subset's sheet location. **Sheet Set Properties…** edits the
+  properties of the set being made on a draft kept in the temporary folder; Finish writes them into the set, and Cancel deletes
+  the draft. Changing the route or the example drops the draft.
+- **Choose Layouts** (existing drawings only) takes folders with **Browse…**: the DWG drawings in them and in the folders below
+  are read without being opened in the app and listed as a tree of folder, drawing and layout, each with a box. A tick on a
+  folder or a drawing ticks everything below it, and a box above shows what is below (a small square where some are ticked).
+  Everything that can be a sheet starts ticked. A layout whose name holds a `#`, or that is a sheet of a set already (the
+  drawing's mark names it), is grey, clear and cannot be ticked; the reason is on its right ("# in the name", "in Riverside
+  Clinic.dst"). A folder with no drawing is not added, and a drawing that cannot be read is left out with its name on the
+  red line. A folder is listed once, and a drawing already listed under an earlier folder is not listed again. Next stays grey
+  until a layout is ticked.
+- **Import Options…** has three boxes, all on at first and kept in the settings: **Prefix sheet titles with file name** (a
+  title reads "A-201 Elevations - North and South" and not "North and South"), **Create subsets based on folder structure**
+  (a subset per folder, nested as the folders are) and, under it, **Ignore top level folder** (the folder picked makes no
+  subset of its own, and its drawings go to the top of the set). The number of every sheet is left empty, to fill with Rename &
+  Renumber.
+- **Confirm** shows the Sheet Set Preview: for an example, where the `.dst` goes, the example, the sheet storage location, the
+  template, the folders to be made, the subsets and the custom properties; for drawings, the subsets and sheets exactly as
+  Finish will make them, and "4 sheets in 2 subsets. Not imported: Sketch #2 (its name holds #)." Finish is the only button
+  that writes. If the set cannot be made (a `.dst` that appeared meanwhile, a layout that became a sheet of another set) the
+  reason is on the red line, in the engine's words, and nothing is left behind.
+
+The wizard is `NewSheetSetViewModel` (the logic) and `NewSheetSetWindow` in `OpenCAD2D.Wpf`, and its Import Options dialog
+`SheetImportOptionsViewModel` and `SheetImportOptionsWindow`. It makes the set through
+[`CadSheetSetFile.CreateFromExample`](xref:OpenCAD2D.SheetSets.CadSheetSetFile) or `CreateFromDrawings`.
+
 ## What the operations do to the drawings
 
 - **New Sheet** makes a drawing from the layout of the sheet creation template (the subset's, else the set's): every other layout

@@ -74,9 +74,15 @@ namespace OpenCAD2D.Wpf
                 return;
             }
 
+            if (e.Name == "NEWSHEETSET")
+            {
+                OnNewSheetSetRequested(e);
+                return;
+            }
+
             var request = e.Payload as CadSheetSetRequest;
 
-            if (request == null || e.Name == "NEWSHEETSET")
+            if (request == null)
             {
                 return;
             }
