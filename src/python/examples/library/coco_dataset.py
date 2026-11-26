@@ -61,6 +61,18 @@ def write_grey_png(path: Path, pixels: NDArray[np.uint8]) -> None:
     )
 
 
+def add_to_dataset(dataset: dict[str, Any], coco: dict[str, Any], last_id: int) -> int:
+    """Adds the pictures and objects of one ``to_coco`` to the dataset, the objects numbered on from ``last_id`` so that
+    every id in the file is its own (the ids of one image are numbers within it), and gives the last id used."""
+    for annotation in coco["annotations"]:
+        last_id += 1
+        annotation["id"] = last_id
+    dataset["images"] += coco["images"]
+    dataset["annotations"] += coco["annotations"]
+    dataset["categories"] = coco["categories"]
+    return last_id
+
+
 def main(argv: list[str]) -> int:
     if len(argv) != 1:
         print("usage: python coco_dataset.py OUT_FOLDER", file=sys.stderr)
@@ -70,6 +82,7 @@ def main(argv: list[str]) -> int:
     (folder / "masks").mkdir(parents=True, exist_ok=True)
     dataset: dict[str, Any] = {"images": [], "annotations": [], "categories": []}
     classes = list(LABEL_CLASSES)
+    last_id = 0
     for number in range(1, 4):
         drawing = make(number)
         # The picture and its objects come from one call, so that they are of the same picture; the masks are of it too.
@@ -78,11 +91,7 @@ def main(argv: list[str]) -> int:
         masks = drawing.render_masks(classes=classes, width=1200)
         write_grey_png(folder / "masks" / f"drawing{number}.png", masks.classes)
         # The ids of the objects are numbers within one image: renumbered, they are unique in the file.
-        for annotation in coco["annotations"]:
-            annotation["id"] += 1000 * number
-        dataset["images"] += coco["images"]
-        dataset["annotations"] += coco["annotations"]
-        dataset["categories"] = coco["categories"]
+        last_id = add_to_dataset(dataset, coco, last_id)
         height, width = masks.classes.shape
         print(f"drawing{number}.png {width} by {height} pixels, {len(coco['annotations'])} objects")
     (folder / "annotations.json").write_text(json.dumps(dataset, indent=1), encoding="utf-8")

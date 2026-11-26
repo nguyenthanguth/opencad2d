@@ -45,13 +45,19 @@ namespace OpenCAD2D
 
             foreach (object item in request.GetArray("operations"))
             {
-                var operation = (JsonObject)item;
+                if (!(item is JsonObject operation))
+                {
+                    throw new Refusal("Each change in the member operations has to be an object.");
+                }
 
                 if (operation.GetString("op") == "records")
                 {
-                    foreach (object name in operation.GetObject("tables").GetArray("LTYPE"))
+                    JsonObject tables = operation.GetObject("tables")
+                        ?? throw new Refusal("The change records needs the member tables.");
+
+                    foreach (object name in tables.GetArray("LTYPE"))
                     {
-                        names.Add((string)name);
+                        names.Add(name as string ?? throw new Refusal("The member LTYPE has to be a list of text."));
                     }
                 }
             }

@@ -14,12 +14,12 @@ namespace OpenCAD2D
 
             try
             {
-                CadStandard standard = CadStandard.Parse(request.GetString("standard") ?? string.Empty);
+                CadStandard standard = CadStandard.Parse(TextMember(request, "standard") ?? string.Empty);
                 Tolerance tolerance = new Tolerance(
-                    request.GetDouble("tolerance", Tolerance.DefaultEqualPoint),
+                    NumberMember(request, "tolerance", Tolerance.DefaultEqualPoint),
                     Tolerance.DefaultEqualVector
                 );
-                result = CadStandards.Check(document, standard, request.GetDouble("modelScale", 0.0), tolerance);
+                result = CadStandards.Check(document, standard, NumberMember(request, "modelScale", 0.0), tolerance);
             }
             catch (ArgumentException exception)
             {

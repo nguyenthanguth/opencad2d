@@ -460,6 +460,53 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.True(outside > 400, "outside " + outside);
         }
 
+        [Theory]
+        [InlineData(1, true)]
+        [InlineData(0, false)]
+        public void AWipeout_BlanksItsFill_AndIsClassHatchesOnlyByItsFrame_WhereTheFrameIsShown(int frame, bool shown)
+        {
+            CadDocument document = CadDocument.From(new DxfDatabase("AC1027"), "wipe-class.dxf");
+            RenderDrawings.Run(
+                new CadCommandSession(document),
+                "WIPEOUTFRAME;"
+                    + frame
+                    + ";CECOLOR;7;LINE;0,0;100,100;;LINE;0,100;100,0;;WIPEOUT;30,30;70,30;70,70;30,70;;"
+            );
+            string wipeout = document.ModelSpace.Block.OfType<DxfWipeout>().Single().Handle;
+            var options = new CadRenderOptions { Width = 800, Height = 800 };
+            CadRenderLabels labels = CadRender.DrawLabels(document, options, null);
+            int number = Array.IndexOf(labels.Handles, wipeout) + 1;
+            double[] m = labels.Transform;
+            int frameless = 0;
+            int framed = 0;
+
+            for (int y = 0; y < labels.Height; y++)
+            {
+                for (int x = 0; x < labels.Width; x++)
+                {
+                    int at = y * labels.Width + x;
+                    double wx = (x + 0.5 - m[2]) / m[0];
+                    double wy = (y + 0.5 - m[5]) / m[4];
+                    bool inside = wx > 31 && wx < 69 && wy > 31 && wy < 69;
+
+                    if (labels.Classes[at] == CadLabelClass.Hatches)
+                    {
+                        // Only the frame, on the edge of the square, is a hatch; and it is the wipeout's.
+                        Assert.False(inside, "a hatch pixel inside the wipeout at " + x + ", " + y);
+                        Assert.Equal(number, labels.Instances[at]);
+                        framed++;
+                    }
+                    else if (inside && labels.Classes[at] != 0)
+                    {
+                        frameless++;
+                    }
+                }
+            }
+
+            Assert.Equal(0, frameless);
+            Assert.Equal(shown, framed > 0);
+        }
+
         [Fact]
         public void TwoLabellings_OfOneDrawing_AreTheSame()
         {

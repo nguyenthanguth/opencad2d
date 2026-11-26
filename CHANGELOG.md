@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- **FIXED.** The graph export (`CadDrawingGraph.Build`, `to_graph`, the `export` request) slows with the square of the number of
+  entities no more: the edge and grid-cell tables hashed their numbers by xor-ing the two halves, so that the edges (i, i+1) of a
+  chain fell into some 17 buckets and the cells into some 2 000. A chain of lines each touching the next now builds in time that
+  grows with its length: 10 000 lines 175 ms before and 55 ms now, 40 000 1.5 s and 0.36 s, 160 000 22.8 s and 1.7 s; the edges are
+  the same.
+- **FIXED.** A request sent to the app by hand that is malformed is refused in words that name the member, not answered with "could
+  not do the request": `export` with a `maxEdges` of minus 4 294 967 295 was taken for 1 (a cap below 1 is refused now), and
+  `maxEdges`, `tolerance`, `what` and `layout` of the wrong kind; a `frame`, `candidate`, `arrow` or `landing` holding a word was
+  measured from nought; `scale`, `margin`, `minWidth`, `minHeight`, `kinds`, `words`, `over`, `handles` and `fragment` of the wrong kind,
+  a negative `tolerance` of `overlaps`, `fits`, `freeSpace` or `check`, and the `records` of a `commit` with no `tables` or an
+  `LTYPE` that is no list of names.
+- **FIXED.** `CadMeasure.Leader` refused a landing only where it was exactly on the arrow; a landing 1E-12 mm away drew no leader line
+  and was measured. It is refused within a tolerance now (the new overload takes it; the old one uses the library's, 1E-3 mm).
+- **FIXED.** The labels of a wipeout: its fill blanks what is under it and is class 0, as in the picture, and only its frame (where
+  `WIPEOUTFRAME` shows it) is class 4, hatches. The documentation said a wipeout's pattern and fill were class 4; no behaviour changed.
+- **FIXED.** `coco_dataset.py` numbered its objects from 1 000 times the number of the picture, so a drawing of more than 1 000
+  objects gave ids that clashed across images; the ids are one running count now.
+- **FIXED.** Python's `Drawing.save_as` wrote DXF text to any name (`plan.txt`, `plan.pdf`); a name that does not end in `.dxf` or
+  `.dwg` is a `ValueError` now, with nothing committed or written.
 - **FIXED.** MCP server, from an independent review. (1) A block name that starts like AutoLISP (`(princ...)`, `!x`, `'x`) was typed at the
   `-INSERT` prompt and ran as LISP without `--allow-scripts`; `insert_block_with_attributes` and `define_block` now insert through an
   edit of the core (`CadMake` `insert_block`), so no name is typed, and a word of a command may not start with `(`, `!` or `'` nor a note

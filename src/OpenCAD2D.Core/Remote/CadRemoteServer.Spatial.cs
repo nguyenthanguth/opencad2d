@@ -16,9 +16,12 @@ namespace OpenCAD2D
 
         private static JsonObject Bounds(CadDocument document, JsonObject request)
         {
-            CadBoundsTable table = request.Get("handles") is JsonArray handles
-                ? CadSpatial.Bounds(document, Strings(handles))
-                : CadSpatial.Bounds(document, SpaceNamed(document, request.GetString("layout")));
+            List<string> handles = NamesMember(request, "handles");
+            string layout = TextMember(request, "layout");
+            CadBoundsTable table =
+                handles != null
+                    ? CadSpatial.Bounds(document, handles)
+                    : CadSpatial.Bounds(document, SpaceNamed(document, layout));
             return new JsonObject().Set("handles", Strings(table.Handles)).Set("boxes", Numbers(table.Boxes));
         }
 
@@ -26,28 +29,18 @@ namespace OpenCAD2D
         {
             var options = new CadOverlapOptions
             {
-                Words = request.Get("words") is JsonArray words ? Strings(words).ToList() : null,
-                Over = request.Get("over") is JsonArray over ? Strings(over).ToList() : null,
-                Handles = request.Get("handles") is JsonArray handles ? Strings(handles).ToList() : null,
+                Words = NamesMember(request, "words"),
+                Over = NamesMember(request, "over"),
+                Handles = NamesMember(request, "handles"),
             };
-            Tolerance tolerance =
-                request.Get("tolerance") == null
-                    ? Touching
-                    : new Tolerance(request.GetDouble("tolerance"), Tolerance.DefaultEqualVector);
-            CadOverlapTable table = CadSpatial.Overlaps(
-                document,
-                SpaceNamed(document, request.GetString("layout")),
-                options,
-                tolerance
-            );
+            Tolerance tolerance = ToleranceOf(request);
+            string layout = TextMember(request, "layout");
+            CadOverlapTable table = CadSpatial.Overlaps(document, SpaceNamed(document, layout), options, tolerance);
             return new JsonObject()
                 .Set("words", Strings(table.Words))
                 .Set("others", Strings(table.Others))
                 .Set("boxes", Numbers(table.Boxes));
         }
-
-        private static IEnumerable<string> Strings(JsonArray items) =>
-            items.Select(item => item as string ?? string.Empty);
 
         private static JsonArray Strings(string[] items) => new JsonArray(items.Cast<object>());
 

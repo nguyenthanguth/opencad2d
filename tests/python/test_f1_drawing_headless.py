@@ -127,3 +127,25 @@ def test_a_function_that_needs_the_app_says_so_in_the_words_of_the_spec(name: st
         call()
 
     assert str(raised.value) == f"{name} works inside OpenCAD2D only"
+
+
+@pytest.mark.parametrize("name", ["plan.txt", "plan", "plan.dxf.bak", "plan.pdf", "plan.dwt"])
+def test_save_as_refuses_a_name_that_is_not_dxf_or_dwg_and_writes_nothing(tmp_path: Path, name: str) -> None:
+    drawing = new_file()
+    drawing.add_line((0, 0), (100, 0))
+    path = tmp_path / name
+
+    with pytest.raises(ValueError, match=r"\.dxf or \.dwg"):
+        drawing.save_as(str(path))
+
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("name", ["upper.DXF", "mixed.Dwg"])
+def test_save_as_takes_the_ending_of_either_case(tmp_path: Path, name: str) -> None:
+    drawing = new_file()
+    drawing.add_line((0, 0), (100, 0))
+
+    drawing.save_as(str(tmp_path / name))
+
+    assert (tmp_path / name).is_file()

@@ -13,8 +13,18 @@ namespace OpenCAD2D
     {
         private static JsonObject Measure(CadDocument document, JsonObject request)
         {
-            string text = request.GetString("fragment");
-            DxfDatabase fragment = string.IsNullOrEmpty(text) ? null : DxfDatabase.Parse(text);
+            string text = TextMember(request, "fragment");
+            DxfDatabase fragment;
+
+            try
+            {
+                fragment = string.IsNullOrEmpty(text) ? null : DxfDatabase.Parse(text);
+            }
+            catch (Exception exception) when (!(exception is OutOfMemoryException))
+            {
+                throw new Refusal("The member fragment is not a drawing: " + exception.Message);
+            }
+
             DxfEntity entity = fragment?.ModelSpace.Cast<DxfEntity>().FirstOrDefault(e => !e.IsErased);
 
             if (entity == null)
@@ -27,22 +37,21 @@ namespace OpenCAD2D
 
         private static JsonObject MeasureLeader(CadDocument document, JsonObject request)
         {
-            JsonArray arrow = request.GetArray("arrow");
-            JsonArray landing = request.GetArray("landing");
-
-            if (arrow.Count != 2 || landing.Count != 2)
-            {
-                throw new Refusal("A leader to measure has an arrow and a landing, each of two numbers.");
-            }
-
+            const string rule = "A leader to measure has an arrow and a landing, each of two numbers.";
+            double[] arrow = NumbersMember(request, "arrow", 2, rule);
+            double[] landing = NumbersMember(request, "landing", 2, rule);
+            string style = TextMember(request, "style");
+            string words = TextMember(request, "words");
+            double? scale = request.Get("scale") == null ? (double?)null : NumberMember(request, "scale", 0.0);
             return Measured(() =>
                 CadMeasure.Leader(
                     document,
-                    request.GetString("style"),
-                    new GeoPoint2(Number(arrow[0]), Number(arrow[1])),
-                    new GeoPoint2(Number(landing[0]), Number(landing[1])),
-                    request.GetString("words"),
-                    request.Get("scale") == null ? (double?)null : request.GetDouble("scale")
+                    style,
+                    new GeoPoint2(arrow[0], arrow[1]),
+                    new GeoPoint2(landing[0], landing[1]),
+                    words,
+                    scale,
+                    Touching
                 )
             );
         }
@@ -86,23 +95,25 @@ namespace OpenCAD2D
 
         private static JsonObject FreeSpace(CadDocument document, JsonObject request)
         {
-            JsonArray frame = request.GetArray("frame");
-
-            if (frame.Count != 4)
-            {
-                throw new Refusal("A frame is four numbers: the least X and Y and the greatest X and Y.");
-            }
-
+            double[] frame = NumbersMember(
+                request,
+                "frame",
+                4,
+                "A frame is four numbers: the least X and Y and the greatest X and Y."
+            );
+            string layout = TextMember(request, "layout");
+            CadFreeSpaceOptions options = SpaceOptions(request);
+            Tolerance tolerance = ToleranceOf(request);
             CadFreeSpace table;
 
             try
             {
                 table = CadSpatial.FreeSpace(
                     document,
-                    SpaceNamed(document, request.GetString("layout")),
-                    new DisplayBox(Number(frame[0]), Number(frame[1]), Number(frame[2]), Number(frame[3])),
-                    SpaceOptions(request),
-                    ToleranceOf(request)
+                    SpaceNamed(document, layout),
+                    new DisplayBox(frame[0], frame[1], frame[2], frame[3]),
+                    options,
+                    tolerance
                 );
             }
             catch (ArgumentException exception)
@@ -119,29 +130,24 @@ namespace OpenCAD2D
 
         private static JsonObject Fits(CadDocument document, JsonObject request)
         {
-            JsonArray place = request.GetArray("candidate");
-
-            if (place.Count != 5)
-            {
-                throw new Refusal(
-                    "A candidate is five numbers: its first corner, its width, its height and its angle."
-                );
-            }
+            double[] place = NumbersMember(
+                request,
+                "candidate",
+                5,
+                "A candidate is five numbers: its first corner, its width, its height and its angle."
+            );
+            string layout = TextMember(request, "layout");
+            CadFreeSpaceOptions options = SpaceOptions(request);
+            Tolerance tolerance = ToleranceOf(request);
 
             try
             {
                 bool fits = CadSpatial.Fits(
                     document,
-                    SpaceNamed(document, request.GetString("layout")),
-                    new CadFrame(
-                        Number(place[0]),
-                        Number(place[1]),
-                        Number(place[2]),
-                        Number(place[3]),
-                        Number(place[4])
-                    ),
-                    SpaceOptions(request),
-                    ToleranceOf(request)
+                    SpaceNamed(document, layout),
+                    new CadFrame(place[0], place[1], place[2], place[3], place[4]),
+                    options,
+                    tolerance
                 );
                 return new JsonObject().Set("fits", fits);
             }
@@ -154,20 +160,24 @@ namespace OpenCAD2D
         private static CadFreeSpaceOptions SpaceOptions(JsonObject request) =>
             new CadFreeSpaceOptions
             {
-                Kinds = request.Get("kinds") is JsonArray kinds ? Strings(kinds).ToList() : null,
-                Margin = request.GetDouble("margin"),
-                MinWidth = request.GetDouble("minWidth"),
-                MinHeight = request.GetDouble("minHeight"),
+                Kinds = NamesMember(request, "kinds"),
+                Margin = NumberMember(request, "margin", 0.0),
+                MinWidth = NumberMember(request, "minWidth", 0.0),
+                MinHeight = NumberMember(request, "minHeight", 0.0),
             };
 
-        private static Tolerance ToleranceOf(JsonObject request) =>
-            request.Get("tolerance") == null
-                ? Touching
-                : new Tolerance(request.GetDouble("tolerance"), Tolerance.DefaultEqualVector);
+        /// <summary>The tolerance a request asks for, the library's own where it asks for none; refused where it is no number or below nought.</summary>
+        private static Tolerance ToleranceOf(JsonObject request)
+        {
+            if (request.Get("tolerance") == null)
+            {
+                return Touching;
+            }
 
-        private static double Number(object value) =>
-            value is double real ? real
-            : value is long whole ? whole
-            : 0.0;
+            double distance = NumberMember(request, "tolerance", 0.0);
+            return distance >= 0.0
+                ? new Tolerance(distance, Tolerance.DefaultEqualVector)
+                : throw new Refusal("The member tolerance has to be a number of millimetres, not below nought.");
+        }
     }
 }
