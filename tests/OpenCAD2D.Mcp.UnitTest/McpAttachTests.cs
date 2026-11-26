@@ -32,6 +32,27 @@ namespace OpenCAD2D.Mcp.UnitTest
 
         public int ProcessId { get; }
 
+        /// <summary>
+        /// Opens a drawing file in the app through a server of its own that may write, as the user does with File, Open: a server
+        /// attached read-only is refused <c>open_drawing</c> and <c>new_drawing</c>, which replace the drawing the user has open.
+        /// </summary>
+        public async Task OpenAsync(string path)
+        {
+            await using McpHarness opener = await McpHarness.StartAsync(
+                new McpOptions { Attach = true, RemoteFolder = Folder }
+            );
+            await opener.CallAsync("open_drawing", ("path", path));
+        }
+
+        /// <summary>Makes a blank drawing in the app through a server of its own that may write.</summary>
+        public async Task NewAsync()
+        {
+            await using McpHarness opener = await McpHarness.StartAsync(
+                new McpOptions { Attach = true, RemoteFolder = Folder }
+            );
+            await opener.CallAsync("new_drawing");
+        }
+
         /// <summary>Starts the test server and waits until it listens.</summary>
         public static TestApp Start()
         {
@@ -272,9 +293,11 @@ namespace OpenCAD2D.Mcp.UnitTest
             using TestApp app = TestApp.Start();
             string path = Drawings.Plate(TestFolder.Make("attachsafe"));
 
+            await app.OpenAsync(path);
+
             await using (McpHarness readOnly = await Attach(app, readOnly: true, scripts: true))
             {
-                await readOnly.CallAsync("open_drawing", ("path", path));
+                Assert.Contains("--read-only", await readOnly.FailAsync("open_drawing", ("path", path)));
                 Assert.Contains(
                     "--read-only",
                     await readOnly.FailAsync("add_line", ("start", new[] { 0.0, 0.0 }), ("end", new[] { 1.0, 1.0 }))

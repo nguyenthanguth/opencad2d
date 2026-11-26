@@ -324,7 +324,7 @@ namespace OpenCAD2D
         /// Layout1 takes its place, as AutoCAD leaves a drawing one. The block named *Paper_Space, which AutoCAD refuses a drawing
         /// without, goes to the first sheet left where the one deleted held it.
         /// </summary>
-        private static void RemoveLayout(DxfDatabase database, DxfLayout layout)
+        internal static void RemoveLayout(DxfDatabase database, DxfLayout layout)
         {
             DxfBlockTableRecord block = layout.BlockTableRecord;
 

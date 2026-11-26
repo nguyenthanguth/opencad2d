@@ -84,16 +84,22 @@ namespace OpenCAD2D.Mcp
             [Description("AutoCAD colour index 1 to 255, 256 for BYLAYER, 0 for BYBLOCK.")] int? color = null,
             [Description("A linetype of the drawing, or BYLAYER or BYBLOCK.")] string linetype = null,
             [Description("The linetype scale of each object, above 0.")] double? linetype_scale = null,
-            [Description(
-                "Lineweight in hundredths of a millimetre, one of AutoCAD's (0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211), or -1 BYLAYER, -2 BYBLOCK, -3 default."
-            )]
-                int? lineweight = null,
+            [Description(LineWeightText + ", or -1 BYLAYER, -2 BYBLOCK, -3 default.")] double? lineweight = null,
             [Description("Transparency in per cent, 0 to 90, or -1 for BYLAYER.")] int? transparency = null
         ) => Change("set_properties", handles, (drawing, list) =>
             {
                 if (linetype_scale.HasValue || lineweight.HasValue || transparency.HasValue)
                 {
-                    SetPropertyRows(drawing, list, layer, color, linetype, linetype_scale, lineweight, transparency);
+                    SetPropertyRows(
+                        drawing,
+                        list,
+                        layer,
+                        color,
+                        linetype,
+                        linetype_scale,
+                        Hundredths(lineweight),
+                        transparency
+                    );
                     return;
                 }
 
@@ -119,6 +125,64 @@ namespace OpenCAD2D.Mcp
 
                 drawing.SetProperties(list, layer, color, linetype);
             });
+
+        /// <summary>How a lineweight is written in the descriptions of the tools that take one.</summary>
+        private const string LineWeightText =
+            "A lineweight in millimetres, as AutoCAD shows it (0.5, 0.35, 0.18; the list is 0, 0.05, 0.09, 0.13, 0.15, 0.18, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.53, 0.6, 0.7, 0.8, 0.9, 1, 1.06, 1.2, 1.4, 1.58, 2 and 2.11), or in hundredths of a millimetre as before (50, 35, 18); no weight is both, so a number is read the one way it fits";
+
+        /// <summary>
+        /// Reads a lineweight given in millimetres (<c>0.5</c>) or in hundredths of a millimetre (<c>50</c>) as hundredths. The two
+        /// lists do not clash: a number is read as hundredths where it is a whole number of that list, and as millimetres otherwise
+        /// (1 is 1.00 mm, 0.5 is 0.50 mm). A negative whole number (-1, -2, -3) is passed on as it is.
+        /// </summary>
+        /// <param name="given">The number the caller gave; null for none.</param>
+        /// <returns>The lineweight in hundredths of a millimetre; null for none given.</returns>
+        /// <exception cref="ArgumentException">Thrown for a number that is none of AutoCAD's lineweights either way.</exception>
+        private static int? Hundredths(double? given)
+        {
+            if (!given.HasValue)
+            {
+                return null;
+            }
+
+            double value = given.Value;
+
+            if (double.IsNaN(value) || double.IsInfinity(value) || Math.Abs(value) > 1e6)
+            {
+                throw new ArgumentException("The lineweight is a finite number.");
+            }
+
+            double whole = Math.Round(value);
+
+            if (value < 0.0 || (Math.Abs(value - whole) < 1e-9 && LineWeights.Contains((int)whole)))
+            {
+                return (int)whole;
+            }
+
+            double hundredths = Math.Round(value * 100.0);
+
+            if (Math.Abs(value * 100.0 - hundredths) < 1e-6 && LineWeights.Contains((int)hundredths))
+            {
+                return (int)hundredths;
+            }
+
+            // A whole number that is no weight is reported as the hundredths it was most likely meant as.
+            if (Math.Abs(value - whole) < 1e-9)
+            {
+                return (int)whole;
+            }
+
+            throw new ArgumentException(
+                "The lineweight "
+                    + value.ToString("0.####", CultureInfo.InvariantCulture)
+                    + " is none of AutoCAD's: "
+                    + string.Join(
+                        ", ",
+                        LineWeights.Select(w => (w / 100.0).ToString("0.##", CultureInfo.InvariantCulture))
+                    )
+                    + " millimetres."
+            );
+        }
 
         /// <summary>The lineweights AutoCAD has, in hundredths of a millimetre.</summary>
         private static readonly int[] LineWeights =
@@ -164,15 +228,14 @@ namespace OpenCAD2D.Mcp
             [Description("AutoCAD colour index 1 to 255; 7 (white or black by the ground) where left out.")]
                 int color = 7,
             [Description("A linetype of the drawing; Continuous where left out.")] string linetype = "Continuous",
-            [Description(
-                "Lineweight in hundredths of a millimetre, one of AutoCAD's: 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211; the default weight (-3) where left out."
-            )]
-                int? lineweight = null,
+            [Description(LineWeightText + "; the default weight (-3) where left out.")] double? lineweight = null,
             [Description("False to make the layer off.")] bool on = true,
             [Description("True to make the layer frozen.")] bool frozen = false,
-            [Description("True to make the layer locked.")] bool locked = false
+            [Description("True to make the layer locked.")] bool locked = false,
+            [Description("False to keep the layer off the plot.")] bool plot = true
         ) => _session.Run("add_layer", true, drawing =>
             {
+                int? weight = Hundredths(lineweight);
                 string trimmed = name?.Trim();
 
                 if (string.IsNullOrEmpty(trimmed))
@@ -185,11 +248,11 @@ namespace OpenCAD2D.Mcp
                     throw new ArgumentException("A layer's colour index is 1 to 255.");
                 }
 
-                if (lineweight.HasValue && !LineWeights.Contains(lineweight.Value))
+                if (weight.HasValue && !LineWeights.Contains(weight.Value))
                 {
                     throw new ArgumentException(
                         "The lineweight "
-                            + lineweight.Value
+                            + weight.Value
                             + " is none of AutoCAD's: "
                             + string.Join(", ", LineWeights)
                             + "."
@@ -213,11 +276,11 @@ namespace OpenCAD2D.Mcp
                     Name = trimmed,
                     Color = color,
                     Linetype = type,
-                    LineWeight = lineweight ?? -3,
+                    LineWeight = weight ?? -3,
                     IsOn = on,
                     IsFrozen = frozen,
                     IsLocked = locked,
-                    IsPlottable = true,
+                    IsPlottable = plot,
                     Description = string.Empty,
                 };
                 drawing.AddLayer(row);
@@ -230,7 +293,7 @@ namespace OpenCAD2D.Mcp
                     On = row.IsOn,
                     Frozen = row.IsFrozen,
                     Locked = row.IsLocked,
-                    Plottable = true,
+                    Plottable = row.IsPlottable,
                     Description = string.Empty,
                 };
             });
@@ -259,7 +322,7 @@ namespace OpenCAD2D.Mcp
 
         [McpServerTool(Name = "render_png", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
         [Description(
-            "Draws a layout (or a part of it) to a PNG and returns the picture as an image, as the app's canvas draws it, on a white ground. Size: width or height in pixels (the other follows the part's shape), or dpi for a layout; 1024 pixels wide where none is given. At most 16384 pixels a side."
+            "Draws a layout (or a part of it) to a PNG and returns the picture as an image, as the app's canvas draws it, on a white ground. Size: width or height in pixels (the other follows the part's shape), or dpi for a layout; 1024 pixels wide where none is given. At most 16384 pixels a side. In run_plan a picture is not carried: the step answers its metadata (the size and bytes of the picture), so call render_png alone to see it."
         )]
         public CallToolResult RenderPng(
             [Description(

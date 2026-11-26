@@ -30,8 +30,18 @@ namespace OpenCAD2D.Mcp
             { "redo", "it steps through the history the plan's undo step is part of" },
             { "run_plan", "a plan does not hold a plan" },
             { "save", "it writes the drawing's file, which a plan that stops cannot take back" },
-            { "save_as", "it writes the drawing's file, which a plan that stops cannot take back" },
             { "undo", "it steps through the history the plan's undo step is part of" },
+        };
+
+        /// <summary>
+        /// The tools that write a file and no part of the drawing. Those that end a plan are run after the plan's group of edits has been
+        /// kept, and not at all where the plan was stopped, taken back or only a dry run; <c>save_as</c> is allowed in a plan only there.
+        /// </summary>
+        private static readonly HashSet<string> FileWriters = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "export_svg",
+            "plot_pdf",
+            "save_as",
         };
 
         private readonly McpSession _session;
@@ -85,7 +95,7 @@ namespace OpenCAD2D.Mcp
                 );
             }
 
-            List<Prepared> prepared = Prepare(steps);
+            List<Prepared> prepared = Prepare(steps, out int trailStart);
             List<Prepared> writers = prepared.Where(p => p.Writes).ToList();
 
             if (writers.Count > 0 && _session.Options.ReadOnly)
@@ -104,14 +114,15 @@ namespace OpenCAD2D.Mcp
 
             var results = new Dictionary<string, JsonNode>(StringComparer.OrdinalIgnoreCase);
             var answers = new List<PlanStepResult>();
-            PlanTransaction transaction = writers.Count > 0 ? PlanTransaction.Open(drawing) : null;
+            bool drafting = prepared.Take(trailStart).Any(p => p.Writes);
+            PlanTransaction transaction = drafting ? PlanTransaction.Open(drawing) : null;
             bool taken = false;
             bool stopped = false;
             int next = 0;
 
             try
             {
-                for (; next < prepared.Count; next++)
+                for (; next < trailStart; next++)
                 {
                     cancel.ThrowIfCancellationRequested();
                     Prepared step = prepared[next];
@@ -143,7 +154,7 @@ namespace OpenCAD2D.Mcp
                     }
                 }
 
-                for (; next < prepared.Count; next++)
+                for (; stopped && next < prepared.Count; next++)
                 {
                     answers.Add(Skipped(prepared[next], "Not run: the plan stopped at an earlier step."));
                 }
@@ -165,7 +176,48 @@ namespace OpenCAD2D.Mcp
                     transaction = null;
                 }
 
-                return Done(prepared, answers, dryRun, back && writers.Count > 0, taken);
+                // The files at the end are written once what the plan drew is kept: a dry run writes none, and a plan that was stopped
+                // has none to write.
+                for (; next < prepared.Count; next++)
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    Prepared step = prepared[next];
+
+                    if (dryRun)
+                    {
+                        answers.Add(
+                            new PlanStepResult
+                            {
+                                Id = step.Id,
+                                Tool = step.ToolName,
+                                Ok = true,
+                                Result = new JsonObject { ["written"] = false, ["note"] = "A dry run writes no file." },
+                            }
+                        );
+                        continue;
+                    }
+
+                    PlanStepResult answer = RunStep(step, context, results, cancel);
+                    answers.Add(answer);
+
+                    if (answer.Ok)
+                    {
+                        results[step.Id] = answer.Result ?? new JsonObject();
+                    }
+                    else if (stopOnError)
+                    {
+                        next++;
+
+                        for (; next < prepared.Count; next++)
+                        {
+                            answers.Add(Skipped(prepared[next], "Not run: the plan stopped at an earlier step."));
+                        }
+
+                        break;
+                    }
+                }
+
+                return Done(prepared, answers, dryRun, back && drafting, taken, trailStart);
             }
             finally
             {
@@ -185,7 +237,7 @@ namespace OpenCAD2D.Mcp
         }
 
         /// <summary>Reads the steps: ids, tools, arguments, and what is wrong with each, for all of them.</summary>
-        private List<Prepared> Prepare(IReadOnlyList<PlanStep> steps)
+        private List<Prepared> Prepare(IReadOnlyList<PlanStep> steps, out int trailStart)
         {
             var list = new List<Prepared>();
             var seen = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -223,16 +275,24 @@ namespace OpenCAD2D.Mcp
                 }
             }
 
+            // The steps at the end that only write files: they are run after the plan's edits are kept.
+            trailStart = list.Count;
+
+            while (trailStart > 0 && FileWriters.Contains(list[trailStart - 1].ToolName))
+            {
+                trailStart--;
+            }
+
             for (int i = 0; i < list.Count; i++)
             {
                 Prepared item = list[i];
-                Check(item, list, i);
+                Check(item, list, i, trailStart);
             }
 
             return list;
         }
 
-        private void Check(Prepared item, List<Prepared> all, int index)
+        private void Check(Prepared item, List<Prepared> all, int index, int trailStart)
         {
             if (string.IsNullOrEmpty(item.ToolName))
             {
@@ -261,6 +321,14 @@ namespace OpenCAD2D.Mcp
             if (Refused.TryGetValue(item.ToolName, out string why))
             {
                 item.Errors.Add(item.ToolName + " is not allowed in a plan: " + why + ".");
+                return;
+            }
+
+            if (item.ToolName == "save_as" && index < trailStart)
+            {
+                item.Errors.Add(
+                    "save_as is allowed in a plan only as its last step, or among the last steps that write files (plot_pdf, export_svg, save_as): it writes once the steps before it are kept, and a plan that stops cannot take a file back."
+                );
                 return;
             }
 
@@ -607,12 +675,13 @@ namespace OpenCAD2D.Mcp
             List<PlanStepResult> answers,
             bool dryRun,
             bool rolledBack,
-            bool takenByStep
+            bool takenByStep,
+            int trailStart
         )
         {
             PlanTotals totals = Totals(prepared, answers);
             bool ok = totals.Failed == 0 && totals.Skipped == 0;
-            bool changed = !rolledBack && prepared.Where((p, i) => p.Writes && answers[i].Ok).Any();
+            bool changed = !rolledBack && prepared.Where((p, i) => i < trailStart && p.Writes && answers[i].Ok).Any();
             PlanStepResult first = answers.FirstOrDefault(a => !a.Ok && !a.Skipped);
             string message;
 

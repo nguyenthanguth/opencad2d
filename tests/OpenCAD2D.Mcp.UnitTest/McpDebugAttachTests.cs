@@ -39,8 +39,8 @@ namespace OpenCAD2D.Mcp.UnitTest
         public async Task App_screenshot_of_an_app_with_no_window_is_refused_in_words()
         {
             using TestApp app = TestApp.Start();
+            await app.OpenAsync(Drawings.Plate(TestFolder.Make("shotapp")));
             await using McpHarness harness = await Attach(app, readOnly: true);
-            await harness.CallAsync("open_drawing", ("path", Drawings.Plate(TestFolder.Make("shotapp"))));
 
             string message = await harness.FailAsync("app_screenshot");
 
@@ -87,8 +87,8 @@ namespace OpenCAD2D.Mcp.UnitTest
         public async Task Last_errors_of_an_app_that_writes_no_crash_log_says_so_and_lists_the_servers_own_failures()
         {
             using TestApp app = TestApp.Start();
+            await app.OpenAsync(Drawings.Plate(TestFolder.Make("errorsapp")));
             await using McpHarness harness = await Attach(app, readOnly: true);
-            await harness.CallAsync("open_drawing", ("path", Drawings.Plate(TestFolder.Make("errorsapp"))));
             await harness.FailAsync("erase", ("handles", new[] { "FFFF" }));
             await harness.FailAsync("bounds", ("handles", new[] { "FFFF" }), ("page", 0));
 
@@ -262,8 +262,8 @@ namespace OpenCAD2D.Mcp.UnitTest
         public async Task Timings_of_the_app_time_a_regen_a_render_and_the_reading_of_its_file()
         {
             using TestApp app = TestApp.Start();
+            await app.OpenAsync(Drawings.Plate(TestFolder.Make("timingsapp")));
             await using McpHarness harness = await Attach(app, readOnly: true);
-            await harness.CallAsync("open_drawing", ("path", Drawings.Plate(TestFolder.Make("timingsapp"))));
 
             foreach (string what in new[] { "regen", "render", "open" })
             {

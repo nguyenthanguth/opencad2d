@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+- **FIXED.** MCP server, from the end-to-end acceptance (a plate drafted and plotted with the tools alone). (1) A server attached
+  with `--read-only` was not refused `open_drawing` and `new_drawing`, which replace the drawing the user has on screen; they are
+  refused now (on a drawing file they still work: a read-only server starts that way). (2) A call with a missing, unknown or wrongly
+  typed argument was answered "An error occurred invoking 'add_line'."; it is checked against the tool's schema first, as a step of a
+  plan is, and refused with the argument and what the tool takes. (3) `overlaps` left out the attributes of a block reference and the
+  text of its block, which `check_standard` counted; INSERT is one of the kinds whose words it looks at by default (the core's
+  `CadSpatial.Overlaps` is unchanged: pass `INSERT` to ask for them there). (4) An `offset` without `erase_source` erased its source
+  where an earlier `offset` had set OFFSET's Erase option to Yes; the option is typed every time. (5) `describe_kinds` named no tool
+  for ELLIPSE, SPLINE, POINT, MULTILEADER, ACAD_TABLE, ATTDEF and VIEWPORT and left out XLINE, RAY, LEADER and the records the `add_*`
+  tools make (STYLE, DIMSTYLE, LAYER); every `add_*` tool is named now, and a test keeps it so. (6) The descriptions and the server
+  instructions said that nothing reaches a file until `save` and that `save` is the only tool that writes a file (`save_as`,
+  `plot_pdf`, `export_svg`, `export_to_file` and `dump_drawing` write files), that `set_current_layout` sets the layout the tools work
+  in (the `add_*` and reading tools take their own `layout`, model space where left out), and listed only the first tools; they say
+  which space each tool acts in, name every group of tools, and give millimetres, degrees and lineweights.
+- **CHANGED.** MCP `plot_pdf` plots model space where `layout` is left out, as every other tool does (it plotted the layout shown); it
+  plots through `CadPlot.WritePdf`, and `create_layout` and `add_viewport` make the layout and the viewport through `CadLayouts` and not by
+  typing `-LAYOUT` and `MVIEW`. A lineweight of `add_layer`, `set_layer` and `set_properties` is given in millimetres as AutoCAD shows
+  it (`0.5`), the hundredths of a millimetre of before (`50`) still read; `add_layer` takes `plot`. `run_plan` may end with
+  `plot_pdf`, `export_svg` and `save_as`, which are written once the plan's edits are kept (and not in a dry run or a plan that
+  stopped); `save_as` is allowed nowhere else in a plan.
+- **NEW.** MCP: `fits` and `free_space` take the frame object `{x, y, width, height, rotation}` a `measure_*` tool gives (so
+  `"$m.frames[0]"` works in a plan); `add_hatch` takes arcs (`bulges`), a circle (`circle_center`, `circle_radius`) and the closed
+  polylines and circles of the drawing by `handles`; `add_text` takes `justify`; `rename_layout` and `delete_layout` (the core's
+  `CadMake` edits of the same names; not Model, the layout shown is not deleted); `add_viewport` takes `layer`; `query_entities` and
+  `get_entity` give the viewports of a layout in an app, as they do on a file.
 - **FIXED.** The graph export (`CadDrawingGraph.Build`, `to_graph`, the `export` request) slows with the square of the number of
   entities no more: the edge and grid-cell tables hashed their numbers by xor-ing the two halves, so that the edges (i, i+1) of a
   chain fell into some 17 buckets and the cells into some 2 000. A chain of lines each touching the next now builds in time that

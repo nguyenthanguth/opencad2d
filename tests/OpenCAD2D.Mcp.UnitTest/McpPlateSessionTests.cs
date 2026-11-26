@@ -155,7 +155,7 @@ namespace OpenCAD2D.Mcp.UnitTest
             await bench.Call(
                 "insert_block_with_attributes",
                 ("name", "TAG"),
-                ("at", new[] { 60.0, 510.0 }),
+                ("at", new[] { 60.0, 500.0 }),
                 ("values", new Dictionary<string, string> { ["NUMBER"] = "A-102" }),
                 ("layer", "Notes")
             );

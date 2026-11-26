@@ -447,6 +447,11 @@ namespace OpenCAD2D.Mcp
                 {
                     Check(CadLayerEditor.SetLocked(Document, layer.Name, true));
                 }
+
+                if (!layer.IsPlottable)
+                {
+                    Check(CadLayerEditor.SetPlottable(Document, layer.Name, false));
+                }
             }
             catch
             {

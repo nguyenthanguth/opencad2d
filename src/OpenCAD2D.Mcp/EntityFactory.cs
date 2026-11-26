@@ -253,6 +253,33 @@ namespace OpenCAD2D.Mcp
                 throw new ArgumentException("A hatch boundary needs at least three points.");
             }
 
+            var points = new GeoPoint2[corners.Count];
+
+            for (int i = 0; i < points.Length; i++)
+            {
+                points[i] = new GeoPoint2(corners[i].X, corners[i].Y);
+            }
+
+            return Hatch(new[] { (points, new double[points.Length]) }, pattern, scale, angle);
+        }
+
+        /// <summary>
+        /// A hatch of the areas closed outlines enclose, each a list of vertices with a bulge for each (the tangent of a quarter of the
+        /// angle the arc from that vertex to the next turns through, counter-clockwise where positive; 0 for a straight side): the
+        /// first outline is the external one and the others, islands or other pieces, are found by the fill as the display fills them.
+        /// </summary>
+        public static DxfHatch Hatch(
+            IReadOnlyList<(GeoPoint2[] Points, double[] Bulges)> loops,
+            string pattern,
+            double scale,
+            double angle
+        )
+        {
+            if (loops.Count == 0)
+            {
+                throw new ArgumentException("A hatch needs a boundary.");
+            }
+
             Positive("The scale of a hatch", scale);
             Finite("The angle of a hatch", angle);
             string name = string.IsNullOrWhiteSpace(pattern) ? "ANSI31" : pattern.Trim().ToUpperInvariant();
@@ -275,14 +302,15 @@ namespace OpenCAD2D.Mcp
                 made.SetPatternDefinitions(found.Place(angle * 180.0 / Math.PI, scale, 0.0, 0.0));
             }
 
-            var points = new GeoPoint2[corners.Count];
-
-            for (int i = 0; i < points.Length; i++)
+            for (int i = 0; i < loops.Count; i++)
             {
-                points[i] = new GeoPoint2(corners[i].X, corners[i].Y);
+                made.AppendLoop(
+                    i == 0 ? DxfHatchLoopTypes.External : DxfHatchLoopTypes.Default,
+                    loops[i].Points,
+                    loops[i].Bulges
+                );
             }
 
-            made.AppendLoop(DxfHatchLoopTypes.External, points, new double[points.Length]);
             return made;
         }
 

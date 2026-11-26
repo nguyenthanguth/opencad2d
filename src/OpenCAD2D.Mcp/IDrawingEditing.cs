@@ -158,5 +158,17 @@ namespace OpenCAD2D.Mcp
 
         /// <summary>Takes the last undone step forward again; false when there was none.</summary>
         bool Redo();
+
+        /// <summary>Adds a layout on a sheet of the plotter's list (ISO A3 where null), as the core does (<see cref="CadLayouts.Add"/>), with no command typed.</summary>
+        void AddLayout(string name, string paper, bool landscape);
+
+        /// <summary>Adds a viewport to a layout showing model space at a scale (<c>1:10</c>), as the core does (<see cref="CadLayouts.AddViewport"/>), and gives its handle.</summary>
+        string AddViewport(
+            string layout,
+            IReadOnlyList<double> frame,
+            string scale,
+            IReadOnlyList<double> center,
+            IReadOnlyList<string> frozenLayers
+        );
     }
 }

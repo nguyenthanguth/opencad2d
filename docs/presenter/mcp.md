@@ -58,7 +58,7 @@ opened stops it with exit code 1. `OpenCAD2D.Mcp.exe --help` lists the options a
 | The app | not needed; nothing is shown | must be running with "Allow other programs to connect" on ([the setting](remote.md#the-setting)); the changes appear in its window |
 | Undo | the file's own undo steps, one for each call | the app's: `undo` types `U` into the app, which also takes back what the user drew last |
 | `render_png` | draws the drawing as it is now, changes not saved included | draws the drawing as the app has it now, **unsaved changes included**: the server asks the app for a copy of its whole drawing (the request `database` of [Remote](remote.md#the-drawing-as-the-app-has-it)), reads it into memory and draws it there; the app's file is never written |
-| Nothing written | until `save` | until `save`; the app's own autosave still runs |
+| The drawing's own file | written by `save` and nothing else; `save_as`, `plot_pdf`, `export_svg`, `export_to_file` and `dump_drawing` write other files | the same; the app's own autosave still runs |
 
 With neither, no drawing is open: the agent calls `open_drawing` with a path, or `new_drawing`. With `--attach` the drawing
 is the one the user has active (or the one `open_drawing` or `new_drawing` opened in the app); `--pid <n>` picks one of
@@ -69,7 +69,7 @@ server may be started before the app is.
 
 | Flag | Effect |
 |---|---|
-| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `set_variable`, `reset`, `undo`, `redo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `export_to_file`, `purge`, `audit` with `fix`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts; `run_plan` when a step of the plan writes; attached, also the three `zoom_*` tools, which move the view the user has on screen. Opening, rendering, the reading, measuring and checking tools, the check of `audit`, `dump_drawing` and the debug tools, selecting and taking or releasing a snapshot still work, and so does a plan of such tools |
+| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `set_variable`, `reset`, `undo`, `redo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `export_to_file`, `purge`, `audit` with `fix`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts; `run_plan` when a step of the plan writes; attached, also the three `zoom_*` tools, which move the view the user has on screen. Rendering, the reading, measuring and checking tools, the check of `audit`, `dump_drawing` and the debug tools, selecting and taking or releasing a snapshot still work, and so does a plan of such tools. `open_drawing` and `new_drawing` still work on a drawing file (a read-only server starts with no drawing, and opening one changes nothing the user has open) and are **refused when attached**, where they would replace the drawing the user has on screen: open it in the app first (File, Open) and attach to it |
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
 - Files are written by `save` (the drawing's own file, which is in the folder it was opened from, or the path the agent gives
@@ -77,8 +77,7 @@ server may be started before the app is.
   is there is refused unless `overwrite` is true), and by `dump_drawing`, which writes only inside the debug folder.
   `render_png` makes its picture in memory (a temporary file under the system's temporary folder, deleted at once). Every
   other tool, the measuring, scoring and export tools included, reads and writes nothing.
-- No text of the agent's reaches a command line except as one answer to a prompt for words (the name of a new layout, the words of
-  a multileader): a word of a command may not start with `(`, `!` or `'`, which the command line would run as AutoLISP or as a
+- No text of the agent's reaches a command line except as one answer to a prompt for words (the words of a multileader): a word of a command may not start with `(`, `!` or `'`, which the command line would run as AutoLISP or as a
   transparent command, and a block is inserted by an edit of the core and not by typing its name, so no AutoLISP runs without
   `--allow-scripts`. Attached, a tool that types (and `undo` and `redo`) is refused while a command is running in the app, so that it
   never answers the user's command; `UNDO Begin` and `End` are typed only when UNDO waits for them.
@@ -94,19 +93,29 @@ Give it only to an agent you would give the keyboard to.
 ## The tools
 
 Units are **millimetres**, angles are **degrees**, counter-clockwise from the +x direction, a point is `[x, y]`, a handle
-is the drawing's own (`2F`). Every writing call is one undo step. Every answer is small: a long list comes in pages of 100
-(`page_size` up to 500).
+is the drawing's own (`2F`). A lineweight is in millimetres as AutoCAD shows it (`0.5`; the hundredths of a millimetre the first
+versions took, `50`, are read too: no weight is both, so a number is read the one way it fits). Every call that draws or changes
+the drawing is one undo step (a `run_plan` is one in all, `run_command` the steps of its commands). Every answer is small: a long
+list comes in pages of 100 (`page_size` up to 500). A call with a missing, unknown or wrongly typed argument is refused before it
+runs, with the name of the argument and what the tool takes (`add_line was not run: The argument end is required and is missing.`).
+
+**Which space a tool works in.** One rule: every tool that takes a `layout` works in **model space where it is left out**,
+whatever layout is shown: the `add_*` tools, the reading, measuring and placing tools, `render_png`, `export_svg` and `plot_pdf`. The
+tools that type a command on the objects (`copy`, `mirror`, `offset`, `fillet`, `chamfer`, `trim`, `extend`, `stretch`, the arrays,
+`explode`, `join`, `break_at`, `lengthen`, `set_draw_order`) and `run_command` work in the layout **shown**, which
+`set_current_layout` changes (in an app, what the user sees); `move`, `rotate`, `scale`, `erase`, `set_properties` and the `edit_*`
+tools act on handles wherever they are.
 
 | Tool | What it does |
 |---|---|
 | `open_drawing(path, discard=)` | opens a DXF or DWG file as the drawing the tools work on |
 | `new_drawing(discard=)` | makes a blank drawing (AutoCAD 2013 format, layer 0 only) |
-| `save(path=)` | saves to the drawing's file, or to `path` (a name ending in `.dwg` is written as a DWG, any other as a DXF) |
+| `save(path=)` | saves to the drawing's file, or to `path` (a name ending in `.dwg` is written as a DWG, any other as a DXF), which it is known by from then on. The only tool that writes the drawing's own file |
 | `info(layout=)` | name, file, units, layouts, the box everything of the layout is drawn in, the entity count of each kind |
 | `list_layers`, `list_text_styles`, `list_dimension_styles`, `list_blocks` | the names the drawing has, with their key settings |
 | `query_entities(kinds=, layers=, box=, layout=, page=, page_size=)` | handle, kind, layer, key geometry and drawn box of each entity, in the order the drawing draws them |
 | `bounds(handles=, layout=)` | the box each entity takes as it is drawn: the letters of a text and not its insertion point, a dimension's picture, a block however deep |
-| `overlaps(kinds=, over=, of=, layout=, tolerance=)` | the words (TEXT, MTEXT, dimension text, multileader text) that overlap a line, an arc, a polyline, a hatch edge, a filled area or another word, with the box of each meeting |
+| `overlaps(kinds=, over=, of=, layout=, tolerance=)` | the words (TEXT, MTEXT, dimension text, multileader text, and the attributes and text of block references, of the kind `INSERT`) that overlap a line, an arc, a polyline, a hatch edge, a filled area or another word, with the box of each meeting |
 | `get_entity(handle)` | one entity in full: layer, colour, linetype, lineweight, its drawn box, the values of its kind (text and height, polyline vertices with bulges, a dimension's measurement and text, an INSERT's block and attributes, a hatch's pattern, an MTEXT's width and columns) and the Properties palette rows |
 | `count_entities(group_by=, kinds=, layers=, colors=, linetypes=, box=, layout=)` | counts by `kind`, `layer`, `block` (the block references, by block name) or `color` (the colour each is drawn in); filters narrow what is counted |
 | `aggregate(measure, group_by=, ...)` | the sum, smallest, largest and average of the `length` (mm) or `area` (mm²) of the entities in each group, and how many had no such measure; the filters of `count_entities` |
@@ -123,16 +132,16 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 | `measure_text(text, at, height, rotation=, text_style=, justify=)`, `measure_mtext(text, at, height, width=, rotation=, text_style=, justify=)` | the box a text would take and the frame of its words, found by the code that draws it in the drawing's own text style and fonts, **before it is added**: nothing is added, no undo step is made |
 | `measure_dimension(kind, points, dim_style=, text=, angle=)`, `measure_leader(arrow, landing, text, style=, scale=)` | the same for a dimension (`linear`, `aligned`, `radial`, `diameter`, `angular`) and for the multileader MLEADER would make |
 | `free_space(frame, kinds=, margin=, min_width=, min_height=, layout=, tolerance=)` | the empty rectangles of a frame, the largest first: no line or word of the `kinds` runs through them or comes within `margin`. Give the size of the thing to place as `min_width` and `min_height` to get only the places it could stand in. Paged |
-| `fits(candidate, kinds=, margin=, layout=, tolerance=)` | whether one place is free, tested on the real lines, arcs, fills and word frames and not on their boxes. `candidate` is a box `[minX, minY, maxX, maxY]` or a frame `[x, y, width, height, rotation]` as the `measure_*` tools give it |
+| `fits(candidate, kinds=, margin=, layout=, tolerance=)` | whether one place is free, tested on the real lines, arcs, fills and word frames and not on their boxes. `candidate` is a box `[minX, minY, maxX, maxY]`, a frame `[x, y, width, height, rotation]` or the frame object `{x, y, width, height, rotation}` as the `measure_*` tools give it (`"$m.frames[0]"` in a plan). `free_space` takes a `frame` of the same forms (a turned one is read as the upright box round it) |
 | `check_standard(standard, model_scale=, tolerance=)` | scores the drawing against a company standard: a score from 0 to 1 for each rule, the total `score` and the violations (rule, handle, place, found, allowed), a page at a time. `standard` is a JSON object of the schema `docs/schemas/opencad2d-standard-v1.schema.json` or the path of a file of one |
 | `export_json(layout=)`, `export_graph(layout=, tolerance=, part=)` | what [`to_json` and `to_graph`](../python.md#batch-and-ai-pipelines) write: a summary (the members that are not lists, how many rows each list has, how many entities or edges of each kind) and a page of the entities, or of the edges or nodes of the graph (`part`) |
 | `export_to_file(what, path, layout=, tolerance=, overwrite=)` | writes the whole JSON (`json`) or graph (`graph`) to the `.json` file `path` (`.json` is added where there is no extension, another extension is refused), for a program that reads the file and not the agent. A file that is there is refused unless `overwrite` is `true`, the folder is made where it is not there, and the drawing's own file is never written; refused by `--read-only` |
-| `add_layer(name, color=, linetype=, lineweight=, on=, frozen=, locked=)` | a layer with the look given (a colour index, a linetype of the drawing, a lineweight in hundredths of a millimetre such as 25); refused for a name the drawing has (either case), a name AutoCAD refuses, or a look it does not take |
+| `add_layer(name, color=, linetype=, lineweight=, on=, frozen=, locked=, plot=)` | a layer with the look given (a colour index, a linetype of the drawing, a lineweight in millimetres such as 0.25, `plot` false to keep it off the plot); refused for a name the drawing has (either case), a name AutoCAD refuses, or a look it does not take |
 | `add_line`, `add_polyline`, `add_circle`, `add_arc` | geometry; `layer`, `color` (a colour index) and `linetype` for each |
-| `add_text`, `add_mtext` | words, with a `text_style` of the drawing |
+| `add_text`, `add_mtext` | words, with a `text_style` of the drawing; `add_text` takes a `justify` (`left`, `center`, `right`, `middle` or a code `TL` ... `BR`) as `measure_text` does, so the box measured is the box of the text added |
 | `add_linear_dim`, `add_aligned_dim`, `add_radial_dim`, `add_diameter_dim`, `add_angular_dim` | dimensions made as DIMLINEAR, DIMALIGNED, DIMRADIUS, DIMDIAMETER and DIMANGULAR make them, in a `dim_style` of the drawing (the current one by default); the picture is drawn by the engine |
-| `add_hatch`, `add_insert` | a hatch of a closed outline with a pattern of the built-in set, or a block of the drawing placed |
-| `move`, `rotate`, `scale`, `erase`, `set_properties` | change entities by handle (refused on a locked layer); `set_properties` sets `layer`, `color`, `linetype`, `linetype_scale`, `lineweight` (hundredths of a millimetre) and `transparency` (per cent) |
+| `add_hatch(boundary=, bulges=, circle_center=, circle_radius=, handles=, pattern=, scale=, angle=)`, `add_insert` | a hatch of closed outlines with a pattern of the built-in set: corners (`boundary`, with a `bulges` entry for each corner where a side is an arc), a circle, or the closed polylines and circles already in the drawing by handle, several together (the first is the outer outline); or a block of the drawing placed |
+| `move`, `rotate`, `scale`, `erase`, `set_properties` | change entities by handle (refused on a locked layer); `set_properties` sets `layer`, `color`, `linetype`, `linetype_scale`, `lineweight` (millimetres, as for a layer) and `transparency` (per cent) |
 | `undo`, `redo` | take back the last step, or do the step taken back again |
 | `run_plan(steps, dry_run=, stop_on_error=)` | runs a list of calls of the tools above in one call, as one undo step, each step able to take a value from an earlier step's answer; see [Plans](#plans-many-steps-in-one-call) |
 | `run_command(text)` | types on the command line; only with `--allow-scripts` |
@@ -158,8 +167,7 @@ and the angle the length runs at, **in degrees** here (the Python library gives 
 ### Modify
 
 Each of these types the command on the drawing's own command line with the numbers, handles and names the tool has checked
-(never text of the caller's, except the words of a note, an attribute or a layout name, which are one answer to a prompt for
-words), picking objects by handle, so the result is what the command makes. They work in the current layout
+(never text of the caller's, except the words of a note or an attribute, which are one answer to a prompt for words), picking objects by handle, so the result is what the command makes. They work in the current layout
 (`set_current_layout`). The answer is `created` (handles made), `erased`, `changed` (given objects whose box moved) and the last
 lines the command line wrote; a command that changed nothing is refused with those lines.
 
@@ -180,8 +188,9 @@ lines the command line wrote; a command that changed nothing is refused with tho
 |---|---|
 | `set_current_layer(name)`, `set_layer(name, on=, frozen=, locked=, color=, linetype=, lineweight=, plot=)` | the current layer, and the look of a layer as the Layer manager sets it |
 | `rename_layer(name, new_name)`, `delete_layer(name, move_to=)` | rename a layer (its objects follow); delete one, refused while objects are on it unless `move_to` names the layer they go to |
-| `create_layout(name, paper=, landscape=)`, `set_current_layout(name)` | a layout with a sheet of `ISO A0` to `ISO A4`, `ANSI A` to `ANSI E` or a size such as `420x297`, in millimetres, plotted at 1:1; show a tab |
-| `add_viewport(layout, frame, scale, center=, freeze_layers=)`, `set_viewport_scale(handle, scale, center=)`, `lock_viewport(handle, locked=)` | a viewport on a sheet at `1:scale` (`frame` in millimetres of the sheet, `center` a point of model space), with layers frozen in it alone; its scale changed; its display locked |
+| `create_layout(name, paper=, landscape=)`, `set_current_layout(name)` | a layout with a sheet of `ISO A0` to `ISO A4`, `ANSI A` to `ANSI E` or a size such as `420x297`, in millimetres, plotted at 1:1 (made by the engine, no command typed); show a tab |
+| `rename_layout(name, new_name)`, `delete_layout(name)` | rename a layout, or delete it with what is drawn in it (one undo step each). Refused for `Model`, for a name the drawing has or AutoCAD refuses, and (delete) for the layout shown; the last sheet deleted is replaced by an empty `Layout1`, as AutoCAD leaves a drawing one |
+| `add_viewport(layout, frame, scale, center=, freeze_layers=, layer=)`, `set_viewport_scale(handle, scale, center=)`, `lock_viewport(handle, locked=)` | a viewport on a sheet at `1:scale` (`frame` in millimetres of the sheet, `center` a point of model space, the middle of what model space draws where left out; made by the engine, no command typed), with layers frozen in it alone and on the `layer` given (a layer that is not plotted keeps the frame off the paper); its scale changed; its display locked |
 
 A drawing from nothing to a sheet: `new_drawing`, `add_layer`, `add_text_style`, `add_dimension_style`, the shapes and the
 modify tools, `define_block` and `insert_block_with_attributes` for a title block, `create_layout` with `add_viewport` at 1:10 and
@@ -198,9 +207,9 @@ error as well.
 
 | Tool | What it does |
 |---|---|
-| `plot_pdf(path, layout=, paper=, scale=, fit=, overwrite=)` | plots a layout (the one the drawing is in now by default, or `Model`) to a PDF of one page, as PLOT to the PDF plotter does: the layout's own sheet and scale, lines at their lineweights, text as text. `paper` (`A3`, `ISO A3`, `ANSI B`), `scale` (`1:10`, `2:1`) and `fit` change the setup for this one plot and are not written into the drawing; a space that was never set up is fitted to an A3 sheet. The text of an SHX font is also written as invisible text over its strokes, so the PDF reader's search, and a program that reads the plot back, find the words. Answers the file, the sheet in millimetres, the scale and the part of the drawing on the page |
+| `plot_pdf(path, layout=, paper=, scale=, fit=, overwrite=)` | plots a layout (`Model` where left out, as in the other tools) to a PDF of one page, as PLOT to the PDF plotter does: the layout's own sheet and scale, lines at their lineweights, text as text. `paper` (`A3`, `ISO A3`, `ANSI B`), `scale` (`1:10`, `2:1`) and `fit` change the setup for this one plot and are not written into the drawing; a space that was never set up is fitted to an A3 sheet. The text of an SHX font is also written as invisible text over its strokes, so the PDF reader's search, and a program that reads the plot back, find the words. Answers the file, the sheet in millimetres, the scale and the part of the drawing on the page |
 | `export_svg(path, box=, layout=, width=, height=, dpi=, overwrite=)` | the layout, or a part of it, as an SVG, drawn as `render_png` draws it (vectors, text as text). Without a `box` it draws the view `zoom_window` or `zoom_object` set |
-| `save_as(path, format=, version=, overwrite=)` | writes a **copy** of the drawing as a `dxf` or `dwg` (`format` is taken from the extension where left out) of a version: `2000`, `2004`, `2007`, `2010`, `2013`, `2018` or its code (`AC1027`), and `12` for a DXF. The open drawing keeps its own file, its name and its unsaved changes; `save` with a path is the tool that moves it. Answers what the version could not hold |
+| `save_as(path, format=, version=, overwrite=)` | writes a **copy** of the drawing as a `dxf` or `dwg` (`format` is taken from the extension where left out) of a version: `2000`, `2004`, `2007`, `2010`, `2013`, `2018` or its code (`AC1027`), and `12` for a DXF. The open drawing keeps its own file, its name and its unsaved changes, so it is **still marked modified** afterwards (a copy was written, nothing was saved); `save` with a path is the tool that moves it. Answers what the version could not hold |
 | `purge(kinds)` | purges what nothing uses, as -PURGE does, repeating until nothing more goes: `blocks`, `layers`, `linetypes`, `text_styles`, `dimension_styles`, `groups`, `multileader_styles`, `table_styles`, `plot_styles`, `shapes`, or `all` of them; `zero_length` erases the lines, arcs and polylines of no length and `empty_text` the texts of no content. It types fixed -PURGE input into the command session, never free text. Answers how many of each |
 | `audit(fix=)` | the errors AUDIT finds, counted by kind with its first sentences; with `fix` it also fixes what it can as one undo step and audits again (`found`, `remaining`). The check alone writes nothing |
 | `zoom_extents`, `zoom_window(box)`, `zoom_object(handles)` | attached: ZOOM Extents, Window and Object on the app's window, moving what the user sees. On a file: the view `render_png` and `export_svg` draw when they are given no `box`, kept for the layout in this server (a `box` given still wins). They answer the part of the drawing now shown, `[minX, minY, maxX, maxY]` |
@@ -380,14 +389,18 @@ read, with what the answer has: `has no member handel (it has handle, kind)`.
   drawing's handle counter is put back too, so the real run that follows gives the same handles). A plan with steps that only read is
   simply run. A dry run on an app draws the plan in the user's window for a moment (about 30 ms for a drawing of 10 000 entities) and
   puts it back; a drawing file in memory is not seen by anyone.
-- **Refused by name in a plan:** `run_plan` (no plan holds a plan), `open_drawing`, `new_drawing`, `undo`, `redo`, `save` and `save_as`
-  (they replace the drawing, step through its history, or write its file, which a plan that stops could not take back). `run_command` is
+- **Refused by name in a plan:** `run_plan` (no plan holds a plan), `open_drawing`, `new_drawing`, `undo`, `redo` and `save`
+  (they replace the drawing, step through its history, or write its file, which a plan that stops could not take back).
+- **Files at the end.** A plan may end with `plot_pdf`, `export_svg` and `save_as` as its **last steps** (`save_as` is allowed nowhere
+  else): they are run after the plan's edits are kept, so a plan that was stopped or taken back writes none of them, and a dry run
+  writes none (their answers say `written: false`). A `plot_pdf` or `export_svg` earlier in the plan is run where it stands, with the
+  edits so far. `run_command` is
   refused unless the server has `--allow-scripts`, as it is alone, and is never allowed in a plan on an app (a command it starts may
   wait for the user's answer, and the plan could not end its group while it does). On a file its text is typed **as written**: no
   reference is read in it, so no earlier answer can reach the command line. A plan with **any** step that writes is refused by `--read-only` before
   anything runs, naming those steps; a plan of reading tools runs on a read-only server.
-- At most 200 steps. A picture a step makes (`render_png`) is reported by its type and size, not its data: call `render_png` alone to
-  see it.
+- At most 200 steps. A picture a step makes (`render_png`) is reported by its type and size, not its data (the step answers metadata
+  only): call `render_png` alone to see it.
 
 ### The placement loop in 4 calls
 
@@ -427,13 +440,13 @@ release_snapshot snapshot "s1"
   asking. A tool of several steps (a table and its cells, a viewport and its scale) is one undo step, made with `UNDO Begin` and
   `UNDO End`; a failure between the steps leaves the steps made (undo takes them back), where in a drawing file the whole call is
   taken back.
-- The words of a note, an attribute value or a layout name are typed as one line at the prompt for words, which the app takes whole;
-  the name of a block, a layer, a style or a tag has no space. `add_mleader` and `add_table` draw in the drawing's current styles,
+- The words of a note or an attribute value are typed as one line at the prompt for words, which the app takes whole;
+  the name of a block, a layer, a style or a tag has no space (a layout's name may: layouts are made by the engine). `add_mleader` and `add_table` draw in the drawing's current styles,
   whose sizes are those of a drawing plotted at 1:1: give a note a `scale`.
 - Not covered by the tools: the plot style of an object (`set_properties` has no `plot_style`), a closed spline of control points, an
   array along a path, a revision cloud and a wipeout (use `run_command` with `--allow-scripts`).
-- Attached, `query_entities` cannot read a viewport or another object the app cannot copy into a small drawing; `add_viewport`
-  gives the viewport's handle all the same.
+- Attached, `query_entities` and `get_entity` read a viewport from a copy of the app's database (the app's own queries do not carry
+  it); another object the app cannot copy into a small drawing is still not read.
 - Attached, a `run_command` that is still asking something after 10 seconds is left waiting in the app; the next
   `run_command` answers it, or Esc in the app ends it.
 - `export_json` and `export_graph` page the document: the whole of it is megabytes for a drawing of thousands of entities (3 MB

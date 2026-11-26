@@ -46,8 +46,7 @@ namespace OpenCAD2D.Mcp
         public DrawingResult OpenDrawing(
             [Description("The path of a .dxf or .dwg file.")] string path,
             [Description("True to throw away unsaved changes of the drawing open now.")] bool discard = false
-        ) =>
-            _session.RunWithout(() =>
+        ) => _session.RunReplacing("open_drawing", () =>
             {
                 _session.Open(path, discard);
                 return Current();
@@ -65,8 +64,7 @@ namespace OpenCAD2D.Mcp
         )]
         public DrawingResult NewDrawing(
             [Description("True to throw away unsaved changes of the drawing open now.")] bool discard = false
-        ) =>
-            _session.RunWithout(() =>
+        ) => _session.RunReplacing("new_drawing", () =>
             {
                 _session.New(discard);
                 return Current();
@@ -85,7 +83,7 @@ namespace OpenCAD2D.Mcp
 
         [McpServerTool(Name = "save", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
-            "Saves the drawing to its own file, or to the path given (a name ending in .dwg is a DWG, any other a DXF), which it is known by from then on. This is the only tool that writes a file."
+            "Saves the drawing to its own file, or to the path given (a name ending in .dwg is a DWG, any other a DXF), which it is known by from then on and which clears the drawing's modified mark. It is the only tool that writes the drawing's own file; save_as, plot_pdf, export_svg, export_to_file and dump_drawing write other files and leave the drawing as it is."
         )]
         public DrawingResult Save(
             [Description("Where to save it; leave out to save to the drawing's own file.")] string path = null
@@ -343,11 +341,11 @@ namespace OpenCAD2D.Mcp
 
         [McpServerTool(Name = "overlaps", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
         [Description(
-            "Finds the words (TEXT, MTEXT, dimension text, multileader text) that overlap what is drawn near them: a line, arc, polyline or hatch edge running through the word's frame, a filled area it lies in, or another word. Each row is the entity of the word, the entity it overlaps and the box of the places they meet. Touching within the tolerance is no overlap. Use it to check a layout before saving. Paged."
+            "Finds the words (TEXT, MTEXT, dimension text, multileader text, the attributes and text of block references) that overlap what is drawn near them: a line, arc, polyline or hatch edge running through the word's frame, a filled area it lies in, or another word. Each row is the entity of the word, the entity it overlaps and the box of the places they meet. Touching within the tolerance is no overlap. Use it to check a layout before saving. Paged."
         )]
         public OverlapsResult Overlaps(
             [Description(
-                "The kinds whose words are looked at, as [\"TEXT\", \"MTEXT\"]; TEXT, MTEXT, DIMENSION and MULTILEADER where left out."
+                "The kinds whose words are looked at, as [\"TEXT\", \"MTEXT\"]; TEXT, MTEXT, DIMENSION, MULTILEADER and INSERT (a block reference's attributes and the text of its block) where left out."
             )]
                 string[] kinds = null,
             [Description("The kinds the words are looked at against; every kind where left out.")] string[] over = null,
@@ -366,7 +364,7 @@ namespace OpenCAD2D.Mcp
 
                 OverlapRows rows = drawing.Overlaps(
                     Layout(drawing, layout),
-                    kinds == null ? null : Upper(kinds),
+                    kinds == null ? DefaultWords : Upper(kinds),
                     over == null ? null : Upper(over),
                     of == null ? null : Handles(of),
                     tolerance
@@ -383,6 +381,13 @@ namespace OpenCAD2D.Mcp
                     .ToList();
                 return result;
             });
+
+        /// <summary>
+        /// The kinds whose words <c>overlaps</c> looks at where none are given: the core's four, and INSERT, whose words are the
+        /// attributes of a block reference and the text of its block (the core leaves them out unless asked, as check_standard
+        /// does not).
+        /// </summary>
+        private static readonly string[] DefaultWords = { "TEXT", "MTEXT", "DIMENSION", "MULTILEADER", "INSERT" };
 
         /// <summary>The layout name the tools use: the one given, else model space.</summary>
         private static string Layout(IDrawingBackend drawing, string layout)

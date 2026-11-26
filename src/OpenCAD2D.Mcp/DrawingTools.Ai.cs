@@ -23,7 +23,7 @@ namespace OpenCAD2D.Mcp
         public const int DefaultExportPageSize = 50;
 
         private const string FramesText =
-            "Each frame is {x, y, width, height, rotation}: the first corner, the length of the word and its height, and the angle the length runs at in degrees. Pass a frame to fits as [x, y, width, height, rotation].";
+            "Each frame is {x, y, width, height, rotation}: the first corner, the length of the word and its height, and the angle the length runs at in degrees. Pass a frame as it is to fits or free_space (a plan: \"$id.frames[0]\").";
 
         [McpServerTool(
             Name = "measure_text",
@@ -224,13 +224,111 @@ namespace OpenCAD2D.Mcp
                 );
             });
 
+        /// <summary>
+        /// Reads a box of four numbers or a frame of five (<c>x, y, width, height, rotation</c>) from a list, or a frame from an object
+        /// with those members (<c>rotation</c> may be left out), as the measure_* tools give one.
+        /// </summary>
+        private static double[] Numbers(string name, JsonElement value, int least)
+        {
+            double[] numbers;
+
+            if (value.ValueKind == JsonValueKind.Object)
+            {
+                double Member(string member, bool required)
+                {
+                    foreach (JsonProperty property in value.EnumerateObject())
+                    {
+                        if (string.Equals(property.Name, member, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return property.Value.ValueKind == JsonValueKind.Number
+                                ? property.Value.GetDouble()
+                                : throw new ArgumentException(name + "." + member + " is a number.");
+                        }
+                    }
+
+                    return required
+                        ? throw new ArgumentException(
+                            name + " is a frame {x, y, width, height, rotation} and has no " + member + "."
+                        )
+                        : 0.0;
+                }
+
+                numbers = new[]
+                {
+                    Member("x", true),
+                    Member("y", true),
+                    Member("width", true),
+                    Member("height", true),
+                    Member("rotation", false),
+                };
+            }
+            else if (value.ValueKind == JsonValueKind.Array && value.GetArrayLength() >= least)
+            {
+                numbers = value
+                    .EnumerateArray()
+                    .Select(n =>
+                        n.ValueKind == JsonValueKind.Number
+                            ? n.GetDouble()
+                            : throw new ArgumentException(name + " holds numbers only.")
+                    )
+                    .ToArray();
+            }
+            else
+            {
+                throw new ArgumentException(
+                    name
+                        + " is a box [minX, minY, maxX, maxY] of four numbers, a frame [x, y, width, height, rotation] of five or a frame object {x, y, width, height, rotation}."
+                );
+            }
+
+            if (
+                (numbers.Length != 4 && numbers.Length != 5)
+                || numbers.Any(v => double.IsNaN(v) || double.IsInfinity(v))
+            )
+            {
+                throw new ArgumentException(
+                    name
+                        + " is a box [minX, minY, maxX, maxY] or a frame [x, y, width, height, rotation], finite numbers."
+                );
+            }
+
+            return numbers;
+        }
+
+        /// <summary>The upright box round a frame of <c>x, y, width, height, rotation</c> (degrees), as <c>[minX, minY, maxX, maxY]</c>.</summary>
+        private static double[] Upright(double[] frame)
+        {
+            double angle = Radians(frame[4]);
+            double cos = Math.Cos(angle);
+            double sin = Math.Sin(angle);
+            double[] xs = new double[4];
+            double[] ys = new double[4];
+            double[][] corners =
+            {
+                new[] { 0.0, 0.0 },
+                new[] { frame[2], 0.0 },
+                new[] { frame[2], frame[3] },
+                new[] { 0.0, frame[3] },
+            };
+
+            for (int i = 0; i < 4; i++)
+            {
+                xs[i] = frame[0] + corners[i][0] * cos - corners[i][1] * sin;
+                ys[i] = frame[1] + corners[i][0] * sin + corners[i][1] * cos;
+            }
+
+            return new[] { xs.Min(), ys.Min(), xs.Max(), ys.Max() };
+        }
+
         [McpServerTool(Name = "free_space", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
         [Description(
             "The empty places of a frame: every rectangle, not turned, inside the frame that no line or word of the kinds runs through or comes within margin of, and that cannot be made larger, the largest first (equal areas by min y, min x). They overlap one another, as the empty places of a page do: a box a thing could stand in lies inside one of them, which is what fits tests exactly. In a crowded frame the rectangles number in thousands: give the width and height of the thing to place as min_width and min_height and only the rectangles it could stand in come back. A frame too crowded to list every rectangle is refused. Paged."
         )]
         public FreeSpaceResult FreeSpace(
-            [Description("The frame to look in, [minX, minY, maxX, maxY] in millimetres, with a width and a height.")]
-                double[] frame,
+            [Description(
+                "The frame to look in, [minX, minY, maxX, maxY] in millimetres, with a width and a height; a frame of a measure_* answer ({x, y, width, height, rotation} or [x, y, width, height, rotation]) is read as the upright box round it."
+            )]
+                JsonElement frame,
             [Description("DXF kinds that take room, as [\"LINE\", \"TEXT\"], either case; every kind where left out.")]
                 string[] kinds = null,
             [Description("Clear room kept round each thing, in millimetres, 0 or more.")] double margin = 0.0,
@@ -242,14 +340,14 @@ namespace OpenCAD2D.Mcp
             [Description("The rows of a page, 1 to 500.")] int page_size = DefaultPageSize
         ) => _session.Run("free_space", false, drawing =>
             {
-                DisplayBox? area = Box("frame", frame);
+                double[] given = Numbers("frame", frame, 4);
 
-                if (!area.HasValue)
+                if (given.Length == 5)
                 {
-                    throw new ArgumentException("A frame is [minX, minY, maxX, maxY], four numbers.");
+                    given = Upright(given);
                 }
 
-                DisplayBox within = area.Value;
+                DisplayBox within = Box("frame", given).Value;
 
                 if (!(within.MaxX > within.MinX && within.MaxY > within.MinY))
                 {
@@ -280,36 +378,29 @@ namespace OpenCAD2D.Mcp
             "Whether a place is free: nothing of the kinds runs through the candidate or comes within margin of it, tested on the real lines, arcs, fills and word frames and not on their boxes, so a diagonal passing a corner at a distance fits. What only touches it within the tolerance does not count. The candidate is a box [minX, minY, maxX, maxY] or a frame [x, y, width, height, rotation in degrees], as measure_* gives one."
         )]
         public FitsResult Fits(
-            [Description("A box of four numbers or a frame of five, in millimetres and degrees.")] double[] candidate,
+            [Description(
+                "A box of four numbers or a frame of five, in millimetres and degrees, or a frame object {x, y, width, height, rotation} as a measure_* answer gives it (\"$m.frames[0]\" in a plan)."
+            )]
+                JsonElement candidate,
             [Description("DXF kinds that take room; every kind where left out.")] string[] kinds = null,
             [Description("Clear room to leave round the candidate, in millimetres, 0 or more.")] double margin = 0.0,
             [Description("The layout; model space where left out.")] string layout = null,
             [Description("How little still counts as touching, in millimetres.")] double tolerance = 0.001
         ) => _session.Run("fits", false, drawing =>
             {
-                if (
-                    candidate == null
-                    || (candidate.Length != 4 && candidate.Length != 5)
-                    || candidate.Any(v => double.IsNaN(v) || double.IsInfinity(v))
-                )
-                {
-                    throw new ArgumentException(
-                        "A candidate is a box [minX, minY, maxX, maxY] or a frame [x, y, width, height, rotation], finite numbers."
-                    );
-                }
-
+                double[] box4or5 = Numbers("candidate", candidate, 4);
                 NotNegative("The margin", margin);
                 NotNegative("The tolerance", tolerance);
                 double[] frame;
 
-                if (candidate.Length == 4)
+                if (box4or5.Length == 4)
                 {
-                    DisplayBox box = Box("candidate", candidate).Value;
+                    DisplayBox box = Box("candidate", box4or5).Value;
                     frame = new[] { box.MinX, box.MinY, box.MaxX - box.MinX, box.MaxY - box.MinY, 0.0 };
                 }
                 else
                 {
-                    frame = new[] { candidate[0], candidate[1], candidate[2], candidate[3], Radians(candidate[4]) };
+                    frame = new[] { box4or5[0], box4or5[1], box4or5[2], box4or5[3], Radians(box4or5[4]) };
                 }
 
                 if (!(frame[2] > 0.0 && frame[3] > 0.0))

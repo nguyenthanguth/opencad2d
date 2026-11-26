@@ -35,6 +35,13 @@ namespace OpenCAD2D.Mcp.UnitTest
             }
 
             TestApp app = TestApp.Start();
+
+            // A read-only server is refused new_drawing in an app, so the blank drawing is made by a server that may write.
+            if (readOnly)
+            {
+                await app.NewAsync();
+            }
+
             McpHarness harness = await McpHarness.StartAsync(
                 new McpOptions
                 {
@@ -44,7 +51,12 @@ namespace OpenCAD2D.Mcp.UnitTest
                     AllowScripts = scripts,
                 }
             );
-            await harness.CallAsync("new_drawing");
+
+            if (!readOnly)
+            {
+                await harness.CallAsync("new_drawing");
+            }
+
             return new Bench(harness, app);
         }
 

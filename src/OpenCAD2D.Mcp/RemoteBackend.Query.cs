@@ -14,6 +14,9 @@ namespace OpenCAD2D.Mcp
         public EntityRef Find(string handle)
         {
             DxfEntity entity = Document.GetObject(handle);
+
+            // The app does not hand out a viewport: it is read from a copy of its database.
+            entity = entity ?? ViewportsOf(new[] { handle }).Values.FirstOrDefault();
             return entity == null ? null : new EntityRef(handle, entity);
         }
 

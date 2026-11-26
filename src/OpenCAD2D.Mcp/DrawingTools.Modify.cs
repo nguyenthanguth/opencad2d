@@ -285,10 +285,9 @@ namespace OpenCAD2D.Mcp
                     GeoPoint3 p = Point("side", side);
                     CommandScript script = new CommandScript().Word("OFFSET");
 
-                    if (erase_source)
-                    {
-                        script.Word("E").Word("Y");
-                    }
+                    // OFFSET remembers its Erase option from one run to the next: the option is always typed, so that an earlier
+                    // offset that erased its source does not erase this one's.
+                    script.Word("E").Word(erase_source ? "Y" : "N");
 
                     if (distance.HasValue)
                     {

@@ -68,14 +68,12 @@ namespace OpenCAD2D.Mcp
             [Description("True to lock the layer.")] bool? locked = null,
             [Description("AutoCAD colour index 1 to 255.")] int? color = null,
             [Description("A linetype of the drawing.")] string linetype = null,
-            [Description(
-                "Lineweight in hundredths of a millimetre, one of AutoCAD's: 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211; or -3 for the default weight."
-            )]
-                int? lineweight = null,
+            [Description(LineWeightText + "; or -3 for the default weight.")] double? lineweight = null,
             [Description("False to keep the layer off the plot.")] bool? plot = null
         ) => _session.Run("set_layer", true, drawing =>
             {
                 LayerRow row = FoundLayer(drawing, name);
+                int? weight = Hundredths(lineweight);
 
                 if (
                     !on.HasValue
@@ -113,20 +111,20 @@ namespace OpenCAD2D.Mcp
                         );
                 }
 
-                if (lineweight.HasValue)
+                if (weight.HasValue)
                 {
-                    if (lineweight.Value != -3 && !LineWeights.Contains(lineweight.Value))
+                    if (weight.Value != -3 && !LineWeights.Contains(weight.Value))
                     {
                         throw new ArgumentException(
                             "The lineweight "
-                                + lineweight.Value
+                                + weight.Value
                                 + " is none of AutoCAD's: "
                                 + string.Join(", ", LineWeights)
                                 + ", or -3."
                         );
                     }
 
-                    row.LineWeight = lineweight.Value;
+                    row.LineWeight = weight.Value;
                 }
 
                 row.IsOn = on ?? row.IsOn;

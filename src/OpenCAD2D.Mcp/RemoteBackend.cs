@@ -57,7 +57,54 @@ namespace OpenCAD2D.Mcp
                 }
             }
 
+            // A query of the app cannot carry a viewport, which only a layout has: the handles of the layout, in the order it draws
+            // them, name the ones that are missing, and they are read from a copy of the app's database.
+            if (!string.Equals(Layout(layout), "Model", StringComparison.OrdinalIgnoreCase))
+            {
+                IReadOnlyList<string> order = Document.Make("handles", new CadMakeArgs().Set("layout", layout).Values);
+                var have = new HashSet<string>(found.Select(f => f.Handle), StringComparer.OrdinalIgnoreCase);
+
+                if (order.Any(h => !have.Contains(h)))
+                {
+                    Dictionary<string, DxfEntity> viewports = ViewportsOf(order.Where(h => !have.Contains(h)));
+                    var byHandle = found.ToDictionary(f => f.Handle, StringComparer.OrdinalIgnoreCase);
+                    var all = new List<EntityRef>();
+
+                    foreach (string handle in order)
+                    {
+                        if (byHandle.TryGetValue(handle, out EntityRef known))
+                        {
+                            all.Add(known);
+                        }
+                        else if (viewports.TryGetValue(handle, out DxfEntity viewport))
+                        {
+                            all.Add(new EntityRef(handle, viewport));
+                        }
+                    }
+
+                    all.AddRange(found.Where(f => !order.Contains(f.Handle, StringComparer.OrdinalIgnoreCase)));
+                    return all;
+                }
+            }
+
             return found;
+        }
+
+        /// <summary>The viewports among some handles, as entities of a copy of the app's database (the app's queries do not carry them).</summary>
+        private Dictionary<string, DxfEntity> ViewportsOf(IEnumerable<string> handles)
+        {
+            CadDocument copy = CadDocument.From(Document.GetDatabase(), Name);
+            var viewports = new Dictionary<string, DxfEntity>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string handle in handles)
+            {
+                if (copy.FindEntity(handle) is DxfViewport viewport && !viewport.IsErased)
+                {
+                    viewports[handle] = viewport;
+                }
+            }
+
+            return viewports;
         }
 
         public IReadOnlyList<LayerRow> Layers() =>
@@ -227,6 +274,7 @@ namespace OpenCAD2D.Mcp
                     IsOn = layer.IsOn,
                     IsFrozen = layer.IsFrozen,
                     IsLocked = layer.IsLocked,
+                    IsPlottable = layer.IsPlottable,
                 }
             );
             Document.CommitChanges();

@@ -22,11 +22,11 @@ namespace OpenCAD2D.Mcp
 
         [McpServerTool(Name = "plot_pdf", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
-            "Plots a layout (or model space) to a PDF file of one page, as PLOT to the PDF plotter does: the layout's own page setup (its sheet and scale), lines at their lineweights, text as text. A space never set up is fitted to an A3 sheet. paper, scale or fit change the setup for this plot only and are not written into the drawing: paper is a sheet of the plotter's list (A0 to A4, ANSI A to E) and the plot is fitted to it unless a scale is given too; scale is 1:10 or 2:1, on the sheet the layout has or the paper given; fit fills the sheet. The text of an SHX font is also written as invisible text over its strokes, so that a PDF reader's search and a program that reads the plot back find the words. An attached server plots the app's drawing as it stands, changes not saved included, in its own process; the app is not touched. Refused with --read-only."
+            "Plots a layout (or model space) to a PDF file of one page, as PLOT to the PDF plotter does (model space where layout is left out, whatever layout is shown, as in the other tools): the layout's own page setup (its sheet and scale), lines at their lineweights, text as text. A space never set up is fitted to an A3 sheet. paper, scale or fit change the setup for this plot only and are not written into the drawing: paper is a sheet of the plotter's list (A0 to A4, ANSI A to E) and the plot is fitted to it unless a scale is given too; scale is 1:10 or 2:1, on the sheet the layout has or the paper given; fit fills the sheet. The text of an SHX font is also written as invisible text over its strokes, so that a PDF reader's search and a program that reads the plot back find the words. An attached server plots the app's drawing as it stands, changes not saved included, in its own process; the app is not touched. Refused with --read-only."
         )]
         public PlotResult PlotPdf(
             [Description("The PDF file to write; .pdf is added where there is no extension.")] string path,
-            [Description("The layout, or Model; the layout the drawing is in now where left out.")]
+            [Description("The layout, or Model; model space where left out, as in the other tools.")]
                 string layout = null,
             [Description("The sheet, as A3 or ISO A3.")] string paper = null,
             [Description("The scale, as 1:10 (paper millimetres to drawing units).")] string scale = null,
@@ -35,16 +35,16 @@ namespace OpenCAD2D.Mcp
         ) => _session.Run("plot_pdf", true, drawing =>
             {
                 string full = McpKit.Target(path, ".pdf", overwrite, drawing.Path);
-                string space = layout == null ? drawing.CurrentLayout : Layout(drawing, layout);
+                string space = Layout(drawing, layout);
                 CadDocument document = McpKit.Snapshot(drawing);
-                CadPlotPage page = Plot(document, full, space, paper, scale, fit);
+                CadPlotPage page = CadPlot.WritePdf(full, document, space, paper, scale, fit);
                 return new PlotResult
                 {
                     Path = full,
                     Layout = space,
                     Bytes = new FileInfo(full).Length,
                     Sheet = new[] { EntityDescriber.R(page.SheetWidth), EntityDescriber.R(page.SheetHeight) },
-                    Scale = ScaleText(page.Scale),
+                    Scale = CadLayouts.ScaleText(page.Scale),
                     Area = page.Area.IsEmpty
                         ? null
                         : new[]
@@ -56,128 +56,6 @@ namespace OpenCAD2D.Mcp
                         },
                 };
             });
-
-        /// <summary>Plots a space as CadRender.WritePdf does, with the page setup of the layout as it is, or with the changes asked for.</summary>
-        private static CadPlotPage Plot(
-            CadDocument document,
-            string path,
-            string layout,
-            string paper,
-            string scale,
-            bool fit
-        )
-        {
-            if (scale != null && fit)
-            {
-                throw new ArgumentException(
-                    "Give a scale or fit, not both: a scale is how big the drawing is plotted."
-                );
-            }
-
-            CadSpace space = document.Spaces.FirstOrDefault(s =>
-                string.Equals(s.Name, layout, StringComparison.OrdinalIgnoreCase)
-            );
-
-            if (space == null)
-            {
-                throw new ArgumentException("The drawing has no layout named " + layout + ".");
-            }
-
-            CadRender.Prepare(document);
-            CadPlotSettings settings = CadPlotSettings.Read(document, space);
-            settings.UseDevice(CadPlotSettings.PdfDevice);
-
-            // The text of an SHX font is written as text no eye can see over its strokes, so that a reader's search (and a program
-            // that reads the plot back) finds the words: PDFSHX. The picture is the same.
-            settings.PdfShx = true;
-
-            if (paper != null)
-            {
-                settings.Paper = Sheet(paper);
-            }
-
-            if (scale != null)
-            {
-                Match ratio = Regex.Match(
-                    scale.Trim(),
-                    @"^(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$",
-                    RegexOptions.CultureInvariant
-                );
-
-                if (
-                    !ratio.Success
-                    || !double.TryParse(
-                        ratio.Groups[1].Value,
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out double sheet
-                    )
-                    || !double.TryParse(
-                        ratio.Groups[2].Value,
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out double units
-                    )
-                    || !(sheet > 0.0)
-                    || !(units > 0.0)
-                )
-                {
-                    throw new ArgumentException(
-                        "The scale is two numbers above nought with a colon, as 1:10: " + scale + " is not."
-                    );
-                }
-
-                settings.FitToPaper = false;
-                settings.PaperUnits = sheet;
-                settings.DrawingUnits = units;
-            }
-            else if (paper != null || fit || !HasSheet(document, space))
-            {
-                // A sheet changed has no scale that suits it, and a space never set up has no sheet at all: both are fitted, as AutoCAD's page setup starts out.
-                settings.FitToPaper = true;
-            }
-
-            return CadPdfWriter.Write(path, document, space, settings, DisplayBox.Empty);
-        }
-
-        /// <summary>Whether a space has a sheet of paper in its plot settings: a layout's, or model space's in the layout of its name.</summary>
-        private static bool HasSheet(CadDocument document, CadSpace space)
-        {
-            DxfLayout layout = document.Database.Layouts.FirstOrDefault(l =>
-                string.Equals(l.LayoutName, space.Name, StringComparison.OrdinalIgnoreCase)
-            );
-            return layout != null && layout.PlotPaperSize.X > 0.0 && layout.PlotPaperSize.Y > 0.0;
-        }
-
-        private static CadPaper Sheet(string name)
-        {
-            string wanted = name.Trim();
-            CadPaper found = CadPaper.Standard.FirstOrDefault(p =>
-                string.Equals(p.Name, wanted, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(p.Name, "ISO " + wanted, StringComparison.OrdinalIgnoreCase)
-            );
-            return found
-                ?? throw new ArgumentException(
-                    "The plotter has no sheet "
-                        + name
-                        + ": its sheets are "
-                        + string.Join(", ", CadPaper.Standard.Select(p => p.Name))
-                        + "."
-                );
-        }
-
-        private static string ScaleText(double scale)
-        {
-            if (!(scale > 0.0) || double.IsInfinity(scale))
-            {
-                return null;
-            }
-
-            double units = 1.0 / scale;
-            return units >= 1.0
-                ? "1:" + Math.Round(units, 4).ToString("0.####", CultureInfo.InvariantCulture)
-                : Math.Round(scale, 4).ToString("0.####", CultureInfo.InvariantCulture) + ":1";
-        }
 
         [McpServerTool(Name = "export_svg", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
@@ -228,7 +106,7 @@ namespace OpenCAD2D.Mcp
 
         [McpServerTool(Name = "save_as", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
-            "Writes a COPY of the drawing as a DXF or a DWG of a version of AutoCAD, as the core's writers do, and leaves the open drawing as it is: its own file, its name and its unsaved changes (save with a path is the tool that moves the drawing to a new file). An attached server writes a copy of the app's drawing as it stands, changes not saved included, and never touches the app. A file that is there is refused unless overwrite is true, and the drawing's own file is always refused (save writes it). Refused with --read-only."
+            "Writes a COPY of the drawing as a DXF or a DWG of a version of AutoCAD, as the core's writers do, and leaves the open drawing as it is: its own file, its name and its unsaved changes, so the drawing is still marked modified afterwards, as nothing was saved (save with a path is the tool that moves the drawing to a new file). An attached server writes a copy of the app's drawing as it stands, changes not saved included, and never touches the app. A file that is there is refused unless overwrite is true, and the drawing's own file is always refused (save writes it). Refused with --read-only."
         )]
         public SaveAsResult SaveAs(
             [Description("The file to write.")] string path,

@@ -98,6 +98,8 @@ namespace OpenCAD2D
     /// <item><term>edit_text</term><description><c>handle</c> of a TEXT or an MTEXT and any of <c>contents</c>, <c>height</c>, <c>rotation</c> (degrees), <c>style</c>, <c>justify</c> (as <c>MiddleCenter</c>); the handle.</description></item>
     /// <item><term>table_cells</term><description><c>handle</c> of a table, <c>cells</c> (rows of texts from the top left cell; an empty text leaves its cell); the handle.</description></item>
     /// <item><term>page_setup</term><description><c>layout</c>, <c>paper</c> (a sheet of <see cref="CadPaper.Standard"/> as <c>ISO A3</c>, or <c>420x297</c> in millimetres), <c>landscape</c>; the layout's name.</description></item>
+    /// <item><term>rename_layout</term><description><c>name</c> of a layout, <c>new_name</c>, as LAYOUT Rename does; not Model, not a name the drawing has; the new name.</description></item>
+    /// <item><term>delete_layout</term><description><c>name</c> of a layout, as LAYOUT Delete does, with what is drawn in it; not Model and not the layout shown; where it was the last sheet a new Layout1 takes its place; the name.</description></item>
     /// <item><term>rename_layer</term><description><c>name</c>, <c>new_name</c>; the new name.</description></item>
     /// <item><term>delete_layer</term><description><c>name</c>, and <c>move_to</c> to take the objects on it to another layer first; the name.</description></item>
     /// <item><term>viewport_view</term><description><c>handle</c> of a viewport, <c>scale</c> (the n of 1:n; 0.5 is 2:1) and <c>center</c> ([x, y] of model space); the handle.</description></item>
@@ -149,6 +151,10 @@ namespace OpenCAD2D
                     return TableCells(document, args);
                 case "page_setup":
                     return PageSetup(document, args);
+                case "rename_layout":
+                    return RenameLayout(document, args);
+                case "delete_layout":
+                    return DeleteLayout(document, args);
                 case "rename_layer":
                     return One(
                         Check(CadLayerEditor.Rename(document, Required(args, "name"), Required(args, "new_name"))),
@@ -401,6 +407,69 @@ namespace OpenCAD2D
                 }
             });
             return new[] { handle };
+        }
+
+        private static IReadOnlyList<string> RenameLayout(CadDocument document, CadMakeArgs args)
+        {
+            CadSpace space = Layout(document, Required(args, "name"));
+            string name = Required(args, "new_name");
+
+            if (name.Length > 255 || name.IndexOfAny(CadCommands.LayoutBadCharacters.ToCharArray()) >= 0)
+            {
+                throw new ArgumentException(
+                    "A layout needs a name of 1 to 255 characters, without any of "
+                        + CadCommands.LayoutBadCharacters
+                        + " in it: "
+                        + name
+                        + " is not one."
+                );
+            }
+
+            if (document.Spaces.Any(s => s != space && string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new ArgumentException("The drawing has a layout named " + name + " already.");
+            }
+
+            DxfLayout layout = space.Layout;
+            Check(
+                document.ApplyEdit(
+                    "LAYOUT",
+                    new[]
+                    {
+                        new CadEditRecord(CadEditRecordKind.TableChanged, null, "Rename layout", space.Name, name),
+                    },
+                    s => layout.LayoutName = name
+                )
+            );
+            return new[] { name };
+        }
+
+        private static IReadOnlyList<string> DeleteLayout(CadDocument document, CadMakeArgs args)
+        {
+            string name = Required(args, "name");
+            CadSpace space = Layout(document, name);
+
+            if (space == (document.CurrentSpace ?? document.ModelSpace))
+            {
+                throw new InvalidOperationException(
+                    "The layout "
+                        + space.Name
+                        + " is the one shown: show another (set_current_layout) before deleting it."
+                );
+            }
+
+            DxfLayout layout = space.Layout;
+            Check(
+                document.ApplyEdit(
+                    "LAYOUT",
+                    new[]
+                    {
+                        new CadEditRecord(CadEditRecordKind.TableChanged, null, "Delete layout", space.Name, null),
+                    },
+                    s => CadCommands.RemoveLayout(s.Database, layout)
+                )
+            );
+            return new[] { space.Name };
         }
 
         private static CadSpace Layout(CadDocument document, string name)

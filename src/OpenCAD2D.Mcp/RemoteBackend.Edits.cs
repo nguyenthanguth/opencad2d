@@ -176,12 +176,32 @@ namespace OpenCAD2D.Mcp
             }
         }
 
-        public IReadOnlyList<EntityRef> Objects(IReadOnlyList<string> handles) =>
-            Document
+        public IReadOnlyList<EntityRef> Objects(IReadOnlyList<string> handles)
+        {
+            List<EntityRef> found = Document
                 .ObjectsOf(handles)
                 .Select(e => new EntityRef(Document.HandleOf(e), e))
                 .Where(e => e.Handle != null)
                 .ToList();
+
+            // The app does not hand out a viewport: one that is asked for is read from a copy of its database.
+            List<string> missing = handles
+                .Where(h => !found.Any(f => string.Equals(f.Handle, h, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            if (missing.Count > 0)
+            {
+                foreach (
+                    KeyValuePair<string, DxfEntity> viewport in ViewportsOf(missing)
+                        .OrderBy(v => v.Key, StringComparer.Ordinal)
+                )
+                {
+                    found.Add(new EntityRef(viewport.Key, viewport.Value));
+                }
+            }
+
+            return found;
+        }
 
         public IReadOnlyList<string> Make(string what, CadMakeArgs args) => Document.Make(what, args.Values);
 
@@ -242,6 +262,16 @@ namespace OpenCAD2D.Mcp
         public void SetCurrentLayer(string name) => Document.CurrentLayer = name;
 
         public void SetCurrentLayout(string name) => Document.CurrentLayout = name;
+
+        public void AddLayout(string name, string paper, bool landscape) => Document.AddLayout(name, paper, landscape);
+
+        public string AddViewport(
+            string layout,
+            IReadOnlyList<double> frame,
+            string scale,
+            IReadOnlyList<double> center,
+            IReadOnlyList<string> frozenLayers
+        ) => Document.AddViewport(layout, frame, scale, center, frozenLayers);
 
         public bool Redo()
         {

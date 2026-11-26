@@ -361,6 +361,17 @@ namespace OpenCAD2D.Mcp
 
         public void SetCurrentLayout(string name) => Check(Document.ShowSpace(SpaceNamed(name)));
 
+        public void AddLayout(string name, string paper, bool landscape) =>
+            CadLayouts.Add(Document, name, paper, landscape);
+
+        public string AddViewport(
+            string layout,
+            IReadOnlyList<double> frame,
+            string scale,
+            IReadOnlyList<double> center,
+            IReadOnlyList<string> frozenLayers
+        ) => CadLayouts.AddViewport(Document, layout, frame.ToArray(), scale, center?.ToArray(), frozenLayers);
+
         public bool Redo() => Document.Redo();
     }
 }

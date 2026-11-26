@@ -76,6 +76,32 @@ namespace OpenCAD2D.Mcp
             }
         }
 
+        /// <summary>
+        /// Runs a tool that puts another drawing in the place of the one the tools work on (<c>open_drawing</c>, <c>new_drawing</c>).
+        /// On a drawing file that is how a read-only server starts and changes nothing the user has open, so it is allowed; attached,
+        /// it would replace the drawing the user has on screen, so a read-only server refuses it.
+        /// </summary>
+        /// <typeparam name="T">The type of the answer.</typeparam>
+        /// <param name="tool">The name of the tool, for the refusal.</param>
+        /// <param name="work">The work.</param>
+        /// <returns>What the work gives.</returns>
+        /// <exception cref="McpException">Thrown for a refusal or a failure, with the message for the agent.</exception>
+        public T RunReplacing<T>(string tool, Func<T> work)
+        {
+            lock (_gate)
+            {
+                if (Options.ReadOnly && Options.Attach)
+                {
+                    throw new McpException(
+                        tool
+                            + " is refused: this server was started with --read-only and is attached to an app, where it would replace the drawing the user has open."
+                    );
+                }
+
+                return Guarded(null, work);
+            }
+        }
+
         private T Guarded<T>(string tool, Func<T> work)
         {
             try

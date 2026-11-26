@@ -26,6 +26,13 @@ namespace OpenCAD2D.Mcp.UnitTest
 
         private static async Task<McpHarness> Attach(TestApp app, string name, bool readOnly = false)
         {
+            string path = Drawings.Plate(TestFolder.Make(name));
+
+            if (readOnly)
+            {
+                await app.OpenAsync(path);
+            }
+
             McpHarness harness = await McpHarness.StartAsync(
                 new McpOptions
                 {
@@ -34,7 +41,12 @@ namespace OpenCAD2D.Mcp.UnitTest
                     ReadOnly = readOnly,
                 }
             );
-            await harness.CallAsync("open_drawing", ("path", Drawings.Plate(TestFolder.Make(name))));
+
+            if (!readOnly)
+            {
+                await harness.CallAsync("open_drawing", ("path", path));
+            }
+
             return harness;
         }
 

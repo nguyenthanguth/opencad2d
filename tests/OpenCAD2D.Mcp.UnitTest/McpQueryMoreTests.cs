@@ -467,7 +467,7 @@ namespace OpenCAD2D.Mcp.UnitTest
             Assert.Contains("length", Strings(line["fields"]));
             Assert.Contains("start", Strings(line["arguments"]));
             Assert.Contains("layer", Strings(line["fields"]));
-            Assert.Null(rows.Single(r => (string)r["kind"] == "ELLIPSE")["written"]);
+            Assert.Equal("add_ellipse", (string)rows.Single(r => (string)r["kind"] == "ELLIPSE")["written"]);
             Assert.Equal(rows.Select(r => (string)r["kind"]).Distinct().Count(), rows.Length);
         }
 
