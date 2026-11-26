@@ -53,6 +53,14 @@ namespace OpenCAD2D.Mcp
                 options.ToolCollection.Add(McpServerTool.Create(method, tools));
             }
 
+            // run_plan is added last and is given the table itself, so that every tool above is one a plan can call.
+            options.ToolCollection.Add(
+                McpServerTool.Create(
+                    typeof(PlanTools).GetMethod(nameof(PlanTools.RunPlan)),
+                    new PlanTools(session, options.ToolCollection)
+                )
+            );
+
             return options;
         }
 

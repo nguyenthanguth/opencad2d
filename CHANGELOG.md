@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **NEW.** The MCP server's `run_plan(steps, dry_run, stop_on_error)` runs a list of tool calls in one call and gives each step's answer
+  (`{id, tool, ok, result or error}` and totals), which cuts an agent's round trips: the place, render, score, refine loop of a plate takes 4
+  calls as plans where it took 19 as single calls, over a file and over an app, with the same result. A step may name any tool the server
+  serves, so tools added later work in a plan unchanged; its arguments are checked against the tool's schema first and a plan with any
+  wrong step runs nothing and says all of them. A string argument that is exactly `$id.path` (`"$tag1.handle"`, `"$free.boxes[0]"`)
+  is replaced by that value of an earlier step's answer. All the writing steps are one undo step (one group of edits on a file; attached,
+  the app's own UNDO BEgin and End typed on its command line, with a snapshot taken first), so one undo takes them all back; the first
+  step that fails stops the plan and the drawing is put back as it was (`stop_on_error` false keeps what worked), and `dry_run` runs the plan
+  and puts it all back to show what it would give, handles included. `run_plan`, `open_drawing`, `new_drawing`, `undo`, `save`
+  and `save_as` are not allowed inside a plan; `run_command` only with `--allow-scripts`, never on an app, and its text is typed as written with no reference read in it; an app that is busy with a command is never typed into (the plan is refused); `--read-only` refuses a plan with a writer before
+  anything runs.
 - **NEW.** The MCP server gives an AI agent the place, render, score, refine loop that Python already had (PW7.5), on a file and on an
   app attached with `--attach`. `measure_text`, `measure_mtext`, `measure_dimension` and `measure_leader` give the box and the word
   frames a thing would take before it is added, nothing added and no undo step made (for a text the box equals what `bounds` gives once it
