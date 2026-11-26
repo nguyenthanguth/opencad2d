@@ -69,7 +69,7 @@ server may be started before the app is.
 
 | Flag | Effect |
 |---|---|
-| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `redo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `export_to_file`, `purge`, `audit` with `fix`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts; attached, also the three `zoom_*` tools, which move the view the user has on screen. Opening, rendering, the reading, measuring and checking tools, the check of `audit`, `dump_drawing` and the debug tools still work |
+| `--read-only` | every tool that writes is refused with a message that names the flag: `add_layer`, the `add_*` tools, `move`, `rotate`, `scale`, `erase`, `set_properties`, `undo`, `redo`, `save`, `save_as`, `plot_pdf`, `export_svg`, `export_to_file`, `purge`, `audit` with `fix`, `run_command` and every tool of the groups below that creates, modifies, or sets up layers and layouts; `run_plan` when a step of the plan writes; attached, also the three `zoom_*` tools, which move the view the user has on screen. Opening, rendering, the reading, measuring and checking tools, the check of `audit`, `dump_drawing` and the debug tools still work, and so does a plan of such tools |
 | `--allow-scripts` | allows `run_command`, which types free command, AutoLISP or script text on the command line. Without the flag it is refused, whatever the text is |
 
 - Files are written by `save` (the drawing's own file, which is in the folder it was opened from, or the path the agent gives
@@ -117,6 +117,7 @@ is the drawing's own (`2F`). Every writing call is one undo step. Every answer i
 | `add_hatch`, `add_insert` | a hatch of a closed outline with a pattern of the built-in set, or a block of the drawing placed |
 | `move`, `rotate`, `scale`, `erase`, `set_properties` | change entities by handle (refused on a locked layer); `set_properties` sets `layer`, `color`, `linetype`, `linetype_scale`, `lineweight` (hundredths of a millimetre) and `transparency` (per cent) |
 | `undo`, `redo` | take back the last step, or do the step taken back again |
+| `run_plan(steps, dry_run=, stop_on_error=)` | runs a list of calls of the tools above in one call, as one undo step, each step able to take a value from an earlier step's answer; see [Plans](#plans-many-steps-in-one-call) |
 | `run_command(text)` | types on the command line; only with `--allow-scripts` |
 
 A frame is `{x, y, width, height, rotation}`: the first corner of a word, its length along the baseline, its height across it,
@@ -291,6 +292,100 @@ render_png width 400                                   -> an image
 Measuring a word before it is added is exact: the box `measure_text` gives equals, to a thousandth of a millimetre, what `bounds`
 gives for the text once added in the same server. Measure and score through the one connection (a file, or `--attach`), and do
 not mix the numbers of a file with those of an app.
+
+## Plans: many steps in one call
+
+An agent that draws a plate calls a tool, reads the answer, calls the next one: the loop above takes 19 calls. `run_plan` takes
+the calls as a list and runs them in order in one call, and gives every step's answer back. It is generic: a step may name any
+tool the server has, `add_*`, `move`, `measure_*`, `free_space`, `check_standard`, `render_png`, and a tool added later works in a
+plan with no change to `run_plan`.
+
+```
+run_plan steps [
+  { "tool": "add_line",   "id": "l", "arguments": { "start": [0,0], "end": [50,0] } },
+  { "tool": "add_circle", "id": "c", "arguments": { "center": [25,25], "radius": 5 } },
+  { "tool": "move",       "arguments": { "handles": ["$l.handle", "$c.handle"], "delta": [10,10] } } ]
+
+-> { "ok": true, "changed": true, "message": "Ran 3 steps; what they wrote is one undo step.",
+     "totals": { "steps": 3, "ok": 3, "failed": 0, "skipped": 0, "writers": 3 },
+     "steps": [ { "id": "l",  "tool": "add_line",   "ok": true, "result": { "handle": "107", "kind": "LINE" } },
+                { "id": "c",  "tool": "add_circle", "ok": true, "result": { "handle": "108", "kind": "CIRCLE" } },
+                { "id": "s3", "tool": "move",       "ok": true, "result": { "changed": 2, "handles": ["107", "108"] } } ] }
+```
+
+The steps are `{tool, arguments, id}`. `arguments` are the ones the tool takes alone; `id` is optional and is `s1`, `s2` ... (the
+step's number) where left out.
+
+### Taking a value from an earlier step
+
+A string argument that is **exactly** `$id` or `$id.path` is replaced by that value of the answer of the earlier step with that id:
+
+| Written | Gives |
+|---|---|
+| `"$l.handle"` | the member `handle` of the answer of step `l`: `"107"` |
+| `"$free.boxes[0]"` or `"$free.boxes.0"` | the first of the list `boxes`: `[12, 30, 88, 41]` |
+| `"$m.frames[0].width"` | a number, as a number: the value is put in with its own type, a text, a number, a list or an object |
+| `"$m"` | the whole answer of step `m` |
+| `"$$5 each"` | the text `$5 each`: a string that starts with `$$` is the text without the first `$` |
+
+A tool that answers a list (`list_layers`, `list_blocks`) gives the list itself, so the first layer's name is `"$ll[0].name"`. A value put
+in is checked against the tool's schema again before the step runs, and it is only ever a value of its argument: a layer named
+`(setq x 1)` or `'ZOOM` that `add_text` takes from `list_layers` is the text drawn, nothing is evaluated.
+
+A name is found as written, else ignoring case; `[n]` and `.n` count from 0. A string such as `$5` or `$ 5` that does not start like a
+reference is a text. Only a step before the one that uses it can be named. A reference that is written wrongly (`$a..handle`), names
+no step, or names a later step is found **before anything runs**; a path the answer does not have (`$a.handel`) fails its step when it is
+read, with what the answer has: `has no member handel (it has handle, kind)`.
+
+### One undo step, and the way back
+
+- **Checked first.** Every step is checked before any runs: the tool exists, its arguments against its schema (type, required
+  names, names it does not take, allowed values, limits), the references. A plan with any wrong step runs nothing and answers with
+  every problem at once.
+- **One undo step.** All the steps that write are one undo step: one `undo` takes them all back. On a file the steps are one group of
+  edits of the engine. Attached, the app has no group in its Remote API, so the server types the two lines of AutoCAD's own UNDO group
+  on the app's command line, `UNDO BEgin` before the first step and `UNDO End` after the last (fixed text, nothing the agent writes;
+  they show in the app's command history), and U then takes the whole group back. The server first asks the app for a snapshot of the
+  drawing (see [Keeping a drawing and putting it back](remote.md#keeping-a-drawing-and-putting-it-back)), which is refused while a command is running in the app: the plan then says the app is busy
+  and runs nothing. Before each of the two lines the server reads `CMDACTIVE` and types nothing while it is not 0, so a line is never
+  an answer to a command the user is in the middle of (text typed at a prompt that is not a text prompt would be read as AutoLISP or a
+  transparent command).
+- **A failure stops the plan and takes it back** (`stop_on_error`, true by default). The step that failed has the reason in `error`,
+  the steps after it are `skipped`, and the drawing is put back as it was before the plan (`rolledBack: true`): on a file the group is
+  cancelled, attached the group is ended and the snapshot is reset, which forgets the steps the plan made, so what the user did before
+  stays undoable one step at a time. The answers of the steps that ran before the failure are still reported; their handles are of
+  objects that no longer exist. With `stop_on_error` false the plan goes on, the steps that worked are kept as one undo step and each
+  failure is in its step.
+- **A tool that takes its own group back** (a failed `set_properties` on a locked layer does) takes the whole plan back with it, which the
+  answer says.
+- **Dry run.** `dry_run: true` runs the plan, then puts everything back: the answers are what a real run gives, handles included (the
+  drawing's handle counter is put back too, so the real run that follows gives the same handles). A plan with steps that only read is
+  simply run. A dry run on an app draws the plan in the user's window for a moment (about 30 ms for a drawing of 10 000 entities) and
+  puts it back; a drawing file in memory is not seen by anyone.
+- **Refused by name in a plan:** `run_plan` (no plan holds a plan), `open_drawing`, `new_drawing`, `undo`, `redo`, `save` and `save_as`
+  (they replace the drawing, step through its history, or write its file, which a plan that stops could not take back). `run_command` is
+  refused unless the server has `--allow-scripts`, as it is alone, and is never allowed in a plan on an app (a command it starts may
+  wait for the user's answer, and the plan could not end its group while it does). On a file its text is typed **as written**: no
+  reference is read in it, so no earlier answer can reach the command line. A plan with **any** step that writes is refused by `--read-only` before
+  anything runs, naming those steps; a plan of reading tools runs on a read-only server.
+- At most 200 steps. A picture a step makes (`render_png`) is reported by its type and size, not its data: call `render_png` alone to
+  see it.
+
+### The placement loop in 4 calls
+
+The loop above, as plans: what needs the agent's own arithmetic (where the middle of a free place is) stays between calls, the rest goes
+in one.
+
+| Call | Steps |
+|---|---|
+| 1 | `add_text` TAG-1, `add_text` TAG-2, `overlaps` of both (`"of": ["$t1.handle", "$t2.handle"]`), `check_standard` |
+| 2 | `measure_text` TAG-1, `free_space` with `"min_width": "$m1.frames[0].width"` and the height likewise, `bounds` of TAG-1, `measure_text` TAG-2 |
+| 3 | `move` TAG-1, `bounds`, `fits` with `"candidate": "$now1.rows[0].box"`, `free_space` for TAG-2, `bounds` of TAG-2 |
+| 4 | `move` TAG-2, `bounds`, `fits`, `overlaps`, `check_standard`, `render_png` |
+
+Four calls where the single-call loop makes 19, with the same result (0 overlaps, the score of the standard higher), over a file and over
+an app. Each call is one of the model's turns, which is where the time goes: the 3 writing steps of the first example take 5 ms in a
+plan and 5.6 ms as three calls on a file, 9.5 ms and 8.7 ms attached, so a plan does not cost time of its own; it saves the turns.
 
 ## Limits
 

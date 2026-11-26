@@ -117,6 +117,7 @@ namespace OpenCAD2D.Mcp.UnitTest
                 "render_png",
                 "rotate",
                 "run_command",
+                "run_plan",
                 "save",
                 "save_as",
                 "scale",
