@@ -493,7 +493,12 @@ across the next vertex then gets its nought (`{0, 10}`), where a move that carri
 leaves that list at nought and neither a start of nought twice nor one below it. MLEDIT's CS and CA take nothing out of an element where the picks lie beyond
 the end of its stretch, as at the concave corner (50, 50) of the staircase, cut from (60, 50) to (50, 60), where the second element of the third side runs
 50 along from the outer corner (120, 70) and the cut starts at 60 (288 moves of the staircase and 700 of four shapes probed,
-107 differed from AutoCAD before and 8 now). STRETCH moves the vertices inside its window the same way, and the whole multiline where all are
+107 differed from AutoCAD before and 8 now). Where the first pick of CA lies off an element's stretch (short of its start or past its end: the second element
+of the staircase (0, 0)-(120, 0)-(120, 60)-(70, 60)-(70, 120)-(0, 120), closed, which starts 20 along the side from (70, 60), picked at (70, 78)), AutoCAD cuts that element
+at the second pick alone: with the second pick at (0, 60) the first element is cut from 18 along the third side to 60 along the last, the second element only up to
+80 along the last, the sides between it left whole. The stretch of an element before the first vertex of a closed multiline is left where a cut runs on round past that vertex, and
+where the two ways round between the picks are as long as each other the cut does not run past the first vertex (700 cuts of six closed shapes: 57 differed from AutoCAD before and 0 now, 600
+random cuts of open and closed shapes: 117 differed before and 87 now, all the rest at the last vertex of an open multiline of six vertices). STRETCH moves the vertices inside its window the same way, and the whole multiline where all are
 inside. TRIM and EXTEND work on a multiline as AutoCAD 2021 does: an edge counts only where it crosses every element as many
 times (one that meets some element more often than another leaves the multiline as it is), each element at its own hit, which
 near a corner can be on different segments: the edge (120, -30)-(95, 20) meets the top element of (0, 0)-(100, 0)-(100, 100) at

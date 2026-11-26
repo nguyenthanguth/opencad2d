@@ -108,6 +108,17 @@
   (PEP 514), else this one (Global settings names it as **Bundled with OpenCAD2D**); a tool's venv is made from it as from
   any Python. The setup grows from 83 886 219 to 94 125 007 bytes (83.9 to 89.8 MB; 41 MB installed, 1 322 files), and the
   uninstaller removes the folder with the `__pycache__` folders Python writes in it.
+- **FIXED.** MLEDIT's CA at mitred corners (P8, M1): a cut of a closed multiline whose first pick lies off the stretch of an element (the
+  inner element at a concave corner starts and ends 20 away from the vertex at scale 20, so a pick within 20 of the corner is not on it)
+  was cut for that element from the pick through the sides to the second pick, as for the others; AutoCAD leaves the first side and the sides
+  between whole and cuts the element at the second pick alone, from it on to the end of its side (up to it on the closing side of a
+  closed multiline, from the first vertex up to it on the first side), and leaves the element whole where both picks lie off it on one
+  side. The stretch of an element before the first vertex of a closed multiline stays where a cut runs on round past that vertex, and
+  where the two ways round between the picks are equal the cut does not run past the first vertex. The staircase (0, 0)-(120, 0)-(120, 60)-(70, 60)-(70, 120)-(0, 120)
+  cut from (70, 78) to (0, 60) now holds `{0}` for the second element on its third and fourth sides, `{80}` on the closing one. 700 cuts of six closed shapes
+  of the earlier round: 57 differed from AutoCAD before and 0 now (of 2 368 such rows 89 and 0; 3 moves of a vertex afterwards still differ in the core's
+  `MoveVertexAt`, which writes `{0, 0}` where the presenter writes `{}`); 600 new random cuts of open and closed shapes: 117 differed before and 87 now
+  (the 87 are the last vertex of open multilines of 5 or more vertices and a closed shape that runs back over itself), none that matched before changed.
 - **CHANGED.** The core library is GeometryHelper 13.13.0 (on nuget.org), which holds the core fixes and members
   2.0.0 shipped in Lib under 13.12.1; the NuGet packages of OpenCAD2D name it as their dependency.
 - **FIXED.** BATTMAN counted model space where AutoCAD counts the current space: "Found in model space" said the INSERTs of
