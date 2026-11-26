@@ -224,6 +224,7 @@ namespace OpenCAD2D.Wpf.Plugins
                     typeof(GeometryHelperLog).Assembly,
                     typeof(CadPlugin).Assembly,
                     typeof(CadPluginRoslyn).Assembly,
+                    typeof(SkiaCanvasRenderer).Assembly,
                 }
             )
             {

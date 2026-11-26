@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **CHANGED.** The canvas renderer and the PDF and raster writers moved from `OpenCAD2D.Wpf.dll` into a new
+  `OpenCAD2D.Rendering.dll` (netstandard2.0, no WPF), so they can draw without a window. Their namespace stays
+  `OpenCAD2D.Wpf` and `OpenCAD2D.Wpf.dll` forwards the five public types (`CanvasOptions`, `SkiaCanvasRenderer`,
+  `CadPdfWriter`, `CadPdfBookmark`, `CadRasterWriter`), so no plugin, built or given as source, breaks.
+
 - **NEW.** The Edit Reference panel of AutoCAD 2021's REFEDIT tab: while a reference is open for editing the ribbon shows it at
   the right end of whichever tab is shown (Home, Insert, any), four large buttons under a green title, Save Changes and Discard
   Changes (REFCLOSE Save, REFCLOSE Discard), a line, Add to Working Set and Remove from Working Set (REFSET Add, REFSET Remove),

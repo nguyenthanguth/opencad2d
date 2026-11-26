@@ -13,6 +13,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\OpenCAD2D.Core\OpenCAD2D.Core.csproj" />
+        <ProjectReference Include="..\OpenCAD2D.Rendering\OpenCAD2D.Rendering.csproj" />
         <Reference Include="GeometryHelper" HintPath="$(GeometryHelperLib)GeometryHelper.dll" />
     </ItemGroup>
 

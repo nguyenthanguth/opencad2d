@@ -38,6 +38,7 @@
         <InternalsVisibleTo Include="OpenCAD2D.Remote.UnitTest" />
         <InternalsVisibleTo Include="OpenCAD2D.Remote.TestServer" />
         <InternalsVisibleTo Include="OpenCAD2D.Wpf" />
+        <InternalsVisibleTo Include="OpenCAD2D.Rendering" />
         <InternalsVisibleTo Include="OpenCAD2D.Wpf.UnitTest" />
     </ItemGroup>
 </Project>
