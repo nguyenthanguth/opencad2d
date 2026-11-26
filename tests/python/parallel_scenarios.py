@@ -2,9 +2,7 @@
 so they live at the top of a module and not in a test."""
 
 import hashlib
-import os
 import random
-import sys
 import time
 from typing import Any
 
@@ -24,11 +22,6 @@ def flaky(item: int, seed: int) -> int:
     if item == 3:
         raise ValueError("item 3 is bad")
     return int(random.Random(seed).random() * 1_000_000) * item
-
-
-def whose(item: int, seed: int) -> tuple[int, bool]:
-    """The process this item ran in, and whether .NET was already running in it when the item started."""
-    return os.getpid(), "clr" in sys.modules
 
 
 def unpicklable(item: int, seed: int) -> Any:

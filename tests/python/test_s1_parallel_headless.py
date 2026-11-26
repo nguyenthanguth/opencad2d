@@ -12,8 +12,10 @@ import time
 import pytest
 
 import opencad2d  # noqa: F401  (boots .NET and loads the assemblies)
+from opencad2d import parallel
 from opencad2d.parallel import Outcome, item_seed, run_many
 
+import parallel_bare as bare
 import parallel_scenarios as work
 
 ITEMS = [(step / 5.0, (5 - step) * 0.15) for step in range(6)]
@@ -72,8 +74,8 @@ def test_a_value_that_cannot_travel_back_is_that_items_error_and_the_pool_goes_o
     assert outcomes[1].error is not None and outcomes[1].index == 1
 
 
-def test_each_worker_has_dotnet_loaded_before_its_first_item_and_there_are_no_more_workers_than_asked() -> None:
-    outcomes = run_many(work.whose, list(range(8)), workers=2)
+def test_each_worker_has_dotnet_loaded_by_the_pool_before_its_first_item_and_there_are_no_more_workers_than_asked() -> None:
+    outcomes = run_many(bare.whose, list(range(8)), workers=2)  # the module of the function imports nothing of opencad2d
 
     values = [o.value for o in outcomes if o.value is not None]
     assert len(values) == 8
@@ -82,8 +84,46 @@ def test_each_worker_has_dotnet_loaded_before_its_first_item_and_there_are_no_mo
     assert os.getpid() not in {pid for pid, _ in values}
 
 
+def test_the_number_of_workers_is_capped_at_the_most_a_windows_pool_may_have(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert parallel.MAX_WORKERS == 61
+
+    monkeypatch.setattr(parallel, "MAX_WORKERS", 2)
+    outcomes = run_many(bare.whose, list(range(8)), workers=5)
+
+    assert all(o.ok for o in outcomes)
+    assert len({o.value[0] for o in outcomes if o.value is not None}) <= 2
+
+
+def test_a_worker_that_dies_fails_the_items_it_had_and_those_waiting_and_keeps_what_was_collected() -> None:
+    outcomes = run_many(bare.dies, list(range(6)), workers=2)
+
+    assert [o.index for o in outcomes] == list(range(6))
+    assert outcomes[0].ok and outcomes[0].value == 0
+    assert not outcomes[2].ok and outcomes[2].value is None
+    assert not outcomes[5].ok and outcomes[5].error is not None and "BrokenProcessPool" in outcomes[5].error
+
+
+def test_an_interrupt_while_the_results_are_collected_cancels_the_pool_and_goes_on_up(monkeypatch: pytest.MonkeyPatch) -> None:
+    shutdowns: list[dict[str, bool]] = []
+    real = parallel.ProcessPoolExecutor.shutdown
+
+    def record(self: object, wait: bool = True, *, cancel_futures: bool = False) -> None:
+        shutdowns.append({"wait": wait, "cancel_futures": cancel_futures})
+        real(self, wait=True, cancel_futures=cancel_futures)  # type: ignore[arg-type]
+
+    def interrupted(self: object, timeout: float | None = None) -> object:
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(parallel.ProcessPoolExecutor, "shutdown", record)
+    monkeypatch.setattr(parallel.Future, "result", interrupted)
+    with pytest.raises(KeyboardInterrupt):
+        run_many(bare.whose, [0, 1, 2, 3], workers=2)
+
+    assert shutdowns == [{"wait": False, "cancel_futures": True}]
+
+
 def test_one_worker_runs_in_the_callers_process() -> None:
-    (outcome,) = run_many(work.whose, [0], workers=1)
+    (outcome,) = run_many(bare.whose, [0], workers=1)
 
     assert outcome.value is not None and outcome.value[0] == os.getpid()
 

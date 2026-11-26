@@ -22,12 +22,15 @@ import os
 import time
 import traceback
 from collections.abc import Callable, Iterable
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import Future, ProcessPoolExecutor
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
+
+MAX_WORKERS: int = 61
+"""The most worker processes a run uses: Windows cannot wait on more than 61 at once, and ``ProcessPoolExecutor`` fails above it."""
 
 
 @dataclass(frozen=True)
@@ -88,10 +91,12 @@ def run_many(
 
     The seed of an item is ``item_seed(seed, index)``; a function that draws its random numbers from it (``random.Random(s)``,
     ``synth.generate(s)``) gives the same value for any ``workers`` and on every run. ``workers`` is the number of processes
-    (None: one per core, but not more than there are items); 1 runs the items one after the other in the caller's process,
+    (None: one per core; never more than there are items or ``MAX_WORKERS``, 61, which Windows allows a pool, so a larger
+    number is 61); 1 runs the items one after the other in the caller's process,
     which starts no pool and loads nothing again. An item that raises is an ``Outcome`` with ``error`` and the others go on;
-    a worker that dies (the process killed, memory out) fails the items still waiting, each with an error, as the pool is
-    gone with it. The function, the items and the values must be picklable for ``workers`` above 1. Raises ``ValueError``
+    a worker that dies (the process killed, memory out) fails the items still waiting or running, each with an error, as the
+    pool is gone with it, and keeps the values already collected. Ctrl+C (or any exception out of the call) cancels the items
+    not yet started and raises at once; those running finish in the background. The function, the items and the values must be picklable for ``workers`` above 1. Raises ``ValueError``
     for ``workers`` below 1.
 
     Example:
@@ -106,18 +111,28 @@ def run_many(
     listed = list(items)
     if workers is not None and workers < 1:
         raise ValueError(f"workers is 1 or more, not {workers}.")
-    count = min(workers or os.cpu_count() or 1, len(listed))
+    count = min(workers or os.cpu_count() or 1, len(listed), MAX_WORKERS)
     seeds = [item_seed(seed, index) for index in range(len(listed))]
     if count <= 1:
         return [_call(function, index, item, seeds[index]) for index, item in enumerate(listed)]
     outcomes: list[Outcome[R]] = []
-    with ProcessPoolExecutor(
-        max_workers=count, mp_context=multiprocessing.get_context("spawn"), initializer=_start
-    ) as pool:
-        futures = [pool.submit(_call, function, index, item, seeds[index]) for index, item in enumerate(listed)]
-        for index, future in enumerate(futures):
+    pool = ProcessPoolExecutor(max_workers=count, mp_context=multiprocessing.get_context("spawn"), initializer=_start)
+    try:
+        pending: list[Future[Outcome[R]] | Exception] = []
+        for index, item in enumerate(listed):
             try:
+                pending.append(pool.submit(_call, function, index, item, seeds[index]))
+            except Exception as error:  # noqa: BLE001  (the pool broke while items were being handed to it)
+                pending.append(error)
+        for index, future in enumerate(pending):
+            try:
+                if isinstance(future, Exception):
+                    raise future
                 outcomes.append(future.result())
             except Exception as error:  # noqa: BLE001  (a worker that died, a value that does not pickle)
                 outcomes.append(Outcome(index, seeds[index], None, f"{type(error).__name__}: {error}", 0.0))
+    except BaseException:
+        pool.shutdown(wait=False, cancel_futures=True)
+        raise
+    pool.shutdown()
     return outcomes

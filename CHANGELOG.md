@@ -10,7 +10,9 @@
   weld as an offset, dimension chains, notes, a title block, a viewport at 1:5 or 1:10, layers of a small standard `synth.STANDARD`) with its
   ground truth: `to_json()`, the score and rules of `check`, the overlaps and, with a picture, the COCO annotations; the same seed gives the
   same JSON and picture byte for byte, `crowding` 0 to 1 adds notes across the holes and lines for a placement agent to clear (none at 0,
-  17 to 55 overlaps at 1). 240 drawings with pictures and labels: 16.1 s alone, 6.7 s on 4 workers; a drawing without the picture 35 ms.
+  for example 11 to 55 over the seeds 0 to 39 at 1). A drawing takes 41 ms without a picture and 76 ms with one on .NET 8 (21 and 58 ms on .NET
+  Framework 4.8); 240 drawings with pictures and labels take 16.1 s alone and 6.7 s on 4 workers. A run uses at most 61 processes (Windows'
+  limit) and Ctrl+C cancels the items not yet started.
   Guide: Parallel workers with the same answers, Synthetic drawings for training data.
 - **FIXED.** MCP server and the sheets of the Python package, from the third independent review. (1) Attached, a plan was not one undo step
   when a step grouped itself: the app does not nest UNDO groups, so the UNDO End a tool such as `add_table`, `add_mleader`, `define_block`,

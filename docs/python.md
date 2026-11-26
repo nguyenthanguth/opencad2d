@@ -1605,9 +1605,9 @@ built; none of it is shared, so every worker pays the first-call cost once (0.35
 [Rendering without a window](#what-it-costs)). A render draws one picture at a time in a process, the renderer's caches not being
 locked against two threads, which is why the work is spread over processes. The function, the items and the values it returns must
 be picklable (a function at the top of a module, not a lambda); a value that is not is the error of its item, and the others go on.
-`workers=1` starts no pool and runs in the calling process, and `workers=None` takes one process for each core and no more than there
-are items. The cost is the start of the pool: each worker needs about a second to start .NET, all of them at once, so it pays from tens
-of items on. Making 240 drawings with their pictures and COCO labels (`synth.generate(seed, crowding, image=...)`, 67 ms each alone)
+`workers=1` starts no pool and runs in the calling process, and `workers=None` takes one process for each core. A run never uses more processes than there are items or than 61, the most Windows lets a pool
+have, so `workers=100` is 61. Ctrl+C cancels the items not yet started and raises at once; those running finish in the background. The cost is the start of the pool: each worker needs about a second to start .NET, all of them at once, so it pays from tens
+of items on. Making 240 drawings with their pictures and COCO labels (`synth.generate(seed, crowding, image=...)`)
 took 16.1 s with `workers=1` and 6.7 s with `workers=4` on .NET 8, on a machine other builds were using, with the same 240 results.
 
 ### Synthetic drawings for training data
@@ -1639,11 +1639,12 @@ synth.generate(8).json == clean.json                 # False
 ```
 
 The same seed and `crowding` give the same drawing on every run, and the same picture and COCO file with it: the random numbers are
-`random.Random`'s, whose sequence for a seed is fixed, and the drawing is made in a fixed order. `crowding` from 0 to 1 is the
+`random.Random`'s, whose sequence for a seed is fixed within a Python version (across versions only `random()` is promised, so keep the
+Python of a dataset that must be reproduced bit for bit), and the drawing is made in a fixed order. `crowding` from 0 to 1 is the
 difficulty. The plate is the same whatever it is, and each step adds notes that start on a hole's rim or in the middle of the plate, up
-to eight: at 0 no word overlaps anything and the score is 1.0, at 1 a plate has 17 to 55 overlaps (twelve seeds tried) for an agent
-that moves words to clear, with `reward` of the [pipelines](#batch-and-ai-pipelines) to measure it by. A drawing takes about 35 ms to
-make and score, 70 ms with its picture and labels, so `run_many` makes thousands in a minute. Words are checked on paper through the
+to eight: at 0 no word overlaps anything and the score is 1.0, at 1 a plate has, for example, 11 to 55 overlaps over the seeds 0 to 39, for an agent
+that moves words to clear, with `reward` of the [pipelines](#batch-and-ai-pipelines) to measure it by. A drawing takes 41 ms without a picture and 76 ms with one on .NET 8 (21 and 58 ms on .NET Framework 4.8), medians of 40 drawings at crowding 0.5 and 1280 pixels, so `run_many` makes thousands in a minute. The overall width and
+height of a plate with a notched corner run to the corner as if it were not cut (a virtual sharp, as a drafter dimensions it). Words are checked on paper through the
 viewport, so they are 2.5 or 3.5 mm high on paper whatever the scale of the plate.
 
 ## Inside OpenCAD2D
