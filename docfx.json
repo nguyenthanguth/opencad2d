@@ -7,6 +7,9 @@
         },
         {
           "files": ["src/OpenCAD2D.Core/OpenCAD2D.Core.csproj"]
+        },
+        {
+          "files": ["src/OpenCAD2D.Rendering/OpenCAD2D.Rendering.csproj"]
         }
       ],
       "dest": "docfx/api",

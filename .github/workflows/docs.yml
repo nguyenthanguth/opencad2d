@@ -41,6 +41,7 @@ jobs:
       - name: Build the libraries and the stub generator, and write the stubs
         run: |
           dotnet build src/OpenCAD2D.Core/OpenCAD2D.Core.csproj -c Release -warnaserror
+          dotnet build src/OpenCAD2D.Rendering/OpenCAD2D.Rendering.csproj -c Release -warnaserror
           dotnet build tools/OpenCAD2D.PyStubs/OpenCAD2D.PyStubs.csproj -c Release -warnaserror
           bash tools/python/make-stubs.sh
 

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="OpenCAD2D">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="40" height="40" role="img" aria-label="OpenCAD2D">
   <!-- The mark of src/OpenCAD2D.App/Icons/make-icons.ps1: a blue O holding a C holding AD, on a white rounded tile. -->
   <rect x="18" y="18" width="220" height="220" rx="42" fill="#FFFFFF" stroke="#D5DBE3" stroke-width="4"/>
   <circle cx="128" cy="128" r="84" fill="none" stroke="#1F6FD6" stroke-width="24"/>
