@@ -640,7 +640,10 @@ hatch. It is `None` for an object the drawing draws nothing of (one that is not 
 yet committed: the box is of the drawing as committed. `drawing.bounds(layout=None)` is the same for every object of model space or
 of a layout, as a `BoundsTable`: `handles`, and `boxes`, a NumPy array of one row of (min_x, min_y, max_x, max_y) for each, in the
 order the space draws them. A TrueType word is measured by the letters of its font, not by the display's guess of 0.6 of the height
-a letter: ten i of Arial 10 high are 31 wide and ten W 132.
+a letter: ten i of Arial 10 high are 31 wide and ten W 132. On a drawing of a file the call sets the drawing up first as the app sets
+one up on opening it (the fonts and the canvas's measure of letters, as a render does), so the boxes, `measure_*`, `overlaps` and
+`check` give the same numbers before and after the first picture drawn in the process, and the ones the app gives: an MTEXT 50
+wide of 4 high words in an SHX style is 45.8 wide in all three.
 
 `drawing.overlaps()` gives the objects whose words overlap what is drawn near them. A word is the frame of a text, the rectangle
 its height and the width of its letters make, turned as the text is; an MTEXT is framed one run of a line at a time, so that the
@@ -783,12 +786,12 @@ drawing = new_file()
 drawing.text_styles.add("NOTE", font="romans.shx")
 drawing.commit()
 word = drawing.measure_text("Plate A-12", (10, 20), 5.0, style="NOTE")
-tuple(word.box)                                      # (10.0, 20.0, 40.0, 25.0)
+tuple(word.box)                                      # (10.0, 18.5, 40.25, 25.0)
 len(word.frames)                                     # 1
-(word.frames[0].width, word.frames[0].height)        # (30.0, 5.0)
+(word.frames[0].width, word.frames[0].height)        # (30.25, 6.5)
 text = drawing.add_text("Plate A-12", (10, 20), 5.0, text_style="NOTE")
 drawing.commit()
-tuple(text.bounds)                                   # (10.0, 20.0, 40.0, 25.0)
+tuple(text.bounds)                                   # (10.0, 18.5, 40.25, 25.0)
 ```
 
 `measure_text(text, at, height, style=None, rotation=0.0, justify=None)` is a TEXT, `measure_mtext(text, at, height, width=0.0,
@@ -810,7 +813,7 @@ len(lines.frames)                                    # 2
 dim = drawing.measure_dimension("linear", [(0, 0), (100, 0), (50, 20)])
 dim.box.max_y > 20.0                                 # True
 turned = drawing.measure_text("Plate A-12", (10, 60), 5.0, style="NOTE", rotation=1.5707963267948966)
-round(turned.frames[0].box.max_y - turned.frames[0].box.min_y, 6)   # 30.0
+round(turned.frames[0].box.max_y - turned.frames[0].box.min_y, 6)   # 30.25
 ```
 
 `drawing.free_space(box, kinds=None, margin=0.0, min_width=0.0, min_height=0.0, layout=None, tolerance=0.001)` gives the empty

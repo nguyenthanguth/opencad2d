@@ -1,14 +1,10 @@
-"""Q1: the render calls on a drawing of a running app (the road map's "render from the app"): ``render_png``, ``render_svg``,
+"""K3: the render calls on a drawing of a running app (the road map's "render from the app"): ``render_png``, ``render_svg``,
 ``render_pdf``, ``render_image``, ``render_transform``, ``render_masks`` and ``to_coco`` of a drawing the app shows draw the
 drawing as the app has it, the changes not saved included, in this process, from the ``database`` request, and give what the
 same drawing saved and opened as a file gives, byte for byte. The drawing's file is never written.
 
 ``connect()`` finds the app in the folder of the real one, which a test never touches, so the tests make the ``App`` over the
 ``CadApplication`` the ``app`` fixture connected to the test server.
-
-The file is named to run after ``test_p2_measure_remote.py``: the first picture drawn in a process changes what the core measures
-of an MTEXT in an SHX style afterwards (a box 45.6 wide before, 31.2 after, in the one drawing), and that test compares the
-app's measures, which the server made before any picture, with this process's.
 """
 
 import json

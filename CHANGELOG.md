@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **FIXED.** What Python measures of words on a drawing of a file no longer depends on whether a picture was drawn first in the
+  process. `measure_text`, `measure_mtext`, `measure_dimension`, `measure_leader`, `free_space`, `fits`, `bounds`, `entity.bounds`,
+  `overlaps` and `check` read a drawing that had not been set up as the app sets one up on opening it (the
+  fonts of the default settings, the canvas's measure of TrueType letters), and the first `render_*` call of the process set that
+  measure for every drawing in it: an MTEXT 50 wide of 4 high words in an SHX style of a `new_file()` drawing was 45.6 wide before the
+  first picture and 31.2 after, where the app gives 45.8. The calls now set the drawing up first (what `CadRender.Prepare` does), so the
+  box is 45.8 before and after, and the same as the app's; the Remote test server sets its drawings up the same way.
 - **CHANGED.** The Python render calls work on a drawing that is in the app: `render_png`, `render_svg`, `render_pdf`, `render_image`,
   `render_transform`, `render_masks` and `to_coco` of a drawing from `connect()` or of `active_drawing()` in a tool no longer raise
   `RuntimeError("... works on a drawing of a file ...")`. The call asks the app for its whole drawing (the request `database`, the

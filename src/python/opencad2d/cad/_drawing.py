@@ -1631,7 +1631,7 @@ class Drawing:
 
         Example:
             m = drawing.measure_text("Plate A-12", (10, 20), 5.0, style="NOTE")
-            m.box                                         # Box(min_x=10.0, min_y=19.99..., max_x=..., max_y=...)
+            m.box                                         # Box(min_x=10.0, min_y=18.5, max_x=40.25, max_y=25.0)
             drawing.fits(m.frames[0], margin=1.0)         # True where the place is free by a millimetre all round
         """
         positive("The height of a text", height)
