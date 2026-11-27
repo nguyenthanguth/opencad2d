@@ -58,6 +58,10 @@ namespace OpenCAD2D.Mcp
 
         public CadDocument ReadDocument() => Document;
 
+        public IReadOnlyList<MLeaderStyleInfo> MLeaderStyles() => AnnotationStyleReads.MLeaderStyles(Document.Database);
+
+        public IReadOnlyList<TableStyleInfo> TableStyles() => AnnotationStyleReads.TableStyles(Document.Database);
+
         public object TakeSnapshot() => Document.TakeSnapshot();
 
         public void ResetTo(object snapshot) => Document.Reset((CadSnapshot)snapshot);

@@ -64,10 +64,16 @@ namespace OpenCAD2D.Mcp
         IReadOnlyList<string> ListLines(IReadOnlyList<string> handles);
 
         /// <summary>
-        /// A document to read what has no request of its own (layouts, multileader and table styles, block definitions): the drawing's
+        /// A document to read what has no request of its own (layouts, block definitions): the drawing's
         /// own for a file, a copy of the app's drawing, changes not saved included, for the app. Read it; never change it.
         /// </summary>
         CadDocument ReadDocument();
+
+        /// <summary>The multileader styles of the drawing, by name: the drawing file's own, or an app's asked for with no copy of its drawing.</summary>
+        IReadOnlyList<MLeaderStyleInfo> MLeaderStyles();
+
+        /// <summary>The table styles of the drawing, by name: the drawing file's own, or an app's asked for with no copy of its drawing.</summary>
+        IReadOnlyList<TableStyleInfo> TableStyles();
 
         /// <summary>Sets a system variable as <c>setvar</c> does; one undo step where the drawing keeps it.</summary>
         void SetVariable(string name, object value);

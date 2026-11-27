@@ -2,14 +2,21 @@
 
 ## Unreleased
 
+- **NEW.** Remote `drawing.GetMultileaderStyles()` and `drawing.GetTableStyles()` (the request `annotationStyles`): the settings of each
+  multileader style (text style and height, arrowhead and size, landing length and gap, scale, annotative, current) and table style (text
+  style, title, header and data heights, margins, current), sorted by name, without a copy of the drawing. A multileader or a table read
+  with `GetObject` now carries the name of its style.
+- **CHANGED.** MCP attached to an app: `list_multileader_styles`, `list_table_styles` and the scale of `measure_leader(style=)` ask the app
+  for the styles alone, and a multileader or table is read with its style name from the app's own answer, so none of them copies the whole
+  drawing (a viewport still does). The rows are the same in a file and in an app; `list_multileader_styles` gives `annotative` too.
 - **FIXED.** MCP `add_hatch(handles=)` from objects: an ellipse or elliptic arc at a height (z 5) was refused by the library ("not in the plane of
   the HATCH") where lines, arcs, polylines and circles at that height were flattened: all are flattened now, and a line whose ends differ in
   height is refused (it was flattened silently). A piece shorter than the tolerance (a line of no length, an arc of 359.9997 degrees of a
   small radius) no longer closes on itself and refuses the whole hatch: it is left out, and a hatch of nothing else is refused; an outline
   with an elliptic arc is refused for no area as one of lines and arcs is.
 - **FIXED.** MCP attached to an app: a multileader or table was read from a copy of the whole drawing for every handle (`find_at` of 20 handles,
-  `select` previous); the copy is made once for all the handles asked, and the listing of a layout and the objects asked by handle read
-  these two kinds the same way (their style name is not null).
+  `select` previous); they now come with their style name from the app itself (see the `annotationStyles` entry), and every way of
+  reading them gives the same name.
 - **FIXED.** Python `run_many(timeout=)`: a worker that ended before it was ready (a replacement after a timeout too) raised `RuntimeError` and
   lost the outcomes collected, a worker ended while idle gave the next item a `BrokenPipeError`, and a worker that hung while it started hung
   the run. A run with a timeout never raises once its workers are started: a worker lost outside an item is replaced (it has `START_TIMEOUT`,

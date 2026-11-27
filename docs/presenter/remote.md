@@ -213,6 +213,15 @@ checks the drawing in its own process opens the copy with `CadDocument.From(data
 renders an attached app's drawing so. The copy is a snapshot; a change made in the app afterwards is not in it. A drawing of 10 000
 entities (1 070 KB of text) is asked in about 20 ms and read into a document in about 5 to 25 ms.
 
+`drawing.GetMultileaderStyles()` and `drawing.GetTableStyles()` list the styles of the Multileader Style Manager and the Table Style
+dialog without that copy (the request `annotationStyles`, with `kind` set to `multileader` or `table`). A multileader style comes with
+its name, text style, text height, arrowhead and its size, the landing's length and gap, the overall scale, whether it is annotative
+and whether it is the current one; a table style with its name, text style, heights of the title, header and data rows, margins and
+whether it is the current one. Lengths are in millimetres as drawn, and the styles are sorted by name without regard to case, then
+ordinally. A `kind` that is neither is refused in words. A multileader or table read with `GetObject` carries the name of its style
+(`MLeaderStyle`, `TableStyleName`), which the small drawing it travels in holds as a style of that name with the default settings:
+read the settings from the lists above.
+
 ## Measuring before placing
 
 `drawing.Measure(entity)` asks the app what an object would take once added, without adding it, as a `CadRemoteMeasurement`: `Box`

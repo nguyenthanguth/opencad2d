@@ -107,6 +107,7 @@ namespace OpenCAD2D
             {
                 for (int i = 0; i < entities.Count; i++)
                 {
+                    NameStyle(entities[i], copies[i], fragment);
                     Note(entities[i], copies[i], handles, references);
                 }
             }
@@ -116,12 +117,11 @@ namespace OpenCAD2D
                 {
                     try
                     {
-                        Note(
-                            entity,
-                            document.Database.WblockCloneObjects(new[] { entity }, fragment.ModelSpace)[0],
-                            handles,
-                            references
-                        );
+                        DxfEntity single = document.Database.WblockCloneObjects(new[] { entity }, fragment.ModelSpace)[
+                            0
+                        ];
+                        NameStyle(entity, single, fragment);
+                        Note(entity, single, handles, references);
                     }
                     catch (ArgumentException ex)
                     {
@@ -131,6 +131,54 @@ namespace OpenCAD2D
             }
 
             return new JsonObject().Set("fragment", fragment.ToText()).Set("handles", handles).Set("refs", references);
+        }
+
+        /// <summary>
+        /// Gives the copy of a multileader or a table the name of its style, as the original has it: the copy has no style table of
+        /// its drawing to name one from, so the small drawing holds a style of that name, of the default settings, which the copy
+        /// is set to. A program reading the copy takes the name from the object, with no copy of the whole drawing to find it in.
+        /// </summary>
+        private static void NameStyle(DxfEntity original, DxfEntity copy, DxfDatabase fragment)
+        {
+            try
+            {
+                if (original is DxfMLeader leader && copy is DxfMLeader leaderCopy && leader.MLeaderStyle != null)
+                {
+                    string name = leader.MLeaderStyle;
+
+                    if (fragment.MLeaderStyleDictionary == null)
+                    {
+                        fragment.NamedObjectsDictionary.SetAt("ACAD_MLEADERSTYLE", new DxfDBDictionary());
+                    }
+
+                    if (!fragment.MLeaderStyleDictionary.Contains(name))
+                    {
+                        fragment.MLeaderStyleDictionary.SetAt(name, new DxfMLeaderStyle());
+                    }
+
+                    leaderCopy.MLeaderStyle = name;
+                }
+                else if (original is DxfTable table && copy is DxfTable tableCopy && table.TableStyleName != null)
+                {
+                    string name = table.TableStyleName;
+
+                    if (fragment.TableStyleDictionary == null)
+                    {
+                        fragment.NamedObjectsDictionary.SetAt("ACAD_TABLESTYLE", new DxfDBDictionary());
+                    }
+
+                    if (!fragment.TableStyleDictionary.Contains(name))
+                    {
+                        fragment.TableStyleDictionary.SetAt(name, new DxfTableStyle());
+                    }
+
+                    tableCopy.TableStyle = fragment.TableStyleDictionary[name] as DxfTableStyle;
+                }
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            {
+                GeometryHelperLog.Debug("CadRemoteServer: the style of " + original + " was not named: " + ex.Message);
+            }
         }
 
         private static void Note(DxfEntity original, DxfEntity copy, JsonArray handles, JsonArray references)

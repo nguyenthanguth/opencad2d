@@ -20,16 +20,13 @@ namespace OpenCAD2D.Mcp
 
             for (int i = 0; i < entities.Count; i++)
             {
-                // The app does not hand out a viewport, and its copy of a multileader or a table has no style table to find the name
-                // of its style in: both are read from one copy of the whole database, made once for all the handles.
-                if (entities[i] == null || entities[i] is DxfMLeader || entities[i] is DxfTable)
+                // The app does not hand out a viewport: one is read from a copy of the whole database, made once for all the handles.
+                // A multileader or a table comes with the name of its style, and needs no copy.
+                if (entities[i] == null)
                 {
                     copy = copy ?? CadDocument.From(Document.GetDatabase(), Name);
-                    DxfEntity inCopy = copy.FindEntity(handles[i]);
                     entities[i] =
-                        entities[i] == null
-                            ? (inCopy is DxfViewport viewport && !viewport.IsErased ? viewport : null)
-                            : inCopy ?? entities[i];
+                        copy.FindEntity(handles[i]) is DxfViewport viewport && !viewport.IsErased ? viewport : null;
                 }
             }
 
@@ -108,6 +105,12 @@ namespace OpenCAD2D.Mcp
         public IReadOnlyList<string> ListLines(IReadOnlyList<string> handles) => Document.ListObjects(handles);
 
         public CadDocument ReadDocument() => CadDocument.From(Document.GetDatabase(), Name);
+
+        public IReadOnlyList<MLeaderStyleInfo> MLeaderStyles() =>
+            AnnotationStyleReads.MLeaderStyles(Document.GetMultileaderStyles());
+
+        public IReadOnlyList<TableStyleInfo> TableStyles() =>
+            AnnotationStyleReads.TableStyles(Document.GetTableStyles());
 
         public object TakeSnapshot() => Document.TakeSnapshot();
 

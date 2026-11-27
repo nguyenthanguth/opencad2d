@@ -188,6 +188,12 @@ namespace OpenCAD2D.Mcp
         /// <summary>Gets or sets the overall scale.</summary>
         public double Scale { get; set; }
 
+        /// <summary>Gets or sets whether the style is annotative, which takes its scale from the annotation scale.</summary>
+        public bool Annotative { get; set; }
+
+        /// <summary>Gets or sets the scale as the style holds it, not rounded; read by measure_leader, never written out.</summary>
+        internal double DrawnScale { get; set; }
+
         /// <summary>Gets or sets <c>text</c>, <c>block</c> or <c>none</c>.</summary>
         public string Content { get; set; }
 

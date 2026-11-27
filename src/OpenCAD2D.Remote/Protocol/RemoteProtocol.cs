@@ -64,6 +64,9 @@ namespace OpenCAD2D.Remote
         /// <summary>The dimension styles of a drawing, in a fragment, with the names in order.</summary>
         public const string DimStyles = "dimStyles";
 
+        /// <summary>The multileader styles and the table styles of a drawing, as lists of their settings.</summary>
+        public const string AnnotationStyles = "annotationStyles";
+
         /// <summary>The blocks of a drawing that are no layout and not anonymous, in a fragment, with the names in order.</summary>
         public const string Blocks = "blocks";
 

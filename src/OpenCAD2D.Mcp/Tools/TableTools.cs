@@ -133,46 +133,10 @@ namespace OpenCAD2D.Mcp
             OpenWorld = false
         )]
         [Description(
-            "The multileader styles of the drawing, by name: the leader type, arrowhead and size, the landing, the text style and height, the overall scale and what the leader holds (text or a block). In a server attached to an app this reads a copy of the app's drawing."
+            "The multileader styles of the drawing, by name: the leader type, arrowhead and size, the landing, the text style and height, the overall scale, whether it is annotative, and what the leader holds (text or a block)."
         )]
         public IReadOnlyList<MLeaderStyleInfo> ListMultileaderStyles() =>
-            _session.Run("list_multileader_styles", false, drawing =>
-            {
-                DxfDatabase database = Q(drawing).ReadDocument().Database;
-                string current = CadMLeaderStyleEditor.Current(database);
-                return (IReadOnlyList<MLeaderStyleInfo>)
-                    CadMLeaderStyleEditor
-                        .Styles(database)
-                        .Select(name =>
-                        {
-                            DxfMLeaderStyle style = CadMLeaderStyleEditor.Find(database, name);
-                            CadMLeaderStyleSettings s = CadMLeaderStyleSettings.Of(style);
-                            return new MLeaderStyleInfo
-                            {
-                                Name = name,
-                                Current = string.Equals(name, current, StringComparison.OrdinalIgnoreCase),
-                                LeaderType =
-                                    style.LeaderLineType == DxfLeaderType.StraightLeader ? "straight"
-                                    : style.LeaderLineType == DxfLeaderType.SplineLeader ? "spline"
-                                    : "none",
-                                Arrowhead = s.Arrowhead,
-                                ArrowSize = EntityDescriber.R(s.ArrowSize),
-                                Landing = s.IncludeLanding,
-                                LandingDistance = EntityDescriber.R(s.LandingDistance),
-                                LandingGap = EntityDescriber.R(s.LandingGap),
-                                TextStyle = s.TextStyle,
-                                TextHeight = EntityDescriber.R(s.TextHeight),
-                                Scale = EntityDescriber.R(s.Scale),
-                                Content =
-                                    s.ContentType == DxfContentType.MTextContent ? "text"
-                                    : s.ContentType == DxfContentType.BlockContent ? "block"
-                                    : "none",
-                                DefaultText = s.DefaultText,
-                                MaxLeaderPoints = s.MaxLeaderPoints,
-                            };
-                        })
-                        .ToList();
-            });
+            _session.Run("list_multileader_styles", false, drawing => Q(drawing).MLeaderStyles());
 
         [McpServerTool(
             Name = "list_table_styles",
@@ -182,41 +146,9 @@ namespace OpenCAD2D.Mcp
             OpenWorld = false
         )]
         [Description(
-            "The table styles of the drawing, by name: the cell margins, whether the title and header rows are shown, and for the title, header and data rows the text style, text height and alignment. In a server attached to an app this reads a copy of the app's drawing."
+            "The table styles of the drawing, by name: the cell margins, whether the title and header rows are shown, and for the title, header and data rows the text style, text height and alignment."
         )]
-        public IReadOnlyList<TableStyleInfo> ListTableStyles() => _session.Run("list_table_styles", false, drawing =>
-            {
-                DxfDatabase database = Q(drawing).ReadDocument().Database;
-                string current = CadTableStyleEditor.Current(database);
-                return (IReadOnlyList<TableStyleInfo>)
-                    CadTableStyleEditor
-                        .Styles(database)
-                        .Select(name =>
-                        {
-                            DxfTableStyle style = CadTableStyleEditor.Find(database, name);
-                            return new TableStyleInfo
-                            {
-                                Name = name,
-                                Current = string.Equals(name, current, StringComparison.OrdinalIgnoreCase),
-                                Description = style.Description,
-                                HorizontalMargin = EntityDescriber.R(style.HorizontalCellMargin),
-                                VerticalMargin = EntityDescriber.R(style.VerticalCellMargin),
-                                TitleShown = !style.IsTitleSuppressed,
-                                HeaderShown = !style.IsHeaderSuppressed,
-                                Title = CellStyle(style, DxfRowType.TitleRow),
-                                Header = CellStyle(style, DxfRowType.HeaderRow),
-                                Data = CellStyle(style, DxfRowType.DataRow),
-                            };
-                        })
-                        .ToList();
-            });
-
-        private static TableCellStyleInfo CellStyle(DxfTableStyle style, DxfRowType row) =>
-            new TableCellStyleInfo
-            {
-                TextStyle = style.TextStyleName(row),
-                TextHeight = EntityDescriber.R(style.TextHeight(row)),
-                Alignment = style.Alignment(row).ToString(),
-            };
+        public IReadOnlyList<TableStyleInfo> ListTableStyles() =>
+            _session.Run("list_table_styles", false, drawing => Q(drawing).TableStyles());
     }
 }

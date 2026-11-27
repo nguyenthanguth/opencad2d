@@ -45,7 +45,7 @@ namespace OpenCAD2D.Mcp
 
         public IReadOnlyList<EntityRef> Entities(string layout)
         {
-            return Styled(EntitiesOf(layout));
+            return EntitiesOf(layout);
         }
 
         private List<EntityRef> EntitiesOf(string layout)
@@ -96,27 +96,6 @@ namespace OpenCAD2D.Mcp
         }
 
         /// <summary>The viewports among some handles, as entities of a copy of the app's database (the app's queries do not carry them).</summary>
-        /// <summary>
-        /// The entities with the multileaders and tables of them read from a copy of the app's database, made once: the app's copy of
-        /// one has no style table to find the name of its style in, so every tool that lists them gives the same style.
-        /// </summary>
-        private List<EntityRef> Styled(List<EntityRef> found)
-        {
-            if (!found.Any(f => f.Entity is DxfMLeader || f.Entity is DxfTable))
-            {
-                return found;
-            }
-
-            CadDocument copy = CadDocument.From(Document.GetDatabase(), Name);
-            return found
-                .Select(f =>
-                    f.Entity is DxfMLeader || f.Entity is DxfTable
-                        ? new EntityRef(f.Handle, copy.FindEntity(f.Handle) ?? f.Entity)
-                        : f
-                )
-                .ToList();
-        }
-
         private Dictionary<string, DxfEntity> ViewportsOf(IEnumerable<string> handles)
         {
             CadDocument copy = CadDocument.From(Document.GetDatabase(), Name);

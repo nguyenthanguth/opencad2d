@@ -220,11 +220,13 @@ namespace OpenCAD2D.Mcp
 
                 if (!drawn.HasValue && !string.IsNullOrWhiteSpace(style))
                 {
-                    DxfMLeaderStyle named = CadMLeaderStyleEditor.Find(Q(drawing).ReadDocument().Database, style);
+                    MLeaderStyleInfo named = Q(drawing)
+                        .MLeaderStyles()
+                        .FirstOrDefault(s => string.Equals(s.Name, style.Trim(), StringComparison.OrdinalIgnoreCase));
 
-                    if (named != null && named.Annotative != DxfAnnotativeStates.True)
+                    if (named != null && !named.Annotative)
                     {
-                        drawn = named.Scale > 0.0 && !double.IsInfinity(named.Scale) ? named.Scale : 1.0;
+                        drawn = named.DrawnScale > 0.0 && !double.IsInfinity(named.DrawnScale) ? named.DrawnScale : 1.0;
                     }
                 }
 

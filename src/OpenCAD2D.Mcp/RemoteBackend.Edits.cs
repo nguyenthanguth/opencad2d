@@ -209,7 +209,7 @@ namespace OpenCAD2D.Mcp
                 }
             }
 
-            return Styled(found);
+            return found;
         }
 
         public IReadOnlyList<string> Make(string what, CadMakeArgs args) => Document.Make(what, args.Values);

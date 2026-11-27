@@ -218,6 +218,8 @@ namespace OpenCAD2D
                     return Layers(Find(request));
                 case RemoteOps.CurrentLayer:
                     return CurrentLayer(Find(request), request.GetString("name"));
+                case RemoteOps.AnnotationStyles:
+                    return AnnotationStyles(Find(request), TextMember(request, "kind"));
                 case RemoteOps.Linetypes:
                     return Linetypes(Find(request));
                 case RemoteOps.CurrentDimStyle:
