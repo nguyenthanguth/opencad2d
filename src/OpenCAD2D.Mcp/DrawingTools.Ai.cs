@@ -199,7 +199,9 @@ namespace OpenCAD2D.Mcp
             [Description("Where the leader lands, [x, y].")] double[] landing,
             [Description("The words.")] string text,
             [Description("A multileader style of the drawing; the current one where left out.")] string style = null,
-            [Description("The scale of the multileader, above 0; the one MLEADER gives where left out.")]
+            [Description(
+                "The scale of the multileader, above 0; where left out, the scale of the style when one is given (as add_mleader draws in it), else the one MLEADER gives."
+            )]
                 double? scale = null
         ) => _session.Run("measure_leader", false, drawing =>
             {
@@ -211,6 +213,19 @@ namespace OpenCAD2D.Mcp
                     throw new ArgumentException("The scale of a leader is a finite number above nought.");
                 }
 
+                // add_mleader makes a style it is given the current one, which sets MLEADERSCALE to the style's own scale: measured
+                // in the same style, the note has the scale it will be drawn at.
+                double? drawn = scale;
+
+                if (!drawn.HasValue && !string.IsNullOrWhiteSpace(style))
+                {
+                    DxfMLeaderStyle named = CadMLeaderStyleEditor.Find(Q(drawing).ReadDocument().Database, style);
+                    drawn =
+                        named != null && named.Scale > 0.0 && !double.IsInfinity(named.Scale)
+                            ? named.Scale
+                            : (double?)null;
+                }
+
                 return Measured(
                     drawing.MeasureLeader(
                         string.IsNullOrWhiteSpace(style) ? null : style.Trim(),
@@ -219,7 +234,7 @@ namespace OpenCAD2D.Mcp
                         end.X,
                         end.Y,
                         Words(text),
-                        scale
+                        drawn
                     )
                 );
             });

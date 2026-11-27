@@ -372,15 +372,21 @@ namespace OpenCAD2D.Mcp
                 ModifiedResult made = null;
                 editing.Group(() => InLayout(drawing, layout, () =>
                     {
-                        string was = string.IsNullOrWhiteSpace(style)
-                            ? null
-                            : Convert.ToString(drawing.Variable("CMLEADERSTYLE"), CultureInfo.InvariantCulture);
+                        bool styled = !string.IsNullOrWhiteSpace(style);
+                        string was = styled
+                            ? Convert.ToString(drawing.Variable("CMLEADERSTYLE"), CultureInfo.InvariantCulture)
+                            : null;
+
+                        // A drawing with no style of that name (a new one has none until a note is made) has none to go back to.
+                        bool restore =
+                            !string.IsNullOrEmpty(was)
+                            && CadMLeaderStyleEditor.Find(Q(drawing).ReadDocument().Database, was) != null;
                         object wasScale = scale.HasValue ? drawing.Variable("MLEADERSCALE") : null;
 
                         // The style and the scale the note is made in are put back whatever comes of it.
                         try
                         {
-                            if (was != null)
+                            if (styled)
                             {
                                 editing.Make(
                                     "current_style",
@@ -410,7 +416,7 @@ namespace OpenCAD2D.Mcp
                                 editing.SetVariable("MLEADERSCALE", wasScale);
                             }
 
-                            if (!string.IsNullOrEmpty(was))
+                            if (restore)
                             {
                                 editing.Make(
                                     "current_style",

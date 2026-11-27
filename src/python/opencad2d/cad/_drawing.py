@@ -425,7 +425,8 @@ _KIND_OF: dict[Any, str] = {}
 def needs(entity: Any) -> tuple[tuple[str, str], ...]:
     """The names an entity brings that the drawing it is added to must have, as (table, name) pairs, left out where the
     drawing always has the name: its linetype, its text style (a TEXT or MTEXT), its dimension style (a dimension) and its
-    block (an INSERT). ``()`` for the common object that names none."""
+    block (an INSERT, and the text style and linetype of each attribute it carries). ``()`` for the common object that names
+    none."""
     found: list[tuple[str, str]] = []
     linetype = entity.Linetype
     if linetype and str(linetype).upper() not in ("BYLAYER", "BYBLOCK", "CONTINUOUS"):
@@ -450,6 +451,9 @@ def needs(entity: Any) -> tuple[tuple[str, str], ...]:
         found.append(("DIMSTYLE", str(entity.DimensionStyleName or "")))
     elif kind == "block":
         found.append(("BLOCK", str(entity.Name or "")))
+        # The attributes an INSERT carries are texts of their own, in the text style (and linetype) of their definitions.
+        for attribute in entity.AttributeCollection:
+            found.extend(needs(attribute))
     return tuple(found)
 
 

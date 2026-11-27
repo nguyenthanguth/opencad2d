@@ -200,7 +200,7 @@ def _title_block(drawing: Drawing, layout: str, values: dict[str, str]) -> None:
     from GeometryHelper.Geometry import GeoPoint3
 
     parts: list[Any] = [*_box(160.0, 35.0, (0.0, 0.0)), DxfLine(GeoPoint3(0.0, 17.5, 0.0), GeoPoint3(160.0, 17.5, 0.0))]
-    style = drawing.text_styles["Standard"]
+    style = drawing.text_styles["SYN"]
     for tag, at in zip(values, ((4.0, 21.0), (4.0, 5.0), (84.0, 5.0))):
         definition = DxfAttributeDefinition(GeoPoint3(at[0], at[1], 0.0), "", tag, tag.title(), style)
         definition.Height = 5.0

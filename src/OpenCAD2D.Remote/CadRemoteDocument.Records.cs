@@ -161,6 +161,15 @@ namespace OpenCAD2D.Remote
             {
                 batch.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = text });
             }
+
+            // The attributes an INSERT carries are texts of their own, in the style (and linetype) of their definitions.
+            if (entity is DxfBlockReference insert)
+            {
+                foreach (DxfAttributeReference attribute in insert.AttributeCollection)
+                {
+                    Provide(attribute, batch);
+                }
+            }
         }
 
         /// <summary>Whether the app's drawing has a text style (<c>STYLE</c>) or a linetype (<c>LTYPE</c>) of the name, letters of either case alike; the names are asked of the app once for a commit.</summary>

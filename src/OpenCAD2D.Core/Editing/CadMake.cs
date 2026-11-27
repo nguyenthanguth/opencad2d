@@ -109,10 +109,14 @@ namespace OpenCAD2D
     /// <item><term>set_attribute</term><description><c>handle</c> of a block reference, <c>tag</c>, <c>value</c>; the handle.</description></item>
     /// <item><term>insert_block</term><description><c>name</c> of a block, <c>at</c> ([x, y]), <c>scale</c> (above 0; 1 where left out), <c>rotation</c> (degrees, counter-clockwise; 0 where left out) and <c>rows</c> (pairs of an attribute's tag and its words; an attribute left out or given no words keeps its default): an INSERT in the working space as the command makes it, with no prompt and no dialog; the handle of the INSERT.</description></item>
     /// <item><term>current_layer</term><description><c>name</c>; the name.</description></item>
+    /// <item><term>add_mleader_style</term><description><c>name</c> (a name no multileader style has), <c>from</c> (the style whose settings it takes; the presenter's metric Standard where left out) and any of <c>text_style</c>, <c>text_height</c> (above 0), <c>arrow</c> (an arrowhead of <see cref="CadArrowheads.Names"/>), <c>arrow_size</c>, <c>landing_gap</c>, <c>landing_length</c> (0 or more), <c>landing</c> (whether a landing is made), <c>scale</c> (above 0) or <c>annotative</c> (true; not with <c>scale</c>); all lengths in millimetres; the name. One undo step.</description></item>
+    /// <item><term>set_mleader_style</term><description><c>name</c> of a multileader style and the settings <c>add_mleader_style</c> takes (not <c>from</c>); only those given are changed, and the multileaders drawn in the style follow; the name. One undo step.</description></item>
+    /// <item><term>add_table_style</term><description><c>name</c> (a name no table style has), <c>from</c> (the style whose settings it takes; AutoCAD's Standard where left out) and any of <c>text_style</c> (for the title, the header and the data), <c>title_height</c>, <c>header_height</c>, <c>data_height</c> (above 0), <c>horizontal_margin</c>, <c>vertical_margin</c> (0 or more) and <c>description</c>; all lengths in millimetres; the name. One undo step.</description></item>
+    /// <item><term>set_table_style</term><description><c>name</c> of a table style and the settings <c>add_table_style</c> takes (not <c>from</c>); only those given are changed, and the tables written in the style are drawn again; the name. One undo step.</description></item>
     /// <item><term>current_style</term><description><c>kind</c> (<c>mleader</c> or <c>table</c>) and <c>name</c>; the name.</description></item>
     /// </list>
     /// </remarks>
-    public static class CadMake
+    public static partial class CadMake
     {
         private const string Step = "MCP";
 
@@ -166,6 +170,14 @@ namespace OpenCAD2D
                     return ViewportView(document, args);
                 case "viewport_freeze":
                     return ViewportFreeze(document, args);
+                case "add_mleader_style":
+                    return AddMLeaderStyle(document, args);
+                case "set_mleader_style":
+                    return SetMLeaderStyle(document, args);
+                case "add_table_style":
+                    return AddTableStyle(document, args);
+                case "set_table_style":
+                    return SetTableStyle(document, args);
                 case "current_style":
                     return CurrentStyle(document, args);
                 case "current_layer":

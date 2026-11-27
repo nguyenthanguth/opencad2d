@@ -197,6 +197,13 @@ namespace OpenCAD2D
                 scaled = scale ?? CadMLeaderStyleEditor.NewScale(real, found, null);
                 CadMLeaderStyleSettings settings = CadMLeaderStyleSettings.Of(found);
                 CopyTextStyle(real, scratchDatabase, settings.TextStyle);
+
+                // A multileader of the scratch starts in Standard, which a drawing with no multileader yet (a new one) has not.
+                if (!string.Equals(name, "Standard", StringComparison.OrdinalIgnoreCase))
+                {
+                    CadMLeaderStyleEditor.EnsureStandard(scratchDatabase);
+                }
+
                 CadMLeaderStyleEditor.WriteNew(scratchDatabase, name, settings);
             }
 

@@ -85,7 +85,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          GeometryHelper.Dxf + opencad2d.arrays over a
          folder of DWG), each example run by a test.
 
-- [ ] PW7. More for AI drawing layout (proposed by the lead 2026-11-26, the maintainer: "kế hoạch em đưa ra tốt đó";
+- [x] PW7. More for AI drawing layout (proposed by the lead 2026-11-26, the maintainer: "kế hoạch em đưa ra tốt đó";
       after PW6; heavy work in C#, Python wraps it):
       1. DONE 2026-11-26 (8e049b3e). Measure before placing: measure_text, measure_dimension, measure_leader (the box a thing would take, not
          added), and free_space(box) (the empty regions of a frame). -> verify: equal to the box once added.
@@ -108,7 +108,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          synthetic drawing generator for data (opencad2d.parallel, opencad2d.synth). Found: an INSERT of a block whose
          ATTDEF uses a user text style fails at commit (the style is not provided for the block's attribute definitions).
       Most valuable: 1, 2 and 5.
-      10. MCP phase 2 (the maintainer 2026-11-26: "MCP còn cần thêm tool nào nữa"): the tools an AutoCAD-like MCP
+      10. DONE 2026-11-27 (main 209b3573; 131 tools, acceptance green in file and app mode, three reviews). MCP phase 2 (the maintainer 2026-11-26: "MCP còn cần thêm tool nào nữa"): the tools an AutoCAD-like MCP
          server is expected to have, from five public CAD MCP servers compared (Autodesk's AutoCAD MCP, autocad-mcp,
          best-cad-mcp, CAD-MCP on ezdxf, FreeCAD MCP): read and query (get_entity, count/aggregate, layouts, sysvars,
          texts, dimensions, blocks, measure, select), create (rectangle, polygon, ellipse, spline, mleader, table,
@@ -128,6 +128,27 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
          out of DWG, app attribute words cut at a space, --read-only attached allows new/open_drawing, descriptions,
          overlaps of attribute words, argument errors, measure frame into fits, describe_kinds, gaps. List in
          `.claude/scratch/pw7/mcp-acceptance-findings.md`.
+
+## Next (open, 2026-11-27; carry on from here, whichever account)
+
+- [x] N1 DONE 2026-11-27 (feat/attdef-mcp-styles). An INSERT of a block whose ATTDEF uses a user text style
+      fails at commit ("The text style X is not in the file's text style table", DxfBlockReference.Appending via
+      CheckTextStyle): the needs/provide step of src/python/opencad2d/cad/_drawing.py (and the MCP/Remote insert paths)
+      does not provide the styles of the block's attribute definitions. -> verify: a Python and an MCP test, red first.
+- [x] N2 DONE 2026-11-27 (same branch; 6 tools, 137 in all). MCP tools that create and edit multileader styles and table styles (today
+      list_multileader_styles and list_table_styles only read); add_mleader/add_table can then use a style with a text
+      height fit for the sheet scale. -> verify: tests in both modes, the acceptance test still green.
+- [ ] N3. Left by the reviews and the acceptance (small): describe_kinds is a hand-written table (guarded by a test);
+      add_hatch handles take closed polylines and circles only (no chained lines/arcs, no ellipses); the OFFSET Erase
+      option stays remembered in an app; run_many has no timeout per item; the synth labels cover model space only;
+      get_entity of a MULTILEADER or table gives a null style attached (the app copy does not resolve the name); nested
+      INSERTs with attributes in a user style inside blocks.add have no test of their own.
+- [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3.
+
+State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper
+13.15.0 at cf1db73e pushed and in Lib. The full check of CLAUDE.md (incl. the Mcp suite) is green; timing tests
+(DisplaySpeed16/20, DisplayPatchPlaces, SelectObjectsOptions, TableCommandTests, PythonEnvTests) may fail under load
+and pass alone. Every finished piece of work gets an independent review before it lands on main.
 
 ## The website and Share (planned 2026-11-23)
 

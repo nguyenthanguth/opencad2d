@@ -212,6 +212,61 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        public void AnInsertWhoseAttributesAreInATextStyleTheDrawingHas_IsAdded_WithTheStyleTheAppKeeps()
+        {
+            CadDocument source = WithRecords("A-101.dxf");
+            DxfBlockTableRecord box = new DxfBlockTableRecord { Name = "BOX" };
+            source.Database.BlockTable.Add(box);
+            box.AppendEntity(new DxfLine(new GeoPoint3(0, 0, 0), new GeoPoint3(10, 0, 0)));
+            var (harness, document, remote) = Start(source);
+            using (harness)
+            {
+                var scratch = new DxfDatabase("AC1027");
+                var carrier = new DxfBlockTableRecord { Name = "BOX" };
+                scratch.BlockTable.Add(carrier);
+                var insert = new DxfBlockReference(new GeoPoint3(100, 50, 0), carrier);
+                var mark = new DxfAttributeReference
+                {
+                    Tag = "MARK",
+                    TextString = "P1",
+                    Height = 2.5,
+                    Position = new GeoPoint3(100, 50, 0),
+                    TextStyleName = "NOTE",
+                };
+                insert.AttributeCollection.AppendAttribute(mark);
+
+                remote.Insert(insert);
+                IReadOnlyList<string> handles = remote.CommitChanges();
+
+                var made = Assert.IsType<DxfBlockReference>(document.FindEntity(Assert.Single(handles)));
+                DxfAttributeReference attribute = Assert.Single(made.AttributeCollection);
+                Assert.Equal("NOTE", attribute.TextStyleName);
+                Assert.Equal("romans.shx", document.Database.TextStyleTable["NOTE"].FileName);
+            }
+        }
+
+        [Fact]
+        public void AnInsertOfABlockOfYourOwnWhoseTextIsInATextStyleTheDrawingHas_IsAdded_WithTheStyleTheAppKeeps()
+        {
+            var (harness, document, remote) = Start(WithRecords("A-101.dxf"));
+            using (harness)
+            {
+                var scratch = new DxfDatabase("AC1027");
+                scratch.TextStyleTable.Add(new DxfTextStyleTableRecord { Name = "NOTE", FileName = "arial.ttf" });
+                var plate = new DxfBlockTableRecord { Name = "PLATE" };
+                scratch.BlockTable.Add(plate);
+                plate.AppendEntity(Text("NOTE"));
+
+                remote.Insert(new DxfBlockReference(new GeoPoint3(100, 50, 0), plate));
+                remote.CommitChanges();
+
+                DxfDBText inside = Assert.Single(document.Database.BlockTable["PLATE"].OfType<DxfDBText>());
+                Assert.Equal("NOTE", inside.TextStyleName);
+                Assert.Equal("romans.shx", document.Database.TextStyleTable["NOTE"].FileName);
+            }
+        }
+
+        [Fact]
         public void RecordsThatHoldAnObjectInModelSpace_AreRefused_AndNullIsRefused()
         {
             var (harness, _, remote) = Start(CadDocument.From(new DxfDatabase("AC1027"), "A-101.dxf"));

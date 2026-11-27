@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- **NEW.** MCP tools that make and change multileader styles and table styles: `add_multileader_style`, `set_multileader_style`,
+  `set_current_multileader_style`, `add_table_style`, `set_table_style` and `set_current_table_style` (6 more tools, 137 in all), in a
+  drawing file and attached to an app, one undo step each and refused by `--read-only`. A style is a copy of another (`from`) with the
+  settings given: for a multileader style `text_style`, `text_height`, `arrow`, `arrow_size`, `landing_gap`, `landing_length`, `landing`
+  and a `scale` or `annotative`; for a table style `text_style`, `title_height`, `header_height`, `data_height`, `horizontal_margin`,
+  `vertical_margin` and `description`; every length in millimetres as drawn, so a note on a sheet plotted at 1:10 is `scale=10` with
+  `text_height=2.5` (words 25 high in model space). A refusal part way (a text style the drawing lacks, a height of 0, `scale` with
+  `annotative`) leaves no style behind. They are four new edits of `CadMake` (`add_mleader_style`, `set_mleader_style`,
+  `add_table_style`, `set_table_style`), which the Remote `make` request carries, built on `CadMLeaderStyleEditor` and
+  `CadTableStyleEditor`. The acceptance of the server now draws its note and a parts table in styles made for the 1:10 sheet (the
+  table's words 2.5 on paper, 25 in model space, where the default table's 4.5 would print 0.45 mm).
+- **FIXED.** MCP `add_mleader` with a `style` failed in a drawing that had no multileader style named Standard yet (a new drawing): the call
+  tried to put back the style that was current, which the drawing did not have, and a file took the note back; it puts back only a style
+  the drawing has. `measure_leader` with a `style` the drawing has failed in such a
+  drawing ("no multileader style Standard in ACAD_MLEADERSTYLE for the MULTILEADER to take"; `CadMeasure.Leader` now gives its scratch drawing
+  a Standard), and measured at the scale left in MLEADERSCALE and not the style's, which `add_mleader` draws in (a style of scale 10
+  measured 3.25 high where the note is drawn ten times that); with a `style` and no `scale` it is measured at the style's scale.
+- **FIXED.** Python and Remote: an INSERT of a block whose attribute definitions use a text style of the drawing, not Standard, failed at the
+  commit with "The text style SYN is not in the file's text style table". The attributes an INSERT carries are texts of their own, in the
+  style (and linetype) of their definitions, and the step that gives the commit's small drawing the styles an object names (`needs` in
+  `opencad2d.cad`, `CadRemoteDocument.Provide`) did not look at them. `add_insert(..., attributes=)` of a block of NOTE attributes
+  worked only in the same commit as the Remote `AddRecords` of the block; a file failed at once. The MCP server was not affected: its
+  inserts are made in the drawing itself. `opencad2d.synth` gives its title block's attributes its own style SYN again.
 - **NEW.** Parallel workers with the same answers, and seeded synthetic drawings (PW7.8, PW7.9). `opencad2d.parallel.run_many(function, items,
   workers, seed)` runs `function(item, item_seed)` in spawned worker processes, each loading .NET once, with the seed of an item a hash of
   the run's seed and its place in the list, so the values are the same for one worker or eight and for any order of finishing; the

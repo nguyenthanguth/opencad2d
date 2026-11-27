@@ -245,6 +245,18 @@ namespace OpenCAD2D.Mcp
                 "list_dimension_styles"
             ),
             Record(
+                "MLEADERSTYLE",
+                "a multileader style, an object of the drawing and no entity (listed by list_multileader_styles, changed by set_multileader_style)",
+                "add_multileader_style",
+                "list_multileader_styles"
+            ),
+            Record(
+                "TABLESTYLE",
+                "a table style, an object of the drawing and no entity (listed by list_table_styles, changed by set_table_style)",
+                "add_table_style",
+                "list_table_styles"
+            ),
+            Record(
                 "LAYER",
                 "a layer, a record of the drawing and no entity (listed by list_layers)",
                 "add_layer",

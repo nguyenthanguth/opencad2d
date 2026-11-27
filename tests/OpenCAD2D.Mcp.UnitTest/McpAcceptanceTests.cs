@@ -301,6 +301,30 @@ namespace OpenCAD2D.Mcp.UnitTest
                     ("text_height", 2.5),
                     ("arrow_size", 2.5)
                 ),
+                // The note and the table are drawn at 1:10 on the sheet: a multileader style whose words are 2.5 on paper (scale 10), and a
+                // table style whose title, header and data are 3.5, 2.5 and 2.5 on paper, with margins of 1.5.
+                S(
+                    "mlPlan",
+                    "add_multileader_style",
+                    ("name", "PLAN-NOTE"),
+                    ("text_style", "NOTE"),
+                    ("text_height", 2.5),
+                    ("arrow_size", 2.5),
+                    ("landing_gap", 2.0),
+                    ("landing_length", 8.0),
+                    ("scale", 10.0)
+                ),
+                S(
+                    "tbPlan",
+                    "add_table_style",
+                    ("name", "PLAN-TABLE"),
+                    ("text_style", "NOTE"),
+                    ("title_height", 35.0),
+                    ("header_height", 25.0),
+                    ("data_height", 25.0),
+                    ("horizontal_margin", 15.0),
+                    ("vertical_margin", 15.0)
+                ),
                 S("cur", "set_current_layer", ("name", "Plate")),
                 // The plate 1000 by 600, its weld line 40 inside (a dashed layer), and a hatched pad.
                 S(
@@ -518,6 +542,28 @@ namespace OpenCAD2D.Mcp.UnitTest
                     ("freeze_layers", new[] { "Hidden" })
                 ),
                 S("back", "set_current_layer", ("name", "Notes")),
+                // A parts list under the plate, in the table style sized for the sheet: 2 columns of 400 and the 3 data rows under the title and
+                // the header (a table 800 wide and 330 high, all of it in the 1:10 viewport).
+                S(
+                    "parts",
+                    "add_table",
+                    ("at", new[] { 0.0, -500.0 }),
+                    ("columns", 2),
+                    ("rows", 3),
+                    ("column_width", 400.0),
+                    ("style", "PLAN-TABLE"),
+                    (
+                        "cells",
+                        new[]
+                        {
+                            new[] { "PARTS" },
+                            new[] { "MARK", "QTY" },
+                            new[] { "PL10", "1" },
+                            new[] { "HOLE", "6" },
+                        }
+                    ),
+                    ("layer", "Notes")
+                ),
             };
             return steps;
         }
@@ -610,7 +656,7 @@ namespace OpenCAD2D.Mcp.UnitTest
                             ("arrow", new[] { 700.0, 50.0 }),
                             ("landing", l),
                             ("text", "NOTCH"),
-                            ("scale", 10.0)
+                            ("style", "PLAN-NOTE")
                         ),
                     Add = l =>
                         S(
@@ -619,7 +665,7 @@ namespace OpenCAD2D.Mcp.UnitTest
                             ("arrow", new[] { 700.0, 50.0 }),
                             ("landing", l),
                             ("text", "NOTCH"),
-                            ("scale", 10.0),
+                            ("style", "PLAN-NOTE"),
                             ("layer", "Notes")
                         ),
                 },
@@ -744,6 +790,9 @@ namespace OpenCAD2D.Mcp.UnitTest
             finish.Add(T("layers", "list_layers"));
             finish.Add(T("textStyles", "list_text_styles"));
             finish.Add(T("dimStyles", "list_dimension_styles"));
+            finish.Add(T("mleaderStyles", "list_multileader_styles"));
+            finish.Add(T("tableStyles", "list_table_styles"));
+            finish.Add(T("partsBox", "bounds", ("handles", new object[] { "$parts.handle" })));
             finish.Add(T("sheetWords", "get_texts", ("layout", "Sheet1")));
 
             // A step that writes a file ends the plan: it is written once what the plan drew is kept.
@@ -752,6 +801,18 @@ namespace OpenCAD2D.Mcp.UnitTest
 
             Assert.Equal(0, (int)d["overModel"]["total"]);
             Assert.Equal(0, (int)d["overSheet"]["total"]);
+
+            // The note and the table are in styles sized for the 1:10 sheet: words 2.5 on paper are 25 in model space, a table of 800 by
+            // 330 with its title 35, header and data 25 high.
+            JsonNode noteStyle = d["mleaderStyles"].AsArray().Single(s => (string)s["name"] == "PLAN-NOTE");
+            Assert.Equal(2.5, (double)noteStyle["textHeight"], 6);
+            Assert.Equal(10.0, (double)noteStyle["scale"], 6);
+            JsonNode tableStyle = d["tableStyles"].AsArray().Single(s => (string)s["name"] == "PLAN-TABLE");
+            Assert.Equal(25.0, (double)tableStyle["data"]["textHeight"], 6);
+            Assert.Equal(35.0, (double)tableStyle["title"]["textHeight"], 6);
+            double[] partsBox = Numbers(d["partsBox"]["rows"][0]["box"]);
+            Assert.InRange(partsBox[2] - partsBox[0], 790.0, 810.0);
+            Assert.InRange(partsBox[3] - partsBox[1], 320.0, 340.0);
             Assert.True(
                 (double)d["standard"]["score"] == 1.0,
                 "check_standard: " + d["standard"]["violations"].ToJsonString()
@@ -837,7 +898,7 @@ namespace OpenCAD2D.Mcp.UnitTest
             Assert.Equal(841.89, double.Parse(page.Groups[2].Value, CultureInfo.InvariantCulture), 0);
             string words = PdfWords.Of(pdfBytes).Replace(" ", string.Empty);
 
-            foreach (string word in new[] { "PLATE", "A-100", "1:10AND1:5", "NOTCH" })
+            foreach (string word in new[] { "PLATE", "A-100", "1:10AND1:5", "NOTCH", "PARTS", "PL10" })
             {
                 if (!words.Contains(word))
                 {

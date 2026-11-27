@@ -176,9 +176,10 @@ namespace OpenCAD2D.Remote
         /// objects (<c>new DxfBlockReference(point, record)</c> with <c>record</c> in a <c>DxfDatabase</c> of yours); a block the
         /// drawing has already is the drawing's own, whatever yours holds. An INSERT of a block that is neither in the
         /// drawing nor defined with objects is refused at the commit. A dimension made in code is drawn by the app, with the
-        /// drawing's current dimension style unless it names one. A text or MTEXT that names a text style, or any object that
-        /// names a linetype, is one the drawing has (the app's own record is kept) or <see cref="AddRecords"/> adds in the same
-        /// commit; one nobody has is refused at once, as the library refuses an object that names a style its drawing has not.
+        /// drawing's current dimension style unless it names one. A text or MTEXT (or an attribute of an INSERT) that names a
+        /// text style, or any object that names a linetype, is one the drawing has (the app's own record is kept) or
+        /// <see cref="AddRecords"/> adds in the same commit; one nobody has is refused at once, as the library refuses an
+        /// object that names a style its drawing has not.
         /// </summary>
         /// <param name="entity">The object.</param>
         /// <param name="layout">The name of the layout to put it in; null for model space.</param>
