@@ -15,6 +15,7 @@ namespace OpenCAD2D.UnitTest
     /// 3 000 by 3 000, so that some thousands of pairs overlap. The limits are ceilings a quadratic test or an index that is not
     /// reused crosses by a long way; the times are written to the test output.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class SpatialSpeedTests : IDisposable
     {
         private readonly SpatialDrawings _drawings = new SpatialDrawings();

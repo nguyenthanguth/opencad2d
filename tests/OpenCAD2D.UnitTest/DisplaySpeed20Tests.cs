@@ -17,6 +17,7 @@ namespace OpenCAD2D.UnitTest
     /// trimmed with no builder and no array made. Each is checked against the entities drawn alone, by a builder of its own for
     /// each, item for item, and held by the bytes allocated, which do not vary with the machine as a time does.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class DisplaySpeed20Tests
     {
         private static string Handle(int i) => (0x100 + i).ToString("X", CultureInfo.InvariantCulture);

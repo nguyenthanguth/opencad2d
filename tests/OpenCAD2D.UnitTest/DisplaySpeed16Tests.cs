@@ -16,6 +16,7 @@ namespace OpenCAD2D.UnitTest
     /// ahead, and a layer switched off patched in pieces on several threads. Each is checked against the entities drawn alone
     /// or a REGEN, item for item, and held by the bytes allocated, which do not vary with the machine as a time does.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class DisplaySpeed16Tests
     {
         private static CadDocument Open(string text) =>

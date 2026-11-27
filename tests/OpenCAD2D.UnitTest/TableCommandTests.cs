@@ -14,6 +14,7 @@ namespace OpenCAD2D.UnitTest
     /// TABLE, -TABLE, TABLEDIT and TABLESTYLE, and the edits of a table's cells, as AutoCAD 2021's: each table made and each
     /// cell written one undo step, the table drawn anew in its block after each.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class TableCommandTests
     {
         private static CadDocument Metric() => CadDocument.From(CadTemplate.CreateMetric(), "metric.dxf");

@@ -17,6 +17,7 @@ namespace OpenCAD2D.UnitTest
     /// need are defined here on a bare interpreter, so nothing of the drawing is involved. Each test runs its caller on a
     /// thread of its own, with a time limit, because the fault such a hand-off has is a deadlock.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class LispHostTests : IDisposable
     {
         private readonly string _folder = Path.Combine(

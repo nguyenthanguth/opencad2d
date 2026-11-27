@@ -107,8 +107,8 @@ dotnet csharpier check .
 ```
 
 - `--no-incremental` is not optional: analyzers run only when the compiler runs.
-- A few timing tests fail under load (DisplaySpeed16, DisplayPatchPlaces, TableCommandTests, SelectObjectsOptions);
-  rerun one alone before calling it a failure.
+- Timing tests sit in the `ViewerSpeedCollection` (`[Collection(ViewerSpeedCollection.Name)]`), which runs alone after the
+  rest; a new timing test goes there too. If one still fails, rerun it alone before calling it a failure.
 - Report what happened. A suite skipped or a test failing is said plainly, with the output.
 - Tests never show a real window or dialog, and never write the user's settings (`%AppData%\OpenCAD2D`).
 

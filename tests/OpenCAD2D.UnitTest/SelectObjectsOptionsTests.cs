@@ -14,6 +14,7 @@ namespace OpenCAD2D.UnitTest
     /// Previous, Group, Remove, Add, Undo, Multiple, SIngle and AUto typed, and Shift to take out what is picked. Each runs
     /// ERASE over <see cref="Plan"/>, whose objects A1 to A8 it describes.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class SelectObjectsOptionsTests
     {
         private readonly ITestOutputHelper _output;

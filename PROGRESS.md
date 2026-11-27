@@ -154,9 +154,9 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 - [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3.
 
 State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper
-13.15.0 at cf1db73e pushed and in Lib. The full check of CLAUDE.md (incl. the Mcp suite) is green; timing tests
-(DisplaySpeed16/20, DisplayPatchPlaces, SelectObjectsOptions, TableCommandTests, PythonEnvTests) may fail under load
-and pass alone. Every finished piece of work gets an independent review before it lands on main.
+13.15.0 at cf1db73e pushed and in Lib. The full check of CLAUDE.md (incl. the Mcp suite) is green; the timing test classes
+run alone after the rest (ViewerSpeedCollection, 2026-11-27), so they no longer fail under the suite's own load.
+CHANGELOG.md keeps Unreleased; released versions are in CHANGELOG-ARCHIVE.md. Every finished piece of work gets an independent review before it lands on main.
 
 ## The website and Share (planned 2026-11-23)
 

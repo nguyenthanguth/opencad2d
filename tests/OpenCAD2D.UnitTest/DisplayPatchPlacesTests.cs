@@ -18,6 +18,7 @@ namespace OpenCAD2D.UnitTest
     /// list, its box and the insertion points of every entity against a drawing that gets the same edits and is regenerated
     /// after each of them.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class DisplayPatchPlacesTests
     {
         private static CadDocument Open(string text) =>
