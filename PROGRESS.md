@@ -151,6 +151,10 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       lookup copies the whole drawing (plan: a Remote request that lists multileader and table styles with their scales,
       as the text style list is carried, then list_multileader_styles, list_table_styles and measure_leader(style=) read
       it, and get_entity would read the name from it too).
+- [ ] N6. Timing tests are spread over many files (names with Speed, Timed, Milliseconds, Seconds, UnderTwoSeconds...);
+      CI leaves them out by name, which misses some (VlSort_..._WithinAHundredMilliseconds failed on the hosted runner on
+      039bf014). Give every timing test a [Trait("Category", "Timing")] (the SpeedGuard users and the Stopwatch asserts),
+      put them in ViewerSpeedCollection, and let CI filter Category!=Timing.
 - [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3.
 
 State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper
