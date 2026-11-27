@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **FIXED.** MCP `add_hatch(handles=)` from objects: an ellipse or elliptic arc at a height (z 5) was refused by the library ("not in the plane of
+  the HATCH") where lines, arcs, polylines and circles at that height were flattened: all are flattened now, and a line whose ends differ in
+  height is refused (it was flattened silently). A piece shorter than the tolerance (a line of no length, an arc of 359.9997 degrees of a
+  small radius) no longer closes on itself and refuses the whole hatch: it is left out, and a hatch of nothing else is refused; an outline
+  with an elliptic arc is refused for no area as one of lines and arcs is.
+- **FIXED.** MCP attached to an app: a multileader or table was read from a copy of the whole drawing for every handle (`find_at` of 20 handles,
+  `select` previous); the copy is made once for all the handles asked, and the listing of a layout and the objects asked by handle read
+  these two kinds the same way (their style name is not null).
+- **FIXED.** Python `run_many(timeout=)`: a worker that ended before it was ready (a replacement after a timeout too) raised `RuntimeError` and
+  lost the outcomes collected, a worker ended while idle gave the next item a `BrokenPipeError`, and a worker that hung while it started hung
+  the run. A run with a timeout never raises once its workers are started: a worker lost outside an item is replaced (it has `START_TIMEOUT`,
+  120 s, to say it is ready), and after 3 the items not yet sent get a `WorkerStartError` each. `timeout=math.inf` raised `OverflowError`; a
+  timeout must be finite. Ctrl+C in a timed run stops the workers.
 - **NEW.** MCP `add_hatch(handles=)` takes the objects of a boundary as AutoCAD does, not closed polylines and circles only: whole
   ellipses, and lines, arcs, open polylines and elliptic arcs that join end to end (within 0.001 mm, any order, any direction) into a
   closed loop, which are one outline together at the place of their first handle (four lines 100 by 60 hatch an area of 6000; two lines

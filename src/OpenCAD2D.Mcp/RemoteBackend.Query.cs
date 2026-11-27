@@ -11,20 +11,32 @@ namespace OpenCAD2D.Mcp
     {
         public object DrawingKey => Document.Id;
 
-        public EntityRef Find(string handle)
-        {
-            DxfEntity entity = Document.GetObject(handle);
+        public EntityRef Find(string handle) => FindAll(new[] { handle }).FirstOrDefault();
 
-            // The app's copy of a multileader or a table carries no style table to find its style's name in: the entity of a copy of
-            // the whole database has it (a drawing is copied only for these two kinds).
-            if (entity is DxfMLeader || entity is DxfTable)
+        public IReadOnlyList<EntityRef> FindAll(IReadOnlyList<string> handles)
+        {
+            List<DxfEntity> entities = handles.Select(h => Document.GetObject(h)).ToList();
+            CadDocument copy = null;
+
+            for (int i = 0; i < entities.Count; i++)
             {
-                entity = CadDocument.From(Document.GetDatabase(), Name).FindEntity(handle) ?? entity;
+                // The app does not hand out a viewport, and its copy of a multileader or a table has no style table to find the name
+                // of its style in: both are read from one copy of the whole database, made once for all the handles.
+                if (entities[i] == null || entities[i] is DxfMLeader || entities[i] is DxfTable)
+                {
+                    copy = copy ?? CadDocument.From(Document.GetDatabase(), Name);
+                    DxfEntity inCopy = copy.FindEntity(handles[i]);
+                    entities[i] =
+                        entities[i] == null
+                            ? (inCopy is DxfViewport viewport && !viewport.IsErased ? viewport : null)
+                            : inCopy ?? entities[i];
+                }
             }
 
-            // The app does not hand out a viewport: it is read from a copy of its database.
-            entity = entity ?? ViewportsOf(new[] { handle }).Values.FirstOrDefault();
-            return entity == null ? null : new EntityRef(handle, entity);
+            return handles
+                .Select((h, i) => entities[i] == null ? null : new EntityRef(h, entities[i]))
+                .Where(e => e != null)
+                .ToList();
         }
 
         public PaletteView Properties(IReadOnlyList<string> handles)

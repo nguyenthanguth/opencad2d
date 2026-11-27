@@ -43,6 +43,9 @@ namespace OpenCAD2D.Mcp
         /// <summary>The entity of a handle, or null where the drawing has none (or it is erased).</summary>
         EntityRef Find(string handle);
 
+        /// <summary>The objects of the handles the drawing has, in the order given; a handle it has not is left out.</summary>
+        IReadOnlyList<EntityRef> FindAll(IReadOnlyList<string> handles);
+
         /// <summary>What the Properties palette shows for the entities of the handles, as if they were selected.</summary>
         PaletteView Properties(IReadOnlyList<string> handles);
 

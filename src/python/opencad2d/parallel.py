@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import math
 import multiprocessing
 import os
 import time
@@ -33,6 +34,12 @@ R = TypeVar("R")
 
 MAX_WORKERS: int = 61
 """The most worker processes a run uses: Windows cannot wait on more than 61 at once, and ``ProcessPoolExecutor`` fails above it."""
+
+START_TIMEOUT: float = 120.0
+"""The seconds a worker of a run with a ``timeout`` may take to load .NET and say it is ready; one that takes longer is stopped and counts as a worker lost."""
+
+_FAILED_STARTS: int = 3
+"""How many workers of a run with a ``timeout`` may be lost outside an item (ended or silent before they were ready, or ended while idle) and replaced: the next one lost gives the items not yet sent an error each."""
 
 _Link: TypeAlias = "Connection[Any, Any] | PipeConnection[Any, Any]"
 """A pipe to a worker: Windows gives a ``PipeConnection``, which this app is for."""
@@ -91,19 +98,30 @@ def _call(function: Callable[[T, int], R], index: int, item: T, seed: int) -> Ou
 
 @dataclass
 class _Slot:
-    """One worker of a timed run: its process, the pipe to it, whether it has loaded .NET and, while it has an item, which one and when it began."""
+    """One worker of a timed run: its process, the pipe to it, when it was hired, whether it has loaded .NET and, while it has an
+    item, which one and when it began."""
 
     process: BaseProcess
     connection: _Link
+    hired: float
     ready: bool = False
     index: int | None = None
     started: float = 0.0
+
+
+def _no_hook() -> None:
+    """What a worker of a timed run does once it has said it is ready: nothing."""
+
+
+_after_ready: Callable[[], None] = _no_hook
+"""What a worker of a timed run calls once it has said it is ready; a test sets it, in the worker, to end it at that moment."""
 
 
 def _serve(connection: _Link, function: Callable[[Any, int], Any]) -> None:
     """The loop of a worker of a timed run: loads .NET, says it is ready, then answers each item it is sent until it is sent None."""
     _start()
     connection.send(None)
+    _after_ready()
     while True:
         job = connection.recv()
         if job is None:
@@ -120,17 +138,21 @@ def _run_timed(
     function: Callable[[T, int], R], listed: list[T], seeds: list[int], count: int, timeout: float
 ) -> list[Outcome[R]]:
     """Runs the items in ``count`` worker processes of its own, each item for no longer than ``timeout`` seconds: the process of an
-    item that runs over is stopped and a new one is started in its place, which is why this is not a ``ProcessPoolExecutor``."""
+    item that runs over is stopped and a new one is started in its place, which is why this is not a ``ProcessPoolExecutor``.
+    It does not raise once the workers are started: a worker that ends or says nothing outside an item is replaced, and when
+    ``_FAILED_STARTS`` have been lost the items not yet sent get an error each; what was collected is kept."""
     context = multiprocessing.get_context("spawn")
     outcomes: list[Outcome[R] | None] = [None] * len(listed)
     slots: list[_Slot] = []
+    failed = 0
+    following = 0
 
     def hire() -> _Slot:
         mine, theirs = context.Pipe()
         process = context.Process(target=_serve, args=(theirs, function), daemon=True)
         process.start()
         theirs.close()
-        return _Slot(process, mine)
+        return _Slot(process, mine, time.monotonic())
 
     def fire(slot: _Slot) -> None:
         slot.process.terminate()
@@ -141,31 +163,62 @@ def _run_timed(
         fire(slot)
         slots[slots.index(slot)] = hire()
 
+    def lose(slot: _Slot, why: str) -> None:
+        """A worker that ended, or said nothing, outside an item: replaced, until too many have been."""
+        nonlocal failed, following
+        failed += 1
+        if failed <= _FAILED_STARTS:
+            replace(slot)
+            return
+        fire(slot)
+        slots.remove(slot)
+        for index in range(following, len(listed)):
+            outcomes[index] = Outcome(index, seeds[index], None, f"WorkerStartError: {why}", 0.0)
+        following = len(listed)
+
     try:
         slots.extend(hire() for _ in range(min(count, len(listed))))
-        following = 0
-        while any(outcome is None for outcome in outcomes):
-            for slot in slots:
+        while any(outcome is None for outcome in outcomes) and slots:
+            for slot in list(slots):
                 if slot.ready and slot.index is None and following < len(listed):
                     try:
                         slot.connection.send((following, listed[following], seeds[following]))
-                        slot.index, slot.started = following, time.monotonic()
+                    except OSError:  # the worker ended while it was idle: the item stays to be sent to another
+                        lose(slot, "a worker process ended before it was given an item")
+                        continue
                     except Exception as error:  # noqa: BLE001  (an item that does not pickle is its own error)
-                        outcomes[following] = Outcome(following, seeds[following], None, f"{type(error).__name__}: {error}", 0.0)
+                        outcomes[following] = Outcome(
+                            following, seeds[following], None, f"{type(error).__name__}: {error}", 0.0
+                        )
+                        following += 1
+                        continue
+                    slot.index, slot.started = following, time.monotonic()
                     following += 1
             now = time.monotonic()
-            running = [timeout - (now - slot.started) for slot in slots if slot.index is not None]
-            for connection in wait([slot.connection for slot in slots], max(0.0, min(running)) if running else None):
-                slot = next(s for s in slots if s.connection is connection)
+            limits = [
+                timeout - (now - slot.started) if slot.index is not None else START_TIMEOUT - (now - slot.hired)
+                for slot in slots
+                if slot.index is not None or not slot.ready
+            ]
+            waited = max(0.0, min(limits)) if limits else None
+            for connection in wait([slot.connection for slot in slots], waited):
+                slot = next((s for s in slots if s.connection is connection), None)
+                if slot is None:
+                    continue
                 try:
                     message = slot.connection.recv()
                 except (EOFError, OSError):
-                    if slot.index is None:
-                        raise RuntimeError("A worker process ended before it had started.") from None
-                    outcomes[slot.index] = Outcome(
-                        slot.index, seeds[slot.index], None, "BrokenProcessPool: the worker process ended", 0.0
-                    )
-                    replace(slot)
+                    if slot.index is not None:  # an item that ended its worker: its own error, the worker replaced
+                        outcomes[slot.index] = Outcome(
+                            slot.index,
+                            seeds[slot.index],
+                            None,
+                            "BrokenProcessPool: the worker process ended",
+                            time.monotonic() - slot.started,
+                        )
+                        replace(slot)
+                    else:
+                        lose(slot, "a worker process ended before it had an item" if slot.ready else "a worker process ended before it was ready")
                     continue
                 if slot.index is None:
                     slot.ready = True
@@ -183,7 +236,12 @@ def _run_timed(
                         now - slot.started,
                     )
                     replace(slot)
-        return [outcome for outcome in outcomes if outcome is not None]
+                elif not slot.ready and now - slot.hired > START_TIMEOUT:
+                    lose(slot, f"a worker process was not ready {START_TIMEOUT} s after it was started")
+        return [
+            outcome if outcome is not None else Outcome(index, seeds[index], None, "WorkerStartError: no worker was left", 0.0)
+            for index, outcome in enumerate(outcomes)
+        ]
     finally:
         for slot in slots:
             fire(slot)
@@ -211,7 +269,11 @@ def run_many(
     starts ``TimeoutError`` and ``seconds`` as long as it ran, its worker process is stopped and a new one takes its place, and the
     other items go on, the results still in the order of ``items``. The time counts from the moment a worker that has loaded .NET
     starts the item, not from the start of the run. A timeout is a limit on a process, so a run with a ``timeout`` uses worker
-    processes even for ``workers=1``. Raises ``ValueError`` for ``workers`` below 1 or a ``timeout`` that is not above 0.
+    processes even for ``workers=1``, and the function must be picklable (it raises at once where it is not, as a lambda is not, and the
+    items and values that are not are the errors of their items). Ctrl+C stops the workers, running items and all, and raises at once.
+    A worker that ends or says nothing outside an item (it has ``START_TIMEOUT``, 120 s, to load .NET and say it is ready) is replaced; after
+    3 such the items not yet sent are an ``Outcome`` with a ``WorkerStartError`` each and the call returns what it has. Raises
+    ``ValueError`` for ``workers`` below 1 or a ``timeout`` that is not a finite number above 0.
 
     Example:
         def work(item: int, seed: int) -> float:                      # at the top of a module
@@ -225,8 +287,8 @@ def run_many(
     listed = list(items)
     if workers is not None and workers < 1:
         raise ValueError(f"workers is 1 or more, not {workers}.")
-    if timeout is not None and not timeout > 0.0:
-        raise ValueError(f"timeout is above 0 seconds, not {timeout}.")
+    if timeout is not None and not (timeout > 0.0 and math.isfinite(timeout)):
+        raise ValueError(f"timeout is above 0 seconds and finite, not {timeout}.")
     count = min(workers or os.cpu_count() or 1, len(listed), MAX_WORKERS)
     seeds = [item_seed(seed, index) for index in range(len(listed))]
     if timeout is not None and listed:

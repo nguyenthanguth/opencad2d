@@ -540,7 +540,7 @@ namespace OpenCAD2D.Mcp
                             break;
                         case DxfEllipse whole when whole.Closed:
                             Facing(whole.Normal, handle);
-                            fromHandles.Add((order, (null, null, new object[] { whole.ToGeoEllipse3() })));
+                            fromHandles.Add((order, (null, null, new object[] { OnTheFloor(whole.ToGeoEllipse3()) })));
                             break;
                         case DxfLine line:
                             pieces.Add(HatchPiece.OfLine(handle, order, line));
@@ -629,6 +629,10 @@ namespace OpenCAD2D.Mcp
 
             return normal.Z < 0.0 ? -1 : 1;
         }
+
+        /// <summary>An ellipse moved to the floor (z 0), where a hatch is made: a circle or a polyline at a height is flattened the same way.</summary>
+        private static GeoEllipse3 OnTheFloor(GeoEllipse3 ellipse) =>
+            ellipse.Translate(new GeoVector3(0.0, 0.0, -ellipse.Center.Z));
 
         /// <summary>A circle as the outline of a hatch: two vertices on its ends across, each a half circle (bulge 1) to the other.</summary>
         private static (GeoPoint2[] Points, double[] Bulges, object[] Edges) Circular(GeoPoint3 center, double radius)

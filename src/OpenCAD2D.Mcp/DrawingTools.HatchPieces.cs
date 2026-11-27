@@ -43,14 +43,30 @@ namespace OpenCAD2D.Mcp
 
             public GeoPoint2 End => Points[Points.Length - 1];
 
-            public static HatchPiece OfLine(string handle, int order, DxfLine line) =>
-                new HatchPiece(
+            public static HatchPiece OfLine(string handle, int order, DxfLine line)
+            {
+                // A line is flattened as a circle or a polyline at a height is, but not one that rises: its ends are not on the floor together.
+                double rise = line.EndPoint.Z - line.StartPoint.Z;
+
+                if (Math.Abs(rise) > Tol.EqualPoint)
+                {
+                    throw new ArgumentException(
+                        "The entity "
+                            + handle
+                            + " is a line whose ends differ in height by "
+                            + EntityDescriber.R(rise)
+                            + ": a hatch takes an outline that lies in the plane of the drawing."
+                    );
+                }
+
+                return new HatchPiece(
                     handle,
                     order,
                     new[] { Flat(line.StartPoint), Flat(line.EndPoint) },
                     new[] { 0.0 },
                     null
                 );
+            }
 
             public static HatchPiece OfArc(string handle, int order, DxfArc arc, int facing)
             {
@@ -75,7 +91,7 @@ namespace OpenCAD2D.Mcp
 
             public static HatchPiece OfEllipse(string handle, int order, DxfEllipse part)
             {
-                GeoSpline3 spline = part.ToGeoSpline3();
+                GeoSpline3 spline = part.ToGeoSpline3().Translate(new GeoVector3(0.0, 0.0, -part.Center.Z));
                 return new HatchPiece(
                     handle,
                     order,
@@ -108,7 +124,20 @@ namespace OpenCAD2D.Mcp
             )
             {
                 var outlines = new List<(int Order, (GeoPoint2[] Points, double[] Bulges, object[] Edges) Loop)>();
-                var used = new bool[pieces.Count];
+                // A piece shorter than the tolerance (a line of no length, an arc that comes back to its start) closes on itself and
+                // would be an outline of its own: it is left out of the chains, and a hatch of nothing else is refused.
+                bool[] used = pieces.Select(p => p.IsShort(tolerance)).ToArray();
+
+                if (pieces.Count > 0 && used.All(u => u))
+                {
+                    throw new ArgumentException(
+                        "The objects "
+                            + string.Join(", ", pieces.Select(p => p.Handle))
+                            + " are each shorter than "
+                            + EntityDescriber.R(tolerance.EqualPoint)
+                            + " mm: they enclose no area."
+                    );
+                }
 
                 for (int first = 0; first < pieces.Count; first++)
                 {
@@ -173,6 +202,11 @@ namespace OpenCAD2D.Mcp
                 return outlines;
             }
 
+            /// <summary>Whether the piece has no length within the tolerance: all its vertices at its start, or one side that ends where it starts.</summary>
+            private bool IsShort(Tolerance tolerance) =>
+                Points.All(p => p.IsEqualTo(Start, tolerance))
+                || (Points.Length == 2 && Start.IsEqualTo(End, tolerance));
+
             /// <summary>The chain turned about: its vertices the other way round and its bulges the other way round and of the other sign.</summary>
             private HatchPiece Reversed() =>
                 new HatchPiece(
@@ -205,7 +239,7 @@ namespace OpenCAD2D.Mcp
                         var from = new GeoPoint3(piece.Points[i].X, piece.Points[i].Y, 0.0);
                         var to = new GeoPoint3(piece.Points[i + 1].X, piece.Points[i + 1].Y, 0.0);
                         edges.Add(
-                            piece.Bulges[i] == 0.0
+                            Math.Abs(piece.Bulges[i]) <= Tol.EqualVector
                                 ? new GeoEdge3(from, to)
                                 : new GeoEdge3(from, to, piece.Bulges[i], up)
                         );
@@ -221,6 +255,18 @@ namespace OpenCAD2D.Mcp
                 )
                 {
                     throw new ArgumentException("The objects " + handles + " enclose no area.");
+                }
+
+                // The same for a chain with the part of an ellipse, by the area the hatch it would make has.
+                if (chain.Any(p => p.Spline != null))
+                {
+                    var probe = new DxfHatch();
+                    probe.AppendLoop(new DxfHatchLoop(DxfHatchLoopTypes.External, edges));
+
+                    if (!(probe.Area > Tol.EqualPoint * Tol.EqualPoint))
+                    {
+                        throw new ArgumentException("The objects " + handles + " enclose no area.");
+                    }
                 }
 
                 return chain.Any(p => p.Spline != null)

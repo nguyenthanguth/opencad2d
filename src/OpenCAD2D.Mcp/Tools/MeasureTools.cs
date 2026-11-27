@@ -207,10 +207,8 @@ namespace OpenCAD2D.Mcp
                         new List<GeoPoint2> { new GeoPoint2(at.X, at.Y) },
                         aperture
                     );
-                List<EntityInfo> found = handles
-                    .Take(MostAtPoint)
-                    .Select(h => Q(drawing).Find(h))
-                    .Where(e => e != null)
+                List<EntityInfo> found = Q(drawing)
+                    .FindAll(handles.Take(MostAtPoint).ToList())
                     .Select(EntityDescriber.Describe)
                     .ToList();
                 Dictionary<string, double[]> boxes = DrawnBoxes(drawing, found.Select(i => i.Handle));

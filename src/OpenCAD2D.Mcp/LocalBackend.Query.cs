@@ -15,6 +15,9 @@ namespace OpenCAD2D.Mcp
             return entity == null || entity.IsErased ? null : new EntityRef(entity.Handle, entity);
         }
 
+        public IReadOnlyList<EntityRef> FindAll(IReadOnlyList<string> handles) =>
+            handles.Select(Find).Where(e => e != null).ToList();
+
         public PaletteView Properties(IReadOnlyList<string> handles)
         {
             CadSelectionInfo info = CadProperties.Describe(Document, null, handles.ToList());

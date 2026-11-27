@@ -632,7 +632,7 @@ namespace OpenCAD2D.Mcp
 
             if (how == "previous")
             {
-                return handles.Select(h => Q(drawing).Find(h)).Where(e => e != null).ToList();
+                return Q(drawing).FindAll(handles).ToList();
             }
 
             var wanted = new HashSet<string>(handles, StringComparer.OrdinalIgnoreCase);
