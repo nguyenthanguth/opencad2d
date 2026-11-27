@@ -107,7 +107,7 @@ namespace OpenCAD2D
             {
                 for (int i = 0; i < entities.Count; i++)
                 {
-                    NameStyle(entities[i], copies[i], fragment);
+                    NameStyle(document.Database, entities[i], copies[i], fragment);
                     Note(entities[i], copies[i], handles, references);
                 }
             }
@@ -120,7 +120,7 @@ namespace OpenCAD2D
                         DxfEntity single = document.Database.WblockCloneObjects(new[] { entity }, fragment.ModelSpace)[
                             0
                         ];
-                        NameStyle(entity, single, fragment);
+                        NameStyle(document.Database, entity, single, fragment);
                         Note(entity, single, handles, references);
                     }
                     catch (ArgumentException ex)
@@ -135,25 +135,23 @@ namespace OpenCAD2D
 
         /// <summary>
         /// Gives the copy of a multileader or a table the name of its style, as the original has it: the copy has no style table of
-        /// its drawing to name one from, so the small drawing holds a style of that name, of the default settings, which the copy
-        /// is set to. A program reading the copy takes the name from the object, with no copy of the whole drawing to find it in.
+        /// its drawing to name one from, so the small drawing holds a copy of the style itself, with the settings it has (its arrow
+        /// block, linetype and text style among the records the object brings), which the copy is set to. The copy keeps the arrow,
+        /// linetype and text style it had, and a program reading it takes the name and the settings from the object, with no copy of
+        /// the whole drawing to find them in.
         /// </summary>
-        private static void NameStyle(DxfEntity original, DxfEntity copy, DxfDatabase fragment)
+        private static void NameStyle(DxfDatabase source, DxfEntity original, DxfEntity copy, DxfDatabase fragment)
         {
             try
             {
                 if (original is DxfMLeader leader && copy is DxfMLeader leaderCopy && leader.MLeaderStyle != null)
                 {
                     string name = leader.MLeaderStyle;
+                    DxfMLeaderStyle real = CadMLeaderStyleEditor.Find(source, name);
 
-                    if (fragment.MLeaderStyleDictionary == null)
+                    if (real != null && CadMLeaderStyleEditor.Find(fragment, name) == null)
                     {
-                        fragment.NamedObjectsDictionary.SetAt("ACAD_MLEADERSTYLE", new DxfDBDictionary());
-                    }
-
-                    if (!fragment.MLeaderStyleDictionary.Contains(name))
-                    {
-                        fragment.MLeaderStyleDictionary.SetAt(name, new DxfMLeaderStyle());
+                        CarryMLeaderStyle(fragment, real, name);
                     }
 
                     leaderCopy.MLeaderStyle = name;
@@ -161,23 +159,49 @@ namespace OpenCAD2D
                 else if (original is DxfTable table && copy is DxfTable tableCopy && table.TableStyleName != null)
                 {
                     string name = table.TableStyleName;
+                    DxfTableStyle real = CadTableStyleEditor.Find(source, name);
 
-                    if (fragment.TableStyleDictionary == null)
+                    if (real != null && CadTableStyleEditor.Find(fragment, name) == null)
                     {
-                        fragment.NamedObjectsDictionary.SetAt("ACAD_TABLESTYLE", new DxfDBDictionary());
+                        CadTableStyleEditor.WriteNew(fragment, name, CadTableStyleSettings.Of(real));
                     }
 
-                    if (!fragment.TableStyleDictionary.Contains(name))
-                    {
-                        fragment.TableStyleDictionary.SetAt(name, new DxfTableStyle());
-                    }
-
-                    tableCopy.TableStyle = fragment.TableStyleDictionary[name] as DxfTableStyle;
+                    tableCopy.TableStyle = CadTableStyleEditor.Find(fragment, name);
                 }
             }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            catch (Exception ex)
+                when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException)
             {
                 GeometryHelperLog.Debug("CadRemoteServer: the style of " + original + " was not named: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Writes a style of the drawing into the small drawing under its name, with what the object it comes with brought: the
+        /// text style, linetype, arrow block and block of the style are the small drawing's own of those names, and left out where
+        /// the object did not bring them, so that the arrow block of a leader that takes its arrow from the style stays its own.
+        /// </summary>
+        private static void CarryMLeaderStyle(DxfDatabase fragment, DxfMLeaderStyle real, string name)
+        {
+            CadMLeaderStyleSettings settings = CadMLeaderStyleSettings.Of(real);
+            DxfBlockTableRecord arrow = real.ArrowSymbol;
+            settings.Arrowhead = CadArrowheads.ClosedFilled;
+
+            if (!fragment.TextStyleTable.Has(settings.TextStyle ?? string.Empty))
+            {
+                settings.TextStyle = "Standard";
+            }
+
+            if (!string.IsNullOrEmpty(settings.BlockName) && !fragment.BlockTable.Has(settings.BlockName))
+            {
+                settings.BlockName = string.Empty;
+            }
+
+            DxfMLeaderStyle style = CadMLeaderStyleEditor.WriteNew(fragment, name, settings);
+
+            if (arrow != null && fragment.BlockTable.Has(arrow.Name))
+            {
+                style.ArrowSymbol = fragment.BlockTable[arrow.Name];
             }
         }
 

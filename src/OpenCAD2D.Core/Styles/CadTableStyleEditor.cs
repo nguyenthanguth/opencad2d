@@ -683,6 +683,15 @@ namespace OpenCAD2D
             Write(style, Standard(database));
         }
 
+        /// <summary>Writes a table style of settings into a drawing under a name; a style of that name is not there already.</summary>
+        internal static DxfTableStyle WriteNew(DxfDatabase database, string name, CadTableStyleSettings settings)
+        {
+            var style = new DxfTableStyle();
+            Write(style, settings);
+            Dictionary(database).SetAt(name, style);
+            return style;
+        }
+
         /// <summary>The Standard <see cref="EnsureStandard"/> adds, made apart from the drawing, as a preview lays out a table in it.</summary>
         internal static DxfTableStyle StandardApart(DxfDatabase database)
         {

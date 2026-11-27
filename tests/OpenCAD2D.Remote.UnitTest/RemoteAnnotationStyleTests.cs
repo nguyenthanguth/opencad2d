@@ -34,6 +34,7 @@ namespace OpenCAD2D.Remote.UnitTest
             zeta.TextHeight = 3.5;
             zeta.ArrowSize = 4.0;
             zeta.Scale = 10.0;
+            zeta.Arrowhead = "Dot";
             Assert.True(CadMLeaderStyleEditor.Apply(document, "Zeta", zeta).Succeeded);
             CadMLeaderStyleSettings alpha = CadMLeaderStyleSettings.Of(CadMLeaderStyleEditor.Find(database, "alpha"));
             alpha.Annotative = true;
@@ -148,6 +149,68 @@ namespace OpenCAD2D.Remote.UnitTest
                 Assert.Equal(original.TextHeight, leader.TextHeight, 9);
                 Assert.Equal(original.ArrowSize, leader.ArrowSize, 9);
                 Assert.Equal(original.MText.Text, leader.MText.Text);
+            }
+        }
+
+        [Fact]
+        public void ALeaderThatTakesItsArrowFromItsStyle_KeepsTheArrowOnTheCopy_AndTheTableTheMarginsOfItsStyle()
+        {
+            var (harness, document, remote, note, table) = Start();
+            using (harness)
+            {
+                var original = (DxfMLeader)document.FindEntity(note);
+                Assert.Equal("_Dot", original.ArrowSymbol.Name);
+                var leader = (DxfMLeader)remote.GetObject(note);
+                var grid = (DxfTable)remote.GetObject(table);
+
+                Assert.NotNull(leader.ArrowSymbol);
+                Assert.Equal(original.ArrowSymbol.Name, leader.ArrowSymbol.Name);
+                var style = (DxfTableStyle)grid.TableStyle;
+                Assert.Equal(2.0, style.HorizontalCellMargin, 9);
+                Assert.Equal(3.0, style.VerticalCellMargin, 9);
+                Assert.Equal(6.0, style.TextHeight(DxfRowType.DataRow), 9);
+            }
+        }
+
+        [Fact]
+        public void ACopyOfALeaderCommittedBack_KeepsItsArrow_AndTheRealLeaderIsLeftAsItWas()
+        {
+            var (harness, document, remote, note, _) = Start();
+            using (harness)
+            {
+                string before = ((DxfMLeader)document.FindEntity(note)).ArrowSymbol.Name;
+
+                remote.Insert(remote.GetObject(note));
+                string made = Assert.Single(remote.CommitChanges());
+
+                var again = (DxfMLeader)document.FindEntity(made);
+                Assert.Equal(before, again.ArrowSymbol.Name);
+                // A commit carries no style object, as before: the new leader names none, and keeps the settings it was drawn with.
+                Assert.Null(again.MLeaderStyle);
+                Assert.Equal(before, ((DxfMLeader)document.FindEntity(note)).ArrowSymbol.Name);
+            }
+        }
+
+        [Fact]
+        public void ACopyCommittedIntoADrawingWithoutItsStyle_MakesNoStyleThere()
+        {
+            var harness = new Harness();
+            var host = new TestHost();
+            CadDocument source = host.Add(Styled(out string note, out _));
+            CadDocument bare = host.Add(CadDocument.From(new DxfDatabase("AC1027"), "bare.dxf"));
+            harness.Serve(host);
+
+            using (harness)
+            {
+                CadRemoteDocuments documents = harness.Connect().Documents;
+                CadRemoteDocument from = documents.Single(d => d.Name == "styles.dxf");
+                CadRemoteDocument into = documents.Single(d => d.Name == "bare.dxf");
+
+                into.Insert(from.GetObject(note));
+                string made = Assert.Single(into.CommitChanges());
+
+                Assert.Empty(CadMLeaderStyleEditor.Styles(bare.Database));
+                Assert.Equal("_Dot", ((DxfMLeader)bare.FindEntity(made)).ArrowSymbol?.Name);
             }
         }
 
