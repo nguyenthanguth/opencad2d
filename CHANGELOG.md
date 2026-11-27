@@ -13,6 +13,13 @@
   `add_table_style`, `set_table_style`), which the Remote `make` request carries, built on `CadMLeaderStyleEditor` and
   `CadTableStyleEditor`. The acceptance of the server now draws its note and a parts table in styles made for the 1:10 sheet (the
   table's words 2.5 on paper, 25 in model space, where the default table's 4.5 would print 0.45 mm).
+- **FIXED.** MCP `add_mleader(style=)` in a drawing with no multileader style Standard (a new one) left the style it used current, and with it
+  MLEADERSCALE (a later note without a style came out 10 times too big at a style of scale 10): the scale is kept whenever a style is
+  given, and the style and then the scale are put back, a drawing with no style being given its Standard first, as MLEADER does
+  (`current_style` of `Standard` makes it). `add_multileader_style` and `add_table_style` refused nothing for a `from` the drawing lacks and
+  started from the default; they refuse it (`Standard` excepted). `set_multileader_style(annotative=false)` without a `scale` did
+  nothing; it makes the style a fixed one again at the scale it holds. `measure_leader` of a style of scale 0 measures at 1, as
+  `add_mleader` draws.
 - **FIXED.** MCP `add_mleader` with a `style` failed in a drawing that had no multileader style named Standard yet (a new drawing): the call
   tried to put back the style that was current, which the drawing did not have, and a file took the note back; it puts back only a style
   the drawing has. `measure_leader` with a `style` the drawing has failed in such a

@@ -143,6 +143,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       option stays remembered in an app; run_many has no timeout per item; the synth labels cover model space only;
       get_entity of a MULTILEADER or table gives a null style attached (the app copy does not resolve the name); nested
       INSERTs with attributes in a user style inside blocks.add have no test of their own.
+      measure_leader(style=) attached reads a copy of the whole drawing to find the style's scale (no Remote request
+      lists multileader or table styles; list_multileader_styles does the same).
 - [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3.
 
 State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper

@@ -165,6 +165,57 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        public void AStyleToStartFromThatTheDrawingLacks_IsRefused_ExceptStandard()
+        {
+            CadDocument document = Blank();
+            int before = document.UndoPosition;
+
+            Assert.Throws<InvalidOperationException>(() =>
+                CadMake.Run(document, "add_mleader_style", new CadMakeArgs().Set("name", "NEW").Set("from", "Nowhere"))
+            );
+            Assert.Throws<InvalidOperationException>(() =>
+                CadMake.Run(document, "add_table_style", new CadMakeArgs().Set("name", "NEW").Set("from", "Nowhere"))
+            );
+            Assert.Equal(before, document.UndoPosition);
+
+            CadMake.Run(document, "add_mleader_style", new CadMakeArgs().Set("name", "A").Set("from", "standard"));
+            CadMake.Run(document, "add_table_style", new CadMakeArgs().Set("name", "A").Set("from", "standard"));
+            Assert.NotNull(CadMLeaderStyleEditor.Find(document.Database, "A"));
+            Assert.NotNull(CadTableStyleEditor.Find(document.Database, "A"));
+        }
+
+        [Fact]
+        public void StandardMadeCurrentInADrawingWithNoMultileaderStyle_IsMadeFirst_InOneUndoStep()
+        {
+            CadDocument document = Blank();
+            int before = document.UndoPosition;
+
+            CadMake.Run(document, "current_style", new CadMakeArgs().Set("kind", "mleader").Set("name", "Standard"));
+
+            Assert.NotNull(CadMLeaderStyleEditor.Find(document.Database, "Standard"));
+            Assert.Equal("Standard", CadMLeaderStyleEditor.Current(document.Database));
+            Assert.Equal(before + 1, document.UndoPosition);
+            Assert.Throws<InvalidOperationException>(() =>
+                CadMake.Run(document, "current_style", new CadMakeArgs().Set("kind", "mleader").Set("name", "Nowhere"))
+            );
+        }
+
+        [Fact]
+        public void AnAnnotativeStyleIsMadeFixedAgain_WithAnnotativeFalse_AtTheScaleItHolds()
+        {
+            CadDocument document = Blank();
+            CadMake.Run(document, "add_mleader_style", new CadMakeArgs().Set("name", "ANNO").Set("annotative", true));
+
+            CadMake.Run(document, "set_mleader_style", new CadMakeArgs().Set("name", "ANNO").Set("annotative", false));
+
+            CadMLeaderStyleSettings settings = CadMLeaderStyleSettings.Of(
+                CadMLeaderStyleEditor.Find(document.Database, "ANNO")
+            );
+            Assert.False(settings.Annotative);
+            Assert.Equal(1.0, settings.Scale, 6);
+        }
+
+        [Fact]
         public void ATableStyleRefusedPartWay_LeavesNoStyle()
         {
             CadDocument document = Blank();

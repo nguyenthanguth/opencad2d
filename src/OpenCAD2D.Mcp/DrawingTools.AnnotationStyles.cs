@@ -26,21 +26,23 @@ namespace OpenCAD2D.Mcp
             OpenWorld = false
         )]
         [Description(
-            "Adds a multileader style, as the Multileader Style Manager's New and Modify do: a copy of another style (the metric Standard where from is left out) with the settings given, which add_mleader then draws in (its style argument) or which set_current_multileader_style makes current. "
+            "Adds a multileader style, as the Multileader Style Manager's New and Modify do: a copy of another style (where from is left out, the presenter's default multileader settings, not the drawing's own Standard) with the settings given, which add_mleader then draws in (its style argument) or which set_current_multileader_style makes current. "
                 + MLeaderStyleText
                 + " Refused for a name the drawing has or a text style it has not. One undo step."
         )]
         public RecordResult AddMultileaderStyle(
             [Description("The style's name.")] string name,
             [Description(
-                "A multileader style of the drawing whose settings it starts from; the metric Standard where left out."
+                "A multileader style of the drawing whose settings it starts from; the presenter's default settings where left out (not the drawing's own Standard style). Refused for a style the drawing lacks (Standard excepted, which starts from the default)."
             )]
                 string from = null,
             [Description(
                 "A text style of the drawing for the words (list_text_styles); the one of the style it starts from where left out."
             )]
                 string text_style = null,
-            [Description("The height of the words in millimetres, above 0; 2.5 where left out.")]
+            [Description(
+                "The height of the words in millimetres, above 0; that of the style it starts from where left out."
+            )]
                 double? text_height = null,
             [Description(
                 "The arrowhead, by the name the Multileader Style Manager shows (Closed filled, Dot, Open 30, None...)."
@@ -112,7 +114,7 @@ namespace OpenCAD2D.Mcp
             )]
                 double? scale = null,
             [Description(
-                "True for an annotative style, which takes its scale from the annotation scale. Not with scale."
+                "True for an annotative style, which takes its scale from the annotation scale; false makes it a style of fixed scale again, at scale where given, else at the scale it holds. Not true with scale."
             )]
                 bool? annotative = null
         ) =>
@@ -185,28 +187,34 @@ namespace OpenCAD2D.Mcp
             OpenWorld = false
         )]
         [Description(
-            "Adds a table style, as the Table Style dialog's New and Modify do: a copy of another style (AutoCAD's Standard where from is left out) with the settings given, which add_table then draws in (its style argument) or which set_current_table_style makes current. Heights and margins are in millimetres as drawn: a table on a sheet plotted at 1:10 wants 10 times the height of its words on paper (25 for 2.5). Refused for a name the drawing has or a text style it has not. One undo step."
+            "Adds a table style, as the Table Style dialog's New and Modify do: a copy of another style (where from is left out, AutoCAD's Standard settings in the drawing's units, not the drawing's own Standard style) with the settings given, which add_table then draws in (its style argument) or which set_current_table_style makes current. Heights and margins are in millimetres as drawn: a table on a sheet plotted at 1:10 wants 10 times the height of its words on paper (25 for 2.5). Refused for a name the drawing has or a text style it has not. One undo step."
         )]
         public RecordResult AddTableStyle(
             [Description("The style's name.")] string name,
             [Description(
-                "A table style of the drawing whose settings it starts from; AutoCAD's Standard where left out."
+                "A table style of the drawing whose settings it starts from; AutoCAD's Standard settings in the drawing's units where left out (not the drawing's own Standard style). Refused for a style the drawing lacks (Standard excepted, which starts from the default)."
             )]
                 string from = null,
             [Description("A text style of the drawing for the title, the header and the data (list_text_styles).")]
                 string text_style = null,
-            [Description("The height of the words of the title row in millimetres, above 0; 6 where left out.")]
+            [Description(
+                "The height of the words of the title row in millimetres, above 0; that of the style it starts from where left out."
+            )]
                 double? title_height = null,
-            [Description("The height of the words of the header row in millimetres, above 0; 4.5 where left out.")]
+            [Description(
+                "The height of the words of the header row in millimetres, above 0; that of the style it starts from where left out."
+            )]
                 double? header_height = null,
-            [Description("The height of the words of the data rows in millimetres, above 0; 4.5 where left out.")]
+            [Description(
+                "The height of the words of the data rows in millimetres, above 0; that of the style it starts from where left out."
+            )]
                 double? data_height = null,
             [Description(
-                "The margin at the left and right of the words in a cell in millimetres, 0 or more; 1.5 where left out."
+                "The margin at the left and right of the words in a cell in millimetres, 0 or more; that of the style it starts from where left out."
             )]
                 double? horizontal_margin = null,
             [Description(
-                "The margin above and below the words in a cell in millimetres, 0 or more; 1.5 where left out."
+                "The margin above and below the words in a cell in millimetres, 0 or more; that of the style it starts from where left out."
             )]
                 double? vertical_margin = null,
             [Description("A description of the style.")] string description = null

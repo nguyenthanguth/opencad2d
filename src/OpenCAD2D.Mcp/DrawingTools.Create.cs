@@ -377,11 +377,10 @@ namespace OpenCAD2D.Mcp
                             ? Convert.ToString(drawing.Variable("CMLEADERSTYLE"), CultureInfo.InvariantCulture)
                             : null;
 
-                        // A drawing with no style of that name (a new one has none until a note is made) has none to go back to.
-                        bool restore =
-                            !string.IsNullOrEmpty(was)
-                            && CadMLeaderStyleEditor.Find(Q(drawing).ReadDocument().Database, was) != null;
-                        object wasScale = scale.HasValue ? drawing.Variable("MLEADERSCALE") : null;
+                        // Making a style current sets MLEADERSCALE to the style's own scale, so the scale is kept for a style as well.
+                        object wasScale = styled || scale.HasValue ? drawing.Variable("MLEADERSCALE") : null;
+
+                        bool switched = false;
 
                         // The style and the scale the note is made in are put back whatever comes of it.
                         try
@@ -392,6 +391,7 @@ namespace OpenCAD2D.Mcp
                                     "current_style",
                                     new CadMakeArgs().Set("kind", "mleader").Set("name", style.Trim())
                                 );
+                                switched = true;
                             }
 
                             if (scale.HasValue)
@@ -411,17 +411,19 @@ namespace OpenCAD2D.Mcp
                         }
                         finally
                         {
-                            if (wasScale != null)
-                            {
-                                editing.SetVariable("MLEADERSCALE", wasScale);
-                            }
-
-                            if (restore)
+                            // The style first, which sets the scale again; then the scale. A drawing that had no multileader style (a new
+                            // one) is given Standard to go back to, as MLEADER gives it.
+                            if (switched && !string.IsNullOrEmpty(was))
                             {
                                 editing.Make(
                                     "current_style",
                                     new CadMakeArgs().Set("kind", "mleader").Set("name", was)
                                 );
+                            }
+
+                            if (wasScale != null)
+                            {
+                                editing.SetVariable("MLEADERSCALE", wasScale);
                             }
                         }
                     }));

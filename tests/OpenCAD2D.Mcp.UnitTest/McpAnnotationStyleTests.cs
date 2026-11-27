@@ -109,6 +109,116 @@ namespace OpenCAD2D.Mcp.UnitTest
 
         [Theory]
         [MemberData(nameof(Modes))]
+        public async Task A_styled_note_in_a_new_drawing_leaves_the_current_style_and_the_scale_as_they_were(
+            string mode
+        )
+        {
+            await using Bench bench = await Bench.Start(mode);
+            await bench.Call("add_multileader_style", ("name", "PLAN-NOTE"), ("scale", 10.0));
+
+            string styled = await Note(bench, 0.0, "PLAN-NOTE");
+            string plain = await Note(bench, 200.0);
+
+            Assert.Equal(25.0, WordsHeight(bench, styled), 6);
+            Assert.Equal(2.5, WordsHeight(bench, plain), 6);
+            JsonNode after = await bench.Call("list_multileader_styles");
+            Assert.Equal("Standard", (string)after.AsArray().Single(r => (bool)r["current"])["name"]);
+            Assert.Equal(1.0, Convert.ToDouble(bench.Harness.Session.Backend.Variable("MLEADERSCALE")), 6);
+        }
+
+        [Theory]
+        [MemberData(nameof(Modes))]
+        public async Task A_styled_note_with_a_scale_of_its_own_leaves_the_scale_as_it_was(string mode)
+        {
+            await using Bench bench = await Bench.Start(mode);
+            await bench.Call("add_multileader_style", ("name", "PLAN-NOTE"), ("scale", 10.0));
+            await Note(bench, 0.0);
+            double before = Convert.ToDouble(bench.Harness.Session.Backend.Variable("MLEADERSCALE"));
+
+            string styled = await bench.Add(
+                "add_mleader",
+                ("arrow", new[] { 0.0, 200.0 }),
+                ("landing", new[] { 100.0, 260.0 }),
+                ("text", "NOTCH"),
+                ("style", "PLAN-NOTE"),
+                ("scale", 4.0)
+            );
+
+            Assert.Equal(10.0, WordsHeight(bench, styled), 6);
+            Assert.Equal(before, Convert.ToDouble(bench.Harness.Session.Backend.Variable("MLEADERSCALE")), 6);
+            Assert.Equal(
+                "Standard",
+                (string)(await bench.Call("list_multileader_styles")).AsArray().Single(r => (bool)r["current"])["name"]
+            );
+        }
+
+        [Theory]
+        [MemberData(nameof(Modes))]
+        public async Task A_styled_table_in_a_new_drawing_leaves_the_current_style_as_it_was(string mode)
+        {
+            await using Bench bench = await Bench.Start(mode);
+            await bench.Call("add_table_style", ("name", "PLAN-TABLE"), ("data_height", 40.0));
+            string styled = await bench.Add(
+                "add_table",
+                ("at", new[] { 0.0, 0.0 }),
+                ("columns", 2),
+                ("rows", 2),
+                ("style", "PLAN-TABLE")
+            );
+
+            string plain = await bench.Add("add_table", ("at", new[] { 0.0, -600.0 }), ("columns", 2), ("rows", 2));
+
+            Assert.True(await Height(bench, plain) < await Height(bench, styled) - 50.0);
+            Assert.False((bool)Row(await bench.Call("list_table_styles"), "PLAN-TABLE")["current"]);
+        }
+
+        [Theory]
+        [MemberData(nameof(Modes))]
+        public async Task A_style_to_start_from_that_the_drawing_lacks_is_refused(string mode)
+        {
+            await using Bench bench = await Bench.Start(mode);
+
+            Assert.Contains(
+                "no multileader style",
+                await bench.Fail("add_multileader_style", ("name", "NEW"), ("from", "Nowhere"))
+            );
+            Assert.Contains(
+                "no table style",
+                await bench.Fail("add_table_style", ("name", "NEW"), ("from", "Nowhere"))
+            );
+            Assert.Null(Row(await bench.Call("list_multileader_styles"), "NEW"));
+            Assert.Null(Row(await bench.Call("list_table_styles"), "NEW"));
+            await bench.Call("add_multileader_style", ("name", "FROM-STANDARD"), ("from", "Standard"));
+            await bench.Call("add_table_style", ("name", "FROM-STANDARD"), ("from", "standard"));
+        }
+
+        [Theory]
+        [MemberData(nameof(Modes))]
+        public async Task An_annotative_style_is_made_fixed_again_with_annotative_false(string mode)
+        {
+            await using Bench bench = await Bench.Start(mode);
+            await bench.Call("add_multileader_style", ("name", "ANNO"), ("annotative", true));
+
+            string measure = "measure_leader";
+            (string, object)[] asked =
+            {
+                ("arrow", new[] { 0.0, 0.0 }),
+                ("landing", new[] { 100.0, 60.0 }),
+                ("text", "NOTCH"),
+                ("style", "ANNO"),
+            };
+            Assert.Contains("annotative", await bench.Fail(measure, asked));
+
+            await bench.Call("set_multileader_style", ("name", "ANNO"), ("annotative", false));
+
+            await bench.Call(measure, asked);
+            Assert.Equal(1.0, (double)Row(await bench.Call("list_multileader_styles"), "ANNO")["scale"], 6);
+            await bench.Call("set_multileader_style", ("name", "ANNO"), ("annotative", false), ("scale", 3.0));
+            Assert.Equal(3.0, (double)Row(await bench.Call("list_multileader_styles"), "ANNO")["scale"], 6);
+        }
+
+        [Theory]
+        [MemberData(nameof(Modes))]
         public async Task A_multileader_style_is_changed_and_made_current_and_the_notes_in_it_follow(string mode)
         {
             await using Bench bench = await Bench.Start(mode);

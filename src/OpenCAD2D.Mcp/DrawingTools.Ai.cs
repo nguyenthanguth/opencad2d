@@ -213,17 +213,19 @@ namespace OpenCAD2D.Mcp
                     throw new ArgumentException("The scale of a leader is a finite number above nought.");
                 }
 
-                // add_mleader makes a style it is given the current one, which sets MLEADERSCALE to the style's own scale: measured
-                // in the same style, the note has the scale it will be drawn at.
+                // add_mleader makes a style it is given the current one, which sets MLEADERSCALE to the style's own scale, and MLEADER
+                // gives a note that scale, or 1 where the style's is 0 (outside a viewport): measured in the same style, the note has
+                // the scale it will be drawn at. An annotative style is left to the measure to refuse.
                 double? drawn = scale;
 
                 if (!drawn.HasValue && !string.IsNullOrWhiteSpace(style))
                 {
                     DxfMLeaderStyle named = CadMLeaderStyleEditor.Find(Q(drawing).ReadDocument().Database, style);
-                    drawn =
-                        named != null && named.Scale > 0.0 && !double.IsInfinity(named.Scale)
-                            ? named.Scale
-                            : (double?)null;
+
+                    if (named != null && named.Annotative != DxfAnnotativeStates.True)
+                    {
+                        drawn = named.Scale > 0.0 && !double.IsInfinity(named.Scale) ? named.Scale : 1.0;
+                    }
                 }
 
                 return Measured(

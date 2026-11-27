@@ -16,6 +16,11 @@ namespace OpenCAD2D
         private static IReadOnlyList<string> AddMLeaderStyle(CadDocument document, CadMakeArgs args)
         {
             string name = Required(args, "name");
+            Known(
+                args.Text("from"),
+                CadMLeaderStyleEditor.Find(document.Database, args.Text("from") ?? string.Empty) != null,
+                "multileader"
+            );
             return InOneStep(document, "MLEADERSTYLE", () =>
             {
                 Check(CadMLeaderStyleEditor.Add(document, name, args.Text("from")));
@@ -73,9 +78,10 @@ namespace OpenCAD2D
             }
 
             double? scale = Above(args, "scale");
-            bool annotative = args.Values.TryGetValue("annotative", out object kind) && kind is bool flag && flag;
+            bool? annotative =
+                args.Values.TryGetValue("annotative", out object kind) && kind is bool flag ? flag : (bool?)null;
 
-            if (scale.HasValue && annotative)
+            if (scale.HasValue && annotative == true)
             {
                 throw new ArgumentException(
                     "A multileader style has a scale or is annotative, which takes its scale from the annotation scale."
@@ -87,9 +93,10 @@ namespace OpenCAD2D
                 settings.Scale = scale.Value;
                 settings.Annotative = false;
             }
-            else if (annotative)
+            else if (annotative.HasValue)
             {
-                settings.Annotative = true;
+                // annotative=false alone makes a fixed style again, at the scale it holds.
+                settings.Annotative = annotative.Value;
             }
 
             Check(CadMLeaderStyleEditor.Apply(document, name, settings));
@@ -102,6 +109,11 @@ namespace OpenCAD2D
         private static IReadOnlyList<string> AddTableStyle(CadDocument document, CadMakeArgs args)
         {
             string name = Required(args, "name");
+            Known(
+                args.Text("from"),
+                CadTableStyleEditor.Find(document.Database, args.Text("from") ?? string.Empty) != null,
+                "table"
+            );
             return InOneStep(document, "TABLESTYLE", () =>
             {
                 Check(CadTableStyleEditor.Add(document, name, args.Text("from")));
@@ -151,6 +163,24 @@ namespace OpenCAD2D
             }
 
             Check(CadTableStyleEditor.Apply(document, name, settings));
+        }
+
+        /// <summary>
+        /// Refuses a style to start from that the drawing lacks, as a name typed wrong; Standard is the one a drawing may lack, which
+        /// a new style then starts from as the default it is.
+        /// </summary>
+        private static void Known(string from, bool found, string kind)
+        {
+            if (
+                !string.IsNullOrWhiteSpace(from)
+                && !found
+                && !string.Equals(from.Trim(), "Standard", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                throw new InvalidOperationException(
+                    "The drawing has no " + kind + " style \"" + from.Trim() + "\" to start from."
+                );
+            }
         }
 
         /// <summary>A number argument above nought; null where it is not given.</summary>

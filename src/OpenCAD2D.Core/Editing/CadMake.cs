@@ -818,7 +818,17 @@ namespace OpenCAD2D
             switch (Required(args, "kind").ToLowerInvariant())
             {
                 case "mleader":
-                    return One(Check(CadMLeaderStyleEditor.SetCurrent(document, name)), name);
+                    // A drawing with no multileader style yet (a new one) has Standard once something asks for it, as MLEADER
+                    // gives it; made current, it is made first, in the one step.
+                    return
+                        CadMLeaderStyleEditor.Find(document.Database, name) == null
+                        && string.Equals(name, "Standard", StringComparison.OrdinalIgnoreCase)
+                        ? InOneStep(document, "MLEADERSTYLE", () =>
+                        {
+                            Check(CadMLeaderStyleEditor.AddStandard(document));
+                            return One(Check(CadMLeaderStyleEditor.SetCurrent(document, name)), name);
+                        })
+                        : One(Check(CadMLeaderStyleEditor.SetCurrent(document, name)), name);
                 case "table":
                     return One(Check(CadTableStyleEditor.SetCurrent(document, name)), name);
                 default:
