@@ -182,25 +182,31 @@ namespace OpenCAD2D.Mcp
                 "points",
                 "dim_style"
             ),
-            Kind(
-                "MULTILEADER",
-                "a leader with words or a block",
-                "add_mleader",
-                new[] { "style", "content", "text", "textHeight", "scale", "leaders" },
-                "arrow",
-                "landing",
-                "text",
-                "scale"
+            Lacking(
+                Kind(
+                    "MULTILEADER",
+                    "a leader with words or a block",
+                    "add_mleader",
+                    new[] { "style", "content", "text", "textHeight", "scale", "leaders" },
+                    "arrow",
+                    "landing",
+                    "text",
+                    "scale"
+                ),
+                "linetype"
             ),
-            Kind(
-                "ACAD_TABLE",
-                "a table of cells",
-                "add_table",
-                new[] { "style", "at", "rows", "columns", "cells (rows of text)" },
-                "at",
-                "columns",
-                "rows",
-                "cells"
+            Lacking(
+                Kind(
+                    "ACAD_TABLE",
+                    "a table of cells",
+                    "add_table",
+                    new[] { "style", "at", "rows", "columns", "cells (rows of text)" },
+                    "at",
+                    "columns",
+                    "rows",
+                    "cells"
+                ),
+                "linetype"
             ),
             Kind(
                 "ATTRIB",
@@ -208,29 +214,36 @@ namespace OpenCAD2D.Mcp
                 null,
                 new[] { "tag", "text", "at", "height", "style", "invisible", "constant" }
             ),
-            Kind(
-                "ATTDEF",
-                "an attribute definition inside a block (listed by get_block)",
-                "add_attribute_definition",
-                new[] { "tag", "prompt", "text", "at", "height", "style", "invisible", "constant" },
-                "tag",
-                "at",
-                "height",
-                "prompt",
-                "default_value",
-                "text_style",
-                "invisible",
-                "constant"
+            Lacking(
+                Kind(
+                    "ATTDEF",
+                    "an attribute definition inside a block (listed by get_block)",
+                    "add_attribute_definition",
+                    new[] { "tag", "prompt", "text", "at", "height", "style", "invisible", "constant" },
+                    "tag",
+                    "at",
+                    "height",
+                    "prompt",
+                    "default_value",
+                    "text_style",
+                    "invisible",
+                    "constant"
+                ),
+                "linetype"
             ),
-            Kind(
-                "VIEWPORT",
-                "a window of a layout onto model space (listed by list_layouts)",
-                "add_viewport",
-                new[] { "see list_layouts" },
-                "frame",
-                "scale",
-                "center",
-                "freeze_layers"
+            Lacking(
+                Kind(
+                    "VIEWPORT",
+                    "a window of a layout onto model space (listed by list_layouts)",
+                    "add_viewport",
+                    new[] { "see list_layouts" },
+                    "frame",
+                    "scale",
+                    "center",
+                    "freeze_layers"
+                ),
+                "color",
+                "linetype"
             ),
             Record(
                 "STYLE",
@@ -273,6 +286,13 @@ namespace OpenCAD2D.Mcp
                 Written = written,
                 Fields = new List<string> { "see " + listedBy },
             };
+
+        /// <summary>A kind without the arguments of its tool that <c>Kind</c> adds to every kind and this tool has not.</summary>
+        private static KindDescription Lacking(KindDescription kind, params string[] names)
+        {
+            kind.Arguments = kind.Arguments?.Where(a => !names.Contains(a)).ToList();
+            return kind;
+        }
 
         private static KindDescription Kind(
             string kind,

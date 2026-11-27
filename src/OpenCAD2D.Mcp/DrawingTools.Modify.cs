@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using GeometryHelper.Dxf;
 using GeometryHelper.Geometry;
 using ModelContextProtocol.Server;
@@ -32,7 +33,8 @@ namespace OpenCAD2D.Mcp
             IDrawingBackend drawing,
             IReadOnlyList<string> given,
             bool mustChange,
-            Func<CommandScript> build
+            Func<CommandScript> build,
+            Func<string, CommandScript> afterwards = null
         )
         {
             IDrawingEditing editing = Editing(drawing);
@@ -55,6 +57,15 @@ namespace OpenCAD2D.Mcp
 
             Dictionary<string, string> shapesBefore = Shapes(drawing, given);
             string output = editing.Run(build());
+
+            // A second script, where the tool has one for what the command line said: it puts back what the first changed.
+            CommandScript back = afterwards?.Invoke(output);
+
+            if (back != null)
+            {
+                editing.Run(back);
+            }
+
             List<string> after = HandlesOf(editing, space);
             var was = new HashSet<string>(before, StringComparer.OrdinalIgnoreCase);
             var is_ = new HashSet<string>(after, StringComparer.OrdinalIgnoreCase);
@@ -177,13 +188,23 @@ namespace OpenCAD2D.Mcp
             bool mustChange,
             Func<IDrawingBackend, List<string>, CommandScript> build,
             params string[] keep
+        ) => Modify(tool, handles, mustChange, build, null, keep);
+
+        /// <summary>As above, with a script made from what the command line said, which runs after the first and puts back what it changed.</summary>
+        private ModifiedResult Modify(
+            string tool,
+            string[] handles,
+            bool mustChange,
+            Func<IDrawingBackend, List<string>, CommandScript> build,
+            Func<string, CommandScript> afterwards,
+            params string[] keep
         ) => _session.Run(tool, true, drawing =>
             {
                 List<string> list = Handles(handles);
 
                 if (keep.Length == 0)
                 {
-                    return Script(drawing, list, mustChange, () => build(drawing, list));
+                    return Script(drawing, list, mustChange, () => build(drawing, list), afterwards);
                 }
 
                 // The command leaves the radius or the distances it was given as the ones the next command offers (the user's, in the
@@ -195,7 +216,7 @@ namespace OpenCAD2D.Mcp
                 {
                     try
                     {
-                        made = Script(drawing, list, mustChange, () => build(drawing, list));
+                        made = Script(drawing, list, mustChange, () => build(drawing, list), afterwards);
                     }
                     finally
                     {
@@ -305,8 +326,26 @@ namespace OpenCAD2D.Mcp
 
                     return script.Pick(list).Point(p.X, p.Y).Enter();
                 },
+                output => PutBackErase(output, erase_source),
                 "OFFSETDIST"
             );
+
+        /// <summary>
+        /// The script that puts back the Erase option the user had before an offset typed its own: OFFSET writes the setting it found
+        /// (<c>Erase source=Yes</c>) before the first answer; null where it said none or it was the one typed.
+        /// </summary>
+        private static CommandScript PutBackErase(string output, bool typed)
+        {
+            Match found = Regex.Match(output ?? string.Empty, "Erase source=(Yes|No)");
+
+            if (!found.Success || (found.Groups[1].Value == "Yes") == typed)
+            {
+                return null;
+            }
+
+            // The two Enters end the command: the first leaves the distance prompt as it was, the second the object prompt.
+            return new CommandScript().Word("OFFSET").Word("E").Word(typed ? "N" : "Y").Enter().Enter();
+        }
 
         [McpServerTool(
             Name = "array_rectangular",

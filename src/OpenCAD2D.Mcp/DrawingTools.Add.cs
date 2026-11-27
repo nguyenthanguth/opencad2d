@@ -368,7 +368,7 @@ namespace OpenCAD2D.Mcp
             OpenWorld = false
         )]
         [Description(
-            "Adds a hatch of the area a closed outline encloses, with a pattern of the built-in set (ANSI31 to ANSI38, BRICK, EARTH, HONEY, STEEL, AR-CONC and the rest; SOLID for a fill). The outline is given as corners (boundary, with bulges where a side is an arc), as a circle (circle_center and circle_radius), as the closed polylines and circles that are already in the drawing (handles), or as several of these; the first is the outer outline and the others are islands or pieces, the fill alternating as the display fills it. The hatch follows no object: it is the outline as given. One undo step."
+            "Adds a hatch of the area a closed outline encloses, with a pattern of the built-in set (ANSI31 to ANSI38, BRICK, EARTH, HONEY, STEEL, AR-CONC and the rest; SOLID for a fill). The outline is given as corners (boundary, with bulges where a side is an arc), as a circle (circle_center and circle_radius), as the closed polylines, circles and ellipses that are already in the drawing, or lines, arcs and open polylines that chain into a closed loop (handles), or as several of these; the first is the outer outline and the others are islands or pieces, the fill alternating as the display fills it. The hatch follows no object: it is the outline as given. One undo step."
         )]
         public AddedResult AddHatch(
             [Description("Corners of the outline as [[x, y], ...], at least three; the last joins the first.")]
@@ -381,7 +381,7 @@ namespace OpenCAD2D.Mcp
             [Description("The radius of a circular outline in millimetres, above 0; with circle_center.")]
                 double? circle_radius = null,
             [Description(
-                "Handles of closed polylines (LWPOLYLINE, straight or with arcs) and circles of the drawing to hatch inside; each is one outline."
+                "Handles of the drawing's objects to hatch inside: closed polylines (LWPOLYLINE, straight or with arcs), circles and whole ellipses are one outline each; lines, arcs, open polylines and elliptic arcs make an outline where they join end to end, within 0.001 mm, into a closed loop (any order, any direction), and an outline that does not close is refused."
             )]
                 string[] handles = null,
             [Description("A pattern name, or SOLID.")] string pattern = "ANSI31",
@@ -414,8 +414,8 @@ namespace OpenCAD2D.Mcp
                 )
             );
 
-        /// <summary>The outlines of an <c>add_hatch</c>: the corners given (with their bulges), the circle, and the closed polylines and circles of the drawing.</summary>
-        private static List<(GeoPoint2[] Points, double[] Bulges)> HatchLoops(
+        /// <summary>The outlines of an <c>add_hatch</c>: the corners given (with their bulges), the circle, and the closed polylines, circles, ellipses and chains of lines and arcs of the drawing.</summary>
+        private static List<(GeoPoint2[] Points, double[] Bulges, object[] Edges)> HatchLoops(
             IDrawingBackend drawing,
             string space,
             double[][] boundary,
@@ -425,7 +425,7 @@ namespace OpenCAD2D.Mcp
             string[] handles
         )
         {
-            var loops = new List<(GeoPoint2[] Points, double[] Bulges)>();
+            var loops = new List<(GeoPoint2[] Points, double[] Bulges, object[] Edges)>();
 
             if (boundary != null)
             {
@@ -460,7 +460,8 @@ namespace OpenCAD2D.Mcp
                 loops.Add(
                     (
                         corners.Select(c => new GeoPoint2(c.X, c.Y)).ToArray(),
-                        bulges != null ? (double[])bulges.Clone() : new double[corners.Count]
+                        bulges != null ? (double[])bulges.Clone() : new double[corners.Count],
+                        null
                     )
                 );
             }
@@ -506,8 +507,15 @@ namespace OpenCAD2D.Mcp
                     StringComparer.OrdinalIgnoreCase
                 );
 
+                // The outlines the handles give, each at the place of the first handle it comes from; lines, arcs, open polylines and
+                // elliptic arcs are pieces, joined into outlines once all the handles are read.
+                var fromHandles = new List<(int Order, (GeoPoint2[] Points, double[] Bulges, object[] Edges) Loop)>();
+                var pieces = new List<HatchPiece>();
+                int order = -1;
+
                 foreach (string handle in given)
                 {
+                    order++;
                     if (!inSpace.Contains(handle) && Editing(drawing).Objects(new[] { handle }).Count > 0)
                     {
                         throw new ArgumentException(
@@ -528,23 +536,47 @@ namespace OpenCAD2D.Mcp
                         case DxfCircle circle:
                             // The centre is in the world already; a circle facing -Z is the same circle seen from above.
                             Facing(circle.Normal, handle);
-                            loops.Add(Circular(circle.Center, circle.Radius));
+                            fromHandles.Add((order, Circular(circle.Center, circle.Radius)));
+                            break;
+                        case DxfEllipse whole when whole.Closed:
+                            Facing(whole.Normal, handle);
+                            fromHandles.Add((order, (null, null, new object[] { whole.ToGeoEllipse3() })));
+                            break;
+                        case DxfLine line:
+                            pieces.Add(HatchPiece.OfLine(handle, order, line));
+                            break;
+                        case DxfArc arc:
+                            pieces.Add(HatchPiece.OfArc(handle, order, arc, Facing(arc.Normal, handle)));
+                            break;
+                        case DxfEllipse part:
+                            Facing(part.Normal, handle);
+                            pieces.Add(HatchPiece.OfEllipse(handle, order, part));
+                            break;
+                        case DxfPolyline open when !open.Closed && open.NumberOfVertices >= 2:
+                            pieces.Add(HatchPiece.OfPolyline(handle, order, open, Facing(open.Normal, handle)));
                             break;
                         case DxfPolyline polyline when polyline.Closed && polyline.NumberOfVertices >= 2:
                             int count = polyline.NumberOfVertices;
                             int facing = Facing(polyline.Normal, handle);
-                            loops.Add(
+                            fromHandles.Add(
                                 (
-                                    Enumerable
-                                        .Range(0, count)
-                                        .Select(i =>
-                                        {
-                                            GeoPoint3 world = polyline.GetPoint3dAt(i);
-                                            return new GeoPoint2(world.X, world.Y);
-                                        })
-                                        .ToArray(),
-                                    // A polyline facing -Z turns the other way in the world than in its own system: its arcs bulge the other way.
-                                    Enumerable.Range(0, count).Select(i => polyline.GetBulgeAt(i) * facing).ToArray()
+                                    order,
+                                    (
+                                        Enumerable
+                                            .Range(0, count)
+                                            .Select(i =>
+                                            {
+                                                GeoPoint3 world = polyline.GetPoint3dAt(i);
+                                                return new GeoPoint2(world.X, world.Y);
+                                            })
+                                            .ToArray(),
+                                        // A polyline facing -Z turns the other way in the world than in its own system: its arcs bulge the other way.
+                                        Enumerable
+                                            .Range(0, count)
+                                            .Select(i => polyline.GetBulgeAt(i) * facing)
+                                            .ToArray(),
+                                        null
+                                    )
                                 )
                             );
                             break;
@@ -558,16 +590,19 @@ namespace OpenCAD2D.Mcp
                                             ? "a polyline that is not closed"
                                             : "a " + found.Entity.DxfName
                                     )
-                                    + ": a hatch takes the handle of a closed polyline or a circle."
+                                    + ": a hatch takes the handle of a closed polyline or a circle, a whole ellipse, or lines, arcs, open polylines and elliptic arcs that join end to end into a closed outline."
                             );
                     }
                 }
+
+                fromHandles.AddRange(HatchPiece.Join(pieces, Tol));
+                loops.AddRange(fromHandles.OrderBy(f => f.Order).Select(f => f.Loop));
             }
 
             if (loops.Count == 0)
             {
                 throw new ArgumentException(
-                    "A hatch needs an outline: give boundary (the corners), circle_center and circle_radius, or the handles of closed polylines and circles."
+                    "A hatch needs an outline: give boundary (the corners), circle_center and circle_radius, or the handles of closed polylines, circles, ellipses, or lines and arcs that close."
                 );
             }
 
@@ -596,7 +631,7 @@ namespace OpenCAD2D.Mcp
         }
 
         /// <summary>A circle as the outline of a hatch: two vertices on its ends across, each a half circle (bulge 1) to the other.</summary>
-        private static (GeoPoint2[] Points, double[] Bulges) Circular(GeoPoint3 center, double radius)
+        private static (GeoPoint2[] Points, double[] Bulges, object[] Edges) Circular(GeoPoint3 center, double radius)
         {
             if (!(radius > 0.0) || double.IsInfinity(radius))
             {
@@ -605,7 +640,8 @@ namespace OpenCAD2D.Mcp
 
             return (
                 new[] { new GeoPoint2(center.X + radius, center.Y), new GeoPoint2(center.X - radius, center.Y) },
-                new[] { 1.0, 1.0 }
+                new[] { 1.0, 1.0 },
+                null
             );
         }
 

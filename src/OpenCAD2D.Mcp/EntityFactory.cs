@@ -260,16 +260,18 @@ namespace OpenCAD2D.Mcp
                 points[i] = new GeoPoint2(corners[i].X, corners[i].Y);
             }
 
-            return Hatch(new[] { (points, new double[points.Length]) }, pattern, scale, angle);
+            return Hatch(new[] { (points, new double[points.Length], (object[])null) }, pattern, scale, angle);
         }
 
         /// <summary>
         /// A hatch of the areas closed outlines enclose, each a list of vertices with a bulge for each (the tangent of a quarter of the
         /// angle the arc from that vertex to the next turns through, counter-clockwise where positive; 0 for a straight side): the
         /// first outline is the external one and the others, islands or other pieces, are found by the fill as the display fills them.
+        /// An outline given as edges (lines, arcs, an ellipse or the spline of a part of one, in the order they join) is kept as them,
+        /// and its corners and bulges are then null.
         /// </summary>
         public static DxfHatch Hatch(
-            IReadOnlyList<(GeoPoint2[] Points, double[] Bulges)> loops,
+            IReadOnlyList<(GeoPoint2[] Points, double[] Bulges, object[] Edges)> loops,
             string pattern,
             double scale,
             double angle
@@ -304,11 +306,16 @@ namespace OpenCAD2D.Mcp
 
             for (int i = 0; i < loops.Count; i++)
             {
-                made.AppendLoop(
-                    i == 0 ? DxfHatchLoopTypes.External : DxfHatchLoopTypes.Default,
-                    loops[i].Points,
-                    loops[i].Bulges
-                );
+                DxfHatchLoopTypes type = i == 0 ? DxfHatchLoopTypes.External : DxfHatchLoopTypes.Default;
+
+                if (loops[i].Edges != null)
+                {
+                    made.AppendLoop(new DxfHatchLoop(type, loops[i].Edges));
+                }
+                else
+                {
+                    made.AppendLoop(type, loops[i].Points, loops[i].Bulges);
+                }
             }
 
             return made;

@@ -138,13 +138,19 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 - [x] N2 DONE 2026-11-27 (same branch; 6 tools, 137 in all). MCP tools that create and edit multileader styles and table styles (today
       list_multileader_styles and list_table_styles only read); add_mleader/add_table can then use a style with a text
       height fit for the sheet scale. -> verify: tests in both modes, the acceptance test still green.
-- [ ] N3. Left by the reviews and the acceptance (small): describe_kinds is a hand-written table (guarded by a test);
+- [ ] N3 (DONE 2026-11-27 on feat/n3-leftovers, except what follows). Left by the reviews and the acceptance (small): describe_kinds is a hand-written table (guarded by a test);
       add_hatch handles take closed polylines and circles only (no chained lines/arcs, no ellipses); the OFFSET Erase
       option stays remembered in an app; run_many has no timeout per item; the synth labels cover model space only;
       get_entity of a MULTILEADER or table gives a null style attached (the app copy does not resolve the name); nested
       INSERTs with attributes in a user style inside blocks.add have no test of their own.
       measure_leader(style=) attached reads a copy of the whole drawing to find the style's scale (no Remote request
       lists multileader or table styles; list_multileader_styles does the same).
+      N3 done: add_hatch handles (chains of lines, arcs, open polylines, ellipses, elliptic arcs), OFFSET Erase put back,
+      run_many timeout=, get_entity style attached, nested INSERT test, describe_kinds kept by hand (a test now holds its
+      arguments to the tools; 5 drifts fixed). Still open: the synth labels cover model space only; the attached style
+      lookup copies the whole drawing (plan: a Remote request that lists multileader and table styles with their scales,
+      as the text style list is carried, then list_multileader_styles, list_table_styles and measure_leader(style=) read
+      it, and get_entity would read the name from it too).
 - [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3.
 
 State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper

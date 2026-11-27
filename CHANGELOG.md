@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **NEW.** MCP `add_hatch(handles=)` takes the objects of a boundary as AutoCAD does, not closed polylines and circles only: whole
+  ellipses, and lines, arcs, open polylines and elliptic arcs that join end to end (within 0.001 mm, any order, any direction) into a
+  closed loop, which are one outline together at the place of their first handle (four lines 100 by 60 hatch an area of 6000; two lines
+  and two half circles of radius 10 an area of 2000 + 100 pi). Pieces that do not close are refused, naming the handles and the point
+  where the chain stops. A part of an ellipse is kept as the exact spline of it (the library has no elliptic arc edge).
+- **FIXED.** MCP `offset` in an app left the Erase option OFFSET remembers at the value the call typed, so the user's next OFFSET
+  offered it: the setting the user had is put back (read from the `Current settings: Erase source=...` line OFFSET writes).
+- **NEW.** Python `run_many(..., timeout=)`: the seconds one item may take. An item over it is an `Outcome` whose `error` starts
+  `TimeoutError`, its worker process is stopped and replaced, and the others go on, in the order of the items; the time counts from
+  the item's start in a worker that has loaded .NET. A run with a timeout uses worker processes even for `workers=1`.
+- **FIXED.** MCP `get_entity` of a MULTILEADER or a table attached to an app gave a null `style`: the app's copy of the object has no
+  style table to find the name in; the entity is read from a copy of the drawing's database (only for these two kinds). `describe_kinds`
+  named `linetype` as an argument of `add_mleader`, `add_table` and `add_attribute_definition`, and `color` and `linetype` of
+  `add_viewport`, which those tools do not have; a new test holds every argument the table names to the tools that write the kind.
 - **NEW.** MCP tools that make and change multileader styles and table styles: `add_multileader_style`, `set_multileader_style`,
   `set_current_multileader_style`, `add_table_style`, `set_table_style` and `set_current_table_style` (6 more tools, 137 in all), in a
   drawing file and attached to an app, one undo step each and refused by `--read-only`. A style is a copy of another (`from`) with the

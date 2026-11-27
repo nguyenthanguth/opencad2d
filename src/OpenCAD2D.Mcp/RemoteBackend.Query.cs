@@ -15,6 +15,13 @@ namespace OpenCAD2D.Mcp
         {
             DxfEntity entity = Document.GetObject(handle);
 
+            // The app's copy of a multileader or a table carries no style table to find its style's name in: the entity of a copy of
+            // the whole database has it (a drawing is copied only for these two kinds).
+            if (entity is DxfMLeader || entity is DxfTable)
+            {
+                entity = CadDocument.From(Document.GetDatabase(), Name).FindEntity(handle) ?? entity;
+            }
+
             // The app does not hand out a viewport: it is read from a copy of its database.
             entity = entity ?? ViewportsOf(new[] { handle }).Values.FirstOrDefault();
             return entity == null ? null : new EntityRef(handle, entity);
