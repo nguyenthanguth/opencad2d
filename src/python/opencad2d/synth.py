@@ -12,17 +12,18 @@ and crowding give the same drawing, byte for byte in ``to_json``, on every run; 
 whose sequence for a seed is fixed within a Python version; across versions only ``random()`` is promised, so a dataset that
 must be reproduced bit for bit keeps its Python.
 
-Needs numpy where ``generate`` makes the picture and labels (``image``), as ``to_coco`` does.
+Needs numpy where ``generate`` makes the picture and labels (``image`` or ``masks=True``), as ``to_coco`` and ``render_masks`` do.
 """
 
 from __future__ import annotations
 
 import os
 import random
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from opencad2d.cad import Drawing, new_file
+from opencad2d.cad import LABEL_CLASSES, Drawing, RenderMasks, new_file
 
 SHEET = "Plate A3"
 """The name of the layout of every drawing."""
@@ -64,9 +65,10 @@ _NOTES = ("TYP", "SEE NOTE 3", "BURR", "R5", "CHK", "DO NOT SCALE", "FLAME CUT")
 class Sample:
     """A drawing and what is known of it: the ground truth of a training example.
 
-    ``json`` is ``drawing.to_json()`` of model space; ``score`` and ``scores`` the total and the rules of ``check(STANDARD)``;
+    ``json`` is ``drawing.to_json()``; ``score`` and ``scores`` the total and the rules of ``check(STANDARD)``;
     ``overlaps`` the number of pairs of words and what they cross (``drawing.overlaps()``); ``coco`` the annotations of the
-    picture ``generate`` wrote, or None where it wrote none.
+    picture ``generate`` wrote of ``layout`` (model space where None), or None where it wrote none; ``masks`` its class and
+    instance masks (``drawing.render_masks(instances=True)``) where ``masks=True`` was asked for, else None.
     """
 
     seed: int
@@ -77,6 +79,7 @@ class Sample:
     scores: dict[str, float]
     overlaps: int
     coco: dict[str, Any] | None
+    masks: RenderMasks | None = None
 
 
 def _box(width: float, height: float, at: tuple[float, float]) -> list[Any]:
@@ -213,24 +216,57 @@ def _title_block(drawing: Drawing, layout: str, values: dict[str, str]) -> None:
 
 
 def generate(
-    seed: int, crowding: float = 0.0, image: str | os.PathLike[str] | None = None, width: int = 1280
+    seed: int,
+    crowding: float = 0.0,
+    image: str | os.PathLike[str] | None = None,
+    width: int = 1280,
+    layout: str | None = None,
+    masks: bool = False,
+    classes: Sequence[str] = LABEL_CLASSES,
 ) -> Sample:
-    """Make the drawing of ``seed`` with ``make_drawing`` and its ground truth: the JSON of model space, the score of
-    ``STANDARD`` and its rules, the number of overlaps, and, where ``image`` names a PNG file to write, the picture of model
-    space ``width`` pixels wide and its COCO annotations (``to_coco``: boxes in whole pixels from the top left, inside the
-    picture; needs numpy). The result is the same for the same ``seed`` and ``crowding`` on every run, the picture's bytes
-    included. Takes 41 ms without a picture and 76 ms with one on .NET 8 (21 and 58 ms on .NET Framework 4.8), medians of 40 drawings at crowding 0.5 and 1280 pixels.
+    """Make the drawing of ``seed`` with ``make_drawing`` and its ground truth: ``drawing.to_json()``, the score of
+    ``STANDARD`` and its rules, the number of overlaps, and, for ``layout`` (model space where None, or ``SHEET`` for the A3
+    layout with its border, filled title block and viewport), the picture ``width`` pixels wide and its COCO annotations where
+    ``image`` names a PNG file to write (``to_coco``: boxes in whole pixels from the top left, inside the picture) and its class
+    and instance masks where ``masks`` is true (``render_masks(instances=True)``; both need numpy). ``classes`` are names of
+    ``LABEL_CLASSES`` (all five by default, so the title block ``TITLE`` on ``SHEET`` is class 5 ``"blocks"`` in both ``coco``
+    and ``masks``; pass ``LABEL_CLASSES[:4]`` to class its attributes as ``"words"`` and its lines as ``"lines"`` in ``masks``).
+    The result is the same for the same ``seed`` and ``crowding`` on every run, the picture's bytes included. Takes 41 ms
+    without a picture and 76 ms with one on .NET 8 (21 and 58 ms on .NET Framework 4.8), medians of 40 drawings at crowding 0.5
+    and 1280 pixels.
 
     Example:
         sample = generate(7, crowding=0.5, image="plate7.png")
         sample.score                                  # 0.952: the total of the standard
         sample.overlaps                               # 16: the pairs of words across holes or lines
         sample.coco["images"][0]["width"]             # 1280
+        sheet = generate(7, crowding=0.5, image="sheet7.png", layout=SHEET, masks=True)
+        sheet.masks.classes.shape                     # (905, 1280): the A3 sheet at 1280 pixels wide
         generate(7).json == generate(7).json          # True
     """
+    if isinstance(width, bool) or not isinstance(width, int) or width < 1:  # pyright: ignore[reportUnnecessaryIsInstance]
+        raise ValueError(f"width is a whole number of pixels above nought, not {width!r}.")
+    if isinstance(classes, str) or not classes:  # pyright: ignore[reportUnnecessaryIsInstance]
+        raise ValueError(f"classes is a list of names of {list(LABEL_CLASSES)}, not {classes!r}.")
+    for name in classes:
+        if name not in LABEL_CLASSES:
+            raise ValueError(f"A class is one of {list(LABEL_CLASSES)}, not {name!r}.")
     drawing = make_drawing(seed, crowding)
+    if layout is not None and layout not in drawing.layouts:
+        raise ValueError(f"The drawing has no layout named {layout}.")
     checked = drawing.check(STANDARD)
-    coco = None if image is None else drawing.to_coco(os.fspath(image), width=width)
+    coco = None if image is None else drawing.to_coco(os.fspath(image), classes=classes, width=width, layout=layout)
+    rendered_masks = (
+        drawing.render_masks(classes=classes, instances=True, width=width, layout=layout) if masks else None
+    )
     return Sample(
-        seed, crowding, drawing, drawing.to_json(), checked.total, dict(checked.scores), len(drawing.overlaps()), coco
+        seed,
+        crowding,
+        drawing,
+        drawing.to_json(),
+        checked.total,
+        dict(checked.scores),
+        len(drawing.overlaps()),
+        coco,
+        rendered_masks,
     )

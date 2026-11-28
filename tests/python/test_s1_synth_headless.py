@@ -5,10 +5,12 @@ what they stand on."""
 import time
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 import opencad2d  # noqa: F401  (boots .NET and loads the assemblies)
 from opencad2d import synth
+from opencad2d.cad import LABEL_CLASSES
 
 SEEDS = list(range(8))
 
@@ -93,7 +95,61 @@ def test_every_box_of_the_coco_file_lies_inside_the_picture(seed: int, tmp_path:
 
 
 def test_no_picture_is_made_unless_it_is_asked_for() -> None:
-    assert synth.generate(1).coco is None
+    sample = synth.generate(1)
+    assert sample.coco is None and sample.masks is None
+
+
+@pytest.mark.parametrize("seed", [0, 7])
+def test_generate_labels_the_a3_sheet_in_coco_and_masks_with_every_box_inside_the_sheet_picture(
+    seed: int, tmp_path: Path
+) -> None:
+    model = synth.generate(seed, 0.5, image=tmp_path / "model.png", width=1280)
+    sheet = synth.generate(seed, 0.5, image=tmp_path / "sheet.png", width=1280, layout=synth.SHEET, masks=True)
+    again = synth.generate(seed, 0.5, image=tmp_path / "again.png", width=1280, layout=synth.SHEET, masks=True)
+
+    assert model.coco is not None and sheet.coco is not None and again.coco is not None
+    assert sheet.masks is not None and again.masks is not None
+    assert (tmp_path / "sheet.png").read_bytes() == (tmp_path / "again.png").read_bytes()
+    assert np.array_equal(sheet.masks.classes, again.masks.classes)
+    assert sheet.masks.instances is not None and again.masks.instances is not None
+    assert np.array_equal(sheet.masks.instances, again.masks.instances)
+    assert sheet.coco["annotations"] == again.coco["annotations"]
+
+    (image,) = sheet.coco["images"]
+    assert (image["width"], image["height"], image["file_name"]) == (1280, round(1280 * 297 / 420), "sheet.png")
+    assert sheet.masks.classes.shape == (image["height"], 1280)
+    assert {a["category_id"] for a in sheet.coco["annotations"]} == {1, 2, 3, 5}
+    assert set(np.unique(sheet.masks.classes).tolist()) == {0, 1, 2, 3, 5}
+    assert len(sheet.coco["annotations"]) > len(model.coco["annotations"])
+
+    for annotation in sheet.coco["annotations"]:
+        x, y, width, height = annotation["bbox"]
+        assert x >= 0 and y >= 0 and width > 0 and height > 0, annotation
+        assert x + width <= image["width"] and y + height <= image["height"], annotation
+        rows, columns = np.nonzero(sheet.masks.instances == annotation["id"])
+        assert rows.size == annotation["area"], annotation
+        assert int(columns.min()) >= x and int(columns.max()) < x + width, annotation
+        assert int(rows.min()) >= y and int(rows.max()) < y + height, annotation
+
+
+def test_masks_need_no_image_file_and_split_the_title_block_when_blocks_are_left_out() -> None:
+    model = synth.generate(2, 0.5, masks=True)
+    sheet = synth.generate(2, 0.5, layout=synth.SHEET, masks=True)
+    pieces = synth.generate(2, 0.5, layout=synth.SHEET, masks=True, classes=LABEL_CLASSES[:4])
+
+    assert model.coco is None and sheet.coco is None and pieces.coco is None
+    assert model.masks is not None and sheet.masks is not None and pieces.masks is not None
+    assert set(np.unique(model.masks.classes).tolist()) == {0, 1, 2, 3}
+    assert int((sheet.masks.classes == 5).sum()) > 0
+    assert int((pieces.masks.classes == 5).sum()) == 0
+    assert int((pieces.masks.classes == 1).sum()) > int((sheet.masks.classes == 1).sum())
+
+
+def test_an_unknown_layout_or_bad_classes_in_generate_raises_value_error() -> None:
+    with pytest.raises(ValueError, match="no layout named"):
+        synth.generate(1, layout="Elsewhere")
+    with pytest.raises(ValueError, match="A class is one of"):
+        synth.generate(1, classes=["walls"])
 
 
 def test_the_sheet_is_an_a3_layout_in_millimetres_with_one_viewport_and_a_filled_title_block() -> None:

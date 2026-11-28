@@ -12,6 +12,10 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 - **CHANGED.** MCP attached to an app: `list_layouts`, `list_linetypes` and `list_blocks` ask the app for those summaries alone instead of
   copying the whole drawing (`GetDatabase`) or every block's objects (`Blocks`); `list_blocks` leaves external references and
   xref-dependent blocks out in both modes, so file and app modes give the same rows.
+- **NEW.** Python `opencad2d.synth.generate(..., layout=, masks=, classes=)` and `Sample.masks`: COCO annotations (`to_coco`) and class
+  and instance masks (`render_masks(instances=True)`) for the A3 layout `synth.SHEET` (`"Plate A3"`, with its border, filled `TITLE`
+  block and viewport) as well as model space. `generate` now checks `width` (a whole number above nought) and `classes` even where it
+  writes no picture.
 - **NEW.** Remote `drawing.GetMultileaderStyles()` and `drawing.GetTableStyles()` (the request `annotationStyles`): the settings of each
   multileader style (text style and height, arrowhead and size, landing length and gap, scale, annotative, current) and table style (text
   style, title, header and data heights, margins, current), sorted by name, without a copy of the drawing. A multileader or a table read

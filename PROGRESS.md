@@ -138,7 +138,9 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
 - [x] N2 DONE 2026-11-27 (same branch; 6 tools, 137 in all). MCP tools that create and edit multileader styles and table styles (today
       list_multileader_styles and list_table_styles only read); add_mleader/add_table can then use a style with a text
       height fit for the sheet scale. -> verify: tests in both modes, the acceptance test still green.
-- [ ] N3 (DONE 2026-11-27 on feat/n3-leftovers, except what follows). Left by the reviews and the acceptance (small): describe_kinds is a hand-written table (guarded by a test);
+- [x] N3 DONE 2026-11-28 (the last two pieces: the Remote annotationStyles request on 2026-11-27 (N5), and the synth
+      labels for the A3 layout, generate(layout=, masks=, classes=), on 2026-11-28 by Gemini, reviewed; the list tools
+      also stopped copying the drawing through layoutDetails, linetypeDetails and blockSummaries). Left by the reviews and the acceptance (small): describe_kinds is a hand-written table (guarded by a test);
       add_hatch handles take closed polylines and circles only (no chained lines/arcs, no ellipses); the OFFSET Erase
       option stays remembered in an app; run_many has no timeout per item; the synth labels cover model space only;
       get_entity of a MULTILEADER or table gives a null style attached (the app copy does not resolve the name); nested
