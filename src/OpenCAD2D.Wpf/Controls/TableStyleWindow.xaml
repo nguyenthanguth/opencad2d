@@ -112,6 +112,7 @@
                             BorderThickness="0"
                             Foreground="{StaticResource GhText}"
                             ItemContainerStyle="{StaticResource StyleListItem}"
+                            MouseDoubleClick="OnStyleDoubleClick"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                         >
                             <ListBox.ItemTemplate>

@@ -160,7 +160,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             Assert.Equal("Dimension style manager · styles.dxf", manager.Title);
             Assert.Equal("Current: Standard", manager.CurrentStyleText);
-            Assert.Equal("2 styles · double-click a style to modify it", manager.Footer);
+            Assert.Equal("2 styles · double-click a style to make it current", manager.Footer);
             Assert.False(manager.HasNotice);
             Assert.False(manager.IsNoticeWarning);
             Assert.Equal(

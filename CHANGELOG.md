@@ -20,6 +20,16 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
   sets texts by, the width MIRROR turns a centred TEXT about with MIRRTEXT 0, the extents that ZOOM Extents fits and the list reports, and the
   `box` of the Remote and JSON export are those of the new width for such a TEXT, and for any MTEXT run in a face whose file is
   not read.
+- **CHANGED.** A double click on a style in the Styles list of the Dimension Style Manager, the Text Style, Multileader Style, Table Style
+  and Multiline Style dialogs makes that style current, as the dialog's Set Current button does (a click on a row only, not on the empty area
+  under the rows or the scroll bar; one undo step and the same words in the dialog, except in the Multiline Style dialog, where Set Current
+  only marks the style and OK applies it), where the Dimension Style Manager, the Multileader Style Manager and the Multiline Style
+  dialog opened Modify and the Text and Table Style dialogs did nothing; Modify… stays the button for that. The foot of the two managers says so: "14 styles · double-click a
+  style to make it current".
+- **FIXED.** A light line along the top edge of the Modify Dimension Style window, and of the Modify Multileader Style, Modify Table
+  Style, Sheet Set Manager and Transmittal Report windows: a window with no frame of the system that can be resized is given a thin
+  frame by Windows 10 and 11 unless it says it has none. Each now carries a `WindowChrome` with no caption and no glass frame, as the Text
+  Window and the palettes already did.
 - **NEW.** Remote `drawing.GetLayouts()`, `drawing.GetLinetypes()` and `drawing.GetBlocks()` (the requests `layoutDetails`,
   `linetypeDetails` and `blockSummaries`): the layouts in tab order with paper name, size, units (`millimetres`, `inches` or `pixels`),
   plot rotation, entity count, current/model flags and each paper-space viewport's frame, view centre, height, scale and frozen layers;

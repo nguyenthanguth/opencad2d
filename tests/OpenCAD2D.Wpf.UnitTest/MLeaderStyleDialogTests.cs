@@ -38,7 +38,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             Assert.True(manager.Styles[0].IsCurrent);
             Assert.Equal("Current: Standard", manager.CurrentStyleText);
             Assert.Equal("Multileader style manager · plan-level2.dxf", manager.Title);
-            Assert.Equal("1 style · double-click a style to modify it", manager.Footer);
+            Assert.Equal("1 style · double-click a style to make it current", manager.Footer);
             Assert.Equal(
                 "Standard · straight leader, closed filled arrow 2.5 · landing 8 · MTEXT 2.5 in Standard, attached at the middle of top line · Used by 0 multileaders.",
                 manager.Description

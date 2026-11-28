@@ -55,6 +55,15 @@ namespace OpenCAD2D.Wpf
             }
         }
 
+        /// <summary>A double click on a row makes its style current, as Set Current does.</summary>
+        private void OnStyleDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left && StyleDialogs.IsOnRow(sender, e) && Model.SelectedStyle != null)
+            {
+                Model.SetCurrentCommand.Execute(null);
+            }
+        }
+
         private void OnApply(object sender, RoutedEventArgs e)
         {
             (Keyboard.FocusedElement as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
