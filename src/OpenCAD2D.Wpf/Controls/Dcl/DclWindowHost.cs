@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using OpenCAD2D.Dcl;
@@ -18,15 +19,18 @@ namespace OpenCAD2D.Wpf
     internal sealed class DclWindowHost : IDclHost
     {
         private readonly Func<Window> _main;
+        private readonly Action _keyboardToWorkspace;
         private DclMetrics _metrics;
         private int _opened;
         private readonly Dictionary<DclDialog, Shown> _open = new Dictionary<DclDialog, Shown>();
 
         /// <summary>Makes a host.</summary>
         /// <param name="main">Gives the window the dialogs open over; it may give null, and a window not shown is not used.</param>
-        internal DclWindowHost(Func<Window> main)
+        /// <param name="keyboardToWorkspace">Gives the keyboard to the workspace (its canvas, where typing goes to the command line) when a dialog closes and the element that held it cannot take it back; it may be null.</param>
+        internal DclWindowHost(Func<Window> main, Action keyboardToWorkspace = null)
         {
             _main = main;
+            _keyboardToWorkspace = keyboardToWorkspace;
         }
 
         /// <summary>
@@ -59,7 +63,11 @@ namespace OpenCAD2D.Wpf
             }
 
             var window = new DclDialogWindow(dialog);
-            var shown = new Shown(window, below, below != null && below.IsEnabled) { Sequence = ++_opened };
+            var shown = new Shown(window, below, below != null && below.IsEnabled)
+            {
+                Sequence = ++_opened,
+                Held = below == null ? null : Keyboard.FocusedElement as UIElement,
+            };
             window.Raised += shown.Add;
             _open[dialog] = shown;
 
@@ -129,6 +137,17 @@ namespace OpenCAD2D.Wpf
                 if (shown.Below.IsVisible)
                 {
                     shown.Below.Activate();
+
+                    // Switching the window off took the keyboard from the element that held it, and keys that reach no element of
+                    // the window never reach the workspace: Esc would not cancel the routine's next prompt. Where that element cannot
+                    // take it back (it was in a popup or another window, or held nothing), the workspace takes it, as AutoCAD
+                    // returns to the command line; a dialog over another dialog gives it to the dialog below.
+                    bool back = shown.Held != null && shown.Below.IsAncestorOf(shown.Held) && shown.Held.Focus();
+
+                    if (!back && !(shown.Below is DclDialogWindow))
+                    {
+                        _keyboardToWorkspace?.Invoke();
+                    }
                 }
             }
         }
@@ -183,6 +202,9 @@ namespace OpenCAD2D.Wpf
             internal bool BelowWasEnabled { get; }
 
             internal int Sequence { get; set; }
+
+            // The element of the window below that held the keyboard when the dialog opened.
+            internal UIElement Held { get; set; }
 
             internal List<DclEvent> Events { get; } = new List<DclEvent>();
 

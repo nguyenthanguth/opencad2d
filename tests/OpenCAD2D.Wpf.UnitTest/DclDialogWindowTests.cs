@@ -1036,6 +1036,102 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        public void TheHostGivesTheKeyboardBackToWhereItWasInTheMainWindow_SoEscIsHeardAfterTheDialog()
+        {
+            // The main window is switched off while the dialog is shown, which takes the keyboard from the element that held it, and
+            // the window cannot always give it back on its own (the test leaves it nothing to give back); no key then reached the
+            // workspace, and Esc did not cancel the routine's next prompt.
+            OnSta(() =>
+            {
+                var held = new TextBox();
+                var main = new Window
+                {
+                    Width = 400,
+                    Height = 300,
+                    Left = 30100,
+                    Top = 30100,
+                    ShowInTaskbar = false,
+                    Content = held,
+                };
+                main.Show();
+                Keyboard.Focus(held);
+                Assert.Same(held, Keyboard.FocusedElement);
+                var host = new DclWindowHost(() => main);
+                DclDialog dialog = Make("ghedit");
+
+                host.Open(dialog);
+                Keyboard.ClearFocus();
+                FocusManager.SetFocusedElement(main, null);
+                host.Close(dialog);
+
+                Assert.True(main.IsEnabled);
+                Assert.Same(held, Keyboard.FocusedElement);
+                main.Close();
+            });
+        }
+
+        [Fact]
+        public void WithNothingToGiveTheKeyboardBackTo_TheHostGivesItToTheWorkspace()
+        {
+            // The keyboard was on no element of the window when the dialog opened (a popup, a palette): AutoCAD still returns to
+            // the command line afterwards.
+            OnSta(() =>
+            {
+                var elsewhere = new TextBox();
+                var main = new Window
+                {
+                    Width = 400,
+                    Height = 300,
+                    Left = 30100,
+                    Top = 30100,
+                    ShowInTaskbar = false,
+                    Content = elsewhere,
+                };
+                main.Show();
+                Keyboard.ClearFocus();
+                Assert.Null(Keyboard.FocusedElement);
+                var host = new DclWindowHost(() => main, () => Keyboard.Focus(elsewhere));
+                DclDialog dialog = Make("ghedit");
+
+                host.Open(dialog);
+                host.Close(dialog);
+
+                Assert.Same(elsewhere, Keyboard.FocusedElement);
+                main.Close();
+            });
+        }
+
+        [Fact]
+        public void TheWorkspaceGetsTheKeyboardBackAfterADialog_WhereItHadNone()
+        {
+            OnSta(() =>
+            {
+                var model = new MainViewModel();
+                model.OpenDocument(CadDocument.From(new DxfDatabase("AC1027"), "plan.dxf"), "plan.dxf");
+                var workspace = new CadWorkspace { DataContext = model };
+                var main = new Window
+                {
+                    Width = 1000,
+                    Height = 700,
+                    Left = 30100,
+                    Top = 30100,
+                    ShowInTaskbar = false,
+                    Content = workspace,
+                };
+                main.Show();
+                Keyboard.ClearFocus();
+                Assert.Null(Keyboard.FocusedElement);
+                DclDialog dialog = Make("ghedit");
+
+                model.DclHost.Open(dialog);
+                model.DclHost.Close(dialog);
+
+                Assert.Same(workspace.CanvasView, Keyboard.FocusedElement);
+                main.Close();
+            });
+        }
+
+        [Fact]
         public void TheHostCentresTheWindowOverTheMainOne_UnlessTheDialogWasGivenAPoint()
         {
             // reference: screen-pt '(-1 -1) centres the dialog over the window; a point places it (D316)

@@ -974,7 +974,7 @@ namespace OpenCAD2D.Wpf
                 _model.ShowDropMessage = (title, text) =>
                     CadQuestionWindow.ShowMessage(Window.GetWindow(this), title, text, string.Empty);
                 _model.AskGetFile = request => CadGetFileDialog.Show(Window.GetWindow(this), request);
-                _model.DclHost = new DclWindowHost(() => Window.GetWindow(this));
+                _model.DclHost = new DclWindowHost(() => Window.GetWindow(this), () => CanvasView.Focus());
                 _model.LoadSecurity.Ask = AskLoadSecurity;
                 _model.ShowCharacterMap = dialog => CharacterMapWindow.Show(Window.GetWindow(this), dialog);
                 _model.ShowDictionaries = dialog => SpellDictionariesWindow.Show(Window.GetWindow(this), dialog);
