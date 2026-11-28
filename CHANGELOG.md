@@ -4,6 +4,14 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 
 ## Unreleased
 
+- **NEW.** The DRAWINGS list can show the open drawings only: a 20 by 20 button left of Open in its header (two stacked sheets)
+  turns it. Off, the list shows every DWG and DXF file of the folders as before; on, the button is pressed and the list holds
+  just the drawings open in the app, each once under its folder (folders in the order their first drawing was opened, drawings
+  in the order they were opened), a drawing never saved under "Not saved", every row with its close cross (the drawing in front is the selected row).
+  The chips count these rows only; search, double click, the right-click menu and plugin items work as in the
+  full list, and Refresh rereads the folders in the full view only. Opening or closing a drawing updates the list at once. The
+  choice is kept in the global settings (`GlobalSettings.DrawingsShowOpenOnly`, off by default) and set from code with
+  `MainViewModel.DrawingsShowOpenOnly`.
 - **FIXED.** Esc did nothing after a routine's dialog (`start_dialog`, such as a LISP edit-text command asking for the next
   object): the main window is switched off while a dialog is shown, which took the keyboard from the element that held it, and
   nothing took it back, so keys reached no part of the workspace until a click on the canvas gave it focus. The element that

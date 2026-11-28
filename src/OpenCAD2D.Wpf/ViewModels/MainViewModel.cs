@@ -96,6 +96,7 @@ namespace OpenCAD2D.Wpf
         private readonly LispStartup _lispStartup = new LispStartup();
         private KnownFile _current;
         private int _revision;
+        private int _openCount;
         private string _searchText = string.Empty;
         private bool _dxfOnly;
         private bool _ownOnly;
@@ -153,7 +154,14 @@ namespace OpenCAD2D.Wpf
             ZoomExtentsCommand = new DelegateCommand(_ => Execute("ZOOM E"));
             PanCommand = new DelegateCommand(_ => StartCommand("PAN"));
             OpenCommand = new DelegateCommand(_ => OpenRequested?.Invoke(this, EventArgs.Empty));
-            RefreshCommand = new DelegateCommand(_ => Refresh());
+            // The button of the panel looks in the folders in the full view only; the open drawings view has nothing in them to look for.
+            RefreshCommand = new DelegateCommand(_ =>
+            {
+                if (!_settings.DrawingsShowOpenOnly)
+                {
+                    Refresh();
+                }
+            });
             ActivateFileCommand = new DelegateCommand(p => Activate(p as FileRowViewModel));
             SelectSpaceCommand = new DelegateCommand(p => SelectSpace((p as SpaceTabViewModel)?.Space));
             StartCommandCommand = new DelegateCommand(p => StartCommand(p as string), _ => HasDocument);
@@ -374,11 +382,52 @@ namespace OpenCAD2D.Wpf
             set => SetFilter(false, false, value);
         }
 
-        /// <summary>Gets the text of the chip All, with the number of files: "All 3".</summary>
-        public string AllChipText => "All " + Count(Listed().Count());
+        /// <summary>
+        /// Gets or sets whether the DRAWINGS list shows only the drawings open in the app (the button left of Open): each once,
+        /// under the folder it was opened from, the folders in the order their first drawing was opened and the drawings in the
+        /// order they were opened, a drawing never saved under "Not saved". Off, the list shows every DWG and DXF file of the
+        /// folders it knows. Kept in the global settings (<see cref="GlobalSettings.DrawingsShowOpenOnly"/>), which are saved at once.
+        /// </summary>
+        public bool DrawingsShowOpenOnly
+        {
+            get => _settings.DrawingsShowOpenOnly;
+            set
+            {
+                if (value == _settings.DrawingsShowOpenOnly)
+                {
+                    return;
+                }
 
-        /// <summary>Gets the text of the chip of plain drawings, with the number of DWG and DXF files no extension describes: "DWG/DXF 3".</summary>
-        public string DxfChipText => "DWG/DXF " + Count(Listed().Count(f => f.IsDxf && f.Info(_extensions) == null));
+                ChangeSettings(s => s.DrawingsShowOpenOnly = value, "the DRAWINGS list was set to open drawings only");
+                RaiseDrawingsView();
+            }
+        }
+
+        /// <summary>Gets what a click on the button of <see cref="DrawingsShowOpenOnly"/> does now: "Show open drawings only", or "Show every file of the folder" while it is on.</summary>
+        public string DrawingsShowOpenOnlyToolTip =>
+            _settings.DrawingsShowOpenOnly ? "Show every file of the folder" : "Show open drawings only";
+
+        /// <summary>Gets the text of the chip All, with the number of files: "All 3". With open drawings only, the number of them.</summary>
+        public string AllChipText => "All " + Count(Shown().Count());
+
+        /// <summary>
+        /// Gets the text of the chip of plain drawings, with the number of DWG and DXF files no extension describes: "DWG/DXF 3".
+        /// With open drawings only, the number of them, and the chip names the kind where all are of one: "DWG 2".
+        /// </summary>
+        public string DxfChipText
+        {
+            get
+            {
+                List<KnownFile> plain = Shown().Where(f => f.IsDxf && f.Info(_extensions) == null).ToList();
+                string kinds = string.Join(
+                    "/",
+                    _settings.DrawingsShowOpenOnly && plain.Count > 0
+                        ? plain.Select(f => f.Kind).Distinct().OrderBy(k => k, StringComparer.Ordinal)
+                        : new[] { "DWG", "DXF" }
+                );
+                return kinds + " " + Count(plain.Count);
+            }
+        }
 
         /// <summary>Gets whether an extension is added that names its files, so that its chips show.</summary>
         public bool HasOwnFiles => _extensions.Any(e => !string.IsNullOrEmpty(e.FileKindName));
@@ -387,11 +436,12 @@ namespace OpenCAD2D.Wpf
         public string OwnChipText =>
             (_extensions.Select(e => e.FileKindName).FirstOrDefault(n => !string.IsNullOrEmpty(n)) ?? "Other")
             + " "
-            + Count(_files.Values.Count(f => f.Info(_extensions) != null));
+            + Count(Shown(_files.Values).Count(f => f.Info(_extensions) != null));
 
         /// <summary>Gets the text of the chip of the files out of date, with their number: "Out of date 1".</summary>
         public string OutOfDateChipText =>
-            "Out of date " + Count(_files.Values.Count(f => f.Info(_extensions)?.State == CadFileState.OutOfDate));
+            "Out of date "
+            + Count(Shown(_files.Values).Count(f => f.Info(_extensions)?.State == CadFileState.OutOfDate));
 
         /// <summary>Gets whether a drawing is shown; false on the start screen.</summary>
         public bool HasDocument => _current != null;
@@ -901,7 +951,7 @@ namespace OpenCAD2D.Wpf
             );
         }
 
-        /// <summary>Looks again for the DXF files of the folders listed.</summary>
+        /// <summary>Looks again for the DXF files of the folders listed, whichever view of the list is shown.</summary>
         public void Refresh()
         {
             foreach (
@@ -1913,6 +1963,12 @@ namespace OpenCAD2D.Wpf
         private void Attach(KnownFile file, CadDocument document)
         {
             file.Document = document;
+
+            if (file.OpenOrder == 0)
+            {
+                file.OpenOrder = ++_openCount;
+            }
+
             file.Drafting = ReadDrafting(document);
             file.Session = new CadCommandSession(document, Commands());
             file.Session.PromptChanged += OnPromptChanged;
@@ -3129,8 +3185,10 @@ namespace OpenCAD2D.Wpf
         {
             FileRows.Clear();
 
+            bool openOnly = _settings.DrawingsShowOpenOnly;
+
             // A file an extension describes is listed under the group it names, after the folders of plain DXF files.
-            var shown = Listed()
+            var matching = Shown()
                 .Select(f => new { File = f, Info = f.Info(_extensions) })
                 .Where(f =>
                     (!_dxfOnly || (f.File.IsDxf && f.Info == null))
@@ -3144,11 +3202,22 @@ namespace OpenCAD2D.Wpf
                     )
                 )
                 .GroupBy(
-                    f => (f.Info == null ? "0" : "1") + (f.Info == null ? f.File.Folder : f.Info.Group),
+                    f =>
+                        f.Info != null ? "1" + f.Info.Group
+                        : openOnly && !f.File.Document.HasFile ? NotSavedKey
+                        : "0" + (openOnly ? OpenFolderOf(f.File) : f.File.Folder),
                     StringComparer.OrdinalIgnoreCase
-                )
-                .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(g => g.Key, StringComparer.Ordinal);
+                );
+
+            // The open drawings view goes by when the drawings were opened, a drawing never saved last; the full list by name.
+            var shown = openOnly
+                ? matching
+                    .OrderBy(g => g.Key == NotSavedKey ? 1 : 0)
+                    .ThenBy(g => g.Min(f => f.File.OpenOrder))
+                    .ThenBy(g => g.Key, StringComparer.Ordinal)
+                : matching
+                    .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(g => g.Key, StringComparer.Ordinal);
 
             foreach (var group in shown)
             {
@@ -3158,13 +3227,24 @@ namespace OpenCAD2D.Wpf
                     "/",
                     group.Select(f => f.File.Kind).Distinct().OrderBy(k => k, StringComparer.Ordinal)
                 );
-                FileRows.Add(new FileRowViewModel(true, group.Key[0] == '0' ? key + " · " + kinds : key, null, null));
+                FileRows.Add(
+                    new FileRowViewModel(
+                        true,
+                        group.Key == NotSavedKey ? "Not saved"
+                            : group.Key[0] == '0' ? key + " · " + kinds
+                            : key,
+                        null,
+                        null
+                    )
+                );
 
                 foreach (
-                    var item in group
-                        .OrderBy(f => f.Info?.Label ?? f.File.Name, StringComparer.OrdinalIgnoreCase)
-                        .ThenBy(f => f.Info?.Label ?? f.File.Name, StringComparer.Ordinal)
-                        .ThenBy(f => f.File.Path, StringComparer.Ordinal)
+                    var item in openOnly
+                        ? group.OrderBy(f => f.File.OpenOrder).ThenBy(f => f.File.Path, StringComparer.Ordinal)
+                        : group
+                            .OrderBy(f => f.Info?.Label ?? f.File.Name, StringComparer.OrdinalIgnoreCase)
+                            .ThenBy(f => f.Info?.Label ?? f.File.Name, StringComparer.Ordinal)
+                            .ThenBy(f => f.File.Path, StringComparer.Ordinal)
                 )
                 {
                     FileRows.Add(
@@ -3192,6 +3272,29 @@ namespace OpenCAD2D.Wpf
             Raise(nameof(OwnChipText));
             Raise(nameof(OutOfDateChipText));
         }
+
+        /// <summary>Raises what the view of the DRAWINGS list shows after it changed: its rows, chips, button and tooltip.</summary>
+        private void RaiseDrawingsView()
+        {
+            RebuildRows();
+            Raise(nameof(DrawingsShowOpenOnly));
+            Raise(nameof(DrawingsShowOpenOnlyToolTip));
+        }
+
+        /// <summary>The key of the group of drawings never saved, in the open drawings view; no other key starts with 2.</summary>
+        private const string NotSavedKey = "2";
+
+        /// <summary>The folder an open drawing is listed under: that of the file it is saved to, where it was saved last.</summary>
+        private static string OpenFolderOf(KnownFile file) =>
+            System.IO.Path.IsPathRooted(file.Document.FileName)
+                ? System.IO.Path.GetDirectoryName(file.Document.FileName)
+                : file.Folder;
+
+        /// <summary>The files of the list now: <see cref="Listed"/>, or only the drawings open with <see cref="DrawingsShowOpenOnly"/>.</summary>
+        private IEnumerable<KnownFile> Shown() => Shown(Listed());
+
+        private IEnumerable<KnownFile> Shown(IEnumerable<KnownFile> files) =>
+            _settings.DrawingsShowOpenOnly ? files.Where(f => f.Document != null) : files;
 
         /// <summary>
         /// The files the list shows: all but a file found in a folder that a document listed under another key is saved to,
@@ -3259,6 +3362,9 @@ namespace OpenCAD2D.Wpf
             public CadDocument Document { get; set; }
 
             public CadCommandSession Session { get; set; }
+
+            /// <summary>Where the drawing came in the order the drawings were opened, from 1; 0 while it is not open. A document read again from its file keeps it.</summary>
+            public int OpenOrder { get; set; }
 
             /// <summary>The drawing's SNAP, GRID, ORTHO, lineweights and spacings, shown while it is.</summary>
             public DraftingState Drafting { get; set; } = new DraftingState();
