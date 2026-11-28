@@ -5,12 +5,12 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 ## Unreleased
 
 - **NEW.** The DRAWINGS list can show the open drawings only: a 20 by 20 button left of Open in its header (two stacked sheets)
-  turns it. Off, the list shows every DWG and DXF file of the folders as before; on, the button is pressed and the list holds
+  turns it. On, which is how the app starts, the button is pressed and the list holds
   just the drawings open in the app, each once under its folder (folders in the order their first drawing was opened, drawings
   in the order they were opened), a drawing never saved under "Not saved", every row with its close cross (the drawing in front is the selected row).
   The chips count these rows only; search, double click, the right-click menu and plugin items work as in the
-  full list, and Refresh rereads the folders in the full view only. Opening or closing a drawing updates the list at once. The
-  choice is kept in the global settings (`GlobalSettings.DrawingsShowOpenOnly`, off by default) and set from code with
+  full list, and Refresh rereads the folders in the full view only. Opening or closing a drawing updates the list at once. Off, the list shows every DWG and DXF file of the folders as before. The
+  choice is kept in the global settings (`GlobalSettings.DrawingsShowOpenOnly`, on by default) and set from code with
   `MainViewModel.DrawingsShowOpenOnly`.
 - **CHANGED.** The New, Modify and Override dimension style dialog lays each tab out in group boxes as AutoCAD 2021 does, not as one
   column of rows: a 1 px bordered box per group with its title in the top line (Dimension lines, Extension lines, Arrowheads, Centre
