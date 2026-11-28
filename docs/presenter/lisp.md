@@ -302,7 +302,9 @@ the Open dialog for a plugin `.dll` or `.csproj`) and Load Python (PYLOAD, the O
 
 SHAREDOWNLOAD (Manage tab, Applications, From Share) shows **Download from Share**, the window that brings a tool from
 [opencad2d.com/share](https://opencad2d.com/share) into the app. Paste the link of the tool's page,
-`https://opencad2d.com/share/stairs` (a trailing slash, a `www.` and a query are let go), and press **Find**: the window asks
+`https://opencad2d.com/share/stairs` (a trailing slash, a `www.` and a query are let go), and press **Find** (or Enter). The
+window opens with the keyboard in the link box; when the box is empty and the clipboard holds a Share link, the link is put in
+the box already, selected, and nothing is asked of Share until Find is pressed. Find makes the window ask
 Share for the tool and its cover picture and shows the picture, the name and summary, the **Type** (AutoLISP, a Python tool,
 or C# source compiled when it loads), the **Version** and author (`1.2, by archi_tools`), the **SHA-256** of the file
 (`9c4e1b7a03f2…d41a7b3e90`; with several files the first one's and how many more), **On this PC**, the **Review** (Share shows
