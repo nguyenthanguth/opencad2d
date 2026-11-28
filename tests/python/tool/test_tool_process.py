@@ -140,6 +140,7 @@ def test_a_tool_that_cannot_be_imported_fails_each_command_and_stays_up(
     assert any("no_such_module_anywhere" in line for line in tool.stderr)
 
 
+@pytest.mark.timing
 def test_a_busy_loop_is_ended_by_the_cancel_message_at_once(
     start_tool: Started, tool_folder: Make, run_command: Run, drawing: Any, server: Any
 ) -> None:

@@ -187,6 +187,7 @@ def test_to_numpy_refuses_a_dotnet_array_of_another_element_type(arrays: ModuleT
         arrays.to_numpy(Array[str](["a"]))
 
 
+@pytest.mark.timing
 def test_a_hundred_thousand_points_copy_in_milliseconds_not_in_a_loop(arrays: ModuleType) -> None:
     # Measured 0.4 to 4.3 ms each way; reading X, Y and Z of every point takes 202 to 283 ms. The limit of 100 ms is 25
     # times the slowest copy and half the fastest loop, and the best of three runs is taken.

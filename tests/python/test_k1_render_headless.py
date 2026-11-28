@@ -521,6 +521,7 @@ print(json.dumps(result))
 """
 
 
+@pytest.mark.timing
 def test_the_first_call_and_the_median_of_five_after_it_stay_far_below_a_hang(python: Python, tmp_path: Path) -> None:
     process = python(_TIMINGS, str(tmp_path), env={"OPENCAD2D_RUNTIME": opencad2d.runtime()})
 

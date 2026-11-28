@@ -11,6 +11,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import pytest
 from tool_process import ToolProcess
 
 from GeometryHelper.Dxf import DxfCircle, DxfDatabase, DxfEntity
@@ -189,6 +190,7 @@ def test_a_tool_with_no_snap_says_ready_with_no_snaps(start_tool: Started, tool_
     assert tool.receive("ready")["snaps"] == []
 
 
+@pytest.mark.timing
 def test_a_question_is_answered_while_a_command_waits_at_get_point(
     start_tool: Started, tool_folder: Make, run_command: Run, drawing: Any, server: Any
 ) -> None:
@@ -218,6 +220,7 @@ def wait():
     assert tool.receive("ended")["run"] == run
 
 
+@pytest.mark.timing
 def test_a_question_is_answered_while_a_command_computes_in_a_python_loop(
     start_tool: Started, tool_folder: Make, run_command: Run, drawing: Any, server: Any
 ) -> None:

@@ -192,6 +192,7 @@ def _big(count: int) -> Drawing:
     return drawing
 
 
+@pytest.mark.timing
 def test_ten_thousand_objects_are_reset_in_a_fraction_of_the_time_to_open_the_file(tmp_path: Path, capsys: Any) -> None:
     drawing = _big(10_000)
     path = tmp_path / "big.dxf"

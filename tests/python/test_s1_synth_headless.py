@@ -181,6 +181,7 @@ def test_a_crowding_outside_nought_to_one_is_refused() -> None:
             synth.make_drawing(1, crowding)
 
 
+@pytest.mark.timing
 def test_a_drawing_takes_a_fraction_of_a_second(capsys: pytest.CaptureFixture[str]) -> None:
     synth.generate(0)
     started = time.perf_counter()

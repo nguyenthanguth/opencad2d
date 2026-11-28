@@ -261,6 +261,7 @@ def test_something_that_is_no_drawing_or_path_is_a_type_error() -> None:
 # ---- 5. speed ----------------------------------------------------------------------------------------------------------------
 
 
+@pytest.mark.timing
 def test_a_drawing_of_ten_thousand_objects_is_compared_in_well_under_two_seconds(tmp_path: Path) -> None:
     drawing = new_file()
     for index in range(10_000):

@@ -22,6 +22,14 @@ def _installed_under_site_packages(package_file: str) -> bool:
     return any(root in folder.parents for root in roots)
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line(
+        "markers",
+        "timing: asserts how fast something ran; a hosted runner leaves it out (OPENCAD2D_SKIP_TIMING=1 in "
+        "tools/python/verify-python.sh), and test_t2_timing_marker holds every such test to it",
+    )
+
+
 def pytest_sessionstart(session: pytest.Session) -> None:
     asked = os.environ.get("OPENCAD2D_RUNTIME", "")
     if asked not in ("coreclr", "netfx"):
