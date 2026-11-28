@@ -13,6 +13,7 @@ namespace OpenCAD2D.Remote.UnitTest
     /// <c>toolSetting</c> and <c>setToolSetting</c>, the token naming the tool, answered without the dispatcher and refused on
     /// the app's own channel.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class ToolSettingsChannelTests
     {
         private const string Declared =
@@ -207,6 +208,7 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void TheSettingsOps_AreAnsweredWhileTheWindowThreadIsHeld()
         {
             using (var harness = new Harness())

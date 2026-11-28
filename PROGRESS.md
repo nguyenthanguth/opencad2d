@@ -151,7 +151,8 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       lookup copies the whole drawing (plan: a Remote request that lists multileader and table styles with their scales,
       as the text style list is carried, then list_multileader_styles, list_table_styles and measure_leader(style=) read
       it, and get_entity would read the name from it too).
-- [ ] N6. Timing tests are spread over many files (names with Speed, Timed, Milliseconds, Seconds, UnderTwoSeconds...);
+- [x] N6 DONE 2026-11-28 (Gemini, reviewed; 51 timing cases tagged, TimingTraitTests guards it in all six test
+      projects, CI and publish-nuget filter Category!=Timing). Timing tests are spread over many files (names with Speed, Timed, Milliseconds, Seconds, UnderTwoSeconds...);
       CI leaves them out by name, which misses some (VlSort_..._WithinAHundredMilliseconds failed on the hosted runner on
       039bf014). Give every timing test a [Trait("Category", "Timing")] (the SpeedGuard users and the Stopwatch asserts),
       put them in ViewerSpeedCollection, and let CI filter Category!=Timing.

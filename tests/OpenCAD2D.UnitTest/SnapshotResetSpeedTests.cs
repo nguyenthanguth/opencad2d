@@ -159,6 +159,7 @@ namespace OpenCAD2D.UnitTest
             document.ModelSpace.Block.Select(e => e.Handle).ToList();
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void TenThousandObjects_AreResetInAFractionOfTheTimeToOpenThem()
         {
             CadDocument document = Drawing(10000);

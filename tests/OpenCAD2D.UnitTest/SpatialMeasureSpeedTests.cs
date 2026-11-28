@@ -15,6 +15,7 @@ namespace OpenCAD2D.UnitTest
     /// by 3 000): the empty rectangles of a frame, whether a candidate fits, and the measure of a text and a dimension. The
     /// limits are ceilings a quadratic test crosses by a long way; the times are written to the test output.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class SpatialMeasureSpeedTests : IDisposable
     {
         private static readonly Tolerance Touching = new Tolerance(1E-3, 1E-5);
@@ -73,6 +74,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void FreeSpaceAndFitsAndMeasure_OnAHundredThousandObjects_AreFastEnoughToAskInALoop()
         {
             CadDocument document = Hundred();

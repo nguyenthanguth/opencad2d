@@ -424,6 +424,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ACellOfATableOfAHundredRowsOfTwentyColumns_IsWrittenAndDrawnWellUnderAHundredMilliseconds()
         {
             CadDocument document = Metric();

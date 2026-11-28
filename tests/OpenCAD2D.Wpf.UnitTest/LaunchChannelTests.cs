@@ -17,6 +17,7 @@ namespace OpenCAD2D.Wpf.UnitTest
     /// and the queue that holds the paths until the window can open them. No window and no Application is made, and no pipe
     /// has the name of the real app: each test names its own.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class LaunchChannelTests
     {
         private static string NewName() => "OpenCAD2D.Test.Open." + Guid.NewGuid().ToString("N");
@@ -98,6 +99,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AnOwnerThatNeverAnswers_IsGivenUpOn_AndTheStartGoesOn()
         {
             string name = NewName();

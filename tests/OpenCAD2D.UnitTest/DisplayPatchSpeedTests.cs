@@ -32,6 +32,7 @@ namespace OpenCAD2D.UnitTest
         /// limit in every run.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void AMoveAndALayerSwitchedInADrawingOfAHundredThousandEntities_DrawOnlyWhatChanged()
         {
             CadDocument document = CadDocument.From(DxfDatabase.Parse(BigDrawing.Text(100000)), "speed-100k.dxf");

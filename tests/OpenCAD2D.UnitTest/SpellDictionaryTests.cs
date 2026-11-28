@@ -11,6 +11,7 @@ namespace OpenCAD2D.UnitTest
     /// Spell Check panel: which words it knows, the words it offers for a misspelled one, the misspelled words of an editor
     /// found by place, and Add Word and Delete written to a file of words one to a line.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class SpellDictionaryTests
     {
         private static readonly string Folder = TestRun.Folder("spell-dictionary");
@@ -73,6 +74,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void SuggestingForAWordIsFast_ThoughTheDictionaryHoldsTensOfThousands()
         {
             var dictionary = new CadSpellDictionary();

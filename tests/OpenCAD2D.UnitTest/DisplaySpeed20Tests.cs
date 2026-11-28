@@ -372,6 +372,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ARegenOfLinesOnThreeLayersInTurn_TakesAboutAsLongAsOfLinesOnOne()
         {
             // The layer of an entity is found among the few the builder drew last, by the string its record gave: the lines on

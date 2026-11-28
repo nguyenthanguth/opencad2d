@@ -59,6 +59,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AChainOfAHundredThousandLines_IsBuiltInSeconds_NotInMinutes()
         {
             CadDocument document = Chain(100000);

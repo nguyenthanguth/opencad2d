@@ -16,6 +16,7 @@ namespace OpenCAD2D.Remote.UnitTest
     /// <see cref="CadRemoteDocument.CommitChanges"/>, with no request of its own. The requests are counted by a dispatcher that
     /// runs the server's work as the test host does and counts the pieces of it.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class RemoteTicketTests
     {
         private readonly ITestOutputHelper _output;
@@ -154,6 +155,7 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AThousandInsertsAndACopy_GiveTheirHandlesAtOnce_WhereTheObjectsTookARequestEach()
         {
             using (var scene = new Scene())

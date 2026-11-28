@@ -234,6 +234,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ALayerSwitchedOffInADrawingOfMoreRunsThanOneThreadTakes_TakesLessThanTheBuildOfTheWholeDoes()
         {
             string text = BigDrawing.Text(200_000);

@@ -18,6 +18,7 @@ namespace OpenCAD2D.Wpf.UnitTest
     /// is typed in, and a tool that raises, exits, hangs or is stopped by Esc taking nothing of the app with it. Every test starts
     /// real processes, of a Python the fixture makes in a temporary folder (no network, no setting of the user's).
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class ToolHostTests : IClassFixture<ToolPython>
     {
         private readonly ToolPython _python;
@@ -341,6 +342,7 @@ def draw_it():
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void TheFirstCommand_StartsTheProcess_AndTheNextOnesUseIt()
         {
             using (var scene = new Scene(_python))
@@ -456,6 +458,7 @@ def fine():
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void Esc_InABusyLoop_EndsTheRunAndStopsTheLoopWithinFiveSeconds_InTheSameProcess()
         {
             const string source =
@@ -499,6 +502,7 @@ def fine():
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AToolEscCannotStop_IsEndedAfterFiveSeconds_WithItsLine_AndTheNextCommandStartsANewProcess()
         {
             const string source =

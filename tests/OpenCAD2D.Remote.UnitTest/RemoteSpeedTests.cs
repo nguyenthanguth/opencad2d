@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 
 namespace OpenCAD2D.Remote.UnitTest
 {
+    [Collection(ViewerSpeedCollection.Name)]
     public class RemoteSpeedTests
     {
         private readonly ITestOutputHelper _output;
@@ -18,6 +19,7 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AThousandLines_GoInOneCommitInSeconds_AndTheRoundTripOfOneIsInMilliseconds()
         {
             using (var harness = new Harness())

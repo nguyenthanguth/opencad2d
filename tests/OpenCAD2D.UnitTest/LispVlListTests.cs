@@ -10,7 +10,7 @@ namespace OpenCAD2D.UnitTest
     /// the rest), against AutoCAD 2021's accoreconsole: probes r1 and r5 of the L3 measurements. Each row is an expression
     /// and the text AutoCAD printed for it, an error as the message after <c>; error: </c>.
     /// </summary>
-    [Collection("LispSerial")]
+    [Collection(ViewerSpeedCollection.Name)]
     public class LispVlListTests
     {
         private readonly ITestOutputHelper _output;
@@ -191,6 +191,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void VlSort_OfTenThousandReals_IsSortedWithinAHundredMilliseconds()
         {
             var lisp = new LispInterpreter();

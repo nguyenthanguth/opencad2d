@@ -73,6 +73,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AHundredThousandObjects_HaveTheirOverlapsInSecondsAndAnEditedEntitysInAFractionOfOne()
         {
             CadDocument document = Hundred();

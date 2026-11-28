@@ -7,6 +7,7 @@ using Xunit;
 
 namespace OpenCAD2D.Remote.UnitTest
 {
+    [Collection(ViewerSpeedCollection.Name)]
     public class RemoteCommandTests
     {
         private static CadDocument Blank(string name) => CadDocument.From(new DxfDatabase("AC1027"), name);
@@ -32,6 +33,7 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ACommandThatWaitsForTheUser_ReturnsAtTheTimeout_WithItsPromptAndStaysRunning()
         {
             using (var harness = new Harness())

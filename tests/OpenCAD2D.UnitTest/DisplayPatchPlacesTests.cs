@@ -511,6 +511,7 @@ namespace OpenCAD2D.UnitTest
         /// every entity: the limit is about ten times what the patch takes alone, and under what a walk of every entity takes.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void AMoveInADrawingOfAHundredThousandEntities_IsDisplayedWithoutWalkingTheEntities()
         {
             CadDocument document = Open(BigDrawing.Text(100000));

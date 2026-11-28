@@ -212,6 +212,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void TwoThousandHandOffs_AreWellUnderTwoSeconds()
         {
             var lisp = Interpreter();
@@ -224,6 +225,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AMillionStepLoopOnASessionsInterpreter_StillRunsUnderTwoSeconds()
         {
             // AutoCAD 2021: (repeat 1000000 (setq i (1+ i))) 157 ms; L1's loop test on a bare interpreter, here on the one a
