@@ -421,7 +421,6 @@ def _many(count: int) -> Drawing:
     return drawing
 
 
-@pytest.mark.timing
 def test_the_masks_and_the_coco_file_of_ten_thousand_objects_stay_far_below_a_hang(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

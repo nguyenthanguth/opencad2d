@@ -19,7 +19,6 @@ import parallel_timeout_work as work
 
 
 @pytest.mark.parametrize("workers", [1, 2])
-@pytest.mark.timing
 def test_an_item_over_the_timeout_is_an_error_and_the_others_still_come_in_order(workers: int) -> None:
     started = time.perf_counter()
     outcomes = run_many(work.hangs_on_two, list(range(6)), workers=workers, timeout=3.0)
@@ -64,7 +63,6 @@ def test_a_timeout_that_is_not_finite_is_refused() -> None:
             run_many(work.hangs_on_two, [1], workers=1, timeout=refused)
 
 
-@pytest.mark.timing
 def test_workers_that_end_while_they_start_give_every_item_an_error_and_the_call_returns() -> None:
     started = time.perf_counter()
     outcomes = run_many(start_dies.work, list(range(5)), workers=2, timeout=5.0)
@@ -74,7 +72,6 @@ def test_workers_that_end_while_they_start_give_every_item_an_error_and_the_call
     assert time.perf_counter() - started < 60.0
 
 
-@pytest.mark.timing
 def test_a_worker_that_says_nothing_is_given_up_after_the_start_up_deadline(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(parallel, "START_TIMEOUT", 1.5)
     started = time.perf_counter()

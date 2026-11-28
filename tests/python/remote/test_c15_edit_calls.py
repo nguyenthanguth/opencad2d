@@ -608,7 +608,6 @@ def test_an_edit_works_on_a_drawing_that_is_not_the_one_shown(twins: Twins) -> N
     assert _ends(line) == ((10.0, 5.0), (110.0, 5.0))
 
 
-@pytest.mark.timing
 def test_every_object_of_a_big_drawing_moved_and_copied_by_one_call_takes_seconds_not_minutes(cad_app: Any) -> None:
     drawing = cad_app.new()
     for index in range(2000):

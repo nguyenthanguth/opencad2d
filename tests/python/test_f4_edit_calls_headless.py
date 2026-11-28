@@ -682,7 +682,6 @@ def test_an_object_offset_does_not_take_is_refused_in_the_commands_words(twins: 
 # ---- a big drawing -----------------------------------------------------------------------------------------------------
 
 
-@pytest.mark.timing
 def test_every_object_of_a_big_drawing_moved_and_copied_by_one_call_takes_seconds_not_minutes() -> None:
     drawing = new_file()
     for index in range(2000):

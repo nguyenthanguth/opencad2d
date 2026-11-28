@@ -31,7 +31,6 @@ def test_the_seed_of_an_item_is_a_function_of_the_run_and_its_place_alone() -> N
     assert item_seed(42, 0) == int.from_bytes(hashlib.sha256(b"opencad2d:42:0").digest()[:8], "big") >> 1
 
 
-@pytest.mark.timing
 def test_one_worker_and_three_give_the_same_values_in_the_order_of_the_items() -> None:
     started = time.perf_counter()
     one = run_many(work.plate, ITEMS, workers=1, seed=42)

@@ -64,7 +64,7 @@ The wheel is 16 404 573 bytes. It holds the three assemblies (`GeometryHelper.dl
 
 `bash tools/python/verify-python.sh` does all of it, then makes a fresh virtual environment, installs the wheel there and
 runs `tests/python` against it, once on each runtime; the `python` job of `.github/workflows/build.yml` runs the same
-script on Python 3.11 and 3.14, and nothing else of Python: the app no longer embeds it. A test that asserts how fast something ran carries `@pytest.mark.timing` (`test_t2_timing_marker.py` fails on one that does not); the job sets `OPENCAD2D_SKIP_TIMING=1`, which makes the script pass `-m "not timing"`, because a hosted runner is slower and shared, and on a developer's machine every test runs. On the test machine, 1 283 tests pass on .NET 8 (191 s) with 1 skipped (PyInstaller is not installed there), and 1 240 on .NET Framework 4.8 (161 s) with 44 skipped: the tests of a tool's process, which always runs on .NET 8, and that one.
+script on Python 3.11 and 3.14, and nothing else of Python: the app no longer embeds it. A test that asserts how fast something ran carries `@pytest.mark.timing` (`test_t2_timing_marker.py` fails on one that does not; an upper limit of 10 seconds or more is a guard against a hang, not a speed assert, and needs none); the job sets `OPENCAD2D_SKIP_TIMING=1`, which makes the script pass `-m "not timing"`, because a hosted runner is slower and shared, and on a developer's machine every test runs. On the test machine, 1 756 tests pass on .NET 8 (437 s) with 1 skipped (PyInstaller is not installed there), and 1 709 on .NET Framework 4.8 (392 s) with 48 skipped: the tests of a tool's process, which always runs on .NET 8, and that one.
 
 ## A first script
 

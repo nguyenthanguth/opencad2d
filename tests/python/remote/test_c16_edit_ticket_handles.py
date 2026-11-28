@@ -65,7 +65,6 @@ def test_the_inserts_queued_with_a_copy_get_their_handles_without_a_read_of_each
         assert drawing.entity(entity.handle).net.StartPoint.X == index
 
 
-@pytest.mark.timing
 def test_a_thousand_inserts_and_a_copy_are_one_request_and_take_a_fraction_of_a_second(twins: Twins) -> None:
     drawing = twins.called
     counting = _counting(drawing)

@@ -138,27 +138,13 @@ def test_batch_export_writes_three_files_and_a_manifest_line_for_each_drawing_in
     assert list(work.iterdir()) == []
 
 
-def _exported_rows(tmp_path: Path, work: Path) -> dict[str, dict[str, Any]]:
-    """Runs ``batch_export.py`` on the folder of the tests and gives the manifest rows by file name."""
-    folder, out = _folder(tmp_path), tmp_path / "out"
-    _run("batch_export.py", folder, out, cwd=work)
-    return {row["file"]: row for row in _manifest(out)}
-
-
-@pytest.mark.timing
-def test_batch_export_manifest_times_each_stage_of_a_drawing_and_none_takes_half_a_minute(
-    tmp_path: Path, work: Path
-) -> None:
-    plate = _exported_rows(tmp_path, work)["plate.dxf"]
-
-    assert sorted(plate["seconds"]) == ["flatten", "graph", "json", "open", "png"]
-    assert all(0.0 <= value < 30.0 for value in plate["seconds"].values())
-
-
 def test_batch_export_manifest_has_the_counts_the_drawings_have_and_the_error_of_the_one_that_is_none(
     tmp_path: Path, work: Path
 ) -> None:
-    rows = _exported_rows(tmp_path, work)
+    folder, out = _folder(tmp_path), tmp_path / "out"
+    _run("batch_export.py", folder, out, cwd=work)
+
+    rows = {row["file"]: row for row in _manifest(out)}
 
     assert list(rows) == ["Beam.dxf", "broken.dxf", "empty.dxf", "frame.dwg", "inches.dxf", "plate.dxf", "unitless.dxf"]
     assert sorted(rows["broken.dxf"]) == ["error", "file"]
@@ -169,6 +155,8 @@ def test_batch_export_manifest_has_the_counts_the_drawings_have_and_the_error_of
     assert (plate["entities"], plate["flat"], plate["pieces"], plate["nodes"]) == (6, 8, 4, 8)
     assert plate["edges"] == {"touches": 2, "contains": 6, "dimensions": 1, "annotates": 0}
     assert (plate["polylines"], plate["vertices"], plate["png"][0]) == (1, 4, 800)
+    assert sorted(plate["seconds"]) == ["flatten", "graph", "json", "open", "png"]
+    assert all(0.0 <= value < 30.0 for value in plate["seconds"].values())
     assert rows["frame.dwg"]["version"] == "AC1032"  # a DWG: the writer's version
     assert {k: v for k, v in rows["frame.dwg"].items() if k not in ("file", "seconds", "version")} == {
         k: v for k, v in plate.items() if k not in ("file", "seconds", "version")
