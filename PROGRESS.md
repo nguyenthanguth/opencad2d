@@ -149,10 +149,10 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       lists multileader or table styles; list_multileader_styles does the same).
       N3 done: add_hatch handles (chains of lines, arcs, open polylines, ellipses, elliptic arcs), OFFSET Erase put back,
       run_many timeout=, get_entity style attached, nested INSERT test, describe_kinds kept by hand (a test now holds its
-      arguments to the tools; 5 drifts fixed). Still open: the synth labels cover model space only; the attached style
-      lookup copies the whole drawing (plan: a Remote request that lists multileader and table styles with their scales,
-      as the text style list is carried, then list_multileader_styles, list_table_styles and measure_leader(style=) read
-      it, and get_entity would read the name from it too).
+      arguments to the tools; 5 drifts fixed). The attached style lookup no longer copies the
+      drawing (annotationStyles, ed152002, 2026-11-27); McpAnnotationStyleCopyTests counts the app's requests on a
+      relay pipe and holds it (2026-11-28: 5 copies on d18986b8, 0 now). The synth labels for the A3 layout came in
+      02573bed. Nothing of N3 is open.
 - [x] N6 DONE 2026-11-28 (Gemini, reviewed; 51 timing cases tagged, TimingTraitTests guards it in all six test
       projects, CI and publish-nuget filter Category!=Timing). Timing tests are spread over many files (names with Speed, Timed, Milliseconds, Seconds, UnderTwoSeconds...);
       CI leaves them out by name, which misses some (VlSort_..._WithinAHundredMilliseconds failed on the hosted runner on
@@ -163,11 +163,16 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       the style dialogs and no white line on frameless style windows; the DRAWINGS panel's open-only toggle; the
       Modify Dimension Style tabs in group boxes as AutoCAD; small text as bars when zoomed out (SMALLTEXTBARS).
       The maintainer to look at in the real app: E1 + Esc, the Korean MTEXT, the dimension style window's preview.
+- [ ] N8. The Python timing tests have no marker, so CI runs them: test_q1_snapshot_headless's "reset in a fraction
+      of the time to open" failed on the hosted runner on 94651cb4 (reset 16.6 ms against open 29.7 ms / 2; green on
+      rerun). Give them a pytest marker (timing), register it, and let the CI python job deselect it (-m "not timing"),
+      as N6 did for the C# suites. -> verify: a guard test that every test asserting on perf_counter carries it.
 - [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3
       (plan in opencad2d-website/ROADMAP.md). State 2026-11-28 evening: W1.1-W2.5, W2.4b (MCP at /mcp) and the
       redesign v2 live at opencad2d.com (website main caae27e); W3 SHAREDOWNLOAD in the app (199e919d, input fix
-      633d7a36). Left: W2.6 launch (the maintainer publishes the Google OAuth app, signs in, uploads and approves a
-      tool), then release 2.1.0 once he has checked everything.
+      633d7a36). The maintainer checked the app items (2026-11-28) and pushed the Google OAuth app to production.
+      Left: N8, then release 2.1.0 (authorised: release once it is merged and CI is green); the website's take-down
+      and restore of tools (feat/tool-takedown-restore) goes on beside it.
 
 State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper
 13.15.0 at cf1db73e pushed and in Lib. The full check of CLAUDE.md (incl. the Mcp suite) is green; the timing test classes
