@@ -6,9 +6,10 @@ the .NET library itself, run by [pythonnet](https://pythonnet.github.io/), in a 
 names stay as they are, so a script reads like the C# of the other pages; the package adds only the few Python helpers
 that pythonnet makes slow or easy to get wrong, and type stubs, so that an editor completes and checks every name.
 
-The package is not on PyPI yet. It is a wheel built from the repository ([Installing](#installing)), and the name it
-will be published under is not chosen: `opencad2d` is taken on PyPI by an unrelated project, so a wheel called so
-can never be uploaded. The name to `import` stays `opencad2d` whichever name is chosen.
+The released versions are on PyPI as [`opencad2d`](https://pypi.org/project/opencad2d/). This guide follows the
+repository, which is ahead of the last release (2.0.0): until the next release is published, rendering without a
+window, labelled renders, `opencad2d.parallel`, `opencad2d.synth` and the PyInstaller hook need a wheel built from the
+repository ([Installing](#installing)).
 
 Nothing is converted and no tolerance is chosen for you. Lengths are the library's own, in millimetres when the
 drawing is, and a script passes a [`Tolerance`](xref:GeometryHelper.Tolerance) where the C# would.
@@ -26,8 +27,17 @@ Linux, macOS and Windows on ARM are not supported: nothing has been run there.
 
 ## Installing
 
-Build the wheel from a checkout of the repository, in Git Bash, from its root. The first two lines build the libraries
-and the stub generator, the last two write the stubs and the wheel:
+Install the last release from PyPI into a virtual environment, with the `numpy` extra if you want
+[the array helpers](#numpy-in-blocks):
+
+```
+python -m venv .venv
+.venv\Scripts\python -m pip install "opencad2d[numpy]"
+```
+
+To have what this guide describes before it is released, build the wheel from a checkout of the repository, in Git
+Bash, from its root. The first two lines build the libraries and the stub generator, the last
+two write the stubs and the wheel:
 
 ```bash
 dotnet build src/OpenCAD2D.Core/OpenCAD2D.Core.csproj -c Release
@@ -1736,9 +1746,6 @@ tuple from [mcneel/pythonstubs](https://github.com/mcneel/pythonstubs), and the 
 ## What is not supported
 
 - Systems other than 64-bit Windows, and Python outside 3.11 to 3.15 or 32-bit. `pip` refuses the wheel there.
-- Installing from PyPI, until the package is published under a name of its own.
-- A frozen application (PyInstaller and the like): the package gives no hook, so the assemblies would have to be added
-  by hand.
 - A module for the presenter outside the app: `opencad2d.cad` prompts, `cmd`, `write` and `active_drawing` work in a
   tool of OpenCAD2D only (see [Inside OpenCAD2D](#inside-opencad2d)), and from outside `OpenCAD2D` is imported as any other
   namespace.

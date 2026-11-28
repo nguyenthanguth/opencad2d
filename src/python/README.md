@@ -36,4 +36,4 @@ The runtime is chosen by the environment variable `OPENCAD2D_RUNTIME`: `auto` (t
 it is installed, else .NET Framework), `coreclr` or `netfx`.
 
 The guide, with the runtime choice, the numpy helpers and the stubs, is at
-<https://nguyenthanguth.github.io/GeometryHelper/>.
+<https://nguyenthanguth.github.io/opencad2d/>.
