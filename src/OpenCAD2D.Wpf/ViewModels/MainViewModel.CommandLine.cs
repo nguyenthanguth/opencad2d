@@ -649,7 +649,7 @@ namespace OpenCAD2D.Wpf
         }
 
         /// <summary>The text of the clipboard, empty where there is none or it cannot be read.</summary>
-        private string ClipboardText()
+        internal string ClipboardText()
         {
             try
             {

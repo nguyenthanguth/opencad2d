@@ -81,6 +81,31 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the command of Browse Share in the browser.</summary>
         public ICommand BrowseCommand { get; }
 
+        /// <summary>
+        /// Fills the box with the text of the clipboard where the box is empty and that text is the link of a tool on Share,
+        /// <c>https://opencad2d.com/share/stairs</c> with spaces and line breaks around it let go; any other text, or a clipboard
+        /// that cannot be read, leaves the box as it is. The window calls it once, as it opens; it asks Share nothing, and the
+        /// clipboard is read nowhere else.
+        /// </summary>
+        /// <returns>True where the box was filled.</returns>
+        internal bool PrefillFromClipboard()
+        {
+            if (Link.Length != 0)
+            {
+                return false;
+            }
+
+            string text = _model.ClipboardText().Trim();
+
+            if (!ShareLink.TryGetSlug(text, ShareLink.Site, out _))
+            {
+                return false;
+            }
+
+            Link = text;
+            return true;
+        }
+
         /// <summary>Gets or sets the pasted link, as <c>https://opencad2d.com/share/stairs</c>.</summary>
         public string Link
         {

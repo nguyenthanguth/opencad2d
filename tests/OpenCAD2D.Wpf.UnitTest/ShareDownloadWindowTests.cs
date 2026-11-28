@@ -668,6 +668,198 @@ namespace OpenCAD2D.Wpf.UnitTest
             });
         }
 
+        // ---- The link box: seen, focused, Enter finds, the clipboard prefills
+
+        [Fact]
+        public void TheLinkBox_IsOnTheInputColour_WithABorder_AndAHintWhileEmpty()
+        {
+            ShareDownloadViewModel dialog = Shown(Opened());
+
+            OnSta(() =>
+            {
+                var window = new ShareDownloadWindow(dialog);
+                FrameworkElement body = window.Body;
+                window.Content = null;
+                body.DataContext = dialog;
+                Layout(body);
+                var box = (TextBox)Named(Descendants(body), "LinkBox");
+
+                Border frame = Ancestors(box).OfType<Border>().First();
+                var ground = Assert.IsType<SolidColorBrush>(frame.Background);
+                Assert.NotEqual(0, ground.Color.A);
+                Assert.True(frame.BorderThickness.Left > 0 && frame.BorderThickness.Top > 0);
+                var edge = Assert.IsType<SolidColorBrush>(frame.BorderBrush);
+                Assert.NotEqual(0, edge.Color.A);
+                Assert.Equal("https://opencad2d.com/share/...", box.Tag);
+                Assert.True(box.ActualWidth > 400, "The box takes the width beside Find: " + box.ActualWidth);
+                var hint = Descendants(box).OfType<TextBlock>().Single(t => t.Name == "Placeholder");
+                Assert.Equal(Visibility.Visible, hint.Visibility);
+                window.Close();
+            });
+        }
+
+        [Fact]
+        public void TheLinkBox_HasTheFocus_WhenTheWindowIsLoaded_WithItsTextSelected()
+        {
+            MainViewModel model = Opened();
+            model.ReadClipboardText = () => "https://opencad2d.com/share/stairs";
+            ShareDownloadViewModel dialog = Shown(model);
+
+            OnSta(() =>
+            {
+                var window = new ShareDownloadWindow(dialog);
+                Layout(window.Body);
+                window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+                var box = (TextBox)Named(Descendants(window.Body), "LinkBox");
+
+                Assert.Same(box, System.Windows.Input.FocusManager.GetFocusedElement(window));
+                Assert.Equal("https://opencad2d.com/share/stairs", box.SelectedText);
+                window.Close();
+            });
+        }
+
+        [Fact]
+        public void EnterInTheLinkBox_RunsFind_Once_AndNothingIsAskedBefore()
+        {
+            _server.AddTool("stairs", "lisp", "Stairs", "1.0", "stairs.lsp", StairsLsp);
+            ShareDownloadViewModel dialog = Shown(Opened());
+            dialog.Link = "https://opencad2d.com/share/stairs";
+
+            OnSta(() =>
+            {
+                var window = new ShareDownloadWindow(dialog);
+                Layout(window.Body);
+                window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+                var box = (TextBox)Named(Descendants(window.Body), "LinkBox");
+                Assert.Empty(_server.Requests);
+
+                using (
+                    var source = new System.Windows.Interop.HwndSource(
+                        new System.Windows.Interop.HwndSourceParameters("ShareInput") { ParentWindow = new IntPtr(-3) }
+                    )
+                )
+                {
+                    box.RaiseEvent(
+                        new System.Windows.Input.KeyEventArgs(
+                            System.Windows.Input.Keyboard.PrimaryDevice,
+                            source,
+                            0,
+                            System.Windows.Input.Key.Return
+                        )
+                        {
+                            RoutedEvent = System.Windows.Input.Keyboard.KeyDownEvent,
+                        }
+                    );
+                }
+
+                for (int i = 0; i < 100 && _server.Requests.Count == 0; i++)
+                {
+                    Thread.Sleep(50);
+                }
+
+                Assert.Equal(new[] { "/api/tools/stairs" }, _server.Requests);
+                window.Close();
+            });
+        }
+
+        [Fact]
+        public void TheCloseButton_IsTheCancelButton_SoEscapeClosesTheWindow()
+        {
+            ShareDownloadViewModel dialog = Shown(Opened());
+
+            OnSta(() =>
+            {
+                var window = new ShareDownloadWindow(dialog);
+                window.Content = null;
+                Assert.True(((Button)Named(Descendants(window.Body), "CloseButton")).IsCancel);
+                window.Close();
+            });
+        }
+
+        [Fact]
+        public void AShareLinkOnTheClipboard_FillsTheBox_WhenTheWindowOpens_AndNoRequestIsMade()
+        {
+            MainViewModel model = Opened();
+            int reads = 0;
+            model.ReadClipboardText = () =>
+            {
+                reads++;
+                return "  https://opencad2d.com/share/stairs \r\n";
+            };
+            ShareDownloadViewModel dialog = Shown(model);
+            Assert.Equal(0, reads);
+
+            OnSta(() =>
+            {
+                var window = new ShareDownloadWindow(dialog);
+                window.Content = null;
+                Assert.Equal(0, reads);
+                Layout(window.Body);
+                window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+                window.Close();
+            });
+
+            Assert.Equal(1, reads);
+            Assert.Equal("https://opencad2d.com/share/stairs", dialog.Link);
+            Assert.Empty(_server.Requests);
+        }
+
+        [Theory]
+        [InlineData("some words")]
+        [InlineData("https://example.com/share/stairs")]
+        [InlineData("https://opencad2d.com/share/by/someone")]
+        [InlineData("")]
+        [InlineData(null)]
+        public void ATextThatIsNoShareLink_OnTheClipboard_LeavesTheBoxEmpty(string clipboard)
+        {
+            MainViewModel model = Opened();
+            model.ReadClipboardText = () => clipboard;
+            ShareDownloadViewModel dialog = Shown(model);
+
+            OnSta(() =>
+            {
+                var window = new ShareDownloadWindow(dialog);
+                window.Content = null;
+                Layout(window.Body);
+                window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+                window.Close();
+            });
+
+            Assert.Equal(string.Empty, dialog.Link);
+            Assert.Empty(_server.Requests);
+        }
+
+        [Fact]
+        public void AClipboardThatCannotBeRead_LeavesTheBoxEmpty()
+        {
+            MainViewModel model = Opened();
+            model.ReadClipboardText = () => throw new InvalidOperationException("busy");
+            ShareDownloadViewModel dialog = Shown(model);
+
+            OnSta(() =>
+            {
+                var window = new ShareDownloadWindow(dialog);
+                window.Content = null;
+                Layout(window.Body);
+                window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+                window.Close();
+            });
+
+            Assert.Equal(string.Empty, dialog.Link);
+        }
+
+        private static IEnumerable<DependencyObject> Ancestors(DependencyObject element)
+        {
+            for (
+                DependencyObject up = VisualTreeHelper.GetParent(element);
+                up != null;
+                up = VisualTreeHelper.GetParent(up)
+            )
+            {
+                yield return up;
+            }
+        }
+
         // ---- Nothing runs unless the box is ticked
 
         [Fact]

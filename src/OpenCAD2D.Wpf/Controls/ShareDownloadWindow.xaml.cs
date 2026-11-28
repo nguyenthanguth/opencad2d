@@ -34,6 +34,7 @@ namespace OpenCAD2D.Wpf
                 == MessageBoxResult.Yes;
             model.CloseRequested += OnCloseRequested;
             model.PropertyChanged += OnModelChanged;
+            Loaded += OnLoaded;
             Closed += (s, e) =>
             {
                 Model.PropertyChanged -= OnModelChanged;
@@ -54,6 +55,15 @@ namespace OpenCAD2D.Wpf
         /// <returns>True when the dialog was closed with Done or Close.</returns>
         public static bool Show(Window owner, ShareDownloadViewModel model) =>
             new ShareDownloadWindow(model) { Owner = owner }.ShowDialog() == true;
+
+        // As the window opens: a Share link on the clipboard fills the box (the one time the clipboard is read), and the
+        // keyboard goes to the box with its text selected, so that a paste or a typed link replaces it.
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            Model.PrefillFromClipboard();
+            LinkBox.Focus();
+            LinkBox.SelectAll();
+        }
 
         private void OnModelChanged(object sender, PropertyChangedEventArgs e)
         {

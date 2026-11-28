@@ -4,6 +4,8 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 
 ## Unreleased
 
+- **FIXED.** Download from Share: the link box is drawn like the other inputs (border, background, hint), has the keyboard
+  when the window opens, and is filled with a Share link found on the clipboard; the Save to box gets the same border.
 - **NEW.** SHAREDOWNLOAD and the From Share button (Manage tab, Applications) show Download from Share: paste a tool's link
   (`https://opencad2d.com/share/stairs`), press Find, and the window shows its cover picture, name, summary, type, live version and
   author, SHA-256, what is on this PC (the same file, a newer or an older one, or "Changed on this PC" where a file was edited since,
