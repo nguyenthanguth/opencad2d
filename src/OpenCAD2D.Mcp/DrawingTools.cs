@@ -231,18 +231,10 @@ namespace OpenCAD2D.Mcp
             OpenWorld = false
         )]
         [Description(
-            "The blocks of the drawing that add_insert can place, by name, with the number of entities in each (anonymous blocks, layouts and dimension pictures are left out)."
+            "The blocks of the drawing that add_insert can place, by name, with the number of entities in each (anonymous blocks, layouts, dimension pictures, external references and xref|block records are left out)."
         )]
         public IReadOnlyList<BlockInfo> ListBlocks() =>
-            _session.Run("list_blocks", false, drawing =>
-                (IReadOnlyList<BlockInfo>)
-                    drawing
-                        .Blocks()
-                        .OrderBy(b => b.Name, StringComparer.OrdinalIgnoreCase)
-                        .ThenBy(b => b.Name, StringComparer.Ordinal)
-                        .Select(b => new BlockInfo { Name = b.Name, Entities = b.Count(e => !e.IsErased) })
-                        .ToList()
-            );
+            _session.Run("list_blocks", false, drawing => Q(drawing).BlockInfos());
 
         [McpServerTool(
             Name = "query_entities",

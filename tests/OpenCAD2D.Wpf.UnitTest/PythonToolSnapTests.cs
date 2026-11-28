@@ -25,6 +25,7 @@ namespace OpenCAD2D.Wpf.UnitTest
     /// (3 000, 1 500) and a line from (0, 0) to (4 000, 0). The processes of the real tools are in
     /// <see cref="PythonToolSnapProcessTests"/>.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class PythonToolSnapTests : IDisposable
     {
         // The cursor 5 from the top of the first circle, and the aperture of 20 round it: the top is well within the aperture.
@@ -346,6 +347,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- A point typed after the keyword
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ATypedPointAfterTheKeyword_WaitsForTheAnswer_AndTakesThePointNearestIt()
         {
             var link = new FakeToolLink();
@@ -374,6 +376,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ATypedPointWhoseToolNeverAnswers_SaysNothingWasFoundAfterASecond_AndTheNextMoveStillReturnsAtOnce()
         {
             var link = new FakeToolLink();
@@ -396,6 +399,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ATypedPointWhoseProcessEnds_StopsWaiting()
         {
             var link = new FakeToolLink();
@@ -486,6 +490,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         // ---- The window thread never waits
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AMoveOverAToolThatNeverAnswers_ReturnsAtOnce_WhereverTheSenderWouldBlock()
         {
             var link = new FakeToolLink();

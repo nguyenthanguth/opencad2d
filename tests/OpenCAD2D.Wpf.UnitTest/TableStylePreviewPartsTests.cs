@@ -20,6 +20,7 @@ namespace OpenCAD2D.Wpf.UnitTest
     /// fields that set it), the layout of the table to scale, the hit test of the parts, the words drawn at their text height, the
     /// size of the dialog and the time of a redraw per value.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class TableStylePreviewPartsTests
     {
         private static readonly Tolerance Tol = new Tolerance(1E-9, 1E-9);
@@ -698,6 +699,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ARedrawPerValue_TakesUnder30Milliseconds_At100And150PercentWithTheMagnifier()
         {
             OnSta(() =>

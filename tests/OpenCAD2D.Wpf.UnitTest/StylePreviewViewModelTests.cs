@@ -20,6 +20,7 @@ namespace OpenCAD2D.Wpf.UnitTest
     /// picture drawn at the device's pixels at 100 % and 150 %, the hit test of the parts, the zoom and Fit, the sizes of the dialogs
     /// and the time of a redraw per keystroke.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class StylePreviewViewModelTests
     {
         private static readonly Tolerance Tol = new Tolerance(1E-9, 1E-9);
@@ -752,6 +753,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Theory]
+        [Trait("Category", "Timing")]
         [InlineData("Lines", "DIMEXE")]
         [InlineData("Symbols and arrows", "DIMASZ")]
         public void ARedrawPerKeystroke_IsTimedAndStaysFast_OnTheOverviewAndTheSymbolsSamples(string tab, string key)

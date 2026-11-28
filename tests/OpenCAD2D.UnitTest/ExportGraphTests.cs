@@ -15,6 +15,7 @@ namespace OpenCAD2D.UnitTest
     /// The drawing as a graph (CadDrawingGraph): a small drawing built in code with the edges it is expected to have, the
     /// tolerance of a touch, the order of the edges, and the time of a drawing of ten thousand entities.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class ExportGraphTests
     {
         private static readonly Tolerance Mm = new Tolerance(1E-6, 1E-6);
@@ -262,6 +263,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void ADrawingOfTenThousandEntities_GivesItsGraphAndItsJson_InSeconds()
         {
             CadDocument document = CadDocument.From(DxfDatabase.Parse(BigDrawing.Text(10000)), "big.dxf");

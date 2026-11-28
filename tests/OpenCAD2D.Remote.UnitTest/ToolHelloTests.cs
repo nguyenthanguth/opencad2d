@@ -11,9 +11,11 @@ namespace OpenCAD2D.Remote.UnitTest
     /// window's thread waits for its first answer, as a point typed after the keyword of its snap does, could not otherwise start
     /// in time to give one.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class ToolHelloTests
     {
         [Fact]
+        [Trait("Category", "Timing")]
         public void AToolConnects_WhileTheWindowThreadIsHeld_WithNoWaitForIt()
         {
             using (var harness = new Harness())

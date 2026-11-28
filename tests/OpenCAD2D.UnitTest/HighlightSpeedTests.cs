@@ -30,6 +30,7 @@ namespace OpenCAD2D.UnitTest
         /// .NET Framework 4.8 one thread takes about 300 ms and the threads 150; the times are written to the test's output.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void AllOfAHundredThousandEntitiesSelected_AreHighlightedByThreadsPixelForPixelAsByOne()
         {
             double runningBefore = ThreadsRunningAtOnce();

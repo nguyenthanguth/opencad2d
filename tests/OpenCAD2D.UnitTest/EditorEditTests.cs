@@ -1174,14 +1174,17 @@ namespace OpenCAD2D.UnitTest
         // 200 000.
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void EveryObjectOfAHugeDrawingMovedByOneCall_TakesSeconds_NotMinutes() =>
             SpeedGuard.AssertWithin(10.0, Big, big => big.Item1.Editor.Move(big.Item2, new GeoVector2(10, 5)));
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void EveryObjectOfAHugeDrawingCopiedByOneCall_TakesSeconds_NotMinutes() =>
             SpeedGuard.AssertWithin(10.0, Big, big => big.Item1.Editor.Copy(big.Item2, new GeoVector2(10, 5)));
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void EveryObjectOfAHugeDrawingErasedByOneCall_TakesSeconds_NotMinutes() =>
             SpeedGuard.AssertWithin(10.0, Big, big => big.Item1.Editor.Erase(big.Item2));
     }

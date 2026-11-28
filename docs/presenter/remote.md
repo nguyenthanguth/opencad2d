@@ -222,6 +222,17 @@ ordinally. A `kind` that is neither is refused in words. A multileader or table 
 (`MLeaderStyle`, `TableStyleName`), which the small drawing it travels in holds as a style of that name with the default settings:
 read the settings from the lists above.
 
+`drawing.GetLayouts()`, `drawing.GetLinetypes()` and `drawing.GetBlocks()` likewise answer without copying the drawing (the requests
+`layoutDetails`, `linetypeDetails` and `blockSummaries`). `GetLayouts()` lists the spaces in tab order (`Model` first, then by tab order
+and name) with the paper name, width and height, paper units (`millimetres`, `inches` or `pixels`), plot rotation in degrees, the number
+of entities, whether the space is model space or current, and each paper-space viewport (`CadRemoteViewport`: handle, number, centre,
+width and height on paper, view centre and height in model space, custom scale and `1:n` ratio, locked, on and the layers frozen in it).
+`GetLinetypes()` lists every linetype, `ByBlock` and `ByLayer` included, sorted by name without regard to case, with the description,
+pattern length and dash lengths. `GetBlocks()` lists the blocks the drawing itself can insert (leaving layout blocks, `*` and anonymous
+blocks, external references and `xref|block` records out), sorted by name without regard to case, with the entity count of each, without
+copying the objects of every block (`drawing.Blocks` still reads the `DxfBlockTableRecord` copies with their objects, loaded
+external-reference blocks included).
+
 ## Measuring before placing
 
 `drawing.Measure(entity)` asks the app what an object would take once added, without adding it, as a `CadRemoteMeasurement`: `Box`

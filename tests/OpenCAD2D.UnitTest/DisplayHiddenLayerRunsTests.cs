@@ -17,6 +17,7 @@ namespace OpenCAD2D.UnitTest
     /// as empty runs, without drawing the entities again. Each test checks the patched list, its box and the insertion points
     /// of every entity against a drawing that gets the same edits and is regenerated after each of them.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class DisplayHiddenLayerRunsTests
     {
         private static CadDocument Open(string text) =>
@@ -268,6 +269,7 @@ namespace OpenCAD2D.UnitTest
         /// entities of the layer again 50 to 86 ms, a ninth or more, which fails it.)
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void ALayerSwitchedOffAtThreeHundredThousandEntities_IsShownInATwelfthOfARegen()
         {
             CadDocument document = Open(BigDrawing.Text(300000));

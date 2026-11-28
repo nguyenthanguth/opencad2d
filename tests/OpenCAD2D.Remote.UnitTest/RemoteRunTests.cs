@@ -15,6 +15,7 @@ namespace OpenCAD2D.Remote.UnitTest
     /// while a program, on the private channel of the tools, asks its questions on the command line, commits into the command's
     /// one undo step and ends it, and that Esc ends with every change taken back.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class RemoteRunTests
     {
         private static DxfLine Line(double x1, double y1, double x2, double y2) =>
@@ -299,6 +300,7 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public async Task AnAsk_DoesNotBlockASecondClient()
         {
             using (var scene = new Scene())

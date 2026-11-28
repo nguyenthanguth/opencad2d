@@ -145,6 +145,7 @@ namespace OpenCAD2D.UnitTest
         /// undo of a MOVE and 50 ms, each at its best of three attempts; the times are written to the test's output.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void TheUndoOfABlockSavedInADrawingOfAHundredThousandEntities_FindsItsDrawingReadAhead() =>
             AssertNearTheUndoOfAMove(
                 () =>
@@ -168,6 +169,7 @@ namespace OpenCAD2D.UnitTest
         /// undo of a MOVE made alone and 50 ms, each at its best of three attempts; the times are written to the test's output.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void TheUndoAfterTheBlockEditorDiscardsItsChanges_FindsItsDrawingReadAhead() =>
             AssertNearTheUndoOfAMove(
                 () =>

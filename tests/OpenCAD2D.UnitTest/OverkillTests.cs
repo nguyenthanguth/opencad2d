@@ -15,6 +15,7 @@ namespace OpenCAD2D.UnitTest
     /// drawings): what is a duplicate and what an overlap, which object stays, how the tolerance, the ignored properties and
     /// the polyline options change it, and the words it writes.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class OverkillTests
     {
         private const string Duplicates0 = "0 duplicate(s) deleted";
@@ -436,6 +437,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void TwentyThousandLinesOfThemTenThousandDuplicates_AreSortedOutInSeconds()
         {
             var lines = new List<string>();

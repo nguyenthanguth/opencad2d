@@ -12,6 +12,7 @@ namespace OpenCAD2D.Remote.UnitTest
     /// The user's picks: a program asks, the prompt appears on the drawing's command line, and the answer is fed to the
     /// session as the canvas would feed it, from a thread that takes the host's gate as the window's thread would.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class RemotePickTests
     {
         private static DxfLine Line(double x1, double y1, double x2, double y2) =>
@@ -240,6 +241,7 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public async Task AnotherProgramDuringAPick_IsToldTheAppIsBusy_AndIsServedOnceItIsDone()
         {
             using (var scene = new Scene())

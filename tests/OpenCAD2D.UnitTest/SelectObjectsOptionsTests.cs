@@ -263,6 +263,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AFenceAndAPolygonOverAHundredThousandObjects_AreTimed()
         {
             var db = new DxfDatabase("AC1027");

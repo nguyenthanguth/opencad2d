@@ -24,6 +24,7 @@ namespace OpenCAD2D.UnitTest
         /// output.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void AMoveInADrawingOfAHundredThousandEntities_IsMadeUndoneAndRedoneInSeconds()
         {
             CadDocument document = CadDocument.From(DxfDatabase.Parse(BigDrawing.Text(100000)), "speed-100k.dxf");

@@ -50,6 +50,7 @@ namespace OpenCAD2D.UnitTest
         /// being judged: a reference that reads the drawing twice takes twice as long in every run.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void AnXrefOfAHundredThousandEntities_IsReadAndShownWithinTwiceTheTimeOfOpeningItsDrawing()
         {
             string big = Path.Combine(_folder, "xref", "big.dxf");

@@ -16,6 +16,7 @@ namespace OpenCAD2D.UnitTest
     /// does not list, so that thousands of words are near lines and each other. The limits are ceilings a quadratic check
     /// crosses by a long way; the times are written to the test output.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class StandardsSpeedTests : IDisposable
     {
         private readonly SpatialDrawings _drawings = new SpatialDrawings();
@@ -90,6 +91,7 @@ namespace OpenCAD2D.UnitTest
             + "\"gaps\":{\"wordLine\":0.5,\"wordWord\":0.5},\"dimensionChains\":{}";
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void TenThousandObjects_AreCheckedAgainstEveryRuleInSeconds_AndAgainInLess()
         {
             CadDocument document = TenThousand();

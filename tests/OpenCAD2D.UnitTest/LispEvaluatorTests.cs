@@ -12,7 +12,7 @@ namespace OpenCAD2D.UnitTest
     /// bits, <c>(and 1 2)</c> giving T, <c>(strlen "abc" "de")</c> giving 5). Each row is an expression and the text AutoCAD
     /// printed for it; a test that needs a state runs its expressions in order on one interpreter.
     /// </summary>
-    [Collection("LispSerial")]
+    [Collection(ViewerSpeedCollection.Name)]
     public class LispEvaluatorTests
     {
         private readonly ITestOutputHelper _output;
@@ -639,6 +639,7 @@ namespace OpenCAD2D.UnitTest
         #region Speed
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AMillionSetqsInARepeat_TakeUnderTwoSeconds()
         {
             // AutoCAD 2021: (repeat 1000000 (setq i (1+ i))) 157 ms, the while form 125 ms.
@@ -660,6 +661,7 @@ namespace OpenCAD2D.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public void AMillionSetqsInAWhile_TakeUnderTwoSeconds()
         {
             // AutoCAD 2021: (while (< i 1000000) (setq i (1+ i))) 125 ms.

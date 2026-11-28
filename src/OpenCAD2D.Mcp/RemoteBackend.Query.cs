@@ -104,7 +104,11 @@ namespace OpenCAD2D.Mcp
 
         public IReadOnlyList<string> ListLines(IReadOnlyList<string> handles) => Document.ListObjects(handles);
 
-        public CadDocument ReadDocument() => CadDocument.From(Document.GetDatabase(), Name);
+        public IReadOnlyList<LayoutInfo> LayoutInfos() => TableReads.Layouts(Document.GetLayouts());
+
+        public IReadOnlyList<LinetypeInfo> LinetypeInfos() => TableReads.Linetypes(Document.GetLinetypes());
+
+        public IReadOnlyList<BlockInfo> BlockInfos() => TableReads.Blocks(Document.GetBlocks());
 
         public IReadOnlyList<MLeaderStyleInfo> MLeaderStyles() =>
             AnnotationStyleReads.MLeaderStyles(Document.GetMultileaderStyles());

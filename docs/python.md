@@ -1618,10 +1618,12 @@ centre marks, a corner notch on some plates, a fillet weld drawn as the outline 
 and the overall width and height, notes (the thickness and steel, the holes, the edge distance, the weld), and on the layout a border,
 a title block with its attributes filled and a viewport at 1:5 or 1:10. The layers (`S-PLATE`, `S-HOLE`, `S-CENTRE`, `S-WELD`,
 `S-DIM`, `S-NOTE`, `S-SHEET`), the text style `SYN` and the dimension style `SYN-DIM` are a small standard, written out as
-`synth.STANDARD` so that `drawing.check` scores a drawing against it. `synth.generate(seed, crowding, image)` gives the drawing with its
-ground truth in a `Sample`: `json` (the `to_json()` of model space), `score` and `scores` (the total and each rule of
-`check(STANDARD)`), `overlaps` (the pairs of words and what they cross) and, when `image` names a PNG to write, `coco` (the annotations
-of `to_coco`, boxes in whole pixels inside the picture). `synth.make_drawing(seed, crowding)` gives the drawing alone.
+`synth.STANDARD` so that `drawing.check` scores a drawing against it. `synth.generate(seed, crowding, image, width, layout, masks, classes)`
+gives the drawing with its ground truth in a `Sample`: `json` (`drawing.to_json()`), `score` and `scores` (the total and each rule of
+`check(STANDARD)`), `overlaps` (the pairs of words and what they cross), `coco` when `image` names a PNG to write (the annotations of
+`to_coco` for model space by default or `layout=synth.SHEET` for the A3 sheet, boxes in whole pixels inside the picture) and `masks`
+when `masks=True` (`render_masks(instances=True)` for the same space and `classes`, which defaults to all five `LABEL_CLASSES` so the
+sheet's `TITLE` block is class 5 `"blocks"` in both `coco` and `masks`). `synth.make_drawing(seed, crowding)` gives the drawing alone.
 
 ```python
 from opencad2d import synth
@@ -1632,6 +1634,8 @@ sample.overlaps                                      # 16
 sorted(rule for rule, score in sample.scores.items() if score < 1.0)   # ['gap-word-line', 'gap-word-word']
 len(sample.coco["annotations"]), sample.coco["images"][0]["height"]   # (33, 1599)
 sample.drawing.layouts["Plate A3"].viewports         # 1
+sheet = synth.generate(7, crowding=0.5, image="sheet7.png", layout=synth.SHEET, masks=True)
+sheet.masks.classes.shape, sheet.coco["images"][0]["height"]   # ((905, 1280), 905)
 clean = synth.generate(7)                            # the same plate with nothing added
 (clean.score, clean.overlaps)                        # (1.0, 0)
 synth.generate(7, 0.5).json == sample.json           # True: the same seed gives the same JSON, byte for byte

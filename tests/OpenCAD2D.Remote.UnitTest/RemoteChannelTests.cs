@@ -13,6 +13,7 @@ using Xunit;
 
 namespace OpenCAD2D.Remote.UnitTest
 {
+    [Collection(ViewerSpeedCollection.Name)]
     public class RemoteChannelTests
     {
         private static CadDocument Blank(string name) => CadDocument.From(new DxfDatabase("AC1027"), name);
@@ -203,6 +204,7 @@ namespace OpenCAD2D.Remote.UnitTest
         }
 
         [Fact]
+        [Trait("Category", "Timing")]
         public async Task ASecondClient_WaitsForTheRequestOfTheFirst()
         {
             using (var harness = new Harness())

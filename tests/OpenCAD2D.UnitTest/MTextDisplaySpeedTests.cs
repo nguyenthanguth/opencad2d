@@ -36,6 +36,7 @@ namespace OpenCAD2D.UnitTest
         /// eight where the three do not meet it.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void TenThousandMTextsDrawnAgainAfterARegen_TakeTheLayoutsKeptAndCostLessThanANewDocument()
         {
             DxfDatabase database = Drawing(10000);

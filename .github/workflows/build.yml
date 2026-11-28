@@ -36,17 +36,17 @@ jobs:
         run: dotnet build OpenCAD2D.slnx -c Release -warnaserror --no-incremental
 
       - name: Test
-        # The timing tests compare against a desktop; a hosted runner is slower and shared, so they are left out here
-        # and run on the developer's machine.
+        # The timing tests ([Trait("Category", "Timing")], held to it by TimingTraitTests) compare against a desktop; a
+        # hosted runner is slower and shared, so they are left out here and run on the developer's machine.
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          $filter = 'FullyQualifiedName!~Speed&FullyQualifiedName!~DisplayPatchPlaces&FullyQualifiedName!~TableCommandTests&FullyQualifiedName!~SelectObjectsOptions&FullyQualifiedName!~Timed&FullyQualifiedName!~Milliseconds'
+          $filter = 'Category!=Timing'
           dotnet test tests/OpenCAD2D.UnitTest/OpenCAD2D.UnitTest.csproj -c Release --no-build --filter $filter
           dotnet test tests/OpenCAD2D.Wpf.UnitTest/OpenCAD2D.Wpf.UnitTest.csproj -c Release --no-build --filter $filter
-          dotnet test tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj -c Release --no-build
-          dotnet test tests/OpenCAD2D.Remote.UnitTest/OpenCAD2D.Remote.UnitTest.csproj -c Release --no-build
-          dotnet test tests/OpenCAD2D.PyStubs.UnitTest/OpenCAD2D.PyStubs.UnitTest.csproj -c Release --no-build
-          dotnet test tests/OpenCAD2D.Mcp.UnitTest/OpenCAD2D.Mcp.UnitTest.csproj -c Release --no-build
+          dotnet test tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj -c Release --no-build --filter $filter
+          dotnet test tests/OpenCAD2D.Remote.UnitTest/OpenCAD2D.Remote.UnitTest.csproj -c Release --no-build --filter $filter
+          dotnet test tests/OpenCAD2D.PyStubs.UnitTest/OpenCAD2D.PyStubs.UnitTest.csproj -c Release --no-build --filter $filter
+          dotnet test tests/OpenCAD2D.Mcp.UnitTest/OpenCAD2D.Mcp.UnitTest.csproj -c Release --no-build --filter $filter
 
   python:
     # The Python package opencad2d (src/python): the stubs, the wheel, and tests/python run against the wheel installed

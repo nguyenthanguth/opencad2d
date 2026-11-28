@@ -16,6 +16,7 @@ namespace OpenCAD2D.Wpf.UnitTest
     /// without drawing the drawing again, the picture moved with the wheel until the view is still, and boxes clicked
     /// corner to corner as AutoCAD takes them with PICKDRAG 0.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public class CanvasPictureTests
     {
         private const int Width = 800;
@@ -215,6 +216,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         /// hundreds of milliseconds.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void AHoverChangeOverHalfAMillionItemsTakesWithinThreeTimesItsTargetOfSixteenMilliseconds()
         {
             Exception failure = null;

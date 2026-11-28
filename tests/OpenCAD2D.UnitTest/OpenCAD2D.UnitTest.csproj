@@ -23,6 +23,8 @@
         <Compile Include="..\Shared\DxfDimensionDrawings.cs" Link="DxfDimensionDrawings.cs" />
         <Compile Include="..\Shared\TrueTypeFile.cs" Link="TrueTypeFile.cs" />
         <Compile Include="..\Shared\SpeedGuard.cs" Link="SpeedGuard.cs" />
+        <Compile Include="..\Shared\ViewerSpeedCollection.cs" Link="ViewerSpeedCollection.cs" />
+        <Compile Include="..\Shared\TimingTraitTests.cs" Link="TimingTraitTests.cs" />
     </ItemGroup>
 
     <ItemGroup>

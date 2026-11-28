@@ -47,7 +47,7 @@ jobs:
         # The suites of the two packages; the timing tests are left out on a shared runner, as in build.yml.
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          $filter = 'FullyQualifiedName!~Speed&FullyQualifiedName!~DisplayPatchPlaces&FullyQualifiedName!~TableCommandTests&FullyQualifiedName!~SelectObjectsOptions'
+          $filter = 'Category!=Timing'
           dotnet test tests/OpenCAD2D.UnitTest/OpenCAD2D.UnitTest.csproj -c Release --no-build --filter $filter
           dotnet test tests/OpenCAD2D.Remote.UnitTest/OpenCAD2D.Remote.UnitTest.csproj -c Release --no-build
           dotnet test tests/OpenCAD2D.Plugins.UnitTest/OpenCAD2D.Plugins.UnitTest.csproj -c Release --no-build

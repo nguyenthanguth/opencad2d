@@ -18,6 +18,7 @@ namespace OpenCAD2D.Plugins.UnitTest
     /// download, the assets chosen for .NET 8, native files, two plugins with two versions of one package, and the list kept
     /// so that a second load asks nothing of the source.
     /// </summary>
+    [Collection(ViewerSpeedCollection.Name)]
     public sealed class SourcePluginPackageTests : IDisposable
     {
         private readonly PluginFiles _files = new PluginFiles();
@@ -884,6 +885,7 @@ namespace OpenCAD2D.Plugins.UnitTest
         /// passes this too.
         /// </summary>
         [Fact]
+        [Trait("Category", "Timing")]
         public void ASourceThatDropsPackets_IsGivenUpWithinTwelveSeconds()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
