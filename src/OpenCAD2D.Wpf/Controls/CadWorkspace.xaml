@@ -4773,6 +4773,15 @@ Annotation Scaling, Leaders and Dimensions collapse; Text and Centerlines never 
                                 ToolTipService.ShowOnDisabled="True"
                                 ToolTip="Load Manager (APPLOAD): the Load/Unload Applications window, where AutoLISP files and plugins are loaded, unloaded and kept for every start"
                             />
+                            <Button
+                                Style="{StaticResource BigButton}"
+                                Tag="{StaticResource GhIconDownloadSource.Color}"
+                                Content="From Share"
+                                IsEnabled="{Binding Model.HasDocument}"
+                                Command="{Binding Model.StartCommandCommand}"
+                                CommandParameter="SHAREDOWNLOAD"
+                                ToolTip="Download from Share (SHAREDOWNLOAD): paste the link of a tool on opencad2d.com/share, see it, and download it into the folder the app loads it from"
+                            />
                             <WrapPanel Style="{StaticResource SmallColumn}">
                                 <Button
                                     Style="{StaticResource SmallButton}"

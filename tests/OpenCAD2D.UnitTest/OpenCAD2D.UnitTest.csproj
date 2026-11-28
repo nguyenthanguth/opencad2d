@@ -16,11 +16,13 @@
 
     <ItemGroup>
         <Reference Include="System.IO.Compression" />
+        <Reference Include="System.Net.Http" />
         <Reference Include="System.IO.Compression.FileSystem" />
     </ItemGroup>
 
     <ItemGroup>
         <Compile Include="..\Shared\DxfDimensionDrawings.cs" Link="DxfDimensionDrawings.cs" />
+        <Compile Include="..\Shared\FakeShareServer.cs" Link="FakeShareServer.cs" />
         <Compile Include="..\Shared\TrueTypeFile.cs" Link="TrueTypeFile.cs" />
         <Compile Include="..\Shared\SpeedGuard.cs" Link="SpeedGuard.cs" />
         <Compile Include="..\Shared\ViewerSpeedCollection.cs" Link="ViewerSpeedCollection.cs" />

@@ -640,14 +640,14 @@ The Manage tab, between View and Output, has AutoCAD 2021's panels for what the 
 holds Layer Translator, Check and Configure, in AutoCAD's order; Check (CHECKSTANDARDS) and Configure (STANDARDS) are parked: their buttons are greyed and the tooltip says the feature is not built yet. AutoCAD's
 Action Recorder panel is not here at all: it will not be built. **Customization** has User Interface (CUI) and Edit Aliases
 (ALIASEDIT), which both open Global settings on Shortcuts, where the aliases and the keys are kept, and Tool Palettes
-(TOOLPALETTES, see [Tool Palettes](#tool-palettes)). **Applications** has five buttons, as the design draws them: Load Manager,
+(TOOLPALETTES, see [Tool Palettes](#tool-palettes)). **Applications** has six buttons, as the design draws them: Load Manager,
 large, which runs APPLOAD and shows Load/Unload Applications, one table where an AutoLISP file or a plugin is loaded, unloaded
 and kept for every start (see [AutoLISP](lisp.md#appload)), and is greyed where the window cannot show that dialog
-(`ManageRibbonViewModel.CanLoadApplication`); then three small buttons with text, Load Lisp (LISPLOAD, the Windows Open dialog
+(`ManageRibbonViewModel.CanLoadApplication`); From Share, large (SHAREDOWNLOAD, see [Download from Share](lisp.md#sharedownload)); then three small buttons with text, Load Lisp (LISPLOAD, the Windows Open dialog
 for `.lsp` files), Load Plugin (NETLOAD, the Open dialog for a plugin `.dll` or `.csproj`) and Load Python (PYLOAD, the Open dialog for the `requirements.txt` of a Python
 tool); then Run Script (SCRIPT), large. **Cleanup** has Purge (PURGE) and Find Non-Purgeable Items, both large (the second starts PURGE with its
 window on the named items in use, the view the window's own list calls Find Non-Purgeable Items), then Overkill
-(OVERKILL), Audit (AUDIT) and Recover (RECOVER). CUI, ALIASEDIT, APPLOAD and LISPLOAD are commands of the window, not of
+(OVERKILL), Audit (AUDIT) and Recover (RECOVER). CUI, ALIASEDIT, APPLOAD, LISPLOAD and SHAREDOWNLOAD are commands of the window, not of
 `CadCommandRegistry.CreateDefault()`: APPLOAD says `Load/Unload Applications cannot be shown here.` where the
 window has no such dialog, LISPLOAD says `LISPLOAD needs a file dialog, which the window cannot show here.` where it has no Open
 dialog, and a `.dll` given with no plugin manager gets `No plugin manager is in use: applications cannot be loaded.` Layer Translator, the first button of CAD Standards, runs LAYTRANS (see the layers guide).

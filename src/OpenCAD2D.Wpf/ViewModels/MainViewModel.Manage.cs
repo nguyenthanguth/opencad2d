@@ -9,7 +9,7 @@ namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// The Manage ribbon tab, as AutoCAD 2021's for what the presenter has: Customization (User Interface and Edit Aliases open Global settings on Shortcuts, Tool Palettes shows the tool palettes), Applications
-    /// (Load Manager, which opens Load/Unload Applications, greyed where the window cannot show it; Load Lisp, Load Plugin and Load
+    /// (Load Manager, which opens Load/Unload Applications, greyed where the window cannot show it; From Share, which opens Download from Share; Load Lisp, Load Plugin and Load
     /// Python, which ask for files; Run Script), CAD Standards
     /// (Layer Translator; Check and Configure parked, greyed) and Cleanup (Purge, Find Non-Purgeable Items, Overkill, Audit,
     /// Recover). A button starts its command through <see cref="MainViewModel.StartCommandCommand"/>, as the buttons of Home do.
@@ -74,7 +74,7 @@ namespace OpenCAD2D.Wpf
         /// <summary>
         /// Adds CUI and ALIASEDIT, which show Global settings on the Shortcuts page (the aliases and the keys the presenter lets
         /// a drafter change), APPLOAD, which shows Load/Unload Applications and says so where the window cannot, and LISPLOAD,
-        /// which asks for AutoLISP files in a file dialog and loads them.
+        /// which asks for AutoLISP files in a file dialog and loads them, and SHAREDOWNLOAD, which shows Download from Share.
         /// </summary>
         private void AddManageWindowCommands(CadCommandRegistry registry)
         {
@@ -82,6 +82,7 @@ namespace OpenCAD2D.Wpf
             registry.Add(new CadCommand("ALIASEDIT", c => RunWindow(() => RequestSettings("Shortcuts"))));
             registry.Add(new CadCommand("APPLOAD", c => RunWindow(LoadApplications)));
             registry.Add(new CadCommand("LISPLOAD", c => RunWindow(LoadLispByDialog)));
+            registry.Add(new CadCommand("SHAREDOWNLOAD", c => RunWindow(DownloadFromShare)));
         }
 
         /// <summary>
