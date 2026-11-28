@@ -241,6 +241,7 @@ def test_batch_export_of_a_folder_of_good_drawings_exits_with_zero_and_of_none_w
     assert (tmp_path / "none" / "manifest.jsonl").read_text(encoding="utf-8") == ""
 
 
+@pytest.mark.timing
 def test_batch_export_of_twenty_drawings_takes_under_a_second_each_after_the_first(tmp_path: Path, work: Path) -> None:
     folder = tmp_path / "many"
     folder.mkdir()
@@ -375,6 +376,7 @@ def test_reward_reads_one_for_a_clean_sheet_and_less_for_a_word_with_a_line_thro
     assert loop.reward(empty, loop.STANDARD, 0).value == 1.0  # nothing to place is nothing wrong
 
 
+@pytest.mark.timing
 def test_reward_of_a_sheet_of_two_hundred_tags_takes_well_under_a_second() -> None:
     loop = _load("layout_loop")
     drawing = new_file()

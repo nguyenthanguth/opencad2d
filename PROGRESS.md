@@ -163,7 +163,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       the style dialogs and no white line on frameless style windows; the DRAWINGS panel's open-only toggle; the
       Modify Dimension Style tabs in group boxes as AutoCAD; small text as bars when zoomed out (SMALLTEXTBARS).
       The maintainer to look at in the real app: E1 + Esc, the Korean MTEXT, the dimension style window's preview.
-- [ ] N8. The Python timing tests have no marker, so CI runs them: test_q1_snapshot_headless's "reset in a fraction
+- [x] N8 DONE 2026-11-28 (7d4f0646; 10 speed tests marked, a guard with a 10 s hang-guard rule, CI and publish-python set OPENCAD2D_SKIP_TIMING=1). The Python timing tests have no marker, so CI runs them: test_q1_snapshot_headless's "reset in a fraction
       of the time to open" failed on the hosted runner on 94651cb4 (reset 16.6 ms against open 29.7 ms / 2; green on
       rerun). Give them a pytest marker (timing), register it, and let the CI python job deselect it (-m "not timing"),
       as N6 did for the C# suites. -> verify: a guard test that every test asserting on perf_counter carries it.
@@ -171,7 +171,7 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       (plan in opencad2d-website/ROADMAP.md). State 2026-11-28 evening: W1.1-W2.5, W2.4b (MCP at /mcp) and the
       redesign v2 live at opencad2d.com (website main caae27e); W3 SHAREDOWNLOAD in the app (199e919d, input fix
       633d7a36). The maintainer checked the app items (2026-11-28) and pushed the Google OAuth app to production.
-      Left: N8, then release 2.1.0 (authorised: release once it is merged and CI is green); the website's take-down
+      Left: release 2.1.0 (authorised: release once CI is green on main); the website's take-down
       and restore of tools (feat/tool-takedown-restore) goes on beside it.
 
 State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper

@@ -82,7 +82,9 @@ jobs:
           dotnet build tests/OpenCAD2D.Remote.TestServer/OpenCAD2D.Remote.TestServer.csproj -c Release -warnaserror
 
       - name: Stubs, wheel, fresh venv and tests on both runtimes
+        # The tests marked timing assert how fast something ran and are left out on a hosted runner, as in the job above.
         env:
           GH_PYTHON: ${{ steps.python.outputs.python-path }}
+          OPENCAD2D_SKIP_TIMING: '1'
         run: bash tools/python/verify-python.sh
 

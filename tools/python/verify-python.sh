@@ -24,13 +24,18 @@ timeout 300 "$GH_PYTHON" -m venv "$venv"
 timeout 900 "$venv/Scripts/python.exe" -m pip install --quiet --disable-pip-version-check "$wheel[numpy]"
 timeout 900 "$venv/Scripts/python.exe" -m pip install --quiet --disable-pip-version-check -r "$root/tests/python/requirements.txt"
 
-# 5. The tests, once per runtime.
+# 5. The tests, once per runtime. A hosted runner is slower and shared, so CI sets OPENCAD2D_SKIP_TIMING=1 and the tests
+# marked timing (they assert how fast something ran) are left out; run here, every test runs.
+marks=()
+if [ -n "${OPENCAD2D_SKIP_TIMING:-}" ]; then
+    marks=(-m "not timing")
+fi
 failed=0
 summary=""
 for runtime in coreclr netfx; do
     echo "== pytest tests/python on $runtime =="
     log=$root/artifacts/python/pytest-$runtime.log
-    if OPENCAD2D_RUNTIME=$runtime timeout 1800 "$venv/Scripts/python.exe" -m pytest tests/python -q >"$log" 2>&1; then
+    if OPENCAD2D_RUNTIME=$runtime timeout 1800 "$venv/Scripts/python.exe" -m pytest tests/python -q ${marks[@]+"${marks[@]}"} >"$log" 2>&1; then
         :
     else
         failed=1
