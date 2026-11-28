@@ -1476,6 +1476,7 @@ namespace OpenCAD2D
             w.Value("sidePanelWidth", _sidePanelWidth);
             w.Value("fileListOnRight", FileListOnRight);
             w.Value("propertiesOnLeft", PropertiesOnLeft);
+            w.Value("drawingsShowOpenOnly", DrawingsShowOpenOnly);
             w.Close();
             WriteInputAndRecords(w);
             w.Close();
@@ -1679,6 +1680,7 @@ namespace OpenCAD2D
                 Number("panels", "sidePanelWidth", v => _s.SidePanelWidth = v);
                 Flag("panels", "fileListOnRight", v => _s.FileListOnRight = v);
                 Flag("panels", "propertiesOnLeft", v => _s.PropertiesOnLeft = v);
+                Flag("panels", "drawingsShowOpenOnly", v => _s.DrawingsShowOpenOnly = v);
                 Flag("input", "autoComplete", v => _s.AutoComplete = v);
                 Flag("input", "autoCorrect", v => _s.AutoCorrect = v);
                 Flag("input", "searchSystemVariables", v => _s.SearchSystemVariables = v);
