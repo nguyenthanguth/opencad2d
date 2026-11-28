@@ -18,11 +18,63 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
   Update and Download again ask first and keep a copy as `<name>.local-<date>`. Each request has a time limit and a size limit, a
   redirect is an error, files come only from opencad2d.com, a dropped connection and a full disk are told apart, and Close cancels.
   Share is asked only when Find or Download is pressed: no update check, no call in the background.
+- **NEW.** The DRAWINGS list can show the open drawings only: a 20 by 20 button left of Open in its header (two stacked sheets)
+  turns it. On, which is how the app starts, the button is pressed and the list holds
+  just the drawings open in the app, each once under its folder (folders in the order their first drawing was opened, drawings
+  in the order they were opened), a drawing never saved under "Not saved", every row with its close cross (the drawing in front is the selected row).
+  The chips count these rows only; search, double click, the right-click menu and plugin items work as in the
+  full list, and Refresh rereads the folders in the full view only. Opening or closing a drawing updates the list at once. Off, the list shows every DWG and DXF file of the folders as before. The
+  choice is kept in the global settings (`GlobalSettings.DrawingsShowOpenOnly`, on by default) and set from code with
+  `MainViewModel.DrawingsShowOpenOnly`.
+- **CHANGED.** The New, Modify and Override dimension style dialog lays each tab out in group boxes as AutoCAD 2021 does, not as one
+  column of rows: a 1 px bordered box per group with its title in the top line (Dimension lines, Extension lines, Arrowheads, Centre
+  marks, Text appearance, Text placement, Linear dimensions, Angular dimensions, Alternate units, Tolerance format and the rest),
+  the preview at the top right (300 wide) with the right column's boxes under it (Arc length symbol, Radius jog dimension, Text
+  alignment, Scale for dimension features, Fine tuning, Angular dimensions, Placement), the left column's boxes beside it, and the
+  Extension lines of the Lines tab across the width in two columns. The two Suppress pairs sit on one row each ("Suppress: [ ] Dim
+  line 1 [ ] Dim line 2", "Suppress: [ ] Ext line 1 [ ] Ext line 2"), the variables of both beside the caption. The window is 860 by
+  660 (it was 960 by 660), with the Description across its width; a tab that does not fit scrolls. The lists of the right column and
+  the two long lists of the Fit tab sit under their labels at the width of their box. Tab goes through the left column, the right
+  column and the wide boxes, then the buttons: the preview's Fit button, in every style dialog that has a preview, is no longer a tab stop (it still works with
+  the mouse and a double click). Fields, bindings and variables are unchanged, but four labels changed: DIMZIN, DIMALTZ and DIMTZIN now read
+  "Leading and trailing" (under boxes titled Zero suppression, Zero suppression and Tolerance zero suppression; the angular DIMAZIN
+  keeps "Zero suppression"), and DIMLFAC reads "Scale factor" (under Measurement scale, it was "Measurement scale factor"). Group
+  titles changed or were added: "Radius jog dimension" (was "Radius dimension jog"), and the new boxes Display (the Display alternate
+  units box), Measurement scale, Zero suppression (linear and alternate) and Tolerance zero suppression. Group boxes have one shared style (`StyleGroupBox`).
 - **FIXED.** Esc did nothing after a routine's dialog (`start_dialog`, such as a LISP edit-text command asking for the next
   object): the main window is switched off while a dialog is shown, which took the keyboard from the element that held it, and
   nothing took it back, so keys reached no part of the workspace until a click on the canvas gave it focus. The element that
   held the keyboard when the dialog opened holds it again when it closes, and where that cannot be (it was in a popup or another
   window, or nothing held it) the canvas takes it, so that typing reaches the command line.
+- **FIXED.** An MTEXT of Korean (or Chinese, Japanese) words could be hovered, picked and crossed only over the left part of
+  its lines. A run in a TrueType font whose file the core does not read (Gulim and Batang are `.ttc` collections) was given a pick
+  box of 0.6 of its height a letter, where the canvas draws a Hangul syllable a full em wide, an em being 1 / 0.72 of the height
+  (about 1.39, a box 2.3 times too narrow for a line of syllables): a point or a crossing window over the right of a line found
+  nothing. The box now takes the width the layout set the run by. A TEXT or ATTRIB of such letters (Hangul, Han including the
+  letters past the first plane, kana, full-width forms) in a TrueType font had the same guess and is measured the same way, by the
+  file's advances brought to the canvas's (as an MTEXT run is) or by the canvas's measure where the file is not read; words of other
+  letters keep the guess. The width reaches beyond picking: the box of a QTEXT, the grey ground of a field, the frame TEXTALIGN
+  sets texts by, the width MIRROR turns a centred TEXT about with MIRRTEXT 0, the extents that ZOOM Extents fits and the list reports, and the
+  `box` of the Remote and JSON export are those of the new width for such a TEXT, and for any MTEXT run in a face whose file is
+  not read.
+- **CHANGED.** A double click on a style in the Styles list of the Dimension Style Manager, the Text Style, Multileader Style, Table Style
+  and Multiline Style dialogs makes that style current, as the dialog's Set Current button does (a click on a row only, not on the empty area
+  under the rows or the scroll bar; one undo step and the same words in the dialog, except in the Multiline Style dialog, where Set Current
+  only marks the style and OK applies it), where the Dimension Style Manager, the Multileader Style Manager and the Multiline Style
+  dialog opened Modify and the Text and Table Style dialogs did nothing; Modify… stays the button for that. The foot of the two managers says so: "14 styles · double-click a
+  style to make it current".
+- **FIXED.** A light line along the top edge of the Modify Dimension Style window, and of the Modify Multileader Style, Modify Table
+  Style, Sheet Set Manager and Transmittal Report windows: a window with no frame of the system that can be resized is given a thin
+  frame by Windows 10 and 11 unless it says it has none. Each now carries a `WindowChrome` with no caption and no glass frame, as the Text
+  Window and the palettes already did.
+- **CHANGED.** The canvas draws a text under 5 pixels high as a solid bar of its colour the size of its box, never under a pixel each way, as
+  AutoCAD 2021 draws the lines of a sheet zoomed out to its extents; before, a text under 3 pixels high was left out (so the small words of
+  a sheet vanished when it was zoomed out) and one of 3 to 5 pixels was a speck of letters. Text of 5 pixels or more is drawn in its
+  letters as before; a plot and a PDF are unchanged, and the pictures of `render_png`/`render_svg`, `render_masks` and the Remote screenshot follow the canvas (their guides now say a bar where they said "left out"). A zoom-extents redraw of 50 000 small
+  texts takes about 27 ms (9 ms with them left out) at under 3 pixels high and 28 ms (was 150 ms) at 3 to 5 pixels. A text of several lines is a bar for each line, each as wide as its own line.
+- **NEW.** Global settings `smallTextAsBars` and its row "Draw text too small to read (as AutoCAD; off hides it when zoomed out)" under Appearance, Display (`GlobalSettings.SmallTextAsBars`, `CanvasOptions.SmallTextAsBars`, on by default) and the
+  variable `SMALLTEXTBARS` (OpenCAD2D's own, `ON`/`OFF`): off, the canvas goes back to leaving a text under 3 pixels high out and drawing
+  one of 3 to 5 pixels in its letters.
 - **NEW.** Remote `drawing.GetLayouts()`, `drawing.GetLinetypes()` and `drawing.GetBlocks()` (the requests `layoutDetails`,
   `linetypeDetails` and `blockSummaries`): the layouts in tab order with paper name, size, units (`millimetres`, `inches` or `pixels`),
   plot rotation, entity count, current/model flags and each paper-space viewport's frame, view centre, height, scale and frozen layers;

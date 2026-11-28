@@ -8845,6 +8845,88 @@ widths are those of the content: no panel has a floor of its own.
                                             Data="{StaticResource GhIconOpen}"
                                         />
                                     </Button>
+                                    <!-- Open drawings only (DrawingsShowOpenOnly), left of Open: pressed, #1F4E79 behind a light icon. -->
+                                    <ToggleButton
+                                        x:Name="OpenOnlyToggle"
+                                        DockPanel.Dock="Right"
+                                        Width="20"
+                                        Height="20"
+                                        Margin="8,0,0,0"
+                                        IsChecked="{Binding DrawingsShowOpenOnly, Mode=TwoWay}"
+                                        ToolTip="{Binding DrawingsShowOpenOnlyToolTip}"
+                                    >
+                                        <ToggleButton.Style>
+                                            <Style TargetType="ToggleButton" BasedOn="{StaticResource GhFlatButton}">
+                                                <!-- Pressed stays #1F4E79 under the mouse: the hover colour holds only while it is not pressed. -->
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ToggleButton">
+                                                            <Border
+                                                                x:Name="Chrome"
+                                                                Background="Transparent"
+                                                                CornerRadius="2"
+                                                            >
+                                                                <ContentPresenter
+                                                                    HorizontalAlignment="Center"
+                                                                    VerticalAlignment="Center"
+                                                                />
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <MultiTrigger>
+                                                                    <MultiTrigger.Conditions>
+                                                                        <Condition
+                                                                            Property="IsMouseOver"
+                                                                            Value="True"
+                                                                        />
+                                                                        <Condition Property="IsChecked" Value="False" />
+                                                                        <Condition Property="IsEnabled" Value="True" />
+                                                                    </MultiTrigger.Conditions>
+                                                                    <Setter
+                                                                        TargetName="Chrome"
+                                                                        Property="Background"
+                                                                        Value="{StaticResource GhHover}"
+                                                                    />
+                                                                </MultiTrigger>
+                                                                <Trigger Property="IsPressed" Value="True">
+                                                                    <Setter
+                                                                        TargetName="Chrome"
+                                                                        Property="Background"
+                                                                        Value="{StaticResource GhSelected}"
+                                                                    />
+                                                                </Trigger>
+                                                                <Trigger Property="IsChecked" Value="True">
+                                                                    <Setter
+                                                                        TargetName="Chrome"
+                                                                        Property="Background"
+                                                                        Value="{StaticResource GhSelected}"
+                                                                    />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ToggleButton.Style>
+                                        <local:IconView
+                                            Size="16"
+                                            StrokeThickness="2"
+                                            Data="{StaticResource GhIconOpenDrawings}"
+                                        >
+                                            <local:IconView.Style>
+                                                <Style TargetType="local:IconView">
+                                                    <Setter Property="Stroke" Value="{StaticResource GhTextMuted}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger
+                                                            Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                            Value="True"
+                                                        >
+                                                            <Setter Property="Stroke" Value="{StaticResource GhText}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </local:IconView.Style>
+                                        </local:IconView>
+                                    </ToggleButton>
                                     <!-- The buttons the extensions add (CadWorkspaceExtension.FileListButtons), left of Refresh and Open. -->
                                     <ItemsControl
                                         DockPanel.Dock="Right"

@@ -1042,6 +1042,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void ARowOfADrawingNotOpen_IsAskedWithNoDocument_SoCountCirclesIsGrey()
         {
             MainViewModel model = _kit.Opened(out _, out _, out _);
+            model.DrawingsShowOpenOnly = false;
             string other = _kit.Folder.Write("other.dxf", TestFiles.Columns(out _, out _, out _));
             Assert.True(model.Open(other));
             Assert.True(model.CloseDocument());

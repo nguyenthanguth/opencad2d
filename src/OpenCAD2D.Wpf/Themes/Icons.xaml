@@ -10,6 +10,9 @@
     <Geometry x:Key="GhIconRedo">M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3</Geometry>
     <Geometry x:Key="GhIconSearch">M11 11m-7 0a7 7 0 1 0 14 0a7 7 0 1 0-14 0M20 20l-4-4</Geometry>
     <Geometry x:Key="GhIconRefresh">M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6</Geometry>
+    <Geometry x:Key="GhIconOpenDrawings">
+        M7 3h8l4 4v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM15 3v4h4M3 8v11a2 2 0 0 0 2 2h9
+    </Geometry>
     <Geometry x:Key="GhIconClose">M6 6l12 12M18 6 6 18</Geometry>
     <Geometry x:Key="GhIconPrompt">M4 17l6-6-6-6M12 19h8</Geometry>
     <Geometry x:Key="GhIconChevron">M6 9l6 6 6-6</Geometry>

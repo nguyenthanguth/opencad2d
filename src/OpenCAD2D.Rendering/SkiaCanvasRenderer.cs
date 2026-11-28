@@ -37,6 +37,13 @@ namespace OpenCAD2D.Wpf
         public bool ShowLineWeights { get; set; }
 
         /// <summary>
+        /// Gets or sets whether a text under 5 pixels high is drawn as a solid bar of its colour the size of its box, at least a
+        /// pixel each way, as AutoCAD draws a sheet zoomed out; true by default. False, a text under 3 pixels high is left out and
+        /// one of 3 to 5 pixels is drawn in its letters. A plot is never affected: it draws every text in its letters.
+        /// </summary>
+        public bool SmallTextAsBars { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets how much wider than their printed width lineweights are drawn while shown, the Adjust Display Scale of
         /// Lineweight Settings: 1 by default, a 0.50 mm line about 2 pixels wide, 4 at 2.
         /// </summary>
@@ -87,7 +94,8 @@ namespace OpenCAD2D.Wpf
     /// a layout clipped to their frames or, for a clipped viewport, the outline of its boundary. It draws what the list holds and asks nothing of the drawing, so it can draw to
     /// a window's bitmap or to a PNG for a test. It draws only the items the view shows, found through the space's
     /// <see cref="PickIndex"/>, and spares the detail no eye could see: an item under half a pixel is one pixel of its colour,
-    /// a text under 3 pixels high is left out, and a hatch whose lines come closer than 2 pixels is filled with a tint of
+    /// a text under 5 pixels high is drawn as a bar of its colour (<see cref="CanvasOptions.SmallTextAsBars"/>; off, a text
+    /// under 3 pixels high is left out), and a hatch whose lines come closer than 2 pixels is filled with a tint of
     /// its colour. A selected or hovered entity is always drawn whole.
     /// </summary>
     public sealed class SkiaCanvasRenderer : IDisposable
@@ -98,8 +106,14 @@ namespace OpenCAD2D.Wpf
         /// <summary>An item whose box is smaller than this many pixels each way is drawn as one pixel.</summary>
         private const double TinyPixels = 0.5;
 
-        /// <summary>A text less than this many pixels high is not drawn.</summary>
+        /// <summary>A text less than this many pixels high is not drawn where small texts are not drawn as bars.</summary>
         private const double LeastTextPixels = 3.0;
+
+        /// <summary>
+        /// A text less than this many pixels high is drawn as a bar where small texts are bars: the words of a sheet at about
+        /// 4.4 pixels a line are bars in AutoCAD 2021 and those at 6.5 are its letters, and between the two is 5.
+        /// </summary>
+        private const double BarTextPixels = 5.0;
 
         /// <summary>A hatch whose lines come closer than this many pixels is filled with a tint.</summary>
         private const double DenseHatchPixels = 2.0;
@@ -594,7 +608,7 @@ namespace OpenCAD2D.Wpf
 
                 for (int i = 0; i < n; i++)
                 {
-                    if (DrawsNothing(items[i], zoom, renderer))
+                    if (DrawsNothing(items[i], zoom, renderer, options))
                     {
                         continue;
                     }
@@ -842,18 +856,33 @@ namespace OpenCAD2D.Wpf
                 return masks;
             }
 
-            /// <summary>Whether an item draws no pixel: a text of one look under <see cref="LeastTextPixels"/> high on the screen.</summary>
-            private static bool DrawsNothing(DisplayItem2 item, double zoom, SkiaCanvasRenderer renderer) =>
+            /// <summary>Whether an item draws no pixel: a text of one look under <see cref="LeastTextPixels"/> high on the screen, where small texts are not drawn as bars.</summary>
+            private static bool DrawsNothing(
+                DisplayItem2 item,
+                double zoom,
+                SkiaCanvasRenderer renderer,
+                CanvasOptions options
+            ) =>
                 renderer._plot == null
+                && !options.SmallTextAsBars
                 && item is DisplayText2 text
                 && text.Parts == null
                 && text.Height * zoom < LeastTextPixels;
 
+            /// <summary>Whether an item is a text of one look the screen draws as a bar, which lies in its box.</summary>
+            private static bool IsBar(DisplayItem2 item, double zoom, CanvasOptions options) =>
+                options.SmallTextAsBars
+                && item is DisplayText2 text
+                && text.Parts == null
+                && !text.IsQuick
+                && text.Height * zoom < BarTextPixels;
+
             /// <summary>
             /// The box on the canvas, in pixels, that holds every pixel an item drawn highlighted can touch: its box through the
             /// view, grown by the stroke's reach (half its width, four times over at a mitred corner), the shade of its edge and
-            /// a pixel more. False for an item whose pixels cannot be so bounded: a text, whose letters may reach past its box, a
-            /// hatch, whose tint fills loops its box of lines may not hold, a ray, a picture, and anything else.
+            /// a pixel more. A text of one look drawn as a bar (<see cref="CanvasOptions.SmallTextAsBars"/>) is bounded too: the bar
+            /// lies in its box. False for an item whose pixels cannot be so bounded: any other text, whose letters may reach past
+            /// its box, a hatch, whose tint fills loops its box of lines may not hold, a ray, a picture, and anything else.
             /// </summary>
             private static bool PixelBox(
                 DisplayItem2 item,
@@ -873,6 +902,7 @@ namespace OpenCAD2D.Wpf
                         || item is DisplayArc2
                         || item is DisplayFill2
                         || item is DisplayViewport2
+                        || IsBar(item, m.Scale, options)
                     )
                 )
                 {
@@ -1097,8 +1127,14 @@ namespace OpenCAD2D.Wpf
 
                     if (_plot == null && !isSelected && !isHover && IsTiny(item, zoom))
                     {
-                        // A text or a wipeout that small shows nothing; anything else one pixel of its colour.
-                        if (!(item is DisplayText2) && !(item is DisplayFill2 area && area.IsMask))
+                        // A wipeout that small shows nothing, and nor does a text of spaces alone or, where small texts are not
+                        // bars, any text; anything else one pixel of its colour.
+                        if (
+                            !(
+                                item is DisplayText2 words
+                                && (!options.SmallTextAsBars || string.IsNullOrWhiteSpace(words.Text))
+                            ) && !(item is DisplayFill2 area && area.IsMask)
+                        )
                         {
                             DisplayBox b = item.Bounds;
                             double cx = (b.MinX + b.MaxX) / 2.0;
@@ -2242,6 +2278,179 @@ namespace OpenCAD2D.Wpf
             }
         }
 
+        /// <summary>
+        /// A text too small to read as the bars AutoCAD draws it as: for each of its lines the rectangle that holds it, turned
+        /// with the text, filled with its colour and never under a pixel each way, so that a line 0.6 pixels high is still one
+        /// pixel of its colour. A line is as wide as the text is wide in proportion to its letters (the longest line takes the
+        /// text's own width, the others their share of it), so a paragraph is ragged on the right and has a gap between its lines
+        /// where AutoCAD leaves one. A line of spaces alone has no bar.
+        /// </summary>
+        private static void DrawTextBar(
+            SKCanvas canvas,
+            DisplayText2 text,
+            Affine2 m,
+            double zoom,
+            SKPaint fill,
+            SKColor color
+        )
+        {
+            string words = text.Text;
+
+            if (string.IsNullOrWhiteSpace(words))
+            {
+                return;
+            }
+
+            text.GetFrame(out double x0, out double y0, out double x1, out double y1);
+            fill.Color = color;
+            double cos = Math.Cos(text.Rotation);
+            double sin = Math.Sin(text.Rotation);
+
+            if (words.IndexOf('\n') < 0)
+            {
+                Bar(canvas, m, text.X, text.Y, cos, sin, zoom, x0, y0, x1, y1, fill);
+                return;
+            }
+
+            // The longest line is the text's own width; the lines are stepped down as the letters are (1.25 of the height).
+            int longest = 0;
+            int lines = 0;
+
+            for (int start = 0; start <= words.Length; lines++)
+            {
+                int end = words.IndexOf('\n', start);
+                end = end < 0 ? words.Length : end;
+                longest = Math.Max(longest, end - start);
+                start = end + 1;
+            }
+
+            double step = 1.25 * text.Height;
+            double lineHeight = (y1 - y0) - (lines - 1) * step;
+            double width = x1 - x0;
+            double centre = (x0 + x1) / 2.0;
+
+            // Which edge of the frame the lines hang from: the left of the point for a left-aligned text, the right of it for a
+            // right-aligned one, the other way round where the text is backwards.
+            int anchor =
+                text.Horizontal == 1 ? 1
+                : (text.Horizontal == 0) != text.IsBackward ? 0
+                : 2;
+
+            for (int i = 0, start = 0; i < lines; i++)
+            {
+                int end = words.IndexOf('\n', start);
+                end = end < 0 ? words.Length : end;
+
+                if (!IsBlank(words, start, end))
+                {
+                    double w = width * (end - start) / longest;
+                    double left =
+                        anchor == 0 ? x0
+                        : anchor == 2 ? x1 - w
+                        : centre - w / 2.0;
+                    double top = y1 - i * step;
+                    Bar(canvas, m, text.X, text.Y, cos, sin, zoom, left, top - lineHeight, left + w, top, fill);
+                }
+
+                start = end + 1;
+            }
+        }
+
+        /// <summary>Whether the letters of a line, from <paramref name="from"/> up to <paramref name="to"/>, are all spaces.</summary>
+        private static bool IsBlank(string text, int from, int to)
+        {
+            for (int i = from; i < to; i++)
+            {
+                if (!char.IsWhiteSpace(text[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// A rectangle of a text's frame filled, grown about its middle to a pixel each way where it is less, from its corners
+        /// through the text's place and turn and the view: a rectangle where the text lies along a pixel row, as nearly all do,
+        /// else the four corners as a path.
+        /// </summary>
+        private static void Bar(
+            SKCanvas canvas,
+            Affine2 m,
+            double ox,
+            double oy,
+            double cos,
+            double sin,
+            double zoom,
+            double x0,
+            double y0,
+            double x1,
+            double y1,
+            SKPaint fill
+        )
+        {
+            double least = 1.0 / zoom;
+
+            if (x1 - x0 < least)
+            {
+                double middle = (x0 + x1) / 2.0;
+                x0 = middle - least / 2.0;
+                x1 = middle + least / 2.0;
+            }
+
+            if (y1 - y0 < least)
+            {
+                double middle = (y0 + y1) / 2.0;
+                y0 = middle - least / 2.0;
+                y1 = middle + least / 2.0;
+            }
+
+            Corner(m, ox, oy, cos, sin, x0, y0, out float ax, out float ay);
+            Corner(m, ox, oy, cos, sin, x1, y0, out float bx, out float by);
+            Corner(m, ox, oy, cos, sin, x1, y1, out float cx, out float cy);
+            Corner(m, ox, oy, cos, sin, x0, y1, out float dx, out float dy);
+
+            if (ax == dx && bx == cx && ay == by && cy == dy)
+            {
+                float left = Math.Min(ax, bx);
+                float top = Math.Min(ay, cy);
+                canvas.DrawRect(left, top, Math.Max(ax, bx) - left, Math.Max(ay, cy) - top, fill);
+                return;
+            }
+
+            using (var builder = new SKPathBuilder())
+            {
+                builder.MoveTo(ax, ay);
+                builder.LineTo(bx, by);
+                builder.LineTo(cx, cy);
+                builder.LineTo(dx, dy);
+                builder.Close();
+
+                using (SKPath path = builder.Detach())
+                    canvas.DrawPath(path, fill);
+            }
+        }
+
+        /// <summary>A point of a text's own frame on the canvas: turned about the text's place, then through the view.</summary>
+        private static void Corner(
+            Affine2 m,
+            double ox,
+            double oy,
+            double cos,
+            double sin,
+            double x,
+            double y,
+            out float px,
+            out float py
+        )
+        {
+            double wx = ox + x * cos - y * sin;
+            double wy = oy + x * sin + y * cos;
+            px = (float)m.X(wx, wy);
+            py = (float)m.Y(wx, wy);
+        }
+
         private void DrawText(
             SKCanvas canvas,
             DisplayText2 text,
@@ -2254,6 +2463,12 @@ namespace OpenCAD2D.Wpf
         )
         {
             double heightPx = text.Height * zoom;
+
+            if (_plot == null && options.SmallTextAsBars && heightPx < BarTextPixels)
+            {
+                DrawTextBar(canvas, text, m, zoom, fill, color);
+                return;
+            }
 
             if (_plot == null && heightPx < LeastTextPixels)
             {

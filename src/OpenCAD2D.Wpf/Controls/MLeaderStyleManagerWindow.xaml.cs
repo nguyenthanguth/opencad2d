@@ -6,8 +6,8 @@ namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Multileader Style Manager (MLEADERSTYLE), as the design lays it out, dark as the window's other dialogs. Its
-    /// logic is <see cref="MLeaderStyleManagerViewModel"/>; New asks the name in <see cref="StyleNameWindow"/>, and New, Modify
-    /// (and a double click on a style) open <see cref="MLeaderStyleEditWindow"/>.
+    /// logic is <see cref="MLeaderStyleManagerViewModel"/>; New asks the name in <see cref="StyleNameWindow"/>, and New and Modify
+    /// open <see cref="MLeaderStyleEditWindow"/>.
     /// </summary>
     public partial class MLeaderStyleManagerWindow : Window
     {
@@ -48,16 +48,17 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>A double click on a style modifies it, as the foot of the dialog says.</summary>
+        /// <summary>A double click on a row makes its style current, as the foot of the dialog says; Modify… is its button.</summary>
         private void OnStyleDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (
                 e.ChangedButton == MouseButton.Left
+                && StyleDialogs.IsOnRow(sender, e)
                 && Model.SelectedStyle != null
-                && Model.ModifyCommand.CanExecute(null)
+                && Model.SetCurrentCommand.CanExecute(null)
             )
             {
-                Model.ModifyCommand.Execute(null);
+                Model.SetCurrentCommand.Execute(null);
             }
         }
     }

@@ -15,6 +15,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 string room = folder.Write("room.dxf", TestFiles.Room(out _, out _));
                 folder.Write("other.dxf", TestFiles.Room(out _, out _));
                 var model = new MainViewModel();
+                model.DrawingsShowOpenOnly = false;
 
                 Assert.True(model.Open(room));
 
@@ -52,6 +53,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 string room = folder.Write("room.dxf", TestFiles.Room(out _, out _));
                 folder.Write("other.dxf", TestFiles.Room(out _, out _));
                 var model = new MainViewModel();
+                model.DrawingsShowOpenOnly = false;
                 model.Open(room);
 
                 model.ActivateFileCommand.Execute(model.FileRows.Single(r => r.Label == "other.dxf"));

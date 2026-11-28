@@ -80,7 +80,7 @@ namespace OpenCAD2D.Mcp
         [WritesFile]
         [McpServerTool(Name = "export_svg", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false)]
         [Description(
-            "Draws a layout (or a part of it) to an SVG file, as the app's canvas draws it on a white ground: vectors, text as text, at the canvas's level of detail (a text under 3 pixels is left out). Size and box as render_png; where no box is given, the view zoom_window or zoom_object set is drawn. An attached server draws the app's drawing as it stands, in its own process. Refused with --read-only."
+            "Draws a layout (or a part of it) to an SVG file, as the app's canvas draws it on a white ground: vectors, text as text, at the canvas's level of detail (a text under 5 pixels high is a solid bar). Size and box as render_png; where no box is given, the view zoom_window or zoom_object set is drawn. An attached server draws the app's drawing as it stands, in its own process. Refused with --read-only."
         )]
         public FileResult ExportSvg(
             [Description("The SVG file to write; .svg is added where there is no extension.")] string path,

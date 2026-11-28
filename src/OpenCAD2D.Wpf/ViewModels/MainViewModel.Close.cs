@@ -292,6 +292,7 @@ namespace OpenCAD2D.Wpf
             }
 
             file.Document = null;
+            file.OpenOrder = 0;
             file.Session = null;
             file.Synced = 0;
             file.Views.Clear();

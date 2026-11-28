@@ -108,7 +108,7 @@
                             AutomationProperties.Name="Styles"
                             ItemsSource="{Binding Names}"
                             SelectedItem="{Binding Selected, Mode=TwoWay}"
-                            MouseDoubleClick="OnModify"
+                            MouseDoubleClick="OnStyleDoubleClick"
                         />
                         <TextBox
                             x:Name="RenameBox"

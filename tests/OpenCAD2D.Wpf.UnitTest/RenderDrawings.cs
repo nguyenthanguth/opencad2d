@@ -43,7 +43,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             "CECOLOR;7;CIRCLE;0,0;10;LINE;-15,0;15,0;;LINE;0,-15;0,15;;-BLOCK;B1;0,0;ALL;;-INSERT;B1;100,0;1;1;0;-INSERT;B1;100,100;2;2;30;-BLOCK;B2;0,0;ALL;;-INSERT;B2;300,0;1;1;0;-ATTDEF;;TAG;Prompt;Def;200,200;10;0;",
             // 8: linetypes from the shipped file and lineweights.
             "CECOLOR;7;-LINETYPE;L;DASHED;;-LINETYPE;L;CENTER;;LWDISPLAY;1;CELTYPE;DASHED;CELWEIGHT;50;LINE;0,0;300,0;;CELTYPE;CENTER;CELWEIGHT;100;CIRCLE;150,100;60;CELTYPE;ByLayer;CELWEIGHT;30;LINE;0,200;300,200;;CECOLOR;1;PLINE;0,250;300,250;;",
-            // 9: a raster image, a circle, a text under 3 pixels high (left out) and one of 10.
+            // 9: a raster image, a circle, a text under 3 pixels high (a bar, a pixel of its colour) and one of 10.
             "CECOLOR;7;-IMAGE;A;{0};0,0;100;0;CIRCLE;500,50;30;TEXT;0,300;0.05;0;tiny;;TEXT;0,350;10;0;Big text;;",
         };
 

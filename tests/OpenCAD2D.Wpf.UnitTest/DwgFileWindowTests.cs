@@ -55,6 +55,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 LineDwg(folder, "other.dwg");
                 folder.Write("notes.dxf", CadTemplate.CreateMetric());
                 var model = new MainViewModel();
+                model.DrawingsShowOpenOnly = false;
 
                 Assert.True(model.Open(plan));
 

@@ -38,5 +38,12 @@ namespace OpenCAD2D
 
         /// <summary>Gets or sets whether the PROPERTIES panel stands left of the canvas: off by default, right.</summary>
         public bool PropertiesOnLeft { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the DRAWINGS list shows only the drawings open in the app, each once under the folder it was
+        /// opened from (a drawing never saved under "Not saved"): on by default, as a settings file with no value reads; off, the
+        /// list shows every DWG and DXF file of the folders it knows.
+        /// </summary>
+        public bool DrawingsShowOpenOnly { get; set; } = true;
     }
 }

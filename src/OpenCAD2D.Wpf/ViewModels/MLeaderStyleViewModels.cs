@@ -494,11 +494,11 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the title over the preview: "Preview of Detail notes".</summary>
         public string PreviewTitle => "Preview of " + _selected?.Name;
 
-        /// <summary>Gets the line at the foot: "4 styles · double-click a style to modify it".</summary>
+        /// <summary>Gets the line at the foot: "4 styles · double-click a style to make it current".</summary>
         public string Footer =>
             Styles.Count.ToString(CultureInfo.InvariantCulture)
             + (Styles.Count == 1 ? " style" : " styles")
-            + " · double-click a style to modify it";
+            + " · double-click a style to make it current";
 
         /// <summary>Gets the note under the buttons, of the styles Delete leaves.</summary>
         public string DeleteNote => "Standard, the current style and a style in use cannot be deleted.";

@@ -185,6 +185,16 @@ namespace OpenCAD2D.Wpf
                 )
             );
             registry.AddVariable(CadSystemVariable.Switch("LWDISPLAY", () => ShowLineWeights, SetLineWeightDisplay));
+
+            // SMALLTEXTBARS is OpenCAD2D's own (AutoCAD has no switch for it): Global settings' choice of drawing a text too
+            // small to read as a bar of its colour, as AutoCAD does, or leaving the smallest out.
+            registry.AddVariable(
+                CadSystemVariable.Switch(
+                    "SMALLTEXTBARS",
+                    () => _settings.SmallTextAsBars,
+                    v => ChangeSettings(s => s.SmallTextAsBars = v)
+                )
+            );
             registry.AddVariable(
                 CadSystemVariable.Integer(
                     "TABLEINDICATOR",

@@ -2043,7 +2043,7 @@ the Data, each look a cell does not give of its own; where the table or its styl
 the header, and where the header is left out too, every row is data, as AutoCAD 2021 reads such a table.
 -TABLE asks the columns, the rows of data and the point (Style, Width, Height) on the command line, and TABLEDIT a cell
 to type in; a double click or F2 on a cell runs it. TABLESTYLE (TS) shows the Table Style dialog
-([`CadTableStyleEditor`](xref:OpenCAD2D.CadTableStyleEditor)); a style changed draws its tables anew. The Format of a cell style in the Modify Table Style dialog opens the Table Cell Format dialog and keeps the kind of data, its unit and the format string in the style (`DxfTableStyle.DataType`, `SetDataType`, `Format` and `SetFormat`, groups 90, 91 and 1 of each cell style, written by a file of AutoCAD 2007 or later); the starting table and the type of a cell style stay grey. A
+([`CadTableStyleEditor`](xref:OpenCAD2D.CadTableStyleEditor)); a style changed draws its tables anew. A double click on a style in the list of the Table Style dialog, as in the Text Style, Dimension Style, Multileader Style and Multiline Style dialogs, makes it current, as Set Current does; Modify… is its own button. The Format of a cell style in the Modify Table Style dialog opens the Table Cell Format dialog and keeps the kind of data, its unit and the format string in the style (`DxfTableStyle.DataType`, `SetDataType`, `Format` and `SetFormat`, groups 90, 91 and 1 of each cell style, written by a file of AutoCAD 2007 or later); the starting table and the type of a cell style stay grey. A
 click in a cell selects it with the Table Cell tab ([`CadTableEditor`](xref:OpenCAD2D.CadTableEditor)):
 rows and columns put in and taken out, cells merged and unmerged, their alignment, fill and borders, the arrows moving
 the cell and Delete emptying it, each one undo step that draws the table anew in its block. A number typed in a cell is
@@ -2255,7 +2255,7 @@ in a sum and is left out of an average and a count.
 
 MLEADERSTYLE (MLS), and the last item of the multileader style box of the Annotate tab, show the Multileader Style
 Manager ([`CadMLeaderStyleEditor`](xref:OpenCAD2D.CadMLeaderStyleEditor)): Set Current, New…, Modify…
-and Delete, which is refused for Standard, the current style and a style a multileader is drawn in. A drawing of no
+and Delete, which is refused for Standard, the current style and a style a multileader is drawn in. A double click on a style makes it current. A drawing of no
 multileader style is given Standard first, metric: arrows 2.5, a break of 3.75, a landing of 8, text 2.5 high and a
 landing gap of 2. Modify writes the Leader Format, Leader Structure and Content tabs into the drawing's MLEADERSTYLE and
 gives every multileader of the style its values, those it has of its own kept: a style's text made 2.5 high leaves a
@@ -3487,6 +3487,13 @@ a drawing.
 SOLID, a trace, a wide polyline and a solid or gradient hatch by its outline. QTEXT on draws each text, MTEXT and attribute as the box that
 holds its lines, in the colour of its line, turned with it, the words and the grips kept.
 
+A text too small to read is not left out, as AutoCAD draws it: the canvas draws a text under 5 pixels high as a solid bar of its colour,
+the size of its box and never under a pixel each way, so that the lines of a sheet zoomed out to its extents still show where the words
+are. The bar is the text's frame (its height from the foot of the letters that reach below the baseline to the top of the capitals, its width as the drawing's fonts measure the words, or 0.6 of the height a letter where they do not), so it is what QTEXT draws as a box, filled; a text of several lines is a bar for each line, each as wide as its own line, ragged on the right, with a gap between the lines. One of 0.2 pixels is still a pixel of its colour. A selected one is a bar
+in the selection colour. Global settings keep the choice (`GlobalSettings.SmallTextAsBars`, on by default; Appearance, Display, "Draw text too small to read (as AutoCAD; off hides it when zoomed out)"); the variable `SMALLTEXTBARS`
+(`ON` or `OFF`, OpenCAD2D's own, with no AutoCAD counterpart) sets it, and off, a text under 3 pixels high is left out and one of 3 to 5
+pixels is drawn in its letters, as before. The pictures of PNG and SVG and the masks of Python follow the canvas; a plot and a PDF are not affected, drawing every text in its letters.
+
 **MULTIPLE** asks `Enter command name to repeat:` and starts that command again each time it ends, with the command's own prompts, until
 Esc. A name that is no command says `Unknown command "FOO".  Press F1 for help.`; a command that ends having asked nothing (REGEN), or by an
 error, ends the repetition.
@@ -3602,11 +3609,21 @@ The previews of the dimension style dialogs (New, Modify and Override, one windo
 multileader style dialogs are drawn at the real size of their frame and the real scale of the display, so that they stay sharp at
 150 %: the canvas's own renderer draws the sample into a picture of as many device pixels as the frame has, every line at least
 1.5 device-independent pixels wide, and draws it again as the dialog is resized or the screen's scale changes. The New, Modify and
-Override dialogs and the Modify Multileader Style dialog are 960 by 660 (they were 800 by 640), can be resized from the grip at the
-corner, and never get smaller; their preview is 432 wide and about 340 high (300 for the multileader's) at that size and grows with
-the window. A toolbar in the preview's title row has Fit (a double click on the preview does the same), the zoom in percent of Fit
+Override dialog is 860 by 660 and the Modify Multileader Style dialog 960 by 660 (they were 800 by 640); both can be resized from
+the grip at the corner and never get smaller. The multileader dialog's preview is 432 wide and about 300 high at that size and grows
+with the window; the dimension style dialog's is 300 wide and about 190 high, at the top right, and stays that size (see below). A toolbar in the preview's title row has Fit (a double click on the preview does the same), the zoom in percent of Fit
 and two swatches for the ground, black or white (kept until the app closes); the wheel zooms about the pointer by 1.2 a notch, and
 a change of a value keeps the zoom you chose unless what the sample draws grows or shrinks by more than a fifth, or the tab changes.
+
+The New, Modify and Override dimension style dialog sets each tab in group boxes as AutoCAD 2021 does, each a 1 px bordered box with
+its title in the top line: the left column's boxes beside the preview, the right column's boxes under it (Arc length symbol, Radius jog
+dimension, Text alignment, Scale for dimension features, Fine tuning, Angular dimensions, Placement), and on the Lines tab the
+Extension lines across the width in two columns of their own. The two Suppress pairs sit on one row each ("Suppress: [ ] Dim line 1
+[ ] Dim line 2", "Suppress: [ ] Ext line 1 [ ] Ext line 2"), the variables of both beside the caption. A list of the right column,
+and the two long lists of the Fit tab, sit under their labels at the width of their box, where the width beside the label would cut
+their words. The Description spans the width under the boxes, and a tab too tall for the window scrolls. The groups come from
+`DimStyleEditViewModel.GroupsOf`, `LeftGroups`, `RightGroups` and `WideGroups`; `Fields` still lists a tab's fields flat, a group's
+title before its fields.
 
 The preview is linked to the fields. The field under the pointer, else the one with the keyboard focus, is the field active: the
 parts it sets are drawn in the accent (#3D9BFF on black, #0A6BD6 on white) and the rest faded to a third, and a distance it sets
@@ -4018,7 +4035,7 @@ and set where the presenter keeps it, listed in [`CadCommandRegistry.Variables`]
 |---|---|---|
 | the header of the drawing, written as AutoCAD writes it | CLAYER, CECOLOR, CELTYPE, CELWEIGHT, CETRANSPARENCY, CELTSCALE, LTSCALE, PSLTSCALE, MSLTSCALE, DIMSCALE, DIMASSOC, CMLEADERSTYLE, CTABLESTYLE, MLEADERSCALE, TEXTSIZE, TEXTSTYLE, FILLETRAD, CHAMFERA, CHAMFERB, PDMODE, PDSIZE, MIRRTEXT, SORTENTS, IMAGEFRAME, WIPEOUTFRAME, XCLIPFRAME, CANNOSCALE, INSBASE, LIMMIN, LIMMAX | one undo step |
 | the document or the session | NOMUTT (0 or 1; AutoCAD's 1 mutes the prompts of a routine's `command`, which the presenter does not: the value is kept, and TE's `(setvar 'nomutt 1)` runs), PICKSTYLE, SELECTIONCYCLING, SELECTSIMILARMODE, COPYMODE, SHOWPAGESETUPFORNEWLAYOUTS, PICKFIRST, PICKADD, ATTREQ, ATTDIA, BINDTYPE, FILEDIA, CMDDIA, PDFSHX, PEDITACCEPT, PLINETYPE, DIMCONTINUEMODE, REVCLOUDAPPROXARCLEN, REVCLOUDARCVARIANCE, REVCLOUDCREATEMODE, OFFSETDIST, OLEFRAME, OLEHIDE, OLEQUALITY | at once, no undo step |
-| the window: the status bar, the snaps and Global settings | OSMODE, POLARANG, POLARMODE, POLARADDANG, POLARDIST, SNAPTYPE, GRIDSTYLE, SNAPGRIDLEGACY, AUTOSNAP, DYNMODE, PICKBOX, GRIPSIZE, GRIPMULTIFUNCTIONAL, APERTURE, ZOOMWHEEL, TABLEINDICATOR, GRIPDYNCOLOR | at once, no undo step; kept in the settings file |
+| the window: the status bar, the snaps and Global settings | OSMODE, POLARANG, POLARMODE, POLARADDANG, POLARDIST, SNAPTYPE, GRIDSTYLE, SNAPGRIDLEGACY, AUTOSNAP, DYNMODE, PICKBOX, GRIPSIZE, GRIPMULTIFUNCTIONAL, APERTURE, ZOOMWHEEL, TABLEINDICATOR, GRIPDYNCOLOR, SMALLTEXTBARS (OpenCAD2D's own, ON or OFF) | at once, no undo step; kept in the settings file |
 | the window's toggles and snap of the drawing shown | ORTHOMODE, SNAPMODE, GRIDMODE, SNAPUNIT, GRIDUNIT, GRIDDISPLAY, SNAPBASE, SNAPANG, GRIDMAJOR, SNAPSTYL, SNAPISOPAIR | written into the drawing, as AutoCAD saves them there, and one undo step that keeps no copy of the drawing (see below) |
 | the window's lineweight toggle | LWDISPLAY | at once, no undo step; written into the drawing |
 | read only | DIMSTYLE, EXTMIN, EXTMAX, UCSNAME, UCSORG, DWGNAME, DWGPREFIX, DATE, CDATE, TDCREATE, TDUCREATE, TDUPDATE, TDUUPDATE, TDINDWG, TDUSRTIMER | |

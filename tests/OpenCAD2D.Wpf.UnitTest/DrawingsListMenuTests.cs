@@ -185,7 +185,9 @@ namespace OpenCAD2D.Wpf.UnitTest
             a = _folder.Write("a.dxf", TestFiles.Room(out _, out _));
             b = _folder.Write("b.dxf", TestFiles.Room(out _, out _));
             c = _folder.Write("c.dxf", TestFiles.Room(out _, out _));
-            return new MainViewModel();
+            var model = new MainViewModel();
+            model.DrawingsShowOpenOnly = false;
+            return model;
         }
 
         private static FileRowViewModel Row(MainViewModel model, string label) =>

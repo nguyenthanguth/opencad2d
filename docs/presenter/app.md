@@ -891,6 +891,22 @@ file first. It is asked often, so it answers from memory, and the host calls `Re
 changed. A row no extension names says what the file is: "DWG · 392 entities · 1 layout" for a `.dwg`, "DXF · …" for a
 `.dxf`, under a folder headed "· DWG", "· DXF" or "· DWG/DXF".
 
+### Open drawings only
+
+A button in the header of DRAWINGS, 20 by 20 pixels and left of Open (the buttons an extension adds stand left of it), turns
+the list between two views. On, which is how the window starts, the button is pressed (a blue tile behind a light icon) and the list shows only the drawings open in the app, each
+once, under the header of its folder: the folders in the order their first drawing was opened, the drawings of a folder in the
+order they were opened, and a drawing never saved under a last header, "Not saved". Off, the list shows every DWG and DXF file of the folders it knows. Every row of the on view is open, so every row has the
+cross that closes it, and the drawing in front is the selected row; the blue dot keeps its meaning of changes not saved. A drawing saved to another folder moves to that folder's header
+at once, as one opened or closed joins or leaves the list at once. The chips count these rows only: with a DWG and a DXF open
+and two files beside them in the folder, "All 2" and "DWG/DXF 2" rather than "All 4"; where every open drawing is of one kind
+the chip names it ("DWG 2"). Search, a double click, the right-click menu and the items of plugins work as in the full list.
+The Refresh button looks in the folders in the full view only; in this one it does nothing, and the full view shows what it showed
+before until Refresh is pressed (`MainViewModel.Refresh()` from code looks in the folders in either view). A drawing that has a file name but no file on disk yet sits under "Not saved". A file is told from another by its path as the drawing keeps it, so the same file opened through two spellings of its path (a UNC path and a mapped drive) shows twice. The tooltip of the button says what a click does now: "Show open drawings only", or "Show
+every file of the folder". The choice is kept in the settings file (`GlobalSettings.DrawingsShowOpenOnly`, `drawingsShowOpenOnly`
+under `panels`), so the list opens as it was left; a settings file with no value for it reads as on, one that stores false keeps it off, and Reset to defaults of Global settings, once applied, turns it on.
+`MainViewModel.DrawingsShowOpenOnly` sets it from code.
+
 ## The apps
 
 The standalone app is net8.0-windows:
