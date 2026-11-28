@@ -164,8 +164,10 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       Modify Dimension Style tabs in group boxes as AutoCAD; small text as bars when zoomed out (SMALLTEXTBARS).
       The maintainer to look at in the real app: E1 + Esc, the Korean MTEXT, the dimension style window's preview.
 - [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3
-      (W1.1 and the static pages done 2026-11-28, live at opencad2d.com; plan in opencad2d-website/ROADMAP.md;
-      W1.2 waits on the D1 database id).
+      (plan in opencad2d-website/ROADMAP.md). State 2026-11-28 evening: W1.1-W2.5, W2.4b (MCP at /mcp) and the
+      redesign v2 live at opencad2d.com (website main caae27e); W3 SHAREDOWNLOAD in the app (199e919d, input fix
+      633d7a36). Left: W2.6 launch (the maintainer publishes the Google OAuth app, signs in, uploads and approves a
+      tool), then release 2.1.0 once he has checked everything.
 
 State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper
 13.15.0 at cf1db73e pushed and in Lib. The full check of CLAUDE.md (incl. the Mcp suite) is green; the timing test classes
