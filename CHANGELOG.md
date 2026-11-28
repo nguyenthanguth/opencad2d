@@ -12,6 +12,21 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
   full list, and Refresh rereads the folders in the full view only. Opening or closing a drawing updates the list at once. The
   choice is kept in the global settings (`GlobalSettings.DrawingsShowOpenOnly`, off by default) and set from code with
   `MainViewModel.DrawingsShowOpenOnly`.
+- **CHANGED.** The New, Modify and Override dimension style dialog lays each tab out in group boxes as AutoCAD 2021 does, not as one
+  column of rows: a 1 px bordered box per group with its title in the top line (Dimension lines, Extension lines, Arrowheads, Centre
+  marks, Text appearance, Text placement, Linear dimensions, Angular dimensions, Alternate units, Tolerance format and the rest),
+  the preview at the top right (300 wide) with the right column's boxes under it (Arc length symbol, Radius jog dimension, Text
+  alignment, Scale for dimension features, Fine tuning, Angular dimensions, Placement), the left column's boxes beside it, and the
+  Extension lines of the Lines tab across the width in two columns. The two Suppress pairs sit on one row each ("Suppress: [ ] Dim
+  line 1 [ ] Dim line 2", "Suppress: [ ] Ext line 1 [ ] Ext line 2"), the variables of both beside the caption. The window is 860 by
+  660 (it was 960 by 660), with the Description across its width; a tab that does not fit scrolls. The lists of the right column and
+  the two long lists of the Fit tab sit under their labels at the width of their box. Tab goes through the left column, the right
+  column and the wide boxes, then the buttons: the preview's Fit button, in every style dialog that has a preview, is no longer a tab stop (it still works with
+  the mouse and a double click). Fields, bindings and variables are unchanged, but four labels changed: DIMZIN, DIMALTZ and DIMTZIN now read
+  "Leading and trailing" (under boxes titled Zero suppression, Zero suppression and Tolerance zero suppression; the angular DIMAZIN
+  keeps "Zero suppression"), and DIMLFAC reads "Scale factor" (under Measurement scale, it was "Measurement scale factor"). Group
+  titles changed or were added: "Radius jog dimension" (was "Radius dimension jog"), and the new boxes Display (the Display alternate
+  units box), Measurement scale, Zero suppression (linear and alternate) and Tolerance zero suppression. Group boxes have one shared style (`StyleGroupBox`).
 - **FIXED.** Esc did nothing after a routine's dialog (`start_dialog`, such as a LISP edit-text command asking for the next
   object): the main window is switched off while a dialog is shown, which took the keyboard from the element that held it, and
   nothing took it back, so keys reached no part of the workspace until a click on the canvas gave it focus. The element that

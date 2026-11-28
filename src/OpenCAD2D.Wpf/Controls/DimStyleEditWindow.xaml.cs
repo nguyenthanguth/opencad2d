@@ -6,8 +6,8 @@ using System.Windows.Input;
 namespace OpenCAD2D.Wpf
 {
     /// <summary>
-    /// AutoCAD's New, Modify and Override dialogs of a dimension style: seven tabs of fields, each one dimension variable, and
-    /// the preview. Its logic is <see cref="DimStyleEditViewModel"/>.
+    /// AutoCAD's New, Modify and Override dialogs of a dimension style: seven tabs of fields in group boxes, each field one
+    /// dimension variable, and the preview. Its logic is <see cref="DimStyleEditViewModel"/>.
     /// </summary>
     public partial class DimStyleEditWindow : Window
     {
@@ -18,10 +18,10 @@ namespace OpenCAD2D.Wpf
             Model = model ?? throw new ArgumentNullException(nameof(model));
             InitializeComponent();
             DataContext = model;
-            StyleFieldLinks.Attach<DimFieldViewModel>(FieldsList, model.SetHovered, model.SetFocused, f =>
+            StyleFieldLinks.Attach<DimFieldViewModel>(TabBody, model.SetHovered, model.SetFocused, f =>
                 f.Kind != DimFieldKind.Header
             );
-            model.FocusRequested += (s, field) => StyleFieldLinks.Focus(FieldsList, field);
+            model.FocusRequested += (s, field) => StyleFieldLinks.FocusField(TabBody, field);
             model.CloseRequested += (s, ok) =>
             {
                 if (IsLoaded)
