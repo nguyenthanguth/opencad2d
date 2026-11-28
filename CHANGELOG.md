@@ -4,6 +4,11 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 
 ## Unreleased
 
+- **FIXED.** Esc did nothing after a routine's dialog (`start_dialog`, such as a LISP edit-text command asking for the next
+  object): the main window is switched off while a dialog is shown, which took the keyboard from the element that held it, and
+  nothing took it back, so keys reached no part of the workspace until a click on the canvas gave it focus. The element that
+  held the keyboard when the dialog opened holds it again when it closes, and where that cannot be (it was in a popup or another
+  window, or nothing held it) the canvas takes it, so that typing reaches the command line.
 - **NEW.** Remote `drawing.GetLayouts()`, `drawing.GetLinetypes()` and `drawing.GetBlocks()` (the requests `layoutDetails`,
   `linetypeDetails` and `blockSummaries`): the layouts in tab order with paper name, size, units (`millimetres`, `inches` or `pixels`),
   plot rotation, entity count, current/model flags and each paper-space viewport's frame, view centre, height, scale and frozen layers;
