@@ -228,7 +228,9 @@ namespace OpenCAD2D
                     drawn.IsBold = piece.Bold;
                     drawn.IsItalic = piece.Italic;
 
-                    if (piece.Ink.IsRead && piece.Advance > 0.0)
+                    // The width the layout set the run by, whether its letters come from the file or from the canvas's measure
+                    // (a face whose file is not read, a .ttc collection as Gulim is): else the run is picked as 0.6 of its height a letter.
+                    if (piece.Advance > 0.0)
                     {
                         drawn.SetMeasure(piece.Advance * scale, 0.0);
                     }
