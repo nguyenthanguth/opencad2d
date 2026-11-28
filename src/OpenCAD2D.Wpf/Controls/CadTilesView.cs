@@ -390,6 +390,7 @@ namespace OpenCAD2D.Wpf
                 hash = hash * 31 + options.SelectionColor;
                 hash = hash * 31 + (options.ShowLineWeights ? 1 : 0);
                 hash = hash * 31 + options.LineweightScale.GetHashCode();
+                hash = hash * 31 + (options.SmallTextAsBars ? 1 : 0);
                 hash = hash * 31 + (options.FontName?.GetHashCode() ?? 0);
                 hash = hash * 31 + options.VisibleLineColor;
                 hash = hash * 31 + options.GripColor;

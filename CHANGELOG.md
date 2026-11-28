@@ -53,6 +53,14 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
   Style, Sheet Set Manager and Transmittal Report windows: a window with no frame of the system that can be resized is given a thin
   frame by Windows 10 and 11 unless it says it has none. Each now carries a `WindowChrome` with no caption and no glass frame, as the Text
   Window and the palettes already did.
+- **CHANGED.** The canvas draws a text under 5 pixels high as a solid bar of its colour the size of its box, never under a pixel each way, as
+  AutoCAD 2021 draws the lines of a sheet zoomed out to its extents; before, a text under 3 pixels high was left out (so the small words of
+  a sheet vanished when it was zoomed out) and one of 3 to 5 pixels was a speck of letters. Text of 5 pixels or more is drawn in its
+  letters as before; a plot and a PDF are unchanged, and the pictures of `render_png`/`render_svg`, `render_masks` and the Remote screenshot follow the canvas (their guides now say a bar where they said "left out"). A zoom-extents redraw of 50 000 small
+  texts takes about 27 ms (9 ms with them left out) at under 3 pixels high and 28 ms (was 150 ms) at 3 to 5 pixels. A text of several lines is a bar for each line, each as wide as its own line.
+- **NEW.** Global settings `smallTextAsBars` and its row "Draw text too small to read (as AutoCAD; off hides it when zoomed out)" under Appearance, Display (`GlobalSettings.SmallTextAsBars`, `CanvasOptions.SmallTextAsBars`, on by default) and the
+  variable `SMALLTEXTBARS` (OpenCAD2D's own, `ON`/`OFF`): off, the canvas goes back to leaving a text under 3 pixels high out and drawing
+  one of 3 to 5 pixels in its letters.
 - **NEW.** Remote `drawing.GetLayouts()`, `drawing.GetLinetypes()` and `drawing.GetBlocks()` (the requests `layoutDetails`,
   `linetypeDetails` and `blockSummaries`): the layouts in tab order with paper name, size, units (`millimetres`, `inches` or `pixels`),
   plot rotation, entity count, current/model flags and each paper-space viewport's frame, view centre, height, scale and frozen layers;

@@ -1524,6 +1524,11 @@ namespace OpenCAD2D.Wpf
                     {
                         Toggle("Grid", () => s.Grid, v => s.Grid = v),
                         Toggle("Show lineweights", () => s.ShowLineWeights, v => s.ShowLineWeights = v),
+                        Toggle(
+                            "Draw text too small to read (as AutoCAD; off hides it when zoomed out)",
+                            () => s.SmallTextAsBars,
+                            v => s.SmallTextAsBars = v
+                        ),
                     }
                 ),
             };

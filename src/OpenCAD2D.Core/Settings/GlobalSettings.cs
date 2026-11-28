@@ -278,6 +278,14 @@ namespace OpenCAD2D
         public bool ShowLineWeights { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets whether a text too small to read on the canvas is drawn as a solid bar of its colour, as AutoCAD draws it:
+        /// on by default, a text under 5 pixels high is a bar the size of its box (at least a pixel each way), so that the lines of
+        /// a sheet zoomed out to its extents still show where the words are. Off, a text under 3 pixels high is left out and one of
+        /// 3 to 5 pixels is drawn in its letters, which is faster over a drawing of many thousands of texts.
+        /// </summary>
+        public bool SmallTextAsBars { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets whether the Lineweight Settings dialog lists lineweights in inches, as AutoCAD's LWUNITS 0; false, the
         /// default, lists them in millimetres (LWUNITS 1).
         /// </summary>
@@ -1270,6 +1278,7 @@ namespace OpenCAD2D
             w.Value("gripMultifunctional", _gripMultifunctional);
             w.Value("grid", Grid);
             w.Value("showLineWeights", ShowLineWeights);
+            w.Value("smallTextAsBars", SmallTextAsBars);
             w.Value("lineweightsInInches", LineweightsInInches);
             w.Value("defaultLineweight", _defaultLineweight);
             w.Value("lineweightDisplayScale", _lineweightDisplayScale);
@@ -1593,6 +1602,7 @@ namespace OpenCAD2D
                 Number("appearance", "gripMultifunctional", v => _s.GripMultifunctional = Whole(v));
                 Flag("appearance", "grid", v => _s.Grid = v);
                 Flag("appearance", "showLineWeights", v => _s.ShowLineWeights = v);
+                Flag("appearance", "smallTextAsBars", v => _s.SmallTextAsBars = v);
                 Flag("appearance", "lineweightsInInches", v => _s.LineweightsInInches = v);
                 Number("appearance", "defaultLineweight", v => _s.DefaultLineweight = Whole(v));
                 Number("appearance", "lineweightDisplayScale", v => _s.LineweightDisplayScale = v);

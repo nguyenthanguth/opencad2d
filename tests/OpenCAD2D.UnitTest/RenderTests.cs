@@ -399,7 +399,16 @@ namespace OpenCAD2D.UnitTest
                 )
             );
 
-            using (SKBitmap bitmap = Render("tiny", document, document.ModelSpace, PixelView()))
+            // Where small texts are not drawn as bars (SmallTextAsBars off, the old way); by default they are.
+            using (
+                SKBitmap bitmap = Render(
+                    "tiny",
+                    document,
+                    document.ModelSpace,
+                    PixelView(),
+                    new CanvasOptions { SmallTextAsBars = false }
+                )
+            )
             {
                 Assert.Equal(new SKColor(0, 255, 0), bitmap.GetPixel(100, 74));
                 Assert.Equal(1, Count(bitmap, 0, 0, 199, 149, IsLit));
