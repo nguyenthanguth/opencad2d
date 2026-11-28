@@ -14,6 +14,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             using (var folder = new TestFolder())
             {
                 var model = new MainViewModel();
+                model.DrawingsShowOpenOnly = false;
                 CadDocument made = CadDocument.From(TestFiles.Room(out _, out _), "B-101");
                 model.OpenDocument(made, "drawing:B1");
                 string saved = Path.Combine(folder.FullPath, "B-101.dxf");

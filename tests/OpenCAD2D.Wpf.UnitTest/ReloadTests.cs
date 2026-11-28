@@ -153,6 +153,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void AFileThatIsNotOpen_IsNotReloaded_AndNothingIsOpened()
         {
             var model = new MainViewModel();
+            model.DrawingsShowOpenOnly = false;
             string room = _folder.Write("room.dxf", TestFiles.Room(out _, out _));
             string other = _folder.Write("other.dxf", TestFiles.Room(out _, out _));
             Assert.True(model.Open(room));

@@ -23,6 +23,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void ClosingADrawingWithChangesAsksAndCancelKeepsItOpen()
         {
             var model = new MainViewModel();
+            model.DrawingsShowOpenOnly = false;
             string room = _folder.Write("room.dxf", TestFiles.Room(out _, out _));
             Assert.True(model.Open(room));
             AddLine(model);
@@ -52,6 +53,7 @@ namespace OpenCAD2D.Wpf.UnitTest
         public void SaveBeforeClosingWritesTheFileAndTheNextDrawingIsShown()
         {
             var model = new MainViewModel();
+            model.DrawingsShowOpenOnly = false;
             string room = _folder.Write("room.dxf", TestFiles.Room(out _, out _));
             string other = _folder.Write("other.dxf", TestFiles.Room(out _, out _));
             Assert.True(model.Open(other));

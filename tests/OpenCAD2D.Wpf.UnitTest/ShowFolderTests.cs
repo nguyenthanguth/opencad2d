@@ -21,6 +21,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             string a = _folder.Write("a.dwg", TestFiles.Room(out _, out _));
             string b = _folder.Write("b.dxf", TestFiles.Room(out _, out _));
             var model = new MainViewModel();
+            model.DrawingsShowOpenOnly = false;
 
             model.ShowFolder(_folder.FullPath);
 
@@ -45,6 +46,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             string a = _folder.Write("a.dwg", TestFiles.Room(out _, out _));
             _folder.Write("b.dwg", TestFiles.Room(out _, out _));
             var model = new MainViewModel();
+            model.DrawingsShowOpenOnly = false;
             model.ShowFolder(_folder.FullPath);
 
             File.Delete(a);
@@ -66,6 +68,7 @@ namespace OpenCAD2D.Wpf.UnitTest
             {
                 string elsewhere = other.Write("z.dwg", TestFiles.Room(out _, out _));
                 var model = new MainViewModel();
+                model.DrawingsShowOpenOnly = false;
                 Assert.True(model.Open(elsewhere));
                 model.ShowFolder(_folder.FullPath);
 

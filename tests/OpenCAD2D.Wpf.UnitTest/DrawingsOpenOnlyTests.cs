@@ -30,15 +30,50 @@ namespace OpenCAD2D.Wpf.UnitTest
         }
 
         [Fact]
-        public void TheListShowsEveryFileOfTheFolderByDefault_AndTheSettingIsOff()
+        public void TheListShowsTheOpenDrawingsOnlyByDefault_AndTheSettingIsOn()
         {
-            MainViewModel model = ThreeFiles(out string a, out _, out _);
-            Assert.True(model.Open(a));
+            WriteIn(_folder, "a.dxf");
+            WriteIn(_folder, "b.dxf");
+            var model = new MainViewModel { SettingsPath = Path.Combine(_folder.FullPath, "settings.json") };
+            Assert.True(model.Open(Path.Combine(_folder.FullPath, "a.dxf")));
 
-            Assert.False(model.DrawingsShowOpenOnly);
-            Assert.False(new GlobalSettings().DrawingsShowOpenOnly);
-            Assert.Equal(new[] { "a.dxf", "b.dxf", "c.dxf" }, Files(model));
-            Assert.Equal("Show open drawings only", model.DrawingsShowOpenOnlyToolTip);
+            Assert.True(model.DrawingsShowOpenOnly);
+            Assert.True(new GlobalSettings().DrawingsShowOpenOnly);
+            Assert.Equal(new[] { "a.dxf" }, Files(model));
+            Assert.Equal("Show every file of the folder", model.DrawingsShowOpenOnlyToolTip);
+        }
+
+        [Fact]
+        public void ASettingsFileWithoutTheKeyReadsOn_AndOneThatStoresFalseKeepsFalse()
+        {
+            string old = Path.Combine(_folder.FullPath, "old.json");
+            File.WriteAllText(old, "{\"panels\":{\"fileListOnRight\":true}}");
+            GlobalSettings read = GlobalSettings.Load(old);
+            Assert.True(read.FileListOnRight);
+            Assert.True(read.DrawingsShowOpenOnly);
+
+            string off = Path.Combine(_folder.FullPath, "off.json");
+            File.WriteAllText(off, "{\"panels\":{\"drawingsShowOpenOnly\":false}}");
+            Assert.False(GlobalSettings.Load(off).DrawingsShowOpenOnly);
+
+            string on = Path.Combine(_folder.FullPath, "on.json");
+            new GlobalSettings { DrawingsShowOpenOnly = false }.Save(on);
+            Assert.False(GlobalSettings.Load(on).DrawingsShowOpenOnly);
+            new GlobalSettings().Save(on);
+            Assert.True(GlobalSettings.Load(on).DrawingsShowOpenOnly);
+        }
+
+        [Fact]
+        public void ResetToDefaultsTurnsItOn()
+        {
+            var model = new MainViewModel { SettingsPath = Path.Combine(_folder.FullPath, "settings.json") };
+            model.DrawingsShowOpenOnly = false;
+            GlobalSettingsViewModel dialog = model.CreateGlobalSettings();
+            Assert.False(dialog.Working.DrawingsShowOpenOnly);
+
+            dialog.Reset();
+
+            Assert.True(dialog.Working.DrawingsShowOpenOnly);
         }
 
         [Fact]
@@ -102,6 +137,7 @@ namespace OpenCAD2D.Wpf.UnitTest
 
             var again = new MainViewModel { SettingsPath = model.SettingsPath };
             Assert.True(again.Open(a));
+            again.ApplySettings(new GlobalSettings { DrawingsShowOpenOnly = false });
             Assert.Equal(3, again.FileRows.Count(r => !r.IsHeader));
             again.ApplySettings(GlobalSettings.Load(model.SettingsPath));
 
@@ -244,6 +280,11 @@ namespace OpenCAD2D.Wpf.UnitTest
                 workspace.UpdateLayout();
                 var button = (ToggleButton)workspace.FindName("OpenOnlyToggle");
 
+                // On by default: the button comes pressed.
+                Assert.True(button.IsChecked);
+                model.DrawingsShowOpenOnly = false;
+                workspace.UpdateLayout();
+
                 Assert.Equal(20, button.ActualWidth);
                 Assert.Equal(20, button.ActualHeight);
                 Assert.False(button.IsChecked);
@@ -286,7 +327,11 @@ namespace OpenCAD2D.Wpf.UnitTest
             a = WriteIn(_folder, "a.dxf");
             b = WriteIn(_folder, "b.dxf");
             c = WriteIn(_folder, "c.dxf");
-            return new MainViewModel { SettingsPath = Path.Combine(_folder.FullPath, "settings.json") };
+            var model = new MainViewModel { SettingsPath = Path.Combine(_folder.FullPath, "settings.json") };
+
+            // The list is on open drawings only by default; these tests start from the full list.
+            model.DrawingsShowOpenOnly = false;
+            return model;
         }
 
         private static string WriteIn(TestFolder folder, string name) =>
