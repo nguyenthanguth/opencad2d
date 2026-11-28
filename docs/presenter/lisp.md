@@ -298,6 +298,91 @@ file is kept for the next time. Cancelling the dialog loads nothing. A window wi
 Global settings lists it as "Choose AutoLISP files to load". The Applications panel of the Manage tab has Load Plugin (NETLOAD,
 the Open dialog for a plugin `.dll` or `.csproj`) and Load Python (PYLOAD, the Open dialog for the `requirements.txt` of a Python tool).
 
+#### SHAREDOWNLOAD
+
+SHAREDOWNLOAD (Manage tab, Applications, From Share) shows **Download from Share**, the window that brings a tool from
+[opencad2d.com/share](https://opencad2d.com/share) into the app. Paste the link of the tool's page,
+`https://opencad2d.com/share/stairs` (a trailing slash, a `www.` and a query are let go), and press **Find**: the window asks
+Share for the tool and its cover picture and shows the picture, the name and summary, the **Type** (AutoLISP, a Python tool,
+or C# source compiled when it loads), the **Version** and author (`1.2, by archi_tools`), the **SHA-256** of the file
+(`9c4e1b7a03f2…d41a7b3e90`; with several files the first one's and how many more), **On this PC**, the **Review** (Share shows
+only tools its reviewers approved, with the day), the commands it **Adds** and the **File** with its size and the licence (every
+tool on Share is MIT): `Stairs.cs, 6 KB, MIT licence`. A link that is not a tool's page says so (`That is not the link of a tool
+on Share. Paste the address of its page, such as https://opencad2d.com/share/stairs.`) and asks nothing; a tool Share does not
+have says `Share has no tool called "nothing".`; a server that cannot be reached, that is too slow, that redirects, or whose
+answer is too big or is not the tool asked for says so in a sentence. Whatever else goes wrong ends as a sentence too, never as
+a crash, and shows no tool.
+
+The app asks Share only when **Find** or **Download** is pressed: opening the window and typing a link ask nothing, and
+there is no update check and no call in the background. Find is one request for the tool and one for its picture; Download is one
+request for each file of the live version. Every request says `User-Agent: OpenCAD2D/<version>`, has a limit of 60 seconds for
+the whole of it, body included (`Share did not answer in time, so the download broke off.`), and a limit of size: the tool's
+answer 1 MB, the picture 5 MB, each file the size the API gave and never more than 64 MB (more bytes than that are refused as they
+arrive). A redirect is an error, and the app's own client follows none; a file is fetched only from `opencad2d.com` or
+`www.opencad2d.com`, and the slug in the answer must be a slug (lower-case letters, digits and hyphens) and the one in the link,
+since the slug names the folder the tool is saved in. A connection that drops mid-file says `the download broke off`, and a disk
+that cannot be written says `could not be written`: the two are told apart. **Close** cancels what is going on, and nothing is
+loaded after it.
+
+**On this PC** compares the copy this app installed with the live file by SHA-256. The install leaves `share.json` in the
+tool's folder (the slug, the version, the name and SHA-256 of each file as Share gave them, and the path and SHA-256 of each file
+written), and that is the copy: `Not on this PC` where there is none (or its files are gone); `1.1 (SHA-256 3f8a2c6e91d4…), the
+same file` where the SHA-256 of each file is the live one's; `…, so this is a newer file` where the version on Share is later
+than the copy's (`1.10` is later than `1.9`) and `…, so this is an older file` where it is earlier; `…, a different file of the
+same version` where the number is equal and the bytes are not. Each file on disk is hashed against `share.json`, so a file you
+edited, replaced or deleted shows `Changed on this PC: stairs.lsp (installed as 1.1 (SHA-256 3f8a2c6e91d4…))`. The main button
+says what it will do: **Download**, **Update to 1.2**, **Download again** or **Replace with 1.0** (also for a changed copy), each
+with `and load` while **Load it now, and at every start** is ticked.
+
+**Nothing runs unless that box is ticked.** Ticked, **Save to** is the folder of the tool's kind beside `OpenCAD2D.Core.dll`,
+under the tool's slug. Unticked, it is `Share\<slug>` beside the same folders: the app never loads from `Share`, so the tool is
+only saved, and the result line says `Saved; not loaded. Load it from the Applications window.` The **…** button picks another
+folder for the tool's own folder to be made in, whatever the box says (a new Find goes back to the kind's folder):
+
+| Kind | Folder, box ticked | What the app does with it |
+|---|---|---|
+| AutoLISP | `Lisps\stairs\` | every `.lsp` in it loads into each drawing when it opens, at any depth; the window loads them now in name order |
+| Python tool | `Pythons\rings\` | a folder directly in `Pythons` that holds a `requirements.txt` is a tool, loaded when the app starts; the window loads it as PYLOAD does |
+| C# source | `Plugins\stairs\` | a folder with a `.csproj` is a plugin compiled when it loads; the window loads the folder as PLUGINLOAD does |
+
+**Download** puts each file in a hidden staging folder, `Share\.share-tmp\<id>` (on the volume of the tool's folder; beside
+the tool's folder as `.share-tmp` where that is on another volume), never inside `Lisps`, `Pythons` or `Plugins`, which the app
+walks. Each file's SHA-256 is compared with the one Share's API gave (a difference is refused: `stairs.lsp from Share does not
+match its SHA-256 (Share recorded 3f8a2c6e…, the download is 91d4a7b0…), so it was not installed.`), a `.zip` is unpacked with
+every entry checked first, and the whole new tool folder is built there. Then the old folder is renamed aside, the new one
+renamed into place and the old one deleted; where the second rename fails the first is undone, so a failure, a locked file or a
+cancel leaves the old version as it was (or no folder, if there was none). Whatever an install cut off left in the staging folder
+is cleaned at the next Find and the next install, and an old version whose folder is gone is given back.
+
+**Your own files are never lost.** A file the install wrote that you changed, and any file of yours that stands where the tool
+writes one, is kept beside the new one as `stairs.lsp.local-2026-11-28` (`-2`, `-3` for a second one the same day); any other
+file of yours in the folder is carried over where it is. Where the copy is `Changed on this PC`, **Download**, **Update** and
+**Download again** first ask, in a message box, whether to replace what you changed (`stairs.lsp is not as Share's install left
+it in …`), and do nothing on No; going ahead keeps the copies, and the result line says so (`Your changes were kept as
+stairs.lsp.local-2026-11-28.`). A file of the older version that the new one does not have is removed, after the same copy if
+you had changed it.
+
+What Share takes, and the app installs, is source: `.lsp`, `.dcl`, `.py`, `.cs`, `.csproj`, `.json`, `.txt` and `.md`. A name
+(a file's or a zip entry's) is refused when it has a path out of the folder (`..\evil.cs`, `/etc/x`, `C:\x`), a stream
+(`a.lsp:hidden`), a part Windows keeps for a device (`CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`, `LPT1` to `LPT9`, with any
+extension: `con.lsp`), a part that starts with `.share-` (the staging's), or is not source (a `.dll`, a `.fas`, a zip inside a zip),
+and when two names differ only in case (`Stairs.lsp` and `stairs.LSP`); a zip that unpacks to more than 64 MB is refused too.
+Nothing is written then.
+
+Loading goes through the loaders of Load/Unload Applications, so the tool shows there as any other does and a failure is
+the loader's own line. A tool saved in the program's folder loads at every
+start whether the box is ticked or not; one saved in a folder you picked with **…** is also put on the Startup Suite (the Python
+Startup Suite for a Python tool, the plugin startup list for C# source) when the box is ticked. The result line says what
+happened: `Stairs 1.2 replaced 1.1 and is loaded; its SHA-256 matches the one on Share. Type STAIRS to use it.`; for a new tool,
+`Stairs 1.2 was saved to C:\...\Plugins\stairs and is loaded; ...`; and where the load fails, in red, `Stairs 1.2 was saved to
+C:\...\Plugins\stairs, but it did not load: <the loader's line>.` The files stay saved. After a good install the card gives way
+to the result line and the button reads **Done**, which closes the window. **Browse Share in the browser** opens
+`https://opencad2d.com/share` in the default browser.
+
+A window with no such dialog (`MainViewModel.ShowShareDownload` null) says `Download from Share cannot be shown here.` The
+engine behind the window is `OpenCAD2D.Share` in `OpenCAD2D.Core`, internal to the app: `ShareClient` over an `HttpClient` it is
+given, `ShareInstaller` and `ShareCopy`.
+
 #### The load-result line
 
 Above the hint at the foot of the table sits a red line, hidden until a load fails: a dark red fill, a red border and a round

@@ -4,6 +4,20 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 
 ## Unreleased
 
+- **NEW.** SHAREDOWNLOAD and the From Share button (Manage tab, Applications) show Download from Share: paste a tool's link
+  (`https://opencad2d.com/share/stairs`), press Find, and the window shows its cover picture, name, summary, type, live version and
+  author, SHA-256, what is on this PC (the same file, a newer or an older one, or "Changed on this PC" where a file was edited since,
+  by hashing the files against the `share.json` the install left in the tool's folder), the review, the commands it adds and the file
+  with its licence. Nothing runs unless "Load it now, and at every start" is ticked: ticked, Download saves it in the folder its kind
+  loads from (AutoLISP in `Lisps\<slug>`, a Python tool in `Pythons\<slug>`, C# source in `Plugins\<slug>`) and loads it through
+  Load/Unload Applications' loaders; unticked it is saved in `Share\<slug>` beside them, which the app never loads from ("Saved; not
+  loaded. Load it from the Applications window."); the … button picks another folder. Every file's SHA-256 is checked against Share's
+  API in a hidden staging folder outside the folders the app walks, the new tool folder is built there and swapped for the old one (a
+  mismatch, a locked file, a cancel, a zip entry with a path out of the folder, a stream, a Windows device name, a name in another
+  case or a file that is not source leaves the old version as it was), and a file you changed is never overwritten without asking:
+  Update and Download again ask first and keep a copy as `<name>.local-<date>`. Each request has a time limit and a size limit, a
+  redirect is an error, files come only from opencad2d.com, a dropped connection and a full disk are told apart, and Close cancels.
+  Share is asked only when Find or Download is pressed: no update check, no call in the background.
 - **NEW.** The DRAWINGS list can show the open drawings only: a 20 by 20 button left of Open in its header (two stacked sheets)
   turns it. On, which is how the app starts, the button is pressed and the list holds
   just the drawings open in the app, each once under its folder (folders in the order their first drawing was opened, drawings
