@@ -5,7 +5,9 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 ## Unreleased
 
 - **NEW.** SHAREDOWNLOAD and the From Share button (Manage tab, Applications) show Download from Share: paste a tool's link
-  (`https://opencad2d.com/share/stairs`), press Find, and the window shows its cover picture, name, summary, type, live version and
+  (`https://opencad2d.com/share/stairs`; the link box has the keyboard when the window opens and is filled from the clipboard
+  when it is empty and the clipboard holds a Share link), press Find, and the window shows its cover picture, name,
+  summary, type, live version and
   author, SHA-256, what is on this PC (the same file, a newer or an older one, or "Changed on this PC" where a file was edited since,
   by hashing the files against the `share.json` the install left in the tool's folder), the review, the commands it adds and the file
   with its licence. Nothing runs unless "Load it now, and at every start" is ticked: ticked, Download saves it in the folder its kind
