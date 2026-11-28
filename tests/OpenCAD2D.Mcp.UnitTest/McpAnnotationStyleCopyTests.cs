@@ -133,16 +133,22 @@ namespace OpenCAD2D.Mcp.UnitTest
                         PipeOptions.Asynchronous
                     );
 
+                    NamedPipeClientStream app = null;
+
                     try
                     {
                         await client.WaitForConnectionAsync(_stop.Token);
-                        var app = new NamedPipeClientStream(".", _app, PipeDirection.InOut, PipeOptions.Asynchronous);
+                        app = new NamedPipeClientStream(".", _app, PipeDirection.InOut, PipeOptions.Asynchronous);
                         await app.ConnectAsync(5000, _stop.Token);
-                        _ = Task.Run(() => Pass(client, app, true));
-                        _ = Task.Run(() => Pass(app, client, false));
+                        NamedPipeClientStream connected = app;
+                        _ = Task.Run(() => Pass(client, connected, true));
+                        _ = Task.Run(() => Pass(connected, client, false));
                     }
-                    catch (OperationCanceledException)
+                    catch (Exception)
                     {
+                        // Cancelled, or the app did not take the connection (a timeout or a broken pipe): closing the
+                        // MCP side makes its read end, so the test fails rather than waiting for ever.
+                        app?.Dispose();
                         client.Dispose();
                         return;
                     }
