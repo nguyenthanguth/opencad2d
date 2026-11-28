@@ -660,7 +660,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                         double previewHeight
                     ) in new (Window, FrameworkElement, double, double, double, double)[]
                     {
-                        (edit, edit.Body, 960, 660, 432, 340),
+                        (edit, edit.Body, 860, 660, 300, 185),
                         (change, change.Body, 960, 660, 432, 300),
                         (dimensions, dimensions.Body, 780, 540, 0, 250),
                         (leaders, leaders.Body, 780, 540, 0, 250),
@@ -689,7 +689,7 @@ namespace OpenCAD2D.Wpf.UnitTest
                 }
 
                 Assert.Equal(ResizeMode.CanResizeWithGrip, edit.ResizeMode);
-                Assert.Equal(960, edit.MinWidth);
+                Assert.Equal(860, edit.MinWidth);
                 Assert.Equal(660, edit.MinHeight);
                 Assert.Equal(ResizeMode.CanResizeWithGrip, change.ResizeMode);
             });

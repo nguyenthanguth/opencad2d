@@ -155,6 +155,45 @@
         <Setter Property="Padding" Value="10,8" />
     </Style>
 
+    <!--
+    A group box of a style dialog's tab: a 1 px border in the border's colour, rounded by 4, its title a legend in the top line
+    (12 high, semibold) on the panel's ground.
+    -->
+    <Style x:Key="StyleGroupBox" TargetType="GroupBox">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Border
+                            BorderBrush="{StaticResource GhBorder}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Margin="0,8,0,0"
+                            Padding="10,14,10,8"
+                        >
+                            <ContentPresenter />
+                        </Border>
+                        <Border
+                            Background="{StaticResource GhPanel}"
+                            Padding="4,0"
+                            Margin="10,0,0,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                        >
+                            <ContentPresenter
+                                ContentSource="Header"
+                                TextElement.FontSize="12"
+                                TextElement.FontWeight="SemiBold"
+                                TextElement.Foreground="{StaticResource GhText}"
+                            />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- The dot of a notice: the accent's, the warning's where the notice says why something was refused (IsNoticeWarning). -->
     <Style x:Key="NoticeDot" TargetType="Ellipse">
         <Setter Property="Fill" Value="{StaticResource GhAccent}" />
@@ -318,34 +357,45 @@
         </DataTemplate.Triggers>
     </DataTemplate>
 
+    <!-- The cell of a box to tick of a pair row: the ground of a field the preview shows or lights, as a row has it. -->
+    <Style x:Key="DimPairCell" TargetType="Border">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="4,0" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <Setter Property="Background" Value="#731F4E79" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsLit}" Value="True">
+                <Setter Property="Background" Value="#731F4E79" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
     <!--
     A field of a dimension style's dialog, as the design lays it: the label with the variable beside it in small mono type,
-    then a box 168 wide holding a box to tick, a number (80 wide), a text, or a list with the colour's swatch before it and the
-    "…" of the Text Style dialog after it; a group's title instead for a header. Greyed where the field means nothing.
+    then a box (190 wide, 150 in the right column) holding a box to tick, a number (90 wide), a text, or a list with the
+    colour's swatch before it and the "…" of the Text Style dialog after it; a list of the right column sits under its label,
+    the width of its group box, where 150 would cut its words. Greyed where the field means nothing.
     -->
     <DataTemplate x:Key="DimFieldTemplate" DataType="{x:Type local:DimFieldViewModel}">
-        <Grid x:Name="Row" Margin="0,2" Background="Transparent">
+        <Grid x:Name="Row" Margin="0,2" MinHeight="24" Background="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="168" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <!-- The mark of the row the preview shows (the field active) or the row of a field that sets the part under the pointer: an accent bar and a ground. -->
             <Rectangle
                 x:Name="Bar"
                 Grid.ColumnSpan="2"
+                Grid.RowSpan="2"
                 Width="3"
                 HorizontalAlignment="Left"
                 Margin="-6,0,0,0"
                 Fill="{StaticResource GhAccent}"
-                Visibility="Collapsed"
-            />
-            <TextBlock
-                x:Name="Title"
-                Grid.ColumnSpan="2"
-                Text="{Binding Label}"
-                FontSize="13"
-                FontWeight="SemiBold"
-                Margin="0,5,0,1"
                 Visibility="Collapsed"
             />
             <StackPanel x:Name="Caption" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
@@ -359,7 +409,7 @@
                     VerticalAlignment="Center"
                 />
             </StackPanel>
-            <DockPanel x:Name="Control" Grid.Column="1" IsEnabled="{Binding IsEnabled}">
+            <DockPanel x:Name="Control" Grid.Column="1" Width="{Binding FieldWidth}" IsEnabled="{Binding IsEnabled}">
                 <Border
                     x:Name="Swatch"
                     DockPanel.Dock="Left"
@@ -387,7 +437,7 @@
                     <TextBox
                         x:Name="Number"
                         Style="{StaticResource StyleBox}"
-                        Width="80"
+                        Width="90"
                         HorizontalAlignment="Left"
                         Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
                         Visibility="Collapsed"
@@ -428,11 +478,6 @@
             <DataTrigger Binding="{Binding HasTextStyleButton}" Value="True">
                 <Setter TargetName="More" Property="Visibility" Value="Visible" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding Kind}" Value="Header">
-                <Setter TargetName="Title" Property="Visibility" Value="Visible" />
-                <Setter TargetName="Caption" Property="Visibility" Value="Collapsed" />
-                <Setter TargetName="Control" Property="Visibility" Value="Collapsed" />
-            </DataTrigger>
             <DataTrigger Binding="{Binding Kind}" Value="Number">
                 <Setter TargetName="Number" Property="Visibility" Value="Visible" />
             </DataTrigger>
@@ -449,7 +494,15 @@
             <DataTrigger Binding="{Binding SwatchRgb}" Value="{x:Null}">
                 <Setter TargetName="Swatch" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding IsStacked}" Value="True">
+                <Setter TargetName="Control" Property="Grid.Row" Value="1" />
+                <Setter TargetName="Control" Property="Grid.Column" Value="0" />
+                <Setter TargetName="Control" Property="Grid.ColumnSpan" Value="2" />
+                <Setter TargetName="Control" Property="Width" Value="NaN" />
+                <Setter TargetName="Control" Property="Margin" Value="0,3,0,0" />
+            </DataTrigger>
             <DataTrigger Binding="{Binding Kind}" Value="Flag">
+                <Setter TargetName="Control" Property="Width" Value="NaN" />
                 <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
             </DataTrigger>
             <DataTrigger Binding="{Binding IsEnabled}" Value="False">
@@ -459,5 +512,88 @@
                 <Setter TargetName="Number" Property="Foreground" Value="{StaticResource GhProblem}" />
             </DataTrigger>
         </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!--
+    A row of a group box: a field as DimFieldTemplate lays it, or, for two boxes to tick that share a row, the caption with
+    the two variables beside it and the two boxes with their words after them ("Suppress  DIMSD1 · DIMSD2  [ ] Dim line 1 [ ] Dim
+    line 2"). Each box sits in a cell whose data is its field, so that the pointer and the focus tell the preview which it is.
+    -->
+    <DataTemplate x:Key="DimRowTemplate" DataType="{x:Type local:DimRowViewModel}">
+        <Grid>
+            <ContentControl
+                x:Name="Single"
+                Content="{Binding First}"
+                ContentTemplate="{StaticResource DimFieldTemplate}"
+                HorizontalContentAlignment="Stretch"
+                Focusable="False"
+            />
+            <Grid x:Name="Both" Margin="0,2" MinHeight="24" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
+                    <TextBlock Text="{Binding Caption}" VerticalAlignment="Center" />
+                    <TextBlock
+                        Text="{Binding Variables}"
+                        Margin="6,0,0,0"
+                        FontSize="10"
+                        FontFamily="{StaticResource GhMonoFont}"
+                        Foreground="{StaticResource GhTextMuted}"
+                        VerticalAlignment="Center"
+                    />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border Style="{StaticResource DimPairCell}" DataContext="{Binding First}">
+                        <CheckBox
+                            Style="{StaticResource StyleCheck}"
+                            Content="{Binding PairWords}"
+                            IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                            IsEnabled="{Binding IsEnabled}"
+                        />
+                    </Border>
+                    <Border Style="{StaticResource DimPairCell}" DataContext="{Binding Second}" Margin="12,0,0,0">
+                        <CheckBox
+                            Style="{StaticResource StyleCheck}"
+                            Content="{Binding PairWords}"
+                            IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                            IsEnabled="{Binding IsEnabled}"
+                        />
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Grid>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsPair}" Value="True">
+                <Setter TargetName="Single" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="Both" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!--
+    A group box of a tab: its title in the top line, its rows in one column, or two (24 apart) for the wide group.
+    -->
+    <DataTemplate x:Key="DimGroupTemplate" DataType="{x:Type local:DimGroupViewModel}">
+        <GroupBox Header="{Binding Title}" Style="{StaticResource StyleGroupBox}" Margin="0,0,0,10">
+            <ItemsControl ItemsSource="{Binding Columns}" Margin="-12,0" Focusable="False">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ItemsControl
+                            ItemsSource="{Binding}"
+                            ItemTemplate="{StaticResource DimRowTemplate}"
+                            Margin="12,0"
+                            Focusable="False"
+                        />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </GroupBox>
     </DataTemplate>
 </ResourceDictionary>

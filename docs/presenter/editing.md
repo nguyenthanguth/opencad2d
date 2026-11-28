@@ -3602,11 +3602,21 @@ The previews of the dimension style dialogs (New, Modify and Override, one windo
 multileader style dialogs are drawn at the real size of their frame and the real scale of the display, so that they stay sharp at
 150 %: the canvas's own renderer draws the sample into a picture of as many device pixels as the frame has, every line at least
 1.5 device-independent pixels wide, and draws it again as the dialog is resized or the screen's scale changes. The New, Modify and
-Override dialogs and the Modify Multileader Style dialog are 960 by 660 (they were 800 by 640), can be resized from the grip at the
-corner, and never get smaller; their preview is 432 wide and about 340 high (300 for the multileader's) at that size and grows with
-the window. A toolbar in the preview's title row has Fit (a double click on the preview does the same), the zoom in percent of Fit
+Override dialog is 860 by 660 and the Modify Multileader Style dialog 960 by 660 (they were 800 by 640); both can be resized from
+the grip at the corner and never get smaller. The multileader dialog's preview is 432 wide and about 300 high at that size and grows
+with the window; the dimension style dialog's is 300 wide and about 190 high, at the top right, and stays that size (see below). A toolbar in the preview's title row has Fit (a double click on the preview does the same), the zoom in percent of Fit
 and two swatches for the ground, black or white (kept until the app closes); the wheel zooms about the pointer by 1.2 a notch, and
 a change of a value keeps the zoom you chose unless what the sample draws grows or shrinks by more than a fifth, or the tab changes.
+
+The New, Modify and Override dimension style dialog sets each tab in group boxes as AutoCAD 2021 does, each a 1 px bordered box with
+its title in the top line: the left column's boxes beside the preview, the right column's boxes under it (Arc length symbol, Radius jog
+dimension, Text alignment, Scale for dimension features, Fine tuning, Angular dimensions, Placement), and on the Lines tab the
+Extension lines across the width in two columns of their own. The two Suppress pairs sit on one row each ("Suppress: [ ] Dim line 1
+[ ] Dim line 2", "Suppress: [ ] Ext line 1 [ ] Ext line 2"), the variables of both beside the caption. A list of the right column,
+and the two long lists of the Fit tab, sit under their labels at the width of their box, where the width beside the label would cut
+their words. The Description spans the width under the boxes, and a tab too tall for the window scrolls. The groups come from
+`DimStyleEditViewModel.GroupsOf`, `LeftGroups`, `RightGroups` and `WideGroups`; `Fields` still lists a tab's fields flat, a group's
+title before its fields.
 
 The preview is linked to the fields. The field under the pointer, else the one with the keyboard focus, is the field active: the
 parts it sets are drawn in the accent (#3D9BFF on black, #0A6BD6 on white) and the rest faded to a third, and a distance it sets

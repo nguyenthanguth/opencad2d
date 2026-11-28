@@ -101,6 +101,7 @@ namespace OpenCAD2D.Wpf
         {
             Kind = kind;
             Label = label;
+            PairWords = label;
             Variable = variable;
             VariableText = shown ?? variable;
             PreviewKey = kind == DimFieldKind.Header ? string.Empty : variable;
@@ -123,6 +124,24 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>Gets the variables shown beside the label: the variable, or the two a field sets, as "DIMTIH · DIMTOH".</summary>
         public string VariableText { get; }
+
+        /// <summary>
+        /// Gets the width of the box beside the label, in device-independent pixels: 190 in the left column and the wide group, 150
+        /// in the right column, as the design sets them; a box to tick takes only the room it needs.
+        /// </summary>
+        public double FieldWidth { get; internal set; } = 190;
+
+        /// <summary>
+        /// Gets whether the box sits under the label, the width of its group box, not beside it: a list of the right column, whose
+        /// 150 would cut its words.
+        /// </summary>
+        public bool IsStacked { get; internal set; }
+
+        /// <summary>
+        /// Gets the words after the box of a field that shares a row with another, as "Dim line 1" for "Suppress dim line 1" on the
+        /// row "Suppress: [ ] Dim line 1 [ ] Dim line 2"; the label for any other field.
+        /// </summary>
+        public string PairWords { get; internal set; }
 
         /// <summary>Gets whether the field can be changed: false where the values make it mean nothing, as the design greys it.</summary>
         public bool IsEnabled => _enabled == null || _enabled();

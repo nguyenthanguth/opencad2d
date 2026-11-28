@@ -54,6 +54,10 @@ namespace OpenCAD2D.Wpf
             string,
             IReadOnlyList<DimFieldViewModel>
         >(StringComparer.Ordinal);
+        private readonly Dictionary<string, IReadOnlyList<DimGroupViewModel>> _groups = new Dictionary<
+            string,
+            IReadOnlyList<DimGroupViewModel>
+        >(StringComparer.Ordinal);
         private string _tab = TabNames[0];
         private string _refused = string.Empty;
         private ImageSource _preview;
@@ -156,6 +160,10 @@ namespace OpenCAD2D.Wpf
                 if (tab != null && Set(ref _tab, tab))
                 {
                     Raise(nameof(Fields));
+                    Raise(nameof(Groups));
+                    Raise(nameof(LeftGroups));
+                    Raise(nameof(RightGroups));
+                    Raise(nameof(WideGroups));
                     Raise(nameof(Description));
                     _previewModel?.Invalidate();
                     UpdateLinks();
@@ -293,6 +301,27 @@ namespace OpenCAD2D.Wpf
 
         /// <summary>Gets the fields of the tab shown, a group's title before its fields.</summary>
         public IReadOnlyList<DimFieldViewModel> Fields => _tabs[_tab];
+
+        /// <summary>Gets the group boxes of the tab shown, left column first, then the right, then the wide ones.</summary>
+        public IReadOnlyList<DimGroupViewModel> Groups => _groups[_tab];
+
+        /// <summary>Gets the group boxes of the tab shown that sit in the left column, beside the preview.</summary>
+        public IReadOnlyList<DimGroupViewModel> LeftGroups => In(DimGroupColumn.Left);
+
+        /// <summary>Gets the group boxes of the tab shown that sit in the right column, under the preview.</summary>
+        public IReadOnlyList<DimGroupViewModel> RightGroups => In(DimGroupColumn.Right);
+
+        /// <summary>Gets the group boxes of the tab shown that run across its width, under both columns.</summary>
+        public IReadOnlyList<DimGroupViewModel> WideGroups => In(DimGroupColumn.Wide);
+
+        /// <summary>Gets the group boxes of a tab, in the order of its fields.</summary>
+        /// <param name="tab">The tab, as "Text".</param>
+        /// <returns>The group boxes.</returns>
+        public IReadOnlyList<DimGroupViewModel> GroupsOf(string tab) =>
+            _groups[TabNames.First(t => string.Equals(t, tab, StringComparison.OrdinalIgnoreCase))];
+
+        private IReadOnlyList<DimGroupViewModel> In(DimGroupColumn column) =>
+            _groups[_tab].Where(g => g.Column == column).ToList();
 
         /// <summary>Gets the fields of a tab.</summary>
         /// <param name="tab">The tab, as "Text".</param>
@@ -454,6 +483,35 @@ namespace OpenCAD2D.Wpf
 
         private DimFieldViewModel Header(string label) => Field(DimFieldKind.Header, label, string.Empty, null, null);
 
+        private static DimGroupViewModel Group(string title, DimGroupColumn column, params DimRowViewModel[] rows) =>
+            new DimGroupViewModel(title, column, new[] { rows });
+
+        private static DimGroupViewModel Wide(string title, DimRowViewModel[] first, DimRowViewModel[] second) =>
+            new DimGroupViewModel(title, DimGroupColumn.Wide, new[] { first, second });
+
+        /// <summary>A group whose lists sit under their labels, the width of the box, as the right column's do: where the words of an item are long.</summary>
+        private static DimGroupViewModel Stacked(DimGroupViewModel group)
+        {
+            foreach (DimFieldViewModel field in group.Fields.Where(f => f.Kind == DimFieldKind.Choice))
+            {
+                field.IsStacked = true;
+            }
+
+            return group;
+        }
+
+        private static DimRowViewModel[] Rows(params DimRowViewModel[] rows) => rows;
+
+        private static DimRowViewModel Pair(string caption, DimFieldViewModel first, DimFieldViewModel second) =>
+            DimRowViewModel.Pair(caption, first, second);
+
+        /// <summary>A tab from its group boxes: the boxes as the window lays them out, and the flat list of fields, a group's title before its fields.</summary>
+        private void AddTab(string name, params DimGroupViewModel[] groups)
+        {
+            _groups[name] = groups;
+            _tabs[name] = groups.SelectMany(g => new[] { Header(g.Title) }.Concat(g.Fields)).ToList();
+        }
+
         private DimFieldViewModel Plain(
             DimFieldKind kind,
             string label,
@@ -472,7 +530,7 @@ namespace OpenCAD2D.Wpf
             int trailing = angular ? 2 : 8;
             return Field(
                 DimFieldKind.Choice,
-                "Zero suppression",
+                angular ? "Zero suppression" : "Leading and trailing",
                 name.ToUpperInvariant(),
                 () => Whole(name) & (leading | trailing),
                 v => Put(name, (Whole(name) & ~(leading | trailing)) | (int)v),
@@ -623,385 +681,462 @@ namespace OpenCAD2D.Wpf
             : Real("Dimtm") == Real("Dimtp") ? "Symmetrical"
             : "Deviation";
 
-        /// <summary>The fields of the seven tabs, each a variable of the style, in the design's order and words.</summary>
+        /// <summary>
+        /// The fields of the seven tabs, each a variable of the style, in the design's order and words, set in the group boxes
+        /// of AutoCAD's tabs: the left column, the right column under the preview, and on Lines the Extension lines across the width.
+        /// </summary>
         private void BuildTabs()
         {
-            _tabs["Lines"] = new[]
-            {
-                Header("Dimension lines"),
-                Plain(DimFieldKind.Choice, "Colour", "Dimclrd", Colours("Dimclrd")),
-                Plain(DimFieldKind.Choice, "Linetype", "Dimltype", Linetypes()),
-                Plain(DimFieldKind.Choice, "Lineweight", "Dimlwd", Weights()),
-                Plain(DimFieldKind.Number, "Extend beyond ticks", "Dimdle"),
-                Plain(DimFieldKind.Number, "Baseline spacing", "Dimdli"),
-                Plain(DimFieldKind.Flag, "Suppress dim line 1", "Dimsd1"),
-                Plain(DimFieldKind.Flag, "Suppress dim line 2", "Dimsd2"),
-                Header("Extension lines"),
-                Plain(DimFieldKind.Choice, "Colour", "Dimclre", Colours("Dimclre")),
-                Plain(DimFieldKind.Choice, "Linetype ext line 1", "Dimltex1", Linetypes()),
-                Plain(DimFieldKind.Choice, "Linetype ext line 2", "Dimltex2", Linetypes()),
-                Plain(DimFieldKind.Choice, "Lineweight", "Dimlwe", Weights()),
-                Plain(DimFieldKind.Flag, "Suppress ext line 1", "Dimse1"),
-                Plain(DimFieldKind.Flag, "Suppress ext line 2", "Dimse2"),
-                Plain(DimFieldKind.Number, "Extend beyond dim lines", "Dimexe"),
-                Plain(DimFieldKind.Number, "Offset from origin", "Dimexo"),
-                Field(
-                    DimFieldKind.Flag,
-                    "Fixed length extension lines",
-                    "DIMFXLON",
-                    () => Get("DimfxlenOn"),
-                    v => Put("DimfxlenOn", v)
+            AddTab(
+                "Lines",
+                Group(
+                    "Dimension lines",
+                    DimGroupColumn.Left,
+                    Plain(DimFieldKind.Choice, "Colour", "Dimclrd", Colours("Dimclrd")),
+                    Plain(DimFieldKind.Choice, "Linetype", "Dimltype", Linetypes()),
+                    Plain(DimFieldKind.Choice, "Lineweight", "Dimlwd", Weights()),
+                    Plain(DimFieldKind.Number, "Extend beyond ticks", "Dimdle"),
+                    Plain(DimFieldKind.Number, "Baseline spacing", "Dimdli"),
+                    Pair(
+                        "Suppress",
+                        Plain(DimFieldKind.Flag, "Suppress dim line 1", "Dimsd1"),
+                        Plain(DimFieldKind.Flag, "Suppress dim line 2", "Dimsd2")
+                    )
                 ),
-                Field(
-                    DimFieldKind.Number,
-                    "Length",
-                    "DIMFXL",
-                    () => Get("Dimfxlen"),
-                    v => Put("Dimfxlen", v),
-                    null,
-                    () => Flag("DimfxlenOn")
-                ),
-            };
+                Wide(
+                    "Extension lines",
+                    Rows(
+                        Plain(DimFieldKind.Choice, "Colour", "Dimclre", Colours("Dimclre")),
+                        Plain(DimFieldKind.Choice, "Linetype ext line 1", "Dimltex1", Linetypes()),
+                        Plain(DimFieldKind.Choice, "Linetype ext line 2", "Dimltex2", Linetypes()),
+                        Plain(DimFieldKind.Choice, "Lineweight", "Dimlwe", Weights()),
+                        Pair(
+                            "Suppress",
+                            Plain(DimFieldKind.Flag, "Suppress ext line 1", "Dimse1"),
+                            Plain(DimFieldKind.Flag, "Suppress ext line 2", "Dimse2")
+                        )
+                    ),
+                    Rows(
+                        Plain(DimFieldKind.Number, "Extend beyond dim lines", "Dimexe"),
+                        Plain(DimFieldKind.Number, "Offset from origin", "Dimexo"),
+                        Field(
+                            DimFieldKind.Flag,
+                            "Fixed length extension lines",
+                            "DIMFXLON",
+                            () => Get("DimfxlenOn"),
+                            v => Put("DimfxlenOn", v)
+                        ),
+                        Field(
+                            DimFieldKind.Number,
+                            "Length",
+                            "DIMFXL",
+                            () => Get("Dimfxlen"),
+                            v => Put("Dimfxlen", v),
+                            null,
+                            () => Flag("DimfxlenOn")
+                        )
+                    )
+                )
+            );
 
             IReadOnlyList<DimChoice> arrows = Arrows();
-            _tabs["Symbols and arrows"] = new[]
-            {
-                Header("Arrowheads"),
-                Field(
-                    DimFieldKind.Choice,
-                    "First",
-                    "DIMBLK1",
-                    () => Flag("Dimsah") ? Get("Dimblk1") : Get("Dimblk"),
-                    v =>
-                    {
-                        Put("Dimsah", false);
-                        Put("Dimblk", v);
-                        Put("Dimblk1", v);
-                        Put("Dimblk2", v);
-                    },
-                    arrows
-                ),
-                Field(
-                    DimFieldKind.Choice,
-                    "Second",
-                    "DIMBLK2",
-                    () => Flag("Dimsah") ? Get("Dimblk2") : Get("Dimblk"),
-                    v =>
-                    {
-                        object first = Flag("Dimsah") ? Get("Dimblk1") : Get("Dimblk");
-                        bool same = string.Equals(
-                            CadDimStyleEditor.Text(first),
-                            CadDimStyleEditor.Text(v),
-                            StringComparison.Ordinal
-                        );
-                        Put("Dimsah", !same);
-                        Put(same ? "Dimblk" : "Dimblk1", first);
-                        Put("Dimblk2", v);
-                    },
-                    arrows
-                ),
-                Plain(DimFieldKind.Choice, "Leader", "Dimldrblk", arrows),
-                Plain(DimFieldKind.Number, "Arrow size", "Dimasz"),
-                Header("Centre marks"),
-                Field(
-                    DimFieldKind.Choice,
-                    "Type",
-                    "DIMCEN",
-                    () =>
-                        Real("Dimcen") > 0.0 ? "Mark"
-                        : Real("Dimcen") < 0.0 ? "Line"
-                        : "None",
-                    v =>
-                    {
-                        double size = Math.Abs(Real("Dimcen")) > 0.0 ? Math.Abs(Real("Dimcen")) : 2.5;
-                        Put(
-                            "Dimcen",
-                            (string)v == "Mark" ? size
-                                : (string)v == "Line" ? -size
-                                : 0.0
-                        );
-                    },
-                    C("None", "None", "Mark", "Mark", "Line", "Line")
-                ),
-                Field(
-                        DimFieldKind.Number,
-                        "Size",
-                        "DIMCEN",
-                        () => Math.Abs(Real("Dimcen")),
-                        v => Put("Dimcen", Real("Dimcen") < 0.0 ? -(double)v : (double)v),
-                        null,
-                        () => Real("Dimcen") != 0.0
-                    )
-                    .WithKey("DIMCEN#"),
-                Header("Arc length symbol"),
-                Plain(
-                    DimFieldKind.Choice,
-                    "Placement",
-                    "Dimarcsym",
-                    C("Preceding dimension text", 0, "Above dimension text", 1, "None", 2)
-                ),
-                Header("Radius dimension jog"),
-                Plain(DimFieldKind.Angle, "Jog angle", "Dimjogang"),
-            };
-
-            _tabs["Text"] = new[]
-            {
-                Header("Text appearance"),
-                // A style that names no text style writes in Standard, as AutoCAD reads it.
-                Field(
-                    DimFieldKind.Choice,
-                    "Text style",
-                    "DIMTXSTY",
-                    () => Words("Dimtxsty").Length > 0 ? Words("Dimtxsty") : "Standard",
-                    v => Put("Dimtxsty", v),
-                    TextStyleChoices()
-                ),
-                Plain(DimFieldKind.Choice, "Text colour", "Dimclrt", Colours("Dimclrt")),
-                Field(
-                    DimFieldKind.Choice,
-                    "Fill colour",
-                    "DIMTFILL",
-                    () =>
-                        Whole("Dimtfill") == 0 ? "None"
-                        : Whole("Dimtfill") == 1 ? (object)"Background"
-                        : Get("Dimtfillclr"),
-                    v =>
-                    {
-                        Put("Dimtfill", v is string word ? (word == "Background" ? 1 : 0) : 2);
-
-                        if (v is DxfColor colour)
-                        {
-                            Put("Dimtfillclr", colour);
-                        }
-                    },
-                    C("None", "None", "Background", "Background").Concat(Colours("Dimtfillclr")).ToList()
-                ),
-                Plain(DimFieldKind.Number, "Text height", "Dimtxt"),
-                Plain(DimFieldKind.Number, "Fraction height scale", "Dimtfac", null, () => Fractions),
-                Field(
-                        DimFieldKind.Flag,
-                        "Draw frame around text",
-                        "DIMGAP",
-                        () => Real("Dimgap") < 0.0,
-                        v => Put("Dimgap", (bool)v ? -Math.Abs(Real("Dimgap")) : Math.Abs(Real("Dimgap"))),
-                        null,
-                        null,
-                        "DIMGAP<0"
-                    )
-                    .WithKey("DIMGAP#"),
-                Header("Text placement"),
-                Plain(
-                    DimFieldKind.Choice,
-                    "Vertical",
-                    "Dimtad",
-                    C("Centred", 0, "Above", 1, "Outside", 2, "JIS", 3, "Below", 4)
-                ),
-                Plain(
-                    DimFieldKind.Choice,
-                    "Horizontal",
-                    "Dimjust",
-                    C("Centred", 0, "At ext line 1", 1, "At ext line 2", 2, "Over ext line 1", 3, "Over ext line 2", 4)
-                ),
-                Plain(
-                    DimFieldKind.Choice,
-                    "View direction",
-                    "Dimtxtdirection",
-                    C("Left to right", false, "Right to left", true)
-                ),
-                Field(
-                    DimFieldKind.Number,
-                    "Offset from dim line",
-                    "DIMGAP",
-                    () => Math.Abs(Real("Dimgap")),
-                    v => Put("Dimgap", Real("Dimgap") < 0.0 ? -(double)v : (double)v)
-                ),
-                Header("Text alignment"),
-                Field(
-                    DimFieldKind.Choice,
-                    "Alignment",
-                    "DIMTIH",
-                    () =>
-                        Flag("Dimtih") ? "Horizontal"
-                        : Flag("Dimtoh") ? "ISO standard"
-                        : "Aligned with dimension line",
-                    v =>
-                    {
-                        Put("Dimtih", (string)v == "Horizontal");
-                        Put("Dimtoh", (string)v != "Aligned with dimension line");
-                    },
-                    C(
-                        "Horizontal",
-                        "Horizontal",
-                        "Aligned with dimension line",
-                        "Aligned with dimension line",
-                        "ISO standard",
-                        "ISO standard"
-                    ),
-                    null,
-                    "DIMTIH · DIMTOH"
-                ),
-            };
-
-            _tabs["Fit"] = new[]
-            {
-                Header("Fit options"),
-                Plain(
-                    DimFieldKind.Choice,
-                    "When space is short, move",
-                    "Dimatfit",
-                    C(
-                        "Either the text or the arrows, whichever fits best",
-                        3,
-                        "The arrows",
-                        1,
-                        "The text",
-                        2,
-                        "Both the text and the arrows",
-                        0
-                    )
-                ),
-                Header("Text placement"),
-                Plain(
-                    DimFieldKind.Choice,
-                    "When text is not at the default position",
-                    "Dimtmove",
-                    C(
-                        "Beside the dimension line",
-                        0,
-                        "Over the dimension line, with a leader",
-                        1,
-                        "Over the dimension line, without a leader",
-                        2
-                    )
-                ),
-                Header("Scale for dimension features"),
-                Plain(DimFieldKind.Flag, "Annotative", CadDimStyleEditor.AnnotativeKey),
-                Plain(DimFieldKind.Number, "Overall scale", "Dimscale", null, () =>
-                    !Flag(CadDimStyleEditor.AnnotativeKey)
-                ),
-                Header("Fine tuning"),
-                Plain(DimFieldKind.Flag, "Place text manually", "Dimupt"),
-                Plain(DimFieldKind.Flag, "Draw dim line between ext lines", "Dimtofl"),
-            };
-
-            _tabs["Primary units"] = new[]
-            {
-                Header("Linear dimensions"),
-                Plain(DimFieldKind.Choice, "Unit format", "Dimlunit", Units()),
-                Plain(DimFieldKind.Choice, "Precision", "Dimdec", Precision()),
-                Plain(
-                    DimFieldKind.Choice,
-                    "Fraction format",
-                    "Dimfrac",
-                    C("Horizontal", 0, "Diagonal", 1, "Not stacked", 2),
-                    () => Fractions
-                ),
-                Plain(
-                    DimFieldKind.Choice,
-                    "Decimal separator",
-                    "Dimdsep",
-                    C(". (Period)", '.', ", (Comma)", ',', "  (Space)", ' ')
-                ),
-                Plain(DimFieldKind.Number, "Round off", "Dimrnd"),
-                Affix("Dimpost"),
-                Plain(DimFieldKind.Number, "Measurement scale factor", "Dimlfac"),
-                Zeros("Dimzin", false),
-                Header("Angular dimensions"),
-                Plain(
-                    DimFieldKind.Choice,
-                    "Units format",
-                    "Dimaunit",
-                    C("Decimal degrees", 0, "Degrees minutes seconds", 1, "Gradians", 2, "Radians", 3)
-                ),
-                Plain(DimFieldKind.Choice, "Precision", "Dimadec", Precision()),
-                Zeros("Dimazin", true),
-            };
-
-            Func<bool> alternate = () => Flag("Dimalt");
-            _tabs["Alternate units"] = new[]
-            {
-                Header("Alternate units"),
-                Plain(DimFieldKind.Flag, "Display alternate units", "Dimalt"),
-                Plain(DimFieldKind.Choice, "Unit format", "Dimaltu", Units(), alternate),
-                Plain(DimFieldKind.Choice, "Precision", "Dimaltd", Precision(), alternate),
-                Plain(DimFieldKind.Number, "Multiplier for alt units", "Dimaltf", null, alternate),
-                Plain(DimFieldKind.Number, "Round distances to", "Dimaltrnd", null, alternate),
-                Affix("Dimapost", alternate),
-                Zeros("Dimaltz", false, alternate),
-                Header("Placement"),
-                Field(
+            AddTab(
+                "Symbols and arrows",
+                Group(
+                    "Arrowheads",
+                    DimGroupColumn.Left,
+                    Field(
                         DimFieldKind.Choice,
-                        "Alternate units shown",
-                        "DIMPOST",
-                        () => Words("Dimpost").EndsWith(Below, StringComparison.Ordinal) ? "Below" : "After",
+                        "First",
+                        "DIMBLK1",
+                        () => Flag("Dimsah") ? Get("Dimblk1") : Get("Dimblk"),
                         v =>
                         {
-                            string post = Unmarked(Words("Dimpost"));
-                            Put("Dimpost", (string)v == "Below" ? post + Below : post);
+                            Put("Dimsah", false);
+                            Put("Dimblk", v);
+                            Put("Dimblk1", v);
+                            Put("Dimblk2", v);
                         },
-                        C("After primary value", "After", "Below primary value", "Below"),
-                        alternate,
-                        "DIMPOST \\X"
+                        arrows
+                    ),
+                    Field(
+                        DimFieldKind.Choice,
+                        "Second",
+                        "DIMBLK2",
+                        () => Flag("Dimsah") ? Get("Dimblk2") : Get("Dimblk"),
+                        v =>
+                        {
+                            object first = Flag("Dimsah") ? Get("Dimblk1") : Get("Dimblk");
+                            bool same = string.Equals(
+                                CadDimStyleEditor.Text(first),
+                                CadDimStyleEditor.Text(v),
+                                StringComparison.Ordinal
+                            );
+                            Put("Dimsah", !same);
+                            Put(same ? "Dimblk" : "Dimblk1", first);
+                            Put("Dimblk2", v);
+                        },
+                        arrows
+                    ),
+                    Plain(DimFieldKind.Choice, "Leader", "Dimldrblk", arrows),
+                    Plain(DimFieldKind.Number, "Arrow size", "Dimasz")
+                ),
+                Group(
+                    "Centre marks",
+                    DimGroupColumn.Left,
+                    Field(
+                        DimFieldKind.Choice,
+                        "Type",
+                        "DIMCEN",
+                        () =>
+                            Real("Dimcen") > 0.0 ? "Mark"
+                            : Real("Dimcen") < 0.0 ? "Line"
+                            : "None",
+                        v =>
+                        {
+                            double size = Math.Abs(Real("Dimcen")) > 0.0 ? Math.Abs(Real("Dimcen")) : 2.5;
+                            Put(
+                                "Dimcen",
+                                (string)v == "Mark" ? size
+                                    : (string)v == "Line" ? -size
+                                    : 0.0
+                            );
+                        },
+                        C("None", "None", "Mark", "Mark", "Line", "Line")
+                    ),
+                    Field(
+                            DimFieldKind.Number,
+                            "Size",
+                            "DIMCEN",
+                            () => Math.Abs(Real("Dimcen")),
+                            v => Put("Dimcen", Real("Dimcen") < 0.0 ? -(double)v : (double)v),
+                            null,
+                            () => Real("Dimcen") != 0.0
+                        )
+                        .WithKey("DIMCEN#")
+                ),
+                Group(
+                    "Arc length symbol",
+                    DimGroupColumn.Right,
+                    Plain(
+                        DimFieldKind.Choice,
+                        "Placement",
+                        "Dimarcsym",
+                        C("Preceding dimension text", 0, "Above dimension text", 1, "None", 2)
                     )
-                    .WithKey("DIMPOST\\X"),
-            };
+                ),
+                Group("Radius jog dimension", DimGroupColumn.Right, Plain(DimFieldKind.Angle, "Jog angle", "Dimjogang"))
+            );
+
+            AddTab(
+                "Text",
+                Group(
+                    "Text appearance",
+                    DimGroupColumn.Left,
+                    // A style that names no text style writes in Standard, as AutoCAD reads it.
+                    Field(
+                        DimFieldKind.Choice,
+                        "Text style",
+                        "DIMTXSTY",
+                        () => Words("Dimtxsty").Length > 0 ? Words("Dimtxsty") : "Standard",
+                        v => Put("Dimtxsty", v),
+                        TextStyleChoices()
+                    ),
+                    Plain(DimFieldKind.Choice, "Text colour", "Dimclrt", Colours("Dimclrt")),
+                    Field(
+                        DimFieldKind.Choice,
+                        "Fill colour",
+                        "DIMTFILL",
+                        () =>
+                            Whole("Dimtfill") == 0 ? "None"
+                            : Whole("Dimtfill") == 1 ? (object)"Background"
+                            : Get("Dimtfillclr"),
+                        v =>
+                        {
+                            Put("Dimtfill", v is string word ? (word == "Background" ? 1 : 0) : 2);
+
+                            if (v is DxfColor colour)
+                            {
+                                Put("Dimtfillclr", colour);
+                            }
+                        },
+                        C("None", "None", "Background", "Background").Concat(Colours("Dimtfillclr")).ToList()
+                    ),
+                    Plain(DimFieldKind.Number, "Text height", "Dimtxt"),
+                    Plain(DimFieldKind.Number, "Fraction height scale", "Dimtfac", null, () => Fractions),
+                    Field(
+                            DimFieldKind.Flag,
+                            "Draw frame around text",
+                            "DIMGAP",
+                            () => Real("Dimgap") < 0.0,
+                            v => Put("Dimgap", (bool)v ? -Math.Abs(Real("Dimgap")) : Math.Abs(Real("Dimgap"))),
+                            null,
+                            null,
+                            "DIMGAP<0"
+                        )
+                        .WithKey("DIMGAP#")
+                ),
+                Group(
+                    "Text placement",
+                    DimGroupColumn.Left,
+                    Plain(
+                        DimFieldKind.Choice,
+                        "Vertical",
+                        "Dimtad",
+                        C("Centred", 0, "Above", 1, "Outside", 2, "JIS", 3, "Below", 4)
+                    ),
+                    Plain(
+                        DimFieldKind.Choice,
+                        "Horizontal",
+                        "Dimjust",
+                        C(
+                            "Centred",
+                            0,
+                            "At ext line 1",
+                            1,
+                            "At ext line 2",
+                            2,
+                            "Over ext line 1",
+                            3,
+                            "Over ext line 2",
+                            4
+                        )
+                    ),
+                    Plain(
+                        DimFieldKind.Choice,
+                        "View direction",
+                        "Dimtxtdirection",
+                        C("Left to right", false, "Right to left", true)
+                    ),
+                    Field(
+                        DimFieldKind.Number,
+                        "Offset from dim line",
+                        "DIMGAP",
+                        () => Math.Abs(Real("Dimgap")),
+                        v => Put("Dimgap", Real("Dimgap") < 0.0 ? -(double)v : (double)v)
+                    )
+                ),
+                Group(
+                    "Text alignment",
+                    DimGroupColumn.Right,
+                    Field(
+                        DimFieldKind.Choice,
+                        "Alignment",
+                        "DIMTIH",
+                        () =>
+                            Flag("Dimtih") ? "Horizontal"
+                            : Flag("Dimtoh") ? "ISO standard"
+                            : "Aligned with dimension line",
+                        v =>
+                        {
+                            Put("Dimtih", (string)v == "Horizontal");
+                            Put("Dimtoh", (string)v != "Aligned with dimension line");
+                        },
+                        C(
+                            "Horizontal",
+                            "Horizontal",
+                            "Aligned with dimension line",
+                            "Aligned with dimension line",
+                            "ISO standard",
+                            "ISO standard"
+                        ),
+                        null,
+                        "DIMTIH · DIMTOH"
+                    )
+                )
+            );
+
+            AddTab(
+                "Fit",
+                Stacked(
+                    Group(
+                        "Fit options",
+                        DimGroupColumn.Left,
+                        Plain(
+                            DimFieldKind.Choice,
+                            "When space is short, move",
+                            "Dimatfit",
+                            C(
+                                "Either the text or the arrows, whichever fits best",
+                                3,
+                                "The arrows",
+                                1,
+                                "The text",
+                                2,
+                                "Both the text and the arrows",
+                                0
+                            )
+                        )
+                    )
+                ),
+                Stacked(
+                    Group(
+                        "Text placement",
+                        DimGroupColumn.Left,
+                        Plain(
+                            DimFieldKind.Choice,
+                            "When text is not at the default position",
+                            "Dimtmove",
+                            C(
+                                "Beside the dimension line",
+                                0,
+                                "Over the dimension line, with a leader",
+                                1,
+                                "Over the dimension line, without a leader",
+                                2
+                            )
+                        )
+                    )
+                ),
+                Group(
+                    "Scale for dimension features",
+                    DimGroupColumn.Right,
+                    Plain(DimFieldKind.Flag, "Annotative", CadDimStyleEditor.AnnotativeKey),
+                    Plain(DimFieldKind.Number, "Overall scale", "Dimscale", null, () =>
+                        !Flag(CadDimStyleEditor.AnnotativeKey)
+                    )
+                ),
+                Group(
+                    "Fine tuning",
+                    DimGroupColumn.Right,
+                    Plain(DimFieldKind.Flag, "Place text manually", "Dimupt"),
+                    Plain(DimFieldKind.Flag, "Draw dim line between ext lines", "Dimtofl")
+                )
+            );
+
+            AddTab(
+                "Primary units",
+                Group(
+                    "Linear dimensions",
+                    DimGroupColumn.Left,
+                    Plain(DimFieldKind.Choice, "Unit format", "Dimlunit", Units()),
+                    Plain(DimFieldKind.Choice, "Precision", "Dimdec", Precision()),
+                    Plain(
+                        DimFieldKind.Choice,
+                        "Fraction format",
+                        "Dimfrac",
+                        C("Horizontal", 0, "Diagonal", 1, "Not stacked", 2),
+                        () => Fractions
+                    ),
+                    Plain(
+                        DimFieldKind.Choice,
+                        "Decimal separator",
+                        "Dimdsep",
+                        C(". (Period)", '.', ", (Comma)", ',', "  (Space)", ' ')
+                    ),
+                    Plain(DimFieldKind.Number, "Round off", "Dimrnd"),
+                    Affix("Dimpost")
+                ),
+                Group("Measurement scale", DimGroupColumn.Left, Plain(DimFieldKind.Number, "Scale factor", "Dimlfac")),
+                Group("Zero suppression", DimGroupColumn.Left, Zeros("Dimzin", false)),
+                Group(
+                    "Angular dimensions",
+                    DimGroupColumn.Right,
+                    Plain(
+                        DimFieldKind.Choice,
+                        "Units format",
+                        "Dimaunit",
+                        C("Decimal degrees", 0, "Degrees minutes seconds", 1, "Gradians", 2, "Radians", 3)
+                    ),
+                    Plain(DimFieldKind.Choice, "Precision", "Dimadec", Precision()),
+                    Zeros("Dimazin", true)
+                )
+            );
+
+            Func<bool> alternate = () => Flag("Dimalt");
+            AddTab(
+                "Alternate units",
+                Group("Display", DimGroupColumn.Left, Plain(DimFieldKind.Flag, "Display alternate units", "Dimalt")),
+                Group(
+                    "Alternate units",
+                    DimGroupColumn.Left,
+                    Plain(DimFieldKind.Choice, "Unit format", "Dimaltu", Units(), alternate),
+                    Plain(DimFieldKind.Choice, "Precision", "Dimaltd", Precision(), alternate),
+                    Plain(DimFieldKind.Number, "Multiplier for alt units", "Dimaltf", null, alternate),
+                    Plain(DimFieldKind.Number, "Round distances to", "Dimaltrnd", null, alternate),
+                    Affix("Dimapost", alternate)
+                ),
+                Group("Zero suppression", DimGroupColumn.Left, Zeros("Dimaltz", false, alternate)),
+                Group(
+                    "Placement",
+                    DimGroupColumn.Right,
+                    Field(
+                            DimFieldKind.Choice,
+                            "Alternate units shown",
+                            "DIMPOST",
+                            () => Words("Dimpost").EndsWith(Below, StringComparison.Ordinal) ? "Below" : "After",
+                            v =>
+                            {
+                                string post = Unmarked(Words("Dimpost"));
+                                Put("Dimpost", (string)v == "Below" ? post + Below : post);
+                            },
+                            C("After primary value", "After", "Below primary value", "Below"),
+                            alternate,
+                            "DIMPOST \\X"
+                        )
+                        .WithKey("DIMPOST\\X")
+                )
+            );
 
             Func<bool> tolerance = () => Method != "None";
-            _tabs["Tolerances"] = new[]
-            {
-                Header("Tolerance format"),
-                Field(
-                    DimFieldKind.Choice,
-                    "Method",
-                    "DIMTOL",
-                    () => Method,
-                    v =>
-                    {
-                        string method = (string)v;
-                        Put("Dimlim", method == "Limits");
-                        Put("Dimtol", method == "Symmetrical" || method == "Deviation");
-
-                        if (method == "Symmetrical")
+            AddTab(
+                "Tolerances",
+                Group(
+                    "Tolerance format",
+                    DimGroupColumn.Left,
+                    Field(
+                        DimFieldKind.Choice,
+                        "Method",
+                        "DIMTOL",
+                        () => Method,
+                        v =>
                         {
-                            Put("Dimtm", Real("Dimtp"));
-                        }
-                    },
-                    C("None", "None", "Symmetrical", "Symmetrical", "Deviation", "Deviation", "Limits", "Limits"),
-                    null,
-                    "DIMTOL · DIMLIM"
-                ),
-                Plain(DimFieldKind.Choice, "Precision", "Dimtdec", Precision(), tolerance),
-                Field(
-                    DimFieldKind.Number,
-                    "Upper value",
-                    "DIMTP",
-                    () => Get("Dimtp"),
-                    v =>
-                    {
-                        bool symmetrical = Method == "Symmetrical";
-                        Put("Dimtp", v);
+                            string method = (string)v;
+                            Put("Dimlim", method == "Limits");
+                            Put("Dimtol", method == "Symmetrical" || method == "Deviation");
 
-                        if (symmetrical)
+                            if (method == "Symmetrical")
+                            {
+                                Put("Dimtm", Real("Dimtp"));
+                            }
+                        },
+                        C("None", "None", "Symmetrical", "Symmetrical", "Deviation", "Deviation", "Limits", "Limits"),
+                        null,
+                        "DIMTOL · DIMLIM"
+                    ),
+                    Plain(DimFieldKind.Choice, "Precision", "Dimtdec", Precision(), tolerance),
+                    Field(
+                        DimFieldKind.Number,
+                        "Upper value",
+                        "DIMTP",
+                        () => Get("Dimtp"),
+                        v =>
                         {
-                            Put("Dimtm", v);
-                        }
-                    },
-                    null,
-                    tolerance
+                            bool symmetrical = Method == "Symmetrical";
+                            Put("Dimtp", v);
+
+                            if (symmetrical)
+                            {
+                                Put("Dimtm", v);
+                            }
+                        },
+                        null,
+                        tolerance
+                    ),
+                    Plain(DimFieldKind.Number, "Lower value", "Dimtm", null, () =>
+                        Method == "Deviation" || Method == "Limits"
+                    ),
+                    Plain(DimFieldKind.Number, "Scaling for height", "Dimtfac", null, tolerance),
+                    Plain(
+                        DimFieldKind.Choice,
+                        "Vertical position",
+                        "Dimtolj",
+                        C("Bottom", 0, "Middle", 1, "Top", 2),
+                        tolerance
+                    )
                 ),
-                Plain(DimFieldKind.Number, "Lower value", "Dimtm", null, () =>
-                    Method == "Deviation" || Method == "Limits"
-                ),
-                Plain(DimFieldKind.Number, "Scaling for height", "Dimtfac", null, tolerance),
-                Plain(
-                    DimFieldKind.Choice,
-                    "Vertical position",
-                    "Dimtolj",
-                    C("Bottom", 0, "Middle", 1, "Top", 2),
-                    tolerance
-                ),
-                Zeros("Dimtzin", false, tolerance),
-            };
+                Group("Tolerance zero suppression", DimGroupColumn.Left, Zeros("Dimtzin", false, tolerance))
+            );
         }
 
         /// <summary>The description of a tab, in the design's words, from the variables set.</summary>

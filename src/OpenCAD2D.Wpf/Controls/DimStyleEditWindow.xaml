@@ -4,9 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:OpenCAD2D.Wpf"
     Title="Dimension Style"
-    Width="960"
+    Width="860"
     Height="660"
-    MinWidth="960"
+    MinWidth="860"
     MinHeight="660"
     WindowStyle="None"
     ResizeMode="CanResizeWithGrip"
@@ -129,43 +129,59 @@
                 </ItemsControl>
             </Border>
 
-            <Grid Margin="16,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.2*" MinWidth="470" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" MinWidth="432" />
-                </Grid.ColumnDefinitions>
-
-                <!-- The fields of the tab shown, by groups; a row marks itself while the preview shows it. -->
-                <ScrollViewer x:Name="FieldsScroll" VerticalScrollBarVisibility="Auto">
+            <!--
+            The tab shown, in group boxes as AutoCAD lays it out: the preview at the top right (300 wide) with the right column's
+            boxes under it, the left column's boxes beside it, the wide boxes across the width, then the description of the tab
+            and what OK does. It scrolls where the window is too short.
+            -->
+            <ScrollViewer x:Name="FieldsScroll" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="TabBody" Margin="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="300" />
+                        </Grid.ColumnDefinitions>
+                        <ItemsControl
+                            x:Name="LeftGroups"
+                            VerticalAlignment="Top"
+                            ItemsSource="{Binding LeftGroups}"
+                            ItemTemplate="{StaticResource DimGroupTemplate}"
+                            Focusable="False"
+                        />
+                        <StackPanel Grid.Column="2">
+                            <local:StylePreviewPanel
+                                Title="{Binding PreviewTitle}"
+                                Model="{Binding PreviewModel}"
+                                Height="220"
+                                Margin="0,0,0,10"
+                            />
+                            <ItemsControl
+                                x:Name="RightGroups"
+                                ItemsSource="{Binding RightGroups}"
+                                ItemTemplate="{StaticResource DimGroupTemplate}"
+                                Focusable="False"
+                            />
+                        </StackPanel>
+                    </Grid>
                     <ItemsControl
-                        x:Name="FieldsList"
-                        Margin="6,0,0,0"
-                        ItemsSource="{Binding Fields}"
-                        ItemTemplate="{StaticResource DimFieldTemplate}"
+                        x:Name="WideGroups"
+                        ItemsSource="{Binding WideGroups}"
+                        ItemTemplate="{StaticResource DimGroupTemplate}"
                         Focusable="False"
                     />
-                </ScrollViewer>
-
-                <!-- The preview over its toolbar, the description of the tab and what OK does. -->
-                <Grid Grid.Column="2">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" MinHeight="372" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <local:StylePreviewPanel
-                        Title="{Binding PreviewTitle}"
-                        Model="{Binding PreviewModel}"
-                        Margin="0,0,0,6"
-                    />
-                    <Border Grid.Row="1" Style="{StaticResource StyleFrame}" Margin="0,0,0,8">
-                        <StackPanel>
-                            <TextBlock Text="Description" Foreground="{StaticResource GhTextMuted}" />
+                    <Border Style="{StaticResource StyleFrame}" Margin="0,0,0,8">
+                        <DockPanel>
+                            <TextBlock
+                                DockPanel.Dock="Left"
+                                Text="Description"
+                                Margin="0,0,8,0"
+                                Foreground="{StaticResource GhTextMuted}"
+                            />
                             <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
-                        </StackPanel>
+                        </DockPanel>
                     </Border>
-                    <Border Grid.Row="2" Style="{StaticResource StyleFrame}">
+                    <Border Style="{StaticResource StyleFrame}">
                         <DockPanel>
                             <Ellipse
                                 DockPanel.Dock="Left"
@@ -182,8 +198,8 @@
                             />
                         </DockPanel>
                     </Border>
-                </Grid>
-            </Grid>
+                </StackPanel>
+            </ScrollViewer>
         </DockPanel>
     </Border>
 </Window>
