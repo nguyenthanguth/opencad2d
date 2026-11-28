@@ -2043,7 +2043,7 @@ the Data, each look a cell does not give of its own; where the table or its styl
 the header, and where the header is left out too, every row is data, as AutoCAD 2021 reads such a table.
 -TABLE asks the columns, the rows of data and the point (Style, Width, Height) on the command line, and TABLEDIT a cell
 to type in; a double click or F2 on a cell runs it. TABLESTYLE (TS) shows the Table Style dialog
-([`CadTableStyleEditor`](xref:OpenCAD2D.CadTableStyleEditor)); a style changed draws its tables anew. The Format of a cell style in the Modify Table Style dialog opens the Table Cell Format dialog and keeps the kind of data, its unit and the format string in the style (`DxfTableStyle.DataType`, `SetDataType`, `Format` and `SetFormat`, groups 90, 91 and 1 of each cell style, written by a file of AutoCAD 2007 or later); the starting table and the type of a cell style stay grey. A
+([`CadTableStyleEditor`](xref:OpenCAD2D.CadTableStyleEditor)); a style changed draws its tables anew. A double click on a style in the list of the Table Style dialog, as in the Text Style, Dimension Style, Multileader Style and Multiline Style dialogs, makes it current, as Set Current does; Modify… is its own button. The Format of a cell style in the Modify Table Style dialog opens the Table Cell Format dialog and keeps the kind of data, its unit and the format string in the style (`DxfTableStyle.DataType`, `SetDataType`, `Format` and `SetFormat`, groups 90, 91 and 1 of each cell style, written by a file of AutoCAD 2007 or later); the starting table and the type of a cell style stay grey. A
 click in a cell selects it with the Table Cell tab ([`CadTableEditor`](xref:OpenCAD2D.CadTableEditor)):
 rows and columns put in and taken out, cells merged and unmerged, their alignment, fill and borders, the arrows moving
 the cell and Delete emptying it, each one undo step that draws the table anew in its block. A number typed in a cell is
@@ -2255,7 +2255,7 @@ in a sum and is left out of an average and a count.
 
 MLEADERSTYLE (MLS), and the last item of the multileader style box of the Annotate tab, show the Multileader Style
 Manager ([`CadMLeaderStyleEditor`](xref:OpenCAD2D.CadMLeaderStyleEditor)): Set Current, New…, Modify…
-and Delete, which is refused for Standard, the current style and a style a multileader is drawn in. A drawing of no
+and Delete, which is refused for Standard, the current style and a style a multileader is drawn in. A double click on a style makes it current. A drawing of no
 multileader style is given Standard first, metric: arrows 2.5, a break of 3.75, a landing of 8, text 2.5 high and a
 landing gap of 2. Modify writes the Leader Format, Leader Structure and Content tabs into the drawing's MLEADERSTYLE and
 gives every multileader of the style its values, those it has of its own kept: a style's text made 2.5 high leaves a

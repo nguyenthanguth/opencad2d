@@ -6,7 +6,7 @@ namespace OpenCAD2D.Wpf
 {
     /// <summary>
     /// AutoCAD's Dimension Style Manager (DIMSTYLE), as the design lays it out, dark as the window's other dialogs. Its logic is
-    /// <see cref="DimStyleManagerViewModel"/>; New, Modify (and a double click on a style) and Override open
+    /// <see cref="DimStyleManagerViewModel"/>; New, Modify and Override open
     /// <see cref="DimStyleEditWindow"/>, Compare <see cref="DimStyleCompareWindow"/>; Rename and Delete are on the list's menu.
     /// </summary>
     public partial class DimStyleManagerWindow : Window
@@ -49,16 +49,17 @@ namespace OpenCAD2D.Wpf
             }
         }
 
-        /// <summary>A double click on a style modifies it, as the foot of the dialog says.</summary>
+        /// <summary>A double click on a row makes its style current, as the foot of the dialog says; Modify… is its button.</summary>
         private void OnStyleDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (
                 e.ChangedButton == MouseButton.Left
+                && StyleDialogs.IsOnRow(sender, e)
                 && Model.SelectedStyle != null
-                && Model.ModifyCommand.CanExecute(null)
+                && Model.SetCurrentCommand.CanExecute(null)
             )
             {
-                Model.ModifyCommand.Execute(null);
+                Model.SetCurrentCommand.Execute(null);
             }
         }
     }

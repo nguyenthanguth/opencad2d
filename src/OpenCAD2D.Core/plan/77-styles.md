@@ -31,9 +31,9 @@ undo step." Footer: "Current style: X · N styles", Cancel, Apply, Close.
 
 Title "Dimension style manager · file". Styles (current ticked, MODEL beside GH_MODEL_ styles), "List: All styles", the
 preview and its description ("ISO-25 · arrows closed filled 2.5 · text 2.5 above the line · overall scale 1 · Used by 38
-dimensions."), the GH_MODEL notice where the drawing has such a style, Set current, New…, Modify… (also a double click),
+dimensions."), the GH_MODEL notice where the drawing has such a style, Set current (also a double click on a style), New…, Modify…,
 Override…, Compare…; Rename and Delete on the list's right-click menu (the board has no buttons for them). Footer "N styles
-· double-click a style to modify it", Close.
+· double-click a style to make it current", Close.
 
 ## Modify, New and Override dialogs
 
