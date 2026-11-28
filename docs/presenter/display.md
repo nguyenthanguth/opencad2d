@@ -766,7 +766,13 @@ space: the letters of an SHX word and the frame they stand in, the picture of a 
 scaled and turned, the columns of an MTEXT, the width of a wide polyline, the lines of a hatch. An entity that draws nothing (a
 layer off, no words) has no row. One box is not the list's: a TEXT in a TrueType font is drawn with a width the display only guesses
 (0.6 of the height a letter), and its box is measured by the letters of the font file instead, as an MTEXT run is: "iiiiiiiiii"
-10 high in Arial is 31 wide and "WWWWWWWWWW" 132, where the guess is 60 for both.
+10 high in Arial is 31 wide and "WWWWWWWWWW" 132, where the guess is 60 for both. The guess is dropped for a TEXT of Korean,
+Chinese or Japanese letters (Hangul, Han, kana and full-width forms, the Han past the first plane included), a full em wide, an
+em being 1 / 0.72 of the height: the display takes the advances of the font file, brought to the canvas's as an MTEXT run's are, or
+the canvas's measure where the file is not read, so that such a TEXT, and an MTEXT of them, is picked, hovered and crossed across
+the whole of a line. The same width is that of the QTEXT box, the grey ground of a field, the frame TEXTALIGN sets texts by, the
+extents of the space, the width MIRROR turns a centred TEXT about with MIRRTEXT 0, and the box of the Remote and JSON export; an
+MTEXT run in a face whose file is not read has its width from the canvas's measure in all of them.
 
 The `box` of an entity in the [JSON export](remote.md#the-drawing-as-json-and-as-a-graph) is this box, in millimetres, for an entity
 that stands in a space; a piece of a block reference, which the display list holds no box of apart from its reference's, and an entity

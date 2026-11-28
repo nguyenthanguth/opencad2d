@@ -4,6 +4,17 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 
 ## Unreleased
 
+- **FIXED.** An MTEXT of Korean (or Chinese, Japanese) words could be hovered, picked and crossed only over the left part of
+  its lines. A run in a TrueType font whose file the core does not read (Gulim and Batang are `.ttc` collections) was given a pick
+  box of 0.6 of its height a letter, where the canvas draws a Hangul syllable a full em wide, an em being 1 / 0.72 of the height
+  (about 1.39, a box 2.3 times too narrow for a line of syllables): a point or a crossing window over the right of a line found
+  nothing. The box now takes the width the layout set the run by. A TEXT or ATTRIB of such letters (Hangul, Han including the
+  letters past the first plane, kana, full-width forms) in a TrueType font had the same guess and is measured the same way, by the
+  file's advances brought to the canvas's (as an MTEXT run is) or by the canvas's measure where the file is not read; words of other
+  letters keep the guess. The width reaches beyond picking: the box of a QTEXT, the grey ground of a field, the frame TEXTALIGN
+  sets texts by, the width MIRROR turns a centred TEXT about with MIRRTEXT 0, the extents that ZOOM Extents fits and the list reports, and the
+  `box` of the Remote and JSON export are those of the new width for such a TEXT, and for any MTEXT run in a face whose file is
+  not read.
 - **NEW.** Remote `drawing.GetLayouts()`, `drawing.GetLinetypes()` and `drawing.GetBlocks()` (the requests `layoutDetails`,
   `linetypeDetails` and `blockSummaries`): the layouts in tab order with paper name, size, units (`millimetres`, `inches` or `pixels`),
   plot rotation, entity count, current/model flags and each paper-space viewport's frame, view centre, height, scale and frozen layers;
