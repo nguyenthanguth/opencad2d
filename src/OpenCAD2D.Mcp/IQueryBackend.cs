@@ -32,8 +32,8 @@ namespace OpenCAD2D.Mcp
 
     /// <summary>
     /// What the read and query tools ask of a drawing beyond <see cref="IDrawingBackend"/>: one entity by handle, the Properties
-    /// palette, the entities in an area, LIST, a copy to read the rare tables from, a system variable set and the snapshots. Both
-    /// backends give it, the file by the engine and the app through its Remote API.
+    /// palette, the entities in an area, LIST, the table and layout lists, a system variable set and the snapshots. Both backends
+    /// give it, the file by the engine and the app through its Remote API.
     /// </summary>
     internal interface IQueryBackend
     {
@@ -63,11 +63,14 @@ namespace OpenCAD2D.Mcp
         /// <summary>The lines LIST writes for the handles.</summary>
         IReadOnlyList<string> ListLines(IReadOnlyList<string> handles);
 
-        /// <summary>
-        /// A document to read what has no request of its own (layouts, block definitions): the drawing's
-        /// own for a file, a copy of the app's drawing, changes not saved included, for the app. Read it; never change it.
-        /// </summary>
-        CadDocument ReadDocument();
+        /// <summary>The layouts of the drawing in tab order, Model first: the drawing file's own, or an app's asked for with no copy of its drawing.</summary>
+        IReadOnlyList<LayoutInfo> LayoutInfos();
+
+        /// <summary>The linetypes of the drawing, by name: the drawing file's own, or an app's asked for with no copy of its drawing.</summary>
+        IReadOnlyList<LinetypeInfo> LinetypeInfos();
+
+        /// <summary>The blocks of the drawing that an INSERT can place, by name: the drawing file's own, or an app's asked for with no copy of its objects.</summary>
+        IReadOnlyList<BlockInfo> BlockInfos();
 
         /// <summary>The multileader styles of the drawing, by name: the drawing file's own, or an app's asked for with no copy of its drawing.</summary>
         IReadOnlyList<MLeaderStyleInfo> MLeaderStyles();

@@ -4,6 +4,14 @@ Older versions, from 2.0.0 back, are in [CHANGELOG-ARCHIVE.md](CHANGELOG-ARCHIVE
 
 ## Unreleased
 
+- **NEW.** Remote `drawing.GetLayouts()`, `drawing.GetLinetypes()` and `drawing.GetBlocks()` (the requests `layoutDetails`,
+  `linetypeDetails` and `blockSummaries`): the layouts in tab order with paper name, size, units (`millimetres`, `inches` or `pixels`),
+  plot rotation, entity count, current/model flags and each paper-space viewport's frame, view centre, height, scale and frozen layers;
+  the linetypes with description, pattern length and dashes; and the insertable blocks with their entity counts (layouts, anonymous
+  blocks, external references and `xref|block` records left out), all without copying the drawing or every block's objects.
+- **CHANGED.** MCP attached to an app: `list_layouts`, `list_linetypes` and `list_blocks` ask the app for those summaries alone instead of
+  copying the whole drawing (`GetDatabase`) or every block's objects (`Blocks`); `list_blocks` leaves external references and
+  xref-dependent blocks out in both modes, so file and app modes give the same rows.
 - **NEW.** Remote `drawing.GetMultileaderStyles()` and `drawing.GetTableStyles()` (the request `annotationStyles`): the settings of each
   multileader style (text style and height, arrowhead and size, landing length and gap, scale, annotative, current) and table style (text
   style, title, header and data heights, margins, current), sorted by name, without a copy of the drawing. A multileader or a table read

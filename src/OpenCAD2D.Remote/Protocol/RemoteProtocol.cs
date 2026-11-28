@@ -67,6 +67,18 @@ namespace OpenCAD2D.Remote
         /// <summary>The multileader styles and the table styles of a drawing, as lists of their settings.</summary>
         public const string AnnotationStyles = "annotationStyles";
 
+        /// <summary>The layouts of a drawing in tab order, with their sheet settings, entity counts and viewports.</summary>
+        public const string LayoutDetails = "layoutDetails";
+
+        /// <summary>The linetypes of a drawing, by name, with their descriptions, pattern lengths and dashes.</summary>
+        public const string LinetypeDetails = "linetypeDetails";
+
+        /// <summary>
+        /// The blocks of a drawing an INSERT can place (no layout, anonymous block, external reference or xref-dependent block),
+        /// by name, with the entity count of each.
+        /// </summary>
+        public const string BlockSummaries = "blockSummaries";
+
         /// <summary>The blocks of a drawing that are no layout and not anonymous, in a fragment, with the names in order.</summary>
         public const string Blocks = "blocks";
 
