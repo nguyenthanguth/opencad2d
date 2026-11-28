@@ -158,7 +158,14 @@ split out of the GeometryHelper repository (`D:\GitHub\GeometryHelper`) in Novem
       CI leaves them out by name, which misses some (VlSort_..._WithinAHundredMilliseconds failed on the hosted runner on
       039bf014). Give every timing test a [Trait("Category", "Timing")] (the SpeedGuard users and the Stopwatch asserts),
       put them in ViewerSpeedCollection, and let CI filter Category!=Timing.
-- [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3.
+- [x] N7 DONE 2026-11-28. The maintainer's reports in .reports (each reviewed, full check green): Esc after a
+      LISP routine's DCL dialog (his E1); Korean MTEXT/TEXT picked over all they draw; double-click = Set Current in
+      the style dialogs and no white line on frameless style windows; the DRAWINGS panel's open-only toggle; the
+      Modify Dimension Style tabs in group boxes as AutoCAD; small text as bars when zoomed out (SMALLTEXTBARS).
+      The maintainer to look at in the real app: E1 + Esc, the Korean MTEXT, the dimension style window's preview.
+- [ ] N4. The maintainer's checks (see "Left to the maintainer") and the review of everything; the website W1-W3
+      (W1.1 and the static pages done 2026-11-28, live at opencad2d.com; plan in opencad2d-website/ROADMAP.md;
+      W1.2 waits on the D1 database id).
 
 State at the end of 2026-11-27 morning: main a778e0e4 pushed, GitHub Actions green (OpenCAD2D, Docs), GeometryHelper
 13.15.0 at cf1db73e pushed and in Lib. The full check of CLAUDE.md (incl. the Mcp suite) is green; the timing test classes

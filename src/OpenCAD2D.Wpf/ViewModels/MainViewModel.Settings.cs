@@ -164,6 +164,7 @@ namespace OpenCAD2D.Wpf
         /// <exception cref="ArgumentNullException">Thrown when the settings are null.</exception>
         public void ApplySettings(GlobalSettings settings)
         {
+            bool openOnly = _settings.DrawingsShowOpenOnly;
             _settings = (settings ?? throw new ArgumentNullException(nameof(settings))).Clone();
             ApplySheetSetOptions();
             UseLoadSecuritySettings();
@@ -209,6 +210,13 @@ namespace OpenCAD2D.Wpf
 
             SetCursor(0.0, 0.0);
             RebuildRecent();
+
+            // Settings read from the file, or reset to their defaults, may turn the open drawings view on or off.
+            if (openOnly != _settings.DrawingsShowOpenOnly)
+            {
+                RaiseDrawingsView();
+            }
+
             Raise(nameof(Settings));
             Raise(nameof(GridStyle));
             SettingsApplied?.Invoke(this, EventArgs.Empty);

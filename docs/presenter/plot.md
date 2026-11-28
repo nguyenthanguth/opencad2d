@@ -441,7 +441,7 @@ opening (the canvas's measure of TrueType letters, the fonts and the default lin
 before; every other member calls it.
 
 An SVG is the PNG in vectors at the picture's size, so it keeps the screen's level of detail: an item under half a pixel is one
-dot, a text under 3 pixels high is left out, a hatch whose lines are closer than 2 pixels is a tint. A PDF is the plot of
+dot, a text under 5 pixels high is a solid bar of its colour, a hatch whose lines are closer than 2 pixels is a tint. A PDF is the plot of
 EXPORTPDF, the page setup of the layout (a drawing with no page setup plots at what its file says, a bare DXF made in code at
 1 unit to the inch), at full detail. One picture is drawn at a time in a process.
 

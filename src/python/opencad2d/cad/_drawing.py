@@ -2719,7 +2719,7 @@ class Drawing:
     ) -> None:
         """Draw the drawing to an SVG file: the picture ``render_png`` makes, in vectors, its ``width`` and ``height`` the pixels of
         that picture and its ``viewBox`` the same, images inlined as PNG data. It is drawn by the renderer of the canvas, so it keeps
-        the canvas's level of detail at that size: an item under half a pixel is one dot, a text under 3 pixels high is left out and
+        the canvas's level of detail at that size: an item under half a pixel is one dot, a text under 5 pixels high is a solid bar of its colour and
         a hatch whose lines come closer than 2 pixels is a tint. ``render_pdf`` is the form with every detail. The arguments and
         the refusals are those of ``render_png``.
 
@@ -2812,8 +2812,8 @@ class Drawing:
         ``"blocks"`` 5), by what the item is and the kind of its entity: letters and everything of a TEXT, MTEXT or attribute
         are words, the lines and arrowheads of a DIMENSION dimensions, the pattern and fill of a HATCH, SOLID or TRACE
         and the frame of a WIPEOUT hatches (a wipeout's fill blanks what is under it, as in the picture, and is 0), and the rest lines. With ``"blocks"`` among the classes every item of an INSERT is class 5; without it
-        a block's pieces are classed by what they are. A pixel of a class not asked for is 0, as is the ground. A text under 3
-        pixels high, as in the picture, is left out; the paper of a layout, the frame of a viewport and raster images are not
+        a block's pieces are classed by what they are. A pixel of a class not asked for is 0, as is the ground. A text under 5
+        pixels high is a bar, as in the picture; the paper of a layout, the frame of a viewport and raster images are not
         labelled. Letters are drawn by the font's monochrome rasteriser, so a letter's pixels can sit a pixel off the antialiased
         picture's. The result is a ``RenderMasks``. Needs numpy; it works on a drawing of the app as ``render_png`` does; the other
         refusals are those of ``render_png``, and an empty ``classes`` or a name that is none of the five a ``ValueError``.

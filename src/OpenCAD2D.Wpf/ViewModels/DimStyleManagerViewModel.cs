@@ -292,11 +292,11 @@ namespace OpenCAD2D.Wpf
         /// <summary>Gets the title over the preview: "Preview of ISO-25".</summary>
         public string PreviewTitle => "Preview of " + _selected?.Name;
 
-        /// <summary>Gets the line at the foot: "5 styles · double-click a style to modify it".</summary>
+        /// <summary>Gets the line at the foot: "5 styles · double-click a style to make it current".</summary>
         public string Footer =>
             Styles.Count.ToString(CultureInfo.InvariantCulture)
             + (Styles.Count == 1 ? " style" : " styles")
-            + " · double-click a style to modify it";
+            + " · double-click a style to make it current";
 
         /// <summary>Gets whether the notice says why an edit was refused, drawn as a warning.</summary>
         public bool IsNoticeWarning => _notice.Length > 0;

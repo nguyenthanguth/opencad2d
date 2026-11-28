@@ -56,6 +56,7 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button
                     x:Name="FitButton"
+                    IsTabStop="False"
                     Style="{StaticResource GhDialogButton}"
                     Content="Fit"
                     Padding="8,2"

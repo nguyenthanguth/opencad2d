@@ -1,5 +1,7 @@
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace OpenCAD2D.Wpf
 {
@@ -9,6 +11,15 @@ namespace OpenCAD2D.Wpf
     /// </summary>
     public static class StyleDialogs
     {
+        /// <summary>Whether a mouse event came from a row of the list it was raised on, and not from the empty area under the rows or the scroll bar.</summary>
+        /// <param name="sender">The list the event was raised on.</param>
+        /// <param name="e">The mouse event.</param>
+        /// <returns>True when the event's source is inside a row.</returns>
+        internal static bool IsOnRow(object sender, MouseEventArgs e) =>
+            sender is ItemsControl list
+            && e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(list, source) != null;
+
         /// <summary>Shows a style dialog over the drawing shown; nothing with no drawing.</summary>
         /// <param name="owner">The window it is shown over.</param>
         /// <param name="model">The window's view model.</param>

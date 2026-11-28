@@ -3416,8 +3416,82 @@ namespace OpenCAD2D
                 backward,
                 marks
             );
+            MeasureTrueType(shown, FaceOf(read.TextStyleName));
             shown.IsQuick = _quick;
             list.Add(shown);
+        }
+
+        /// <summary>
+        /// Gives a text of Korean, Chinese or Japanese letters drawn in a TrueType font the width of its widest line as its
+        /// letters are set, by the file's advances or the canvas's measure, in place of 0.6 of its height a letter: those
+        /// letters are a full em wide, so that the guess leaves the right of a line to be neither picked nor crossed. The
+        /// words of other letters keep the guess, which AutoCAD's own rows of TEXTALIGN are matched with; an SHX text is
+        /// measured by its strokes already.
+        /// </summary>
+        private static void MeasureTrueType(DisplayText2 shown, CadFontFace face)
+        {
+            string words = shown.Text;
+
+            if (face.Shx != null || !HasFullWidth(words))
+            {
+                return;
+            }
+
+            CadTextInk ink = CadTextInk.Of(face, false, false);
+            double widest = 0.0;
+            double line = 0.0;
+            int at = 0;
+
+            while (at < words.Length)
+            {
+                if (words[at] == '\n')
+                {
+                    widest = Math.Max(widest, line);
+                    line = 0.0;
+                    at++;
+                }
+                else
+                {
+                    line += ink.Next(words, ref at).Advance;
+                }
+            }
+
+            widest = Math.Max(widest, line);
+
+            if (widest > 0.0)
+            {
+                // The canvas sets the letters of a file it reads by its own measure, which the file's advances are brought to as MTEXT
+                // draws its runs (CadTextInk.DrawFactor, 1 where the face is not read).
+                shown.SetMeasure(widest * shown.Height * shown.WidthFactor / ink.DrawFactor, 0.0);
+            }
+        }
+
+        /// <summary>Whether the words have a letter that is a full em wide: Hangul, Han (the extensions B to G, past the first plane, among them), kana or a full-width form.</summary>
+        private static bool HasFullWidth(string words)
+        {
+            for (int i = 0; i < words.Length; i++)
+            {
+                int c = words[i];
+
+                if (char.IsHighSurrogate(words[i]) && i + 1 < words.Length && char.IsLowSurrogate(words[i + 1]))
+                {
+                    c = char.ConvertToUtf32(words[i], words[i + 1]);
+                    i++;
+                }
+
+                if (
+                    (c >= 0x1100 && c <= 0x11FF)
+                    || (c >= 0x2E80 && c <= 0xD7FF)
+                    || (c >= 0xF900 && c <= 0xFAFF)
+                    || (c >= 0xFF00 && c <= 0xFFEF)
+                    || (c >= 0x20000 && c <= 0x3FFFF)
+                )
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -3493,7 +3567,8 @@ namespace OpenCAD2D
 
         /// <summary>
         /// The width the display gives the words of a text (<see cref="DisplayText2.EstimatedWidth"/>), in the text's own units:
-        /// by the advances of its SHX font's letters, else 0.6 of its height a letter; nought for a text of no words.
+        /// by the advances of its SHX font's letters, or of its TrueType font's where it is of Korean, Chinese or Japanese letters
+        /// (<see cref="MeasureTrueType"/>), else 0.6 of its height a letter; nought for a text of no words.
         /// </summary>
         internal double WidthOf(DxfDBText text)
         {
@@ -3504,8 +3579,9 @@ namespace OpenCAD2D
                 return 0.0;
             }
 
-            return Text(
-                FaceOf(text.TextStyleName),
+            CadFontFace face = FaceOf(text.TextStyleName);
+            DisplayText2 shown = Text(
+                face,
                 value,
                 0.0,
                 0.0,
@@ -3519,7 +3595,9 @@ namespace OpenCAD2D
                 null,
                 text.Oblique,
                 false
-            ).EstimatedWidth;
+            );
+            MeasureTrueType(shown, face);
+            return shown.EstimatedWidth;
         }
 
         /// <summary>Whether the display draws a text in an SHX font.</summary>

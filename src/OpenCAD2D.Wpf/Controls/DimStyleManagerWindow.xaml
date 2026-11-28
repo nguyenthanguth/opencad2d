@@ -76,7 +76,7 @@
                     <ColumnDefinition Width="130" />
                 </Grid.ColumnDefinitions>
 
-                <!-- The styles: the current one marked; double-click modifies; the filter below. -->
+                <!-- The styles: the current one marked; double-click makes it current; the filter below. -->
                 <DockPanel Grid.Column="0">
                     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
                         <TextBlock
