@@ -168,7 +168,7 @@ namespace OpenCAD2D
         /// draws it: the picture <see cref="Draw"/> makes for the same options, as labels for training a vision model. It is the
         /// renderer of the canvas, drawing each item in the colour that is its id with no antialiasing, in the order the drawing draws
         /// them, so what is on top in the picture is on top in the labels; a pixel is of one entity and one class, exactly. A text
-        /// under 3 pixels high, as in the picture, is left out; the paper of a layout, the frame of a viewport and raster images are not
+        /// under 5 pixels high is a bar, as in the picture; the paper of a layout, the frame of a viewport and raster images are not
         /// labelled. The classes are those of <see cref="CadLabelClass"/>. An INSERT's items are classed by what they are unless
         /// blocks are asked for, when all of them are class 5. The ground option has no effect: the ground is class 0.
         /// </summary>
@@ -231,7 +231,7 @@ namespace OpenCAD2D
         /// Draws a space of a drawing to an SVG file, replacing a file of the name: the picture of <see cref="WritePng"/> in
         /// vectors, its <c>width</c> and <c>height</c> the pixels of the picture, the images in it as PNG data. It is drawn by
         /// the renderer of the canvas, so it keeps the canvas's level of detail at the picture's size: an item under half a
-        /// pixel is one dot, a text under 3 pixels high is left out and a hatch whose lines come closer than 2 pixels is a
+        /// pixel is one dot, a text under 5 pixels high is a solid bar of its colour and a hatch whose lines come closer than 2 pixels is a
         /// tint. The PDF of <see cref="WritePdf"/> is the full-detail form.
         /// </summary>
         /// <param name="path">The file.</param>
@@ -469,6 +469,7 @@ namespace OpenCAD2D
                 LineweightScale = settings.LineweightDisplayScale,
                 FontName = settings.DrawingFont,
                 VisibleLineColor = settings.VisibleLines,
+                SmallTextAsBars = settings.SmallTextAsBars,
             };
         }
     }

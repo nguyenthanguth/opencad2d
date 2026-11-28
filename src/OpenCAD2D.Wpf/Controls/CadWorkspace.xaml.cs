@@ -1324,6 +1324,7 @@ namespace OpenCAD2D.Wpf
             CanvasView.Options.SelectionColor = settings.Selection;
             CanvasView.Options.ShowLineWeights = _model.ShowLineWeights;
             CanvasView.Options.LineweightScale = settings.LineweightDisplayScale;
+            CanvasView.Options.SmallTextAsBars = settings.SmallTextAsBars;
             CanvasView.Options.FontName = settings.DrawingFont;
             CanvasView.WheelZoomFactor = settings.WheelZoomFactor;
             CanvasView.WheelReversed = settings.WheelZoomReversed;

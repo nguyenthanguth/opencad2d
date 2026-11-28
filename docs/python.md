@@ -1264,7 +1264,7 @@ box with a number that is not finite and a layout the drawing does not have.
   the canvas of the Release app (`--screenshot ... --canvas`) on the same file, on .NET 8 and on .NET Framework 4.8.
 - **SVG** is the picture of the PNG in vectors: its `width`, `height` and `viewBox` are the pixels of that picture, and an
   image is in it as PNG data. The renderer of the canvas draws it, so the canvas's level of detail holds at the picture's
-  size: an item under half a pixel is one dot, a text under 3 pixels high is left out and a hatch whose lines come closer than
+  size: an item under half a pixel is one dot, a text under 5 pixels high is a solid bar of its colour and a hatch whose lines come closer than
   2 pixels is a tint. Draw at a larger `width` to keep more, or use the PDF.
 - **PDF** is the plot of EXPORTPDF with every detail: one page of the layout's sheet, its scale and plot style, lines at the
   lineweights of the plot, text as text. An A3 sheet on its side is 1 190.55 by 841.89 points. A space that was never given a
@@ -1384,7 +1384,7 @@ class, as FloorPlanCAD labels a door or a window. An empty list or a name that i
 draws them (those that draw nothing included, so a number stays while the drawing does), then, on a layout, the model objects its
 viewports show. A space of more than 2 097 151 objects is refused.
 
-What is left out is what the picture leaves out: a text under 3 pixels high, and the paper of a layout, the frame of a viewport and raster
+What is left out is what the picture leaves out: the paper of a layout, the frame of a viewport and raster
 images, which have no id. Letters are drawn by the font's own monochrome rasteriser, which snaps a letter to the pixel grid, so a
 letter's pixels can sit a pixel from the antialiased picture's: every pixel of a text's mask is lit or beside a lit pixel of the picture, and
 nearly every bright pixel of the picture is in or beside the mask.

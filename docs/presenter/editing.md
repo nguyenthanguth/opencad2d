@@ -3487,6 +3487,13 @@ a drawing.
 SOLID, a trace, a wide polyline and a solid or gradient hatch by its outline. QTEXT on draws each text, MTEXT and attribute as the box that
 holds its lines, in the colour of its line, turned with it, the words and the grips kept.
 
+A text too small to read is not left out, as AutoCAD draws it: the canvas draws a text under 5 pixels high as a solid bar of its colour,
+the size of its box and never under a pixel each way, so that the lines of a sheet zoomed out to its extents still show where the words
+are. The bar is the text's frame (its height from the foot of the letters that reach below the baseline to the top of the capitals, its width as the drawing's fonts measure the words, or 0.6 of the height a letter where they do not), so it is what QTEXT draws as a box, filled; a text of several lines is a bar for each line, each as wide as its own line, ragged on the right, with a gap between the lines. One of 0.2 pixels is still a pixel of its colour. A selected one is a bar
+in the selection colour. Global settings keep the choice (`GlobalSettings.SmallTextAsBars`, on by default; Appearance, Display, "Draw text too small to read (as AutoCAD; off hides it when zoomed out)"); the variable `SMALLTEXTBARS`
+(`ON` or `OFF`, OpenCAD2D's own, with no AutoCAD counterpart) sets it, and off, a text under 3 pixels high is left out and one of 3 to 5
+pixels is drawn in its letters, as before. The pictures of PNG and SVG and the masks of Python follow the canvas; a plot and a PDF are not affected, drawing every text in its letters.
+
 **MULTIPLE** asks `Enter command name to repeat:` and starts that command again each time it ends, with the command's own prompts, until
 Esc. A name that is no command says `Unknown command "FOO".  Press F1 for help.`; a command that ends having asked nothing (REGEN), or by an
 error, ends the repetition.
@@ -4018,7 +4025,7 @@ and set where the presenter keeps it, listed in [`CadCommandRegistry.Variables`]
 |---|---|---|
 | the header of the drawing, written as AutoCAD writes it | CLAYER, CECOLOR, CELTYPE, CELWEIGHT, CETRANSPARENCY, CELTSCALE, LTSCALE, PSLTSCALE, MSLTSCALE, DIMSCALE, DIMASSOC, CMLEADERSTYLE, CTABLESTYLE, MLEADERSCALE, TEXTSIZE, TEXTSTYLE, FILLETRAD, CHAMFERA, CHAMFERB, PDMODE, PDSIZE, MIRRTEXT, SORTENTS, IMAGEFRAME, WIPEOUTFRAME, XCLIPFRAME, CANNOSCALE, INSBASE, LIMMIN, LIMMAX | one undo step |
 | the document or the session | NOMUTT (0 or 1; AutoCAD's 1 mutes the prompts of a routine's `command`, which the presenter does not: the value is kept, and TE's `(setvar 'nomutt 1)` runs), PICKSTYLE, SELECTIONCYCLING, SELECTSIMILARMODE, COPYMODE, SHOWPAGESETUPFORNEWLAYOUTS, PICKFIRST, PICKADD, ATTREQ, ATTDIA, BINDTYPE, FILEDIA, CMDDIA, PDFSHX, PEDITACCEPT, PLINETYPE, DIMCONTINUEMODE, REVCLOUDAPPROXARCLEN, REVCLOUDARCVARIANCE, REVCLOUDCREATEMODE, OFFSETDIST, OLEFRAME, OLEHIDE, OLEQUALITY | at once, no undo step |
-| the window: the status bar, the snaps and Global settings | OSMODE, POLARANG, POLARMODE, POLARADDANG, POLARDIST, SNAPTYPE, GRIDSTYLE, SNAPGRIDLEGACY, AUTOSNAP, DYNMODE, PICKBOX, GRIPSIZE, GRIPMULTIFUNCTIONAL, APERTURE, ZOOMWHEEL, TABLEINDICATOR, GRIPDYNCOLOR | at once, no undo step; kept in the settings file |
+| the window: the status bar, the snaps and Global settings | OSMODE, POLARANG, POLARMODE, POLARADDANG, POLARDIST, SNAPTYPE, GRIDSTYLE, SNAPGRIDLEGACY, AUTOSNAP, DYNMODE, PICKBOX, GRIPSIZE, GRIPMULTIFUNCTIONAL, APERTURE, ZOOMWHEEL, TABLEINDICATOR, GRIPDYNCOLOR, SMALLTEXTBARS (OpenCAD2D's own, ON or OFF) | at once, no undo step; kept in the settings file |
 | the window's toggles and snap of the drawing shown | ORTHOMODE, SNAPMODE, GRIDMODE, SNAPUNIT, GRIDUNIT, GRIDDISPLAY, SNAPBASE, SNAPANG, GRIDMAJOR, SNAPSTYL, SNAPISOPAIR | written into the drawing, as AutoCAD saves them there, and one undo step that keeps no copy of the drawing (see below) |
 | the window's lineweight toggle | LWDISPLAY | at once, no undo step; written into the drawing |
 | read only | DIMSTYLE, EXTMIN, EXTMAX, UCSNAME, UCSORG, DWGNAME, DWGPREFIX, DATE, CDATE, TDCREATE, TDUCREATE, TDUPDATE, TDUUPDATE, TDINDWG, TDUSRTIMER | |
